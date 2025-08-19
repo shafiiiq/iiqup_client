@@ -15,10 +15,10 @@ const Mechanics = () => {
   const [attendanceFilter, setAttendanceFilter] = useState('weekly');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newMechanic, setNewMechanic] = useState({
     name: '',
   });
+
 
   // Get current date and time
   useEffect(() => {
@@ -49,28 +49,16 @@ const Mechanics = () => {
     const fetchMechanics = async () => {
       try {
         setLoading(true);
-        setError(null);
-        
+        // In a real implementation:
         const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch mechanics: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error('Failed to fetch mechanics');
         const data = await response.json();
-        
-        // Make sure data.data exists and is an array
-        if (data && Array.isArray(data.data)) {
-          setMechanics(data.data);
-        } else {
-          throw new Error('Invalid data format received');
-        }
-        
+        setMechanics(data.data);
+        setLoading(false)
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching mechanics:', err);
-      } finally {
         setLoading(false);
+        console.error('Error fetching mechanics:', err);
       }
     };
 
@@ -80,7 +68,7 @@ const Mechanics = () => {
   // Filter mechanics based on search term
   const filteredMechanics = mechanics.filter(mechanic =>
     mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mechanic.userId?.toString().includes(searchTerm)
+    mechanic.userId.toString().includes(searchTerm)
   );
 
   // Format time to AM/PM
@@ -105,35 +93,33 @@ const Mechanics = () => {
 
   // Handle add mechanic
   const handleAddMechanic = async () => {
-    if (!newMechanic.name.trim()) {
-      alert('Please enter a mechanic name');
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
-      const response = await apiRequest(
-        `${END_POINT}/mechanics/add-mechanic`,
+      // In a real implementation:
+      const response = await apiRequest(`${END_POINT}/mechanics/add-mechanic`,
         'POST',
         newMechanic
       );
-      
-      if (!response.ok) {
-        throw new Error(`Failed to add mechanic: ${response.status}`);
-      }
-      
       const data = await response.json();
-      
-      // Only add the response data
+
       setMechanics([...mechanics, data]);
+
+      // For demo
+      const newId = Math.max(...mechanics.map(m => parseInt(m._id))) + 1;
+      const mechanicToAdd = {
+        ...newMechanic,
+        _id: newId.toString(),
+        toolkits: [],
+        attendance: [],
+        overtime: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      setMechanics([...mechanics, mechanicToAdd]);
       setShowAddForm(false);
       setNewMechanic({ name: '' });
-      
     } catch (err) {
       console.error('Error adding mechanic:', err);
-      alert(`Failed to add mechanic: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
+      alert('Failed to add mechanic');
     }
   };
 
@@ -142,50 +128,30 @@ const Mechanics = () => {
     if (!window.confirm('Are you sure you want to delete this mechanic?')) return;
 
     try {
-      const response = await apiRequest(`${END_POINT}/mechanics/${id}`, 'DELETE');
-      
-      if (!response.ok) {
-        throw new Error(`Failed to delete mechanic: ${response.status}`);
-      }
-      
+      // In a real implementation:
+      await apiRequest(`${END_POINT}/mechanics/${id}`, 'DELETE');
       setMechanics(mechanics.filter(m => m._id !== id));
-      
     } catch (err) {
       console.error('Error deleting mechanic:', err);
-      alert(`Failed to delete mechanic: ${err.message}`);
+      alert('Failed to delete mechanic');
     }
   };
 
   // Handle edit mechanic
   const handleEditMechanic = async (updatedMechanic) => {
-    setIsSubmitting(true);
     try {
-      const response = await apiRequest(
-        `${END_POINT}/mechanics/update-mechanic/${updatedMechanic._id}`,
+      // In a real implementation:
+      const response = await apiRequest(`${END_POINT}/mechanics/update-mechanic/${updatedMechanic._id}`,
         'PUT',
         updatedMechanic
       );
-      
-      if (!response.ok) {
-        throw new Error(`Failed to update mechanic: ${response.status}`);
-      }
-      
       const data = await response.json();
       setMechanics(mechanics.map(m => m._id === data._id ? data : m));
       setSelectedMechanic(null);
-      
     } catch (err) {
       console.error('Error updating mechanic:', err);
-      alert(`Failed to update mechanic: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
+      alert('Failed to update mechanic');
     }
-  };
-
-  // Handle search
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Search is already handled by filteredMechanics
   };
 
   return (
@@ -196,18 +162,16 @@ const Mechanics = () => {
       </div>
 
       <div className="search-add-container">
-        <form className="search-box" onSubmit={handleSearch}>
+        <div className="search-box">
           <input
             type="text"
             placeholder="Search by name or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button type="submit" className="search-btn">Search</button>
-        </form>
-        <button className="add-btn" onClick={() => setShowAddForm(true)}>
-          Add Mechanic
-        </button>
+          <button className="search-btn">Search</button>
+        </div>
+        <button className="add-btn" onClick={() => setShowAddForm(true)}>Add Mechanic</button>
       </div>
 
       <div className="tabs-container">
@@ -240,109 +204,96 @@ const Mechanics = () => {
       {loading ? (
         <div className="loading">Loading mechanics data...</div>
       ) : error ? (
-        <div className="error-message">
-          <p>Error: {error}</p>
-          <button onClick={() => window.location.reload()}>Retry</button>
-        </div>
+        <div className="error-message">{error}</div>
       ) : (
         <div className="mechanics-content">
           {activeTab === 'details' && (
             <div className="mechanics-table-container">
-              {filteredMechanics.length === 0 ? (
-                <div className="no-data">
-                  {searchTerm ? 'No mechanics found matching your search.' : 'No mechanics found.'}
-                </div>
-              ) : (
-                <table className="mechanics-table">
-                  <thead>
-                    <tr>
-                      <th>SL No</th>
-                      <th>Name</th>
-                      <th>User ID</th>
-                      <th>Toolkits</th>
-                      <th>Actions</th>
+              <table className="mechanics-table">
+                <thead>
+                  <tr>
+                    <th>SL No</th>
+                    <th>Name</th>
+                    <th>User ID</th>
+                    <th>Toolkits</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMechanics.map((mechanic, index) => (
+                    <tr key={mechanic._id}>
+                      <td>{index + 1}</td>
+                      <td>{mechanic.name}</td>
+                      <td>{mechanic.userId}</td>
+                      <td>{mechanic.toolkits.length}</td>
+                      <td className='action-btns'>
+                        <button
+                          className="action-btn edit"
+                          onClick={() => setSelectedMechanic(mechanic)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="action-btn delete"
+                          onClick={() => handleDeleteMechanic(mechanic._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {filteredMechanics.map((mechanic, index) => (
-                      <tr key={mechanic._id}>
-                        <td>{index + 1}</td>
-                        <td>{mechanic.name}</td>
-                        <td>{mechanic.userId || 'N/A'}</td>
-                        <td>{mechanic.toolkits?.length || 0}</td>
-                        <td className='action-btns'>
-                          <button
-                            className="action-btn edit"
-                            onClick={() => setSelectedMechanic(mechanic)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="action-btn delete"
-                            onClick={() => handleDeleteMechanic(mechanic._id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 
           {activeTab === 'toolkits' && (
             <div className="toolkits-table-container">
-              {filteredMechanics.length === 0 ? (
-                <div className="no-data">No mechanics found.</div>
-              ) : (
-                <table className="toolkits-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Mechanic Name</th>
-                      <th>Toolkit Name</th>
-                      <th>Type</th>
-                      <th>Assigned On</th>
-                      <th>Toolkits</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredMechanics.map(mechanic => {
-                      const latestToolkit = mechanic.toolkits?.length > 0
-                        ? mechanic.toolkits[mechanic.toolkits.length - 1]
-                        : null;
+              <table className="toolkits-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Mechanic Name</th>
+                    <th>Toolkit Name</th>
+                    <th>Type</th>
+                    <th>Assigned On</th>
+                    <th>Toolkits</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMechanics.map(mechanic => {
+                    const latestToolkit = mechanic.toolkits.length > 0
+                      ? mechanic.toolkits[mechanic.toolkits.length - 1]
+                      : null;
 
-                      return (
-                        <tr key={mechanic._id}>
-                          <td>{mechanic._id}</td>
-                          <td>{mechanic.name}</td>
-                          <td>{latestToolkit ? latestToolkit.name : 'N/A'}</td>
-                          <td>{latestToolkit ? latestToolkit.type : 'N/A'}</td>
-                          <td>{latestToolkit ? new Date(latestToolkit.createdAt).toLocaleDateString() : 'N/A'}</td>
-                          <td className="toolkits-cell">
-                            {mechanic.toolkits?.length > 0 ? (
-                              <div className="toolkits-hover-container">
-                                <span>{mechanic.toolkits.length} items</span>
-                                <button
-                                  className="view-all-btn"
-                                  onClick={() => {
-                                    setSelectedMechanic(mechanic);
-                                    setShowToolkitPopup(true);
-                                  }}
-                                >
-                                  View All
-                                </button>
-                              </div>
-                            ) : 'None'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                    return (
+                      <tr key={mechanic._id}>
+                        <td>{mechanic._id}</td>
+                        <td>{mechanic.name}</td>
+                        <td>{latestToolkit ? latestToolkit.name : 'N/A'}</td>
+                        <td>{latestToolkit ? latestToolkit.type : 'N/A'}</td>
+                        <td>{latestToolkit ? new Date(latestToolkit.createdAt).toLocaleDateString() : 'N/A'}</td>
+                        <td className="toolkits-cell">
+                          {mechanic.toolkits.length > 0 ? (
+                            <div className="toolkits-hover-container">
+                              <span>{mechanic.toolkits.length} items</span>
+                              <button
+                                className="view-all-btn"
+                                onClick={() => {
+                                  setSelectedMechanic(mechanic);
+                                  setShowToolkitPopup(true);
+                                }}
+                              >
+                                View All
+                              </button>
+                            </div>
+                          ) : 'None'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
 
@@ -371,19 +322,17 @@ const Mechanics = () => {
                 </div>
               </div>
 
-              {filteredMechanics.length > 0 && (
-                <div className="attendance-tabs">
-                  {filteredMechanics.map(mechanic => (
-                    <div
-                      key={mechanic._id}
-                      className={`attendance-tab ${selectedMechanic?._id === mechanic._id ? 'active' : ''}`}
-                      onClick={() => setSelectedMechanic(mechanic)}
-                    >
-                      {mechanic.name.split(' ')[0]}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="attendance-tabs">
+                {filteredMechanics.map(mechanic => (
+                  <div
+                    key={mechanic._id}
+                    className={`attendance-tab ${selectedMechanic?._id === mechanic._id ? 'active' : ''}`}
+                    onClick={() => setSelectedMechanic(mechanic)}
+                  >
+                    {mechanic.name.split(' ')[0]}
+                  </div>
+                ))}
+              </div>
 
               <div className="attendance-table-container">
                 <table className="attendance-table">
@@ -398,7 +347,7 @@ const Mechanics = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedMechanic && selectedMechanic.attendance?.length > 0 ? (
+                    {selectedMechanic ? (
                       selectedMechanic.attendance.map(record => (
                         <tr key={record._id}>
                           <td>{new Date(record.date).toLocaleDateString()}</td>
@@ -411,9 +360,7 @@ const Mechanics = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="6" className="no-data">
-                          {selectedMechanic ? 'No attendance records found' : 'Select a mechanic to view attendance'}
-                        </td>
+                        <td colSpan="6" className="no-data">Select a mechanic to view attendance</td>
                       </tr>
                     )}
                   </tbody>
@@ -424,19 +371,17 @@ const Mechanics = () => {
 
           {activeTab === 'overtime' && (
             <div className="overtime-container">
-              {filteredMechanics.length > 0 && (
-                <div className="overtime-tabs">
-                  {filteredMechanics.map(mechanic => (
-                    <div
-                      key={mechanic._id}
-                      className={`overtime-tab ${selectedMechanic?._id === mechanic._id ? 'active' : ''}`}
-                      onClick={() => setSelectedMechanic(mechanic)}
-                    >
-                      {mechanic.name.split(' ')[0]}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="overtime-tabs">
+                {filteredMechanics.map(mechanic => (
+                  <div
+                    key={mechanic._id}
+                    className={`overtime-tab ${selectedMechanic?._id === mechanic._id ? 'active' : ''}`}
+                    onClick={() => setSelectedMechanic(mechanic)}
+                  >
+                    {mechanic.name.split(' ')[0]}
+                  </div>
+                ))}
+              </div>
 
               <div className="overtime-table-container">
                 <table className="overtime-table">
@@ -451,6 +396,7 @@ const Mechanics = () => {
                   <tbody>
                     {selectedMechanic ? (
                       selectedMechanic.monthlyOvertime && selectedMechanic.monthlyOvertime.length > 0 ? (
+                        // Display entries grouped by month with month headers
                         selectedMechanic.monthlyOvertime.flatMap(monthData => {
                           const monthRows = [];
 
@@ -529,32 +475,17 @@ const Mechanics = () => {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Name: <span style={{color: 'red'}}>*</span></label>
+                <label>Name:</label>
                 <input
                   type="text"
                   value={newMechanic.name}
                   onChange={(e) => setNewMechanic({ ...newMechanic, name: e.target.value })}
-                  required
-                  minLength={2}
-                  placeholder="Enter mechanic name"
                 />
               </div>
             </div>
             <div className="modal-footer">
-              <button 
-                className="cancel-btn" 
-                onClick={() => setShowAddForm(false)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button 
-                className="save-btn" 
-                onClick={handleAddMechanic}
-                disabled={isSubmitting || !newMechanic.name.trim()}
-              >
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </button>
+              <button className="cancel-btn" onClick={() => setShowAddForm(false)}>Cancel</button>
+              <button className="save-btn" onClick={handleAddMechanic}>Save</button>
             </div>
           </div>
         </div>
@@ -574,7 +505,7 @@ const Mechanics = () => {
                 <input type="text" value={selectedMechanic._id} disabled />
               </div>
               <div className="form-group">
-                <label>Name: <span style={{color: 'red'}}>*</span></label>
+                <label>Name:</label>
                 <input
                   type="text"
                   value={selectedMechanic.name}
@@ -582,15 +513,13 @@ const Mechanics = () => {
                     ...selectedMechanic,
                     name: e.target.value
                   })}
-                  required
-                  minLength={2}
                 />
               </div>
               <div className="form-group">
                 <label>User ID:</label>
                 <input
                   type="text"
-                  value={selectedMechanic.userId || ''}
+                  value={selectedMechanic.userId}
                   onChange={(e) => setSelectedMechanic({
                     ...selectedMechanic,
                     userId: e.target.value
@@ -599,20 +528,8 @@ const Mechanics = () => {
               </div>
             </div>
             <div className="modal-footer">
-              <button 
-                className="cancel-btn" 
-                onClick={() => setSelectedMechanic(null)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button 
-                className="save-btn" 
-                onClick={() => handleEditMechanic(selectedMechanic)}
-                disabled={isSubmitting || !selectedMechanic.name.trim()}
-              >
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </button>
+              <button className="cancel-btn" onClick={() => setSelectedMechanic(null)}>Cancel</button>
+              <button className="save-btn" onClick={() => handleEditMechanic(selectedMechanic)}>Save Changes</button>
             </div>
           </div>
         </div>
@@ -627,38 +544,34 @@ const Mechanics = () => {
               <button className="close-btn" onClick={() => setShowToolkitPopup(false)}>×</button>
             </div>
             <div className="modal-body">
-              {selectedMechanic.toolkits?.length > 0 ? (
-                <table className="toolkits-popup-table">
-                  <thead>
-                    <tr>
-                      <th>Toolkit Name</th>
-                      <th>Type</th>
-                      <th>Size</th>
-                      <th>Color</th>
-                      <th>Status</th>
-                      <th>Assigned On</th>
+              <table className="toolkits-popup-table">
+                <thead>
+                  <tr>
+                    <th>Toolkit Name</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Color</th>
+                    <th>Status</th>
+                    <th>Assigned On</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedMechanic.toolkits.map(toolkit => (
+                    <tr key={toolkit._id}>
+                      <td>{toolkit.name}</td>
+                      <td>{toolkit.type}</td>
+                      <td>{toolkit.size}</td>
+                      <td>{toolkit.color}</td>
+                      <td>
+                        <span className={`status-badge ${toolkit.status}`}>
+                          {toolkit.status}
+                        </span>
+                      </td>
+                      <td>{new Date(toolkit.createdAt).toLocaleDateString()}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {selectedMechanic.toolkits.map(toolkit => (
-                      <tr key={toolkit._id}>
-                        <td>{toolkit.name}</td>
-                        <td>{toolkit.type}</td>
-                        <td>{toolkit.size}</td>
-                        <td>{toolkit.color}</td>
-                        <td>
-                          <span className={`status-badge ${toolkit.status}`}>
-                            {toolkit.status}
-                          </span>
-                        </td>
-                        <td>{new Date(toolkit.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="no-data">No toolkits assigned to this mechanic.</div>
-              )}
+                  ))}
+                </tbody>
+              </table>
             </div>
             <div className="modal-footer">
               <button className="close-btn" onClick={() => setShowToolkitPopup(false)}>Close</button>
