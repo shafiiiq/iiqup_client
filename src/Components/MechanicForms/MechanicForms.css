@@ -1,0 +1,321 @@
+/* MechanicForms.css */
+
+.mechanic-forms-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #444;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+h3 {
+  color: #555;
+  margin: 20px 0 10px;
+  font-size: 16px;
+}
+
+h4 {
+  color: #666;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.message {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: all 0.3s;
+}
+
+.tabs button.active {
+  opacity: 1;
+  border-bottom: 3px solid #0056b3;
+  font-weight: bold;
+}
+
+.tabs button:hover {
+  background-color: #f7f7f7;
+}
+
+.form-panel {
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group.half {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.time-entry {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.remove-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+}
+
+.add-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.submit-btn {
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.submit-btn:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #004494;
+}
+
+/* Registration Number Styles */
+.reg-no-input {
+  margin-bottom: 15px;
+}
+
+.reg-no-list {
+  margin: 10px 0 20px;
+}
+
+.reg-no-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.reg-no-tag {
+  background-color: #e9f5fe;
+  border: 1px solid #cce5ff;
+  color: #0056b3;
+  border-radius: 15px;
+  padding: 5px 10px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  color: #0056b3;
+  margin-left: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  width: 18px;
+  padding: 0;
+}
+
+.tag-remove:hover {
+  color: #dc3545;
+}
+
+
+/* Add these styles to your existing MechanicForms.css file */
+
+.work-detail-entry {
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+  position: relative;
+}
+
+.work-detail-entry textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.work-detail-entry .remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.work-detail-entry .remove-btn:hover {
+  background-color: #ff5252;
+}
+
+/* Enhance existing styles */
+.form-panel {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h3 {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+  margin-top: 25px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.add-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  margin: 10px 0;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-btn:hover {
+  background-color: #45a049;
+}
+
+.submit-btn {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  margin-top: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+}
+
+.submit-btn:hover {
+  background-color: #0b7dda;
+}
+
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-group.half {
+    margin-bottom: 15px;
+  }
+  
+  .remove-btn {
+    position: static;
+    margin-top: 10px;
+    width: 100%;
+  }
+}

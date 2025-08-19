@@ -1,0 +1,1039 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+* {
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background-color: #f5f5f5 !important;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: #f1f1f1 !important;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: -10px !important;
+}
+
+.logo-placeholder {
+  width: 100px;
+  height: 85px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.logo-placeholder img {
+  max-height: 80% !important;
+  object-fit: contain;
+  /* position: absolute;
+  left: 1rem; */
+  margin-left: 10.5rem;
+}
+
+.company-details-s {
+  margin-right: 1.5rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: 1.3rem;
+}
+
+.company-details-s img {
+  width: 22rem;
+}
+
+.report-container {
+  padding: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  width: 220mm;
+  height: auto;
+  /* min-height: 326mm; */
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  margin-bottom: 30px;
+}
+
+.checklist-table-s {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.checklist-table-s th,
+.checklist-table-s td {
+  border: 1px solid black;
+  vertical-align: top;
+}
+
+.checklist-table-s td {
+  padding: 5px 4px !important;
+}
+
+.checklist-table-s .heading {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  padding: 4px !important;
+}
+
+.remarks-row td {
+  padding: 0;
+  border: 1px solid;
+  position: relative;
+}
+
+.remarks-box {
+  height: 100px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.remarks-text {
+  margin-top: 4px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Print Button Styles */
+.print-button-wrapper {
+  text-align: center;
+  margin: 20px;
+  display: flex;
+  gap: 1rem;
+  max-width: 220mm;
+  margin: 1rem auto;
+  align-items: center;
+  background-color: #f1f1f1 !important;
+}
+
+.print-button-wrapper button {
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  font-weight: 400;
+  flex: 1;
+}
+
+.print-button-wrapper button:hover {
+  background-color: #1565c0;
+}
+
+.back-button {
+  background-color: #2196f3 !important;
+}
+
+.back-button:hover {
+  background-color: #1976d2 !important;
+}
+
+/* Document count display */
+.document-count {
+  flex: 2;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Report action buttons */
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 10px 0;
+  max-width: 220mm;
+  margin: 10px auto;
+}
+
+.single-report-actions {
+  margin-bottom: 20px;
+}
+
+.edit-button {
+  padding: 8px 16px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  font-weight: 400;
+}
+
+.edit-button:hover {
+  background-color: #1565c0;
+}
+
+.delete-button {
+  padding: 8px 16px;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  font-weight: 400;
+}
+
+.delete-button:hover {
+  background-color: #c62828;
+}
+
+.company-name-s {
+  color: rgb(33, 66, 128);
+  font-weight: 600;
+}
+
+.contract-wrap-s {
+  display: flex;
+}
+
+.phone-s {
+  border-right: 1px solid rgb(206, 206, 12);
+  padding-right: 0.5rem;
+}
+
+.email-s {
+  padding-left: 0.5rem;
+}
+
+.contract-wrap-s>div {
+  display: flex;
+  flex-direction: column;
+}
+
+.equipment-fit-to-work {
+  position: absolute;
+  bottom: 0;
+  left: 1rem;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.sign-table {
+  position: relative;
+}
+
+.sign-table img {
+  width: 2.5rem;
+  margin-left: 1rem;
+  bottom: 0.1rem;
+  position: absolute;
+}
+
+.sign-table .mechanic-sign {
+  top: -10px;
+  width: 5rem;
+  transform: rotateX(-20deg) !important;
+}
+
+/* Loading state */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #333;
+}
+
+/* No data container */
+.no-data-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+}
+
+.no-data-container h2 {
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.add-report-button {
+  padding: 10px 20px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-report-button:hover {
+  background-color: #1565c0;
+}
+
+td.tick {
+  padding-left: 38px !important;
+}
+
+.doc-wrapper {
+  background: #f1f1f1 !important;
+}
+
+/* Signature Authentication Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 0;
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: #f0f0f0;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.auth-step {
+  text-align: center;
+}
+
+.auth-step h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 16px;
+}
+
+.auth-step p {
+  margin-bottom: 15px;
+  color: #666;
+  font-size: 14px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  transition: border-color 0.2s;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.auth-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.auth-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.auth-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.back-button-modal {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.back-button-modal:hover {
+  background-color: #545b62;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  margin-bottom: 15px;
+  padding: 8px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
+
+/* Signature display styles */
+.supervisor-sign {
+  max-width: 100px;
+  max-height: 50px;
+  object-fit: contain;
+}
+
+.no-signature {
+  color: #999;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Enhanced Security Features CSS */
+/* Add these styles to your existing ServiceDoc.css file */
+
+/* Signature Status Display */
+.signature-status {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #28a745;
+}
+
+.signed-indicator {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.expiry-timer {
+  color: #dc3545;
+  font-weight: bold;
+  font-size: 14px;
+  animation: pulse 1s infinite;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Disabled Print Button */
+.disabled-print-button {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border-color: #dee2e6 !important;
+  position: relative;
+  font-size: 20px !important;
+}
+
+.disabled-print-button:hover {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  border-color: #dee2e6 !important;
+}
+
+.disabled-print-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(162, 165, 173, 0.5) 10px,
+    rgba(110, 116, 122, 0.5) 20px
+  );
+  pointer-events: none;
+}
+
+/* Warning Modal */
+.warning-modal .modal-content {
+  border: 3px solid #ffc107;
+  box-shadow: 0 10px 30px rgba(255, 193, 7, 0.3);
+}
+
+.warning-header {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  color: #856404;
+  border-bottom: 2px solid #ffc107;
+}
+
+.warning-header h3 {
+  margin: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warning-message {
+  text-align: center;
+  padding: 25px 20px;
+  background-color: #fffbf0;
+}
+
+.warning-message p {
+  margin: 15px 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.warning-message p:first-child {
+  font-weight: bold;
+  color: #856404;
+  font-size: 18px;
+}
+
+.warning-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 25px;
+  padding-bottom: 20px;
+}
+
+.sign-now-button {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.sign-now-button:hover {
+  background: linear-gradient(135deg, #0056b3, #004494);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.cancel-button {
+  background: linear-gradient(135deg, #6c757d, #545b62);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: linear-gradient(135deg, #545b62, #3d4449);
+  transform: translateY(-2px);
+}
+
+/* Success Modal */
+.success-modal .modal-content {
+  border: 3px solid #28a745;
+  box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+}
+
+.success-header {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  color: #155724;
+  border-bottom: 2px solid #28a745;
+}
+
+.success-header h3 {
+  margin: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.success-message {
+  text-align: center;
+  padding: 25px 20px;
+  background-color: #f8fff9;
+}
+
+.success-message p {
+  margin: 15px 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.success-message p:first-child {
+  font-weight: bold;
+  color: #155724;
+  font-size: 18px;
+}
+
+.success-message strong {
+  color: #dc3545;
+  animation: pulse 1s infinite;
+}
+
+.success-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 25px;
+  padding-bottom: 20px;
+}
+
+.print-now-button {
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.print-now-button:hover {
+  background: linear-gradient(135deg, #218838, #1e7e34);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.close-success-button {
+  background: linear-gradient(135deg, #6c757d, #545b62);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.close-success-button:hover {
+  background: linear-gradient(135deg, #545b62, #3d4449);
+  transform: translateY(-2px);
+}
+
+/* Enhanced Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6c757d;
+  transition: color 0.3s ease;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  color: #dc3545;
+}
+
+/* Document Count Enhancement */
+.document-count {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+  margin: 10px 0;
+}
+
+.document-count span {
+  font-weight: 500;
+  color: #495057;
+}
+
+/* Print Button Wrapper Enhancement */
+.print-button-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.print-button-wrapper button {
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.print-button-wrapper button:not(.disabled-print-button):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .signature-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .warning-buttons,
+  .success-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .warning-buttons button,
+  .success-buttons button {
+    width: 100%;
+  }
+  
+  .print-button-wrapper {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .modal-content {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+}
+
+/* Loading Animation for Buttons */
+.auth-button:disabled {
+  position: relative;
+  color: transparent;
+}
+
+.auth-button:disabled::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error Message Enhancement */
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* No Signature Indicator */
+.no-signature {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Enhanced Auth Input */
+.auth-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Hide print button during print */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  /* Hide all new header components and modal elements */
+  .modal-overlay {
+    display: none !important;
+  }
+  
+  .signature-status {
+    display: none !important;
+  }
+  
+  .signed-indicator {
+    display: none !important;
+  }
+  
+  .expiry-timer {
+    display: none !important;
+  }
+  
+  .warning-modal {
+    display: none !important;
+  }
+  
+  .success-modal {
+    display: none !important;
+  }
+  
+  .modal-content {
+    display: none !important;
+  }
+  
+  .modal-header {
+    display: none !important;
+  }
+  
+  .modal-body {
+    display: none !important;
+  }
+  
+  .auth-step {
+    display: none !important;
+  }
+  
+  .auth-buttons {
+    display: none !important;
+  }
+  
+  .warning-buttons {
+    display: none !important;
+  }
+  
+  .success-buttons {
+    display: none !important;
+  }
+  
+  .document-count {
+    display: none !important;
+  }
+  
+  .print-button-wrapper {
+    display: none !important;
+  }
+  
+  .report-actions {
+    display: none !important;
+  }
+  
+  .single-report-actions {
+    display: none !important;
+  }
+  
+  .edit-button {
+    display: none !important;
+  }
+  
+  .delete-button {
+    display: none !important;
+  }
+  
+  .add-report-button {
+    display: none !important;
+  }
+  
+  .disabled-print-button {
+    display: none !important;
+  }
+  
+  .main-header {
+    display: none !important;
+  }
+
+  /* Remove the problematic body * visibility rule */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Ensure the last document doesn't have a page break */
+  .doc-wrapper:last-child {
+    page-break-after: auto;
+  }
+
+  .report-container {
+    visibility: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background-color: white !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Make sure all content within report containers is visible */
+  .report-container * {
+    visibility: visible !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  /* Ensure tables print properly */
+  .checklist-table-s {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .checklist-table-s th,
+  .checklist-table-s td {
+    border: 1px solid black !important;
+  }
+}

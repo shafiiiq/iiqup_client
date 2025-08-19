@@ -1,0 +1,23 @@
+* {
+  margin: 0;
+  padding: 0;
+  outline: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-color: #3498db;
+  --idle-color: #2ecc71;
+  --committed-color: #3498db;
+  --maintenance-color: #e74c3c;
+  --full-service-color: #f39c12;
+  --regular-color: #2980b9;
+  --text-color:#135f92;
+  --bg-color: #f5f7fa;
+  --card-bg: #ffffff;
+  --text-color: #333333;
+  --border-color: #e1e4e8;
+  --hover-bg: #f0f5ff;
+  --disabled-bg: #e9ecef;
+  --disabled-text: #6c757d;
+}

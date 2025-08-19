@@ -1,0 +1,277 @@
+/* StocksNavigation.css */
+:root {
+  --inv-mgmt-primary-color: #3498db;
+  --inv-mgmt-equipment-color: #2980b9;
+  --inv-mgmt-spareparts-color: #d3a611;
+  --inv-mgmt-critical-color: #e74c3c;
+  --inv-mgmt-warning-color: #f39c12;
+  --inv-mgmt-success-color: #2ecc71;
+  --inv-mgmt-info-color: #3498db;
+  --inv-mgmt-bg-color: #f5f7fa;
+  --inv-mgmt-card-bg: #ffffff;
+  --inv-mgmt-text-color: #333333;
+  --inv-mgmt-border-color: #e1e4e8;
+  --inv-mgmt-hover-bg: #f0f5ff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.inv-mgmt-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--inv-mgmt-bg-color);
+  padding: 20px;
+  min-height: 100vh;
+  color: var(--inv-mgmt-text-color);
+}
+
+.inv-mgmt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.inv-mgmt-title {
+  color: var(--inv-mgmt-text-color);
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.inv-mgmt-datetime {
+  background-color: var(--inv-mgmt-card-bg);
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--inv-mgmt-border-color);
+}
+
+.inv-mgmt-category-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.inv-mgmt-category-btn {
+  background-color: var(--inv-mgmt-card-bg);
+  border: 1px solid var(--inv-mgmt-border-color);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.inv-mgmt-category-btn:hover {
+  background-color: var(--inv-mgmt-hover-bg);
+}
+
+.inv-mgmt-category-all-active {
+  background-color: var(--inv-mgmt-primary-color);
+  color: white;
+  border-color: transparent;
+}
+
+.inv-mgmt-category-equipment {
+  color: var(--inv-mgmt-equipment-color);
+}
+
+.inv-mgmt-category-spareparts {
+  color: var(--inv-mgmt-spareparts-color);
+}
+
+.inv-mgmt-category-equipment-active {
+  background-color: var(--inv-mgmt-equipment-color);
+  color: white;
+  border-color: transparent;
+}
+
+.inv-mgmt-category-spareparts-active {
+  background-color: var(--inv-mgmt-spareparts-color);
+  color: white;
+  border-color: transparent;
+}
+
+.inv-mgmt-cards-wrapper {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.inv-mgmt-card {
+  background-color: var(--inv-mgmt-card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: calc(50% - 10px);
+  min-width: 300px;
+  flex-grow: 1;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.inv-mgmt-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.inv-mgmt-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  color: white;
+}
+
+.inv-mgmt-card-header-equipment {
+  background-color: var(--inv-mgmt-equipment-color);
+}
+
+.inv-mgmt-card-header-spareparts {
+  background-color: var(--inv-mgmt-spareparts-color);
+}
+
+.inv-mgmt-card-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.inv-mgmt-card-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.inv-mgmt-card-content {
+  padding: 20px;
+}
+
+.inv-mgmt-stats-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.inv-mgmt-stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.inv-mgmt-stat-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.inv-mgmt-stat-label {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.inv-mgmt-stat-critical .inv-mgmt-stat-value {
+  color: var(--inv-mgmt-critical-color);
+}
+
+.inv-mgmt-stat-warning .inv-mgmt-stat-value {
+  color: var(--inv-mgmt-warning-color);
+}
+
+.inv-mgmt-stat-info .inv-mgmt-stat-value {
+  color: var(--inv-mgmt-info-color);
+}
+
+.inv-mgmt-progress-section {
+  margin-bottom: 20px;
+}
+
+.inv-mgmt-progress-title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #64748b;
+}
+
+.inv-mgmt-progress-container {
+  height: 20px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.inv-mgmt-progress-bar {
+  height: 100%;
+  text-align: right;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: width 0.3s ease;
+}
+
+.inv-mgmt-progress-bar-equipment {
+  background-color: var(--inv-mgmt-equipment-color);
+}
+
+.inv-mgmt-progress-bar-spareparts {
+  background-color: var(--inv-mgmt-spareparts-color);
+}
+
+.inv-mgmt-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inv-mgmt-action-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+
+.inv-mgmt-action-btn:hover {
+  opacity: 0.9;
+}
+
+.inv-mgmt-equipment-btn {
+  background-color: var(--inv-mgmt-equipment-color);
+}
+
+.inv-mgmt-spareparts-btn {
+  background-color: var(--inv-mgmt-spareparts-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .inv-mgmt-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .inv-mgmt-datetime {
+    width: 100%;
+  }
+
+  .inv-mgmt-card {
+    width: 100%;
+  }
+}

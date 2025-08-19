@@ -1,0 +1,517 @@
+/* Table.css */
+
+:root {
+    --primary-color: #3498db;
+    --idle-color: #2ecc71;
+    --committed-color: #3498db;
+    --maintenance-color: #e74c3c;
+    --full-service-color: #f39c12;
+    --regular-color: #2980b9;
+    --bg-color: #f5f7fa;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --border-color: #e1e4e8;
+    --hover-bg: #f0f5ff;
+    --disabled-bg: #e9ecef;
+    --disabled-text: #6c757d;
+}
+
+/* Add this to your existing MechanicService.css file without modifying the original styles */
+
+/* Mobile Card Styles */
+.mobile-cards-container {
+    display: none;
+    /* Hidden by default on large screens */
+}
+
+.mobile-card {
+    margin-bottom: 16px;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-card-replacement {
+    border-left: 4px solid #f39c12;
+    /* Using your full-service-color variable */
+}
+
+.mobile-card-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e1e4e8;
+    background-color: #e5ebf369;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobile-card-date {
+    font-weight: bold;
+    color: #333333;
+}
+
+.mobile-card-badge {
+    background-color: #f39c12;
+    /* Using your full-service-color variable */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.mobile-card-content {
+    padding: 15px;
+}
+
+.mobile-card-row {
+    display: flex;
+    padding: 5px 0;
+    border-bottom: 1px solid #f5f7fa;
+}
+
+.mobile-card-label {
+    flex: 0 0 40%;
+    font-weight: 500;
+    color: #555555;
+}
+
+.mobile-card-value {
+    flex: 0 0 60%;
+}
+
+.mobile-remarks {
+    border-top: 1px dashed #e1e4e8;
+    margin-top: 8px;
+    padding-top: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-remarks .mobile-card-label {
+    margin-bottom: 5px;
+}
+
+.mobile-card-footer {
+    padding: 0 0;
+    border-top: 1px solid #e1e4e8;
+    background-color: #e5ebf369;
+    text-align: center;
+    overflow: hidden;
+}
+
+.mobile-view-btn {
+    background-color: #3498db;
+    /* Using your primary-color variable */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+}
+
+.mobile-no-results {
+    padding: 20px;
+    text-align: center;
+    background-color: #ffffff;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    color: #777;
+    font-style: italic;
+}
+
+/* Media Queries for Responsive Design */
+@media screen and (max-width: 768px) {
+    .service-table-container {
+        display: none;
+        /* Hide table on mobile */
+    }
+
+    .mobile-cards-container {
+        display: block;
+        /* Show cards on mobile */
+    }
+
+    /* Adjust filter buttons for better mobile display */
+    .filter-buttons {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* .filter-btn {
+        flex: 1;
+        font-size: 12px;
+        padding: 8px 5px;
+        margin: 0 2px;
+    } */
+
+    /* Make action buttons stack better on small screens */
+    /* .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    } */
+
+    /* .action-btn {
+        width: 100%;
+        margin: 0;
+        font-size: 12px;
+        white-space: nowrap;
+    } */
+}
+
+/* Don't modify the original CSS styles that were already there */
+
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.title {
+    font-size: 44px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.equipment {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 26px;
+    color: #555;
+}
+
+.controls-container-m {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    align-items: center;
+    width: 100%;
+}
+
+.search-container {
+    position: relative;
+    flex: 1;
+    max-width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 35px 10px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--regular-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.clear-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+}
+
+.clear-button:hover {
+    color: #333;
+}
+
+.print-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.print-button:hover {
+    background-color: #45a049;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.table-container-m {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.equipment-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.equipment-table th,
+.equipment-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.equipment-table td:first-child {
+    cursor: pointer;
+}
+
+.equipment-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    padding: 12px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.date-th {
+    width: 10rem;
+}
+
+.next-f-th {
+    width: 12rem;
+}
+
+.equipment-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.equipment-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Full service row highlighting */
+.full-service-row {
+    background-color: #ffd3a5 !important;
+    /* Orange background */
+}
+
+.full-service-row:hover {
+    background-color: #ffbf80 !important;
+    /* Slightly darker orange on hover */
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px !important;
+    font-style: italic;
+    color: #777;
+}
+
+.table-info-m {
+    text-align: center;
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: end;
+}
+
+.service-th-m {
+    width: 12rem;
+}
+
+.doc-click {
+    cursor: pointer;
+}
+
+.maintance-history {
+    padding: 10px 20px;
+    background-color: rgb(153, 88, 14);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    font-weight: 600;
+}
+
+/* Print styles */
+@media print {
+    body {
+        background-color: white;
+        font-size: 12pt;
+    }
+
+    .container {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .controls-container,
+    .search-container {
+        display: none !important;
+    }
+
+    .equipment-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .equipment-table th {
+        background-color: #f2f2f2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .equipment-table tr:nth-child(even) {
+        background-color: #f9f9f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Ensure full service rows maintain their color when printing */
+    .full-service-row {
+        background-color: #ffd3a5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .title {
+        margin-bottom: 10px;
+    }
+
+    .table-info {
+        margin-top: 10px;
+    }
+
+    /* Page break control for printing */
+    .equipment-table tr {
+        page-break-inside: avoid;
+    }
+
+    .equipment-table thead {
+        display: table-header-group;
+    }
+
+    .equipment-table tbody {
+        display: table-row-group;
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .controls-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-container {
+        max-width: none;
+        margin-bottom: 10px;
+    }
+
+    .print-button {
+        padding: 8px 12px;
+        font-size: 13px;
+        align-self: flex-end;
+    }
+}
+
+
+.print-button,
+.add-button {
+    padding: 10px 20px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.print-button:hover {
+    background-color: #357abf;
+}
+
+.add-button {
+    background-color: #4caf50;
+}
+
+.add-button:hover {
+    background-color: #45a049;
+}
+
+.table-info {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.equipment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.equipment-table th,
+.equipment-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.equipment-table th {
+    background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
+}
+
+.equipment-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.equipment-table tr:hover {
+    background-color: #f0f0f0;
+}
+
+.no-results {
+    font-style: italic;
+    color: #888;
+}
+
+@media (max-width: 768px) {
+    .controls-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-container {
+        max-width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .action-buttons {
+        justify-content: space-between;
+    }
+}

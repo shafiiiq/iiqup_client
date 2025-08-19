@@ -1,0 +1,692 @@
+/* ServiceHistory.css */
+:root {
+    --primary-color: #3498db;
+    --idle-color: #2e5c98 !important;
+    --committed-color: #3498db;
+    --placeholder-color: #08375791;
+    --maintenance-color: #e74c3c;
+    --full-service-color: #f39c12;
+    --regular-color: #2980b9;
+    --bg-color: #f5f7fa;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --border-color: #e1e4e8;
+    --hover-bg: #f0f5ff;
+    --disabled-bg: #e9ecef;
+    --disabled-text: #6c757d;
+}
+
+/* note here from here  */
+
+
+/* note here from here  */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.service-history-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    padding: 20px;
+    min-height: 100vh;
+    color: var(--text-color);
+}
+
+.service-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.service-header h1 {
+    color: var(--text-color);
+    font-size: 34px;
+    font-weight: 800;
+}
+
+.date-time {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
+
+.equipment-info {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.equipment-info h2 {
+    font-size: 30px;
+    color: #555;
+    font-weight: 600;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+.filter-btn.active {
+    color: white;
+    border-color: transparent;
+}
+
+.filter-btn.full-service {
+    color: var(--full-service-color);
+}
+
+.filter-btn.regular {
+    color: var(--regular-color);
+}
+
+.filter-btn.maintenance {
+    color: var(--maintenance-color);
+}
+
+.filter-btn.full-service.active {
+    background-color: var(--full-service-color);
+    color: white;
+}
+
+.filter-btn.regular.active {
+    background-color: var(--regular-color);
+    color: white;
+}
+
+.filter-btn.maintenance.active {
+    background-color: var(--maintenance-color);
+    color: white;
+}
+
+.filter-btn.active {
+    background-color: var(--primary-color);
+}
+
+.controls-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 1rem;
+}
+
+.search-container {
+    position: relative;
+    max-width: 100%;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 7px 15px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-shadow: 0 0 0 1px #297fb923 !important;
+}
+
+.search-input::placeholder {
+    color: var(--placeholder-color);
+}
+
+.search-input:focus {
+    outline: none;
+    border: 1px solid var(--regular-color) !important;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+}
+
+.action-btn.details {
+    background-color: var(--primary-color);
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.action-btn.delete-h {
+    background-color: #dc3545 !important;
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.action-btn.add {
+    background-color: var(--idle-color);
+}
+
+.action-btn.toggle {
+    background-color: var(--full-service-color);
+}
+
+.action-btn.tyre {
+    background-color: #9b59b6;
+    /* Purple for tyre/battery */
+}
+
+.action-btn.print {
+    background-color: var(--primary-color);
+}
+
+.loading,
+.error-message {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+    color: var(--maintenance-color);
+}
+
+.service-table-container {
+    overflow-x: auto;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.service-table th {
+    background-color: #f8fafc;
+    text-align: left;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.service-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.service-table tbody tr:hover {
+    background-color: var(--hover-bg);
+}
+
+/* Full service row highlighting */
+.full-service-row {
+    background-color: rgba(243, 156, 18, 0.1) !important;
+}
+
+.full-service-row:hover {
+    background-color: rgba(243, 156, 18, 0.2) !important;
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #777;
+}
+
+/* Date Filter Section Styles */
+.date-filter-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.date-filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.date-filter-btn {
+    padding: 6px 16px;
+    border: 2px solid #007bff;
+    background: white;
+    color: #007bff;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.date-filter-btn:hover {
+    background: #007bff;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.date-filter-btn.active {
+    background: #007bff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.custom-date-inputs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Tab Navigation Styles */
+.tab-navigation {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: 2px solid #ddd;
+    background-color: #f8f9fa;
+    color: #333;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.tab-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+/* Service Type Badge Styles */
+.service-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+.badge-oil {
+    background-color: #28a745;
+}
+
+.badge-maintenance {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-tyre {
+    background-color: #17a2b8;
+}
+
+.badge-battery {
+    background-color: #dc3545;
+}
+
+.badge-default {
+    background-color: #6c757d;
+}
+
+/* Row Background Colors for Service Types */
+.oil-service {
+    background-color: #f8fff8 !important;
+}
+
+.maintenance-service {
+    background-color: #fff9e6 !important;
+}
+
+.tyre-service {
+    background-color: #e6f7ff !important;
+}
+
+.battery-service {
+    background-color: #ffe6e6 !important;
+}
+
+/* Enhanced Full Service and Replacement Row Styles */
+.full-service-row {
+    background-color: #ffd3a5 !important;
+    border-left: 4px solid #ff8c00 !important;
+}
+
+.replacement-row {
+    background-color: #ffd3a5 !important;
+    border-left: 4px solid #ff8c00 !important;
+}
+
+/* Action Button Styles Enhancement */
+.action-btn.view-all {
+    background-color: #1159df;
+    color: white;
+    border: none;
+}
+
+.action-btn.view-all:hover {
+    background-color: #0943b1;
+}
+
+/* Table Responsive Enhancements */
+.service-table-container {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.service-table {
+    min-width: 1200px;
+    /* Ensure table doesn't get too cramped */
+}
+
+.service-table th,
+.service-table td {
+    white-space: nowrap;
+    padding: 8px 12px;
+}
+
+/* Responsive Tab Navigation */
+@media (max-width: 768px) {
+    .tab-navigation {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        text-align: center;
+        width: 100%;
+    }
+
+    .controls-bar {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+/* Details Column Styling */
+.service-table td:nth-child(3) {
+    max-width: 300px;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+.service-table td:nth-child(3) div {
+    margin-bottom: 2px;
+}
+
+.service-table td:nth-child(3) strong {
+    color: #495057;
+}
+
+/* Missing CSS Classes for ServiceHistory Component */
+
+/* Last months filter container */
+.last-months-filter {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 20px;
+    background-color: #007bffa6;
+
+}
+
+/* Months dropdown styling */
+.months-dropdown {
+    padding: 6px 10px;
+    border: 2px solid #007bff;
+    border-radius: 25px;
+    background: white;
+    color: #007bff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 80px;
+}
+
+.months-dropdown:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Date input group styling */
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.date-input-group label {
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Date input styling */
+.date-input {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Date range display styling */
+.date-range-display {
+    background: #e7f3ff;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+    font-size: 14px;
+    color: #0056b3;
+}
+
+.date-range-display strong {
+    font-weight: 600;
+}
+
+/* Service title styling */
+.service-title {
+    color: var(--text-color);
+    font-size: 34px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.action-btn.excel {
+    background-color: #1d6f42;
+}
+
+.action-btn.excel:hover {
+    background-color: #165a36;
+}
+
+.date-th {
+    min-width: 6rem !important;
+}
+
+/* Additional responsive styles for missing elements */
+@media (max-width: 768px) {
+    .last-months-filter {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .months-dropdown {
+        min-width: 100px;
+    }
+
+    .date-input-group {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .date-input {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .date-range-display {
+        text-align: center;
+    }
+
+    .date-filter-buttons {
+        justify-content: center;
+    }
+}
+
+/* Print styles */
+@media print {
+    .document-column {
+        display: none !important;
+    }
+
+    .controls-bar,
+    .filter-buttons,
+    .action-btn {
+        display: none !important;
+    }
+
+    .service-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .service-table th {
+        background-color: #f2f2f2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .service-table tr:nth-child(even) {
+        background-color: #f9f9f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Ensure full service rows maintain their color when printing */
+    .full-service-row {
+        background-color: rgba(243, 156, 18, 0.1) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .service-header h1 {
+        margin-bottom: 10px;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .service-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .date-time {
+        width: 100%;
+    }
+
+    .controls-bar {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .search-container {
+        max-width: 100%;
+    }
+
+    .action-buttons {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex-grow: 1;
+        text-align: center;
+    }
+}

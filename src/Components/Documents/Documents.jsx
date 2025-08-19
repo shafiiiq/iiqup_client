@@ -1,0 +1,1022 @@
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import './Documents.css';
+import { END_POINT } from '../../constants';
+import { apiRequest } from '../../utils/0auth';
+
+function DocumentDetails() {
+  const { regNo } = useParams();
+  const [activeTab, setActiveTab] = useState('add');
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [currentDateTime, setCurrentDateTime] = useState('');
+  const [documentsList, setDocumentsList] = useState([]);
+  const [equipmentData, setEquipmentData] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
+  // New state for managing old document visibility
+  const [expandedDocTypes, setExpandedDocTypes] = useState({});
+
+  // New states for dynamic document types
+  const [documentTypes, setDocumentTypes] = useState([]);
+  const [filteredDocTypes, setFilteredDocTypes] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [docTypeInput, setDocTypeInput] = useState('');
+
+  // Progress Modal States
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState(''); // 'uploading', 'success', 'error'
+  const [uploadError, setUploadError] = useState('');
+
+  // Form data state
+  const [formData, setFormData] = useState({
+    documentType: '',
+    description: '',
+    uploadDate: new Date().toISOString().split('T')[0],
+    category: 'certificate' // certificate, inspection, specification, handover
+  });
+
+  // Static fallback document types (in case API fails)
+  const fallbackDocumentTypes = [
+    'Hand Over',
+    'Hook Rope Certificate',
+    'Rope Inspection Certificate',
+    'Crane Oil Specification',
+    'Maintenance Certificate',
+    'Safety Inspection',
+    'Calibration Certificate',
+    'Operating Manual',
+    'Warranty Document',
+    'Installation Certificate'
+  ];
+
+  const categories = [
+    { value: 'certificate', label: 'Certificates' },
+    { value: 'inspection', label: 'Inspections' },
+    { value: 'specification', label: 'Specifications' },
+    { value: 'handover', label: 'Handover Documents' },
+    { value: 'manual', label: 'Manuals' },
+    { value: 'warranty', label: 'Warranty' }
+  ];
+
+  // Function to toggle old documents visibility
+  const toggleOldDocuments = (categoryDocTypeKey) => {
+    setExpandedDocTypes(prev => ({
+      ...prev,
+      [categoryDocTypeKey]: !prev[categoryDocTypeKey]
+    }));
+  };
+
+  // Fetch all document types from API
+  const fetchDocumentTypes = async () => {
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/get-all-documents`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch document types');
+      }
+
+      const data = await response.json();
+
+      // Extract unique document types from the response
+      const uniqueDocTypes = new Set();
+
+      if (data.documents && data.documents.length > 0) {
+        data.documents.forEach(doc => {
+          if (doc.documentType && doc.documentType.trim()) {
+            uniqueDocTypes.add(doc.documentType.trim());
+          }
+        });
+      }
+
+      // Convert Set to Array and sort alphabetically
+      const docTypesArray = Array.from(uniqueDocTypes).sort();
+
+      // If no document types found, use fallback
+      if (docTypesArray.length === 0) {
+        setDocumentTypes(fallbackDocumentTypes);
+        setFilteredDocTypes(fallbackDocumentTypes);
+      } else {
+        setDocumentTypes(docTypesArray);
+        setFilteredDocTypes(docTypesArray);
+      }
+    } catch (error) {
+      console.error("Error fetching document types:", error);
+      // Use fallback document types on error
+      setDocumentTypes(fallbackDocumentTypes);
+      setFilteredDocTypes(fallbackDocumentTypes);
+    }
+  };
+
+  // Handle document type input change (for search/filter)
+  const handleDocTypeInputChange = (e) => {
+    const value = e.target.value;
+    setDocTypeInput(value);
+    setFormData(prev => ({
+      ...prev,
+      documentType: value
+    }));
+
+    // Filter document types based on input
+    if (value.trim() === '') {
+      setFilteredDocTypes(documentTypes);
+    } else {
+      const filtered = documentTypes.filter(type =>
+        type.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredDocTypes(filtered);
+    }
+
+    setShowDropdown(true);
+  };
+
+  // Handle document type selection from dropdown
+  const handleDocTypeSelect = (selectedType) => {
+    setDocTypeInput(selectedType);
+    setFormData(prev => ({
+      ...prev,
+      documentType: selectedType
+    }));
+    setShowDropdown(false);
+  };
+
+  // Handle document type input focus
+  const handleDocTypeInputFocus = () => {
+    setShowDropdown(true);
+    setFilteredDocTypes(documentTypes);
+  };
+
+  // Handle document type input blur (with delay to allow selection)
+  const handleDocTypeInputBlur = () => {
+    setTimeout(() => {
+      setShowDropdown(false);
+    }, 200);
+  };
+
+  // Close progress modal
+  const closeProgressModal = () => {
+    setShowProgressModal(false);
+    setUploadProgress(0);
+    setUploadStatus('');
+    setUploadError('');
+  };
+
+  // Cancel upload (you might need to implement actual cancel logic based on your API)
+  const cancelUpload = () => {
+    // Implement actual cancel logic here if your API supports it
+    closeProgressModal();
+    setIsLoading(false);
+    setMessage({ text: 'Upload cancelled', type: 'error' });
+  };
+
+  // Simulate progress updates (replace with actual progress tracking from your S3 upload)
+  const simulateProgress = () => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 15;
+      if (progress > 90) {
+        progress = 90; // Stop at 90% until actual completion
+      }
+      setUploadProgress(Math.min(progress, 90));
+
+      if (progress >= 90) {
+        clearInterval(interval);
+      }
+    }, 200);
+    return interval;
+  };
+
+  // Get current date and time
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const dateString = `${day}-${month}-${year}`;
+
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const timeString = `${hours}:${minutes} ${ampm}`;
+
+      setCurrentDateTime(`${dateString}   |   ${timeString}`);
+    };
+
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Load equipment data and fetch document types
+  useEffect(() => {
+    if (regNo) {
+      import('../../equipments').then(module => {
+        const equipment = module.default.find(eq => eq.regNo.trim() === regNo.trim());
+        setEquipmentData(equipment);
+      }).catch(err => {
+        console.error("Could not load equipment data:", err);
+      });
+    }
+
+    // Fetch document types when component mounts
+    fetchDocumentTypes();
+  }, [regNo]);
+
+  // Fetch documents when view tab is active
+  useEffect(() => {
+    if (activeTab === 'view' && regNo) {
+      fetchDocuments();
+    }
+  }, [activeTab, regNo]);
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle file selection
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+
+      // Preview image if it's an image file
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewImage(null);
+      }
+    }
+  };
+
+  // Handle form submission with progress modal
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedFile || !regNo || !formData.documentType) {
+      setMessage({ text: 'Please fill all required fields and select a file', type: 'error' });
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage({ text: '', type: '' });
+
+    // Show progress modal
+    setShowProgressModal(true);
+    setUploadProgress(0);
+    setUploadStatus('uploading');
+    setUploadError('');
+
+    // Start progress simulation
+    const progressInterval = simulateProgress();
+
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/upload-document`,
+        'POST',
+        {
+          regNo: regNo,
+          documentType: formData.documentType,
+          fileName: selectedFile.name,
+          mimeType: selectedFile.type,
+          description: formData.description,
+          category: formData.category
+        },
+        {}, // customHeaders
+        selectedFile // the actual file
+      );
+
+      const result = await response.json();
+
+      console.log(result);
+
+      clearInterval(progressInterval);
+
+      if (!result.status == 200) throw new Error(result.message || 'Upload failed');
+
+      // Complete progress and show success
+      setUploadProgress(100);
+      setUploadStatus('success');
+      setMessage({ text: 'Document uploaded successfully!', type: 'success' });
+
+      // If it's a new document type, add it to the list
+      if (!documentTypes.includes(formData.documentType)) {
+        const updatedTypes = [...documentTypes, formData.documentType].sort();
+        setDocumentTypes(updatedTypes);
+        setFilteredDocTypes(updatedTypes);
+      }
+
+      // Auto-close modal after 2 seconds on success
+      setTimeout(() => {
+        closeProgressModal();
+        handleReset();
+        setMessage({ text: '', type: '' });
+      }, 2000);
+
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      clearInterval(progressInterval);
+      setUploadStatus('error');
+      setUploadError(error.message);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all documents
+  const fetchDocuments = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/get-documents/${regNo}`, 'GET');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch documents');
+      }
+
+      const data = await response.json();
+
+      // Process the documents to flatten the files array
+      const processedDocuments = [];
+
+      if (data.documents && data.documents.length > 0) {
+        data.documents.forEach(doc => {
+          // Each document can have multiple files
+          if (doc.files && doc.files.length > 0) {
+            doc.files.forEach(file => {
+              processedDocuments.push({
+                _id: file._id,
+                regNo: doc.regNo,
+                documentType: doc.documentType,
+                fileName: file.filename,
+                filePath: file.path,
+                mimetype: file.mimetype,
+                uploadDate: file.uploadedAt || file.createdAt,
+                createdAt: file.createdAt,
+                updatedAt: file.updatedAt,
+                // Add default values for missing fields
+                description: doc.description || '',
+                category: doc.category || 'other'
+              });
+            });
+          }
+        });
+      }
+
+      setDocumentsList(processedDocuments);
+
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // iOS-compatible download handler
+  const handleDownload = async (documentId, fileName) => {
+    try {
+      setMessage({ text: 'Preparing download...', type: 'info' });
+
+      const response = await apiRequest(`${END_POINT}/documents/download/${documentId}`);
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const body = { key: data.document.filePath, isLong: false };
+      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+      
+      if (!s3response.ok) {
+        throw new Error(`S3 URL generation failed: ${s3response.status}`);
+      }
+      
+      const s3URL = await s3response.json();
+      const fullUrl = s3URL.dataUrl;
+
+      // Force download by fetching the file and creating a blob
+      setMessage({ text: 'Downloading file...', type: 'info' });
+      
+      const fileResponse = await apiRequest(fullUrl);
+      
+      if (!fileResponse.ok) {
+        throw new Error(`Failed to fetch file: ${fileResponse.status}`);
+      }
+      
+      // Get the file as blob
+      const blob = await fileResponse.blob();
+      
+      // Create download link with blob URL
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      link.href = downloadUrl;
+      link.download = fileName;
+      link.style.display = 'none';
+      
+      // Add to DOM, click, then remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      URL.revokeObjectURL(downloadUrl);
+      
+      setMessage({ text: 'Download completed!', type: 'success' });
+
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      setMessage({ text: `Error downloading: ${error.message}`, type: 'error' });
+    }
+  };
+
+  // iOS-compatible view handler with direct URL approach
+  const handleView = async (documentId, fileName) => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    try {
+      setMessage({ text: 'Opening document...', type: 'info' });
+
+      if (isIOS) {
+        // For iOS, use direct URL approach instead of fetch + blob
+        const directUrl = `${END_POINT}/documents/view/${documentId}`;
+
+        // Try opening in same window first (most reliable on iOS)
+        try {
+          window.location.href = directUrl;
+          setMessage({
+            text: 'Document opened. Use Safari\'s share button to save if needed.',
+            type: 'success'
+          });
+        } catch (iosError) {
+          console.error('iOS direct navigation failed:', iosError);
+          setMessage({
+            text: 'Unable to open document on iOS. Please contact support.',
+            type: 'error'
+          });
+        }
+        return;
+      }
+
+      // For non-iOS devices, use the blob approach
+      const response = await apiRequest(`${END_POINT}/documents/view/${documentId}`);
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(data.document.filePath);
+
+      const body = { key: data.document.filePath, isLong: false };
+      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+      const s3URL = await s3response.json();
+      const fullUrl = s3URL.dataUrl;
+
+
+      const url = fullUrl;
+      const fileType = data.document.mimetype.toLowerCase();
+
+      if (isAndroid) {
+        // Android handling
+        if (fileType.includes('pdf')) {
+          // Android can handle PDFs better in new tabs
+          const newWindow = window.open(url, '_blank');
+          if (!newWindow) {
+            window.location.href = url;
+          }
+        } else if (fileType.includes('image')) {
+          // For images on Android
+          const newWindow = window.open();
+          if (newWindow) {
+            newWindow.document.write(`
+              <html>
+                <head>
+                  <title>${fileName}</title>
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    body { margin: 0; padding: 10px; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                    img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+                  </style>
+                </head>
+                <body>
+                  <img src="${url}" alt="${fileName}" />
+                </body>
+              </html>
+            `);
+          } else {
+            window.location.href = url;
+          }
+        } else {
+          // Other file types on Android
+          window.location.href = url;
+        }
+
+        setMessage({ text: 'Document opened successfully.', type: 'success' });
+
+      } else {
+        // Desktop view - open in new tab
+        const newWindow = window.open(url, '_blank');
+        if (!newWindow) {
+          setMessage({ text: 'Popup blocked. Please allow popups and try again.', type: 'error' });
+        } else {
+          setMessage({ text: 'Document opened in new tab.', type: 'success' });
+        }
+      }
+
+      // Clear message after a delay
+      setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 3000);
+
+    } catch (error) {
+      console.error("Error viewing document:", error);
+      setMessage({ text: `Error viewing: ${error.message}. Try refreshing the page.`, type: 'error' });
+    }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      documentType: '',
+      description: '',
+      uploadDate: new Date().toISOString().split('T')[0],
+      category: 'certificate'
+    });
+    setDocTypeInput('');
+    setSelectedFile(null);
+    setPreviewImage(null);
+    setMessage({ text: '', type: '' });
+    setShowDropdown(false);
+  };
+
+  // Group documents by category
+  const groupedDocuments = documentsList.reduce((acc, doc) => {
+    const category = doc.category || 'other';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(doc);
+    return acc;
+  }, {});
+
+  return (
+    <div className="doc-details-container">
+      <div className="doc-details-header">
+        <h1 className="doc-details-title">Document Details</h1>
+        <div className="doc-details-datetime">{currentDateTime}</div>
+      </div>
+
+      {equipmentData && (
+        <div className="doc-details-equipment-info">
+          {equipmentData.machine} - {regNo}
+        </div>
+      )}
+
+      {/* Tab Navigation */}
+      <div className="doc-details-tabs">
+        <button
+          className={`doc-details-tab ${activeTab === 'add' ? 'active' : ''}`}
+          onClick={() => setActiveTab('add')}
+        >
+          Add Document
+        </button>
+        <button
+          className={`doc-details-tab ${activeTab === 'view' ? 'active' : ''}`}
+          onClick={() => setActiveTab('view')}
+        >
+          View Documents
+        </button>
+      </div>
+
+      {message.text && (
+        <div className={`doc-details-message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
+      {/* Progress Modal */}
+      {showProgressModal && (
+        <div className="doc-details-progress-modal-overlay">
+          <div className="doc-details-progress-modal">
+            <div className="doc-details-progress-header">
+              <div className="doc-details-upload-icon">
+                📄
+              </div>
+              <h3 className="doc-details-progress-title">
+                {uploadStatus === 'uploading' && 'Uploading Document...'}
+                {uploadStatus === 'success' && 'Upload Complete!'}
+                {uploadStatus === 'error' && 'Upload Failed'}
+              </h3>
+            </div>
+
+            {selectedFile && (
+              <p className="doc-details-progress-subtitle">
+                {selectedFile.name}
+              </p>
+            )}
+
+            <div className="doc-details-progress-container">
+              <div className="doc-details-progress-bar-bg">
+                <div
+                  className="doc-details-progress-bar-fill"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+              <div className="doc-details-progress-percentage">
+                {Math.round(uploadProgress)}%
+              </div>
+              <div className="doc-details-progress-status">
+                {uploadStatus === 'uploading' && 'Uploading to cloud storage...'}
+                {uploadStatus === 'success' && (
+                  <span className="doc-details-progress-success">
+                    Document uploaded successfully!
+                  </span>
+                )}
+                {uploadStatus === 'error' && (
+                  <span className="doc-details-progress-error">
+                    {uploadError || 'Upload failed. Please try again.'}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="doc-details-progress-actions">
+              {uploadStatus === 'uploading' && (
+                <button
+                  onClick={cancelUpload}
+                  className="doc-details-progress-btn doc-details-progress-btn-cancel"
+                >
+                  Cancel
+                </button>
+              )}
+
+              {(uploadStatus === 'success' || uploadStatus === 'error') && (
+                <button
+                  onClick={closeProgressModal}
+                  className="doc-details-progress-btn doc-details-progress-btn-close"
+                >
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Document Tab */}
+      {activeTab === 'add' && (
+        <div className="doc-details-form-container">
+          <form onSubmit={handleSubmit} className="doc-details-form">
+            <div className="doc-details-form-group">
+              <label htmlFor="category">Category</label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                required
+              >
+                {categories.map(cat => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="doc-details-form-group">
+              <label htmlFor="documentType">Document Type</label>
+              <div className="doc-details-dropdown-container" style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  id="documentType"
+                  name="documentType"
+                  value={docTypeInput}
+                  onChange={handleDocTypeInputChange}
+                  onFocus={handleDocTypeInputFocus}
+                  onBlur={handleDocTypeInputBlur}
+                  placeholder="Type to search or add new document type..."
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                />
+
+                {showDropdown && filteredDocTypes.length > 0 && (
+                  <div
+                    className="doc-details-dropdown-list"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'white',
+                      border: '1px solid #ddd',
+                      borderTop: 'none',
+                      borderRadius: '0 0 4px 4px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {filteredDocTypes.map((type, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleDocTypeSelect(type)}
+                        style={{
+                          padding: '8px 12px',
+                          cursor: 'pointer',
+                          borderBottom: index < filteredDocTypes.length - 1 ? '1px solid #eee' : 'none',
+                          fontSize: '14px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#f5f5f5';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'white';
+                        }}
+                      >
+                        {type}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {showDropdown && filteredDocTypes.length === 0 && docTypeInput.trim() && (
+                  <div
+                    className="doc-details-dropdown-list"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'white',
+                      border: '1px solid #ddd',
+                      borderTop: 'none',
+                      borderRadius: '0 0 4px 4px',
+                      zIndex: 1000,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: '14px',
+                        color: '#666',
+                        fontStyle: 'italic'
+                      }}
+                    >
+                      Press Enter to add "{docTypeInput}" as new document type
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="doc-details-form-group">
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter document description (optional)"
+                rows="3"
+              />
+            </div>
+
+            <div className="doc-details-form-group">
+              <label htmlFor="uploadDate">Upload Date</label>
+              <input
+                type="date"
+                id="uploadDate"
+                name="uploadDate"
+                value={formData.uploadDate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="doc-details-form-group doc-details-file-group">
+              <label htmlFor="document-file">Select Document</label>
+              <input
+                type="file"
+                id="document-file"
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                required
+              />
+              {selectedFile && (
+                <div className="doc-details-file-info">
+                  Selected: {selectedFile.name}
+                </div>
+              )}
+            </div>
+
+            {previewImage && (
+              <div className="doc-details-preview">
+                <img src={previewImage} alt="Preview" />
+              </div>
+            )}
+
+            <div className="doc-details-form-actions">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="doc-details-action-btn reset"
+              >
+                Reset
+              </button>
+              <button
+                type="submit"
+                className="doc-details-action-btn submit"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Uploading...' : 'Upload Document'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* View Documents Tab */}
+      {activeTab === 'view' && (
+        <div className="doc-details-view-container">
+          {isLoading ? (
+            <div className="doc-details-loading">Loading documents...</div>
+          ) : (
+            <div className="doc-details-categories">
+              {Object.keys(groupedDocuments).length > 0 ? (
+                Object.entries(groupedDocuments).map(([category, documents]) => {
+                  // Group documents by documentType within each category
+                  const groupedByDocType = documents.reduce((acc, doc) => {
+                    const docType = doc.documentType || 'Unknown';
+                    if (!acc[docType]) {
+                      acc[docType] = [];
+                    }
+                    acc[docType].push(doc);
+                    return acc;
+                  }, {});
+
+                  return (
+                    <div key={category} className="doc-details-category-section">
+                      <h3 className="doc-details-category-title">
+                        {categories.find(cat => cat.value === category)?.label || category.toUpperCase()}
+                      </h3>
+
+                      {/* Loop through each document type within the category */}
+                      {Object.entries(groupedByDocType).map(([docType, docsOfType]) => {
+                        // Sort documents by upload date (newest first)
+                        const sortedDocs = docsOfType.sort((a, b) =>
+                          new Date(b.uploadDate) - new Date(a.uploadDate)
+                        );
+
+                        const latestDoc = sortedDocs[0];
+                        const olderDocs = sortedDocs.slice(1);
+                        const categoryDocTypeKey = `${category}-${docType}`;
+                        const isExpanded = expandedDocTypes[categoryDocTypeKey];
+
+                        return (
+                          <div key={docType} className="doc-details-doctype-section">
+                            <div className="doc-details-doctype-header">
+                              <h4 className="doc-details-doctype-title">
+                                {docType} ({sortedDocs.length})
+                              </h4>
+                              {olderDocs.length > 0 && (
+                                <button
+                                  onClick={() => toggleOldDocuments(categoryDocTypeKey)}
+                                  className="doc-details-old-toggle-btn"
+                                  style={{
+                                    padding: '4px 12px',
+                                    fontSize: '12px',
+                                    backgroundColor: isExpanded ? '#ff6b6b' : '#4CAF50',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    marginLeft: '10px'
+                                  }}
+                                >
+                                  {isExpanded ? `Hide Old (${olderDocs.length})` : `Show Old (${olderDocs.length})`}
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="doc-details-documents-grid">
+                              {/* Always show the latest document */}
+                              <div className="doc-details-document-card">
+                                <div className="doc-details-document-header">
+                                  <span className="doc-details-document-number">
+                                    Latest
+                                  </span>
+                                  <span className="doc-details-document-date">
+                                    {new Date(latestDoc.uploadDate).toLocaleDateString()}
+                                  </span>
+                                </div>
+
+                                <div className="doc-details-document-filename">
+                                  {latestDoc.fileName}
+                                </div>
+
+                                {latestDoc.description && (
+                                  <p className="doc-details-document-description">
+                                    {latestDoc.description}
+                                  </p>
+                                )}
+
+                                <div className="doc-details-document-actions">
+                                  <button
+                                    onClick={() => handleView(latestDoc._id, latestDoc.fileName)}
+                                    className="doc-details-action-btn view"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownload(latestDoc._id, latestDoc.fileName)}
+                                    className="doc-details-action-btn download"
+                                  >
+                                    Download
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Show older documents only when expanded */}
+                              {isExpanded && olderDocs.map((doc, index) => (
+                                <div key={doc._id} className="doc-details-document-card" style={{ opacity: 0.8, borderLeft: '3px solid #ffa500' }}>
+                                  <div className="doc-details-document-header">
+                                    <span className="doc-details-document-number" style={{ color: '#ffa500' }}>
+                                      Old #{index + 1}
+                                    </span>
+                                    <span className="doc-details-document-date">
+                                      {new Date(doc.uploadDate).toLocaleDateString()}
+                                    </span>
+                                  </div>
+
+                                  <div className="doc-details-document-filename">
+                                    {doc.fileName}
+                                  </div>
+
+                                  {doc.description && (
+                                    <p className="doc-details-document-description">
+                                      {doc.description}
+                                    </p>
+                                  )}
+
+                                  <div className="doc-details-document-actions">
+                                    <button
+                                      onClick={() => handleView(doc._id, doc.fileName)}
+                                      className="doc-details-action-btn view"
+                                    >
+                                      View
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownload(doc._id, doc.fileName)}
+                                      className="doc-details-action-btn download"
+                                    >
+                                      Download
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="doc-details-no-data">
+                  No documents found for this equipment
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default DocumentDetails;

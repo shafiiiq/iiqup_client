@@ -1,0 +1,211 @@
+/* Table.css */
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .controls-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  /* Search control styles */
+  .search-container {
+    position: relative;
+    flex-grow: 1;
+    max-width: 400px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 10px 30px 10px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
+  
+  .clear-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #777;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .clear-button:hover {
+    color: #333;
+  }
+  
+  .print-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .print-button:hover {
+    background-color: #45a049;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+  
+  .equipment-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+  }
+  
+  .equipment-table th, 
+  .equipment-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .equipment-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    padding: 12px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .equipment-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .equipment-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 20px !important;
+    font-style: italic;
+    color: #777;
+  }
+  
+  .table-info {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  /* Print styles */
+  @media print {
+    body {
+      background-color: white;
+      font-size: 12pt;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .controls-container,
+    .search-container {
+      display: none !important;
+    }
+    
+    .equipment-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .equipment-table th {
+      background-color: #f2f2f2 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .equipment-table tr:nth-child(even) {
+      background-color: #f9f9f9 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .title {
+      margin-bottom: 10px;
+    }
+    
+    .table-info {
+      margin-top: 10px;
+    }
+    
+    /* Page break control for printing */
+    .equipment-table tr {
+      page-break-inside: avoid;
+    }
+    
+    .equipment-table thead {
+      display: table-header-group;
+    }
+    
+    .equipment-table tbody {
+      display: table-row-group;
+    }
+  }
+  
+  /* Responsive adjustments */
+  @media screen and (max-width: 768px) {
+    .container {
+      width: 100%;
+      padding: 10px;
+    }
+    
+    .controls-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .search-container {
+      max-width: none;
+      margin-bottom: 10px;
+    }
+    
+    .print-button {
+      padding: 8px 12px;
+      font-size: 13px;
+      align-self: flex-end;
+    }
+  }

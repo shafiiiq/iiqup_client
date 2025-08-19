@@ -1,0 +1,916 @@
+/* Home.css */
+/* Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  background-color: #f5f5f5;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+.ansari-main-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Header Styles */
+.ansari-top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 7rem;
+  width: 100%;
+  background: linear-gradient(145deg, #0f3562, #1e63b0);
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.ansari-top-nav.ansari-nav-scrolled {
+  height: 6rem;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+}
+
+.ansari-nav-container {
+  max-width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.ansari-nav-container::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 15rem;
+  height: 100%;
+  background: linear-gradient(135deg, #d0d1d6ad, #e7dee7c0, #07388115, #2c62b411);
+}
+
+.ansari-logo-wrapper {
+  display: flex;
+  align-items: center;
+  animation: ansariFadeLeft 0.8s ease-out;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.8));
+  padding: 8px 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ansari-nav-logo {
+  height: 4.5rem;
+  margin-right: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  animation: ansariPulse 3s infinite;
+  transition: transform 0.3s ease;
+}
+
+.ansari-top-nav.ansari-nav-scrolled .ansari-nav-logo {
+  height: 3.5rem;
+}
+
+.ansari-nav-logo:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+/* User Section Styles */
+.ansari-user-section {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.ansari-user-section:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ansari-profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffcb6b, #ff8a50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  margin-right: 12px;
+  box-shadow: 0 3px 10px rgba(255, 203, 107, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.ansari-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ansari-user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ansari-logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.ansari-logout-btn:hover {
+  background: rgba(255, 75, 75, 0.2);
+  border-color: rgba(255, 75, 75, 0.4);
+  transform: scale(1.05);
+}
+
+.ansari-logout-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Sidebar User Section */
+.ansari-side-user-section {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: auto;
+  position: relative;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.ansari-side-user-section .ansari-user-section {
+  background: rgba(255, 255, 255, 0.1);
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.ansari-side-user-section .ansari-profile-icon {
+  width: 45px;
+  height: 45px;
+  font-size: 18px;
+  margin: 0 auto;
+}
+
+.ansari-side-user-section .ansari-user-name {
+  flex: 1;
+  font-size: 16px;
+  max-width: none;
+}
+
+.ansari-side-user-section .ansari-logout-btn {
+  width: 40px;
+  height: 40px;
+}
+
+.ansari-side-user-section .ansari-logout-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hamburger Menu */
+.ansari-burger-btn {
+  display: block;
+  position: relative;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  z-index: 1001;
+}
+
+.ansari-burger-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.75, 0, 0.25, 1);
+}
+
+.ansari-burger-btn.ansari-burger-active .ansari-burger-inner {
+  transform: rotateY(180deg);
+}
+
+.ansari-burger-btn .ansari-burger-line {
+  position: absolute;
+  display: block;
+  width: 30px;
+  height: 3px;
+  background: white;
+  left: 15px;
+  transform-origin: center;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  border-radius: 2px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.ansari-burger-btn .ansari-line-1 {
+  top: 20px;
+}
+
+.ansari-burger-btn .ansari-line-2 {
+  top: 29px;
+}
+
+.ansari-burger-btn .ansari-line-3 {
+  top: 38px;
+}
+
+.ansari-burger-btn.ansari-burger-active .ansari-line-1 {
+  top: 29px;
+  transform: rotate(45deg);
+  background: #ffcb6b;
+}
+
+.ansari-burger-btn.ansari-burger-active .ansari-line-2 {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.ansari-burger-btn.ansari-burger-active .ansari-line-3 {
+  top: 29px;
+  transform: rotate(-45deg);
+  background: #ffcb6b;
+}
+
+/* Mobile Navigation */
+.ansari-mobile-nav {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(145deg, #0c2d58, #1e5292);
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 99;
+}
+
+.ansari-mobile-nav.ansari-nav-open {
+  right: 0;
+  animation: ansariSlideIn 0.5s forwards;
+}
+
+.ansari-mobile-nav ul {
+  flex-direction: column;
+  padding-top: 100px;
+  height: auto;
+  width: 100%;
+}
+
+.ansari-mobile-nav li {
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transform: translateX(50px);
+}
+
+.ansari-mobile-nav.ansari-nav-open li {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.5s ease;
+  transition-delay: calc(0.1s * var(--index, 0));
+}
+
+.ansari-mobile-nav.ansari-nav-open li:nth-child(1) { --index: 1; }
+.ansari-mobile-nav.ansari-nav-open li:nth-child(2) { --index: 2; }
+.ansari-mobile-nav.ansari-nav-open li:nth-child(3) { --index: 3; }
+.ansari-mobile-nav.ansari-nav-open li:nth-child(4) { --index: 4; }
+.ansari-mobile-nav.ansari-nav-open li:nth-child(5) { --index: 5; }
+.ansari-mobile-nav.ansari-nav-open li:nth-child(6) { --index: 6; }
+
+.ansari-mobile-nav li a {
+  width: 100%;
+  padding: 1.2rem;
+  display: flex;
+  justify-content: flex-start;
+  font-size: 1rem;
+  border-left: 0 solid #ffcb6b;
+  transition: all 0.3s ease;
+}
+
+.ansari-mobile-nav li a:hover, 
+.ansari-mobile-nav li.ansari-link-active a {
+  border-left: 4px solid #ffcb6b;
+  padding-left: 1.4rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile nav background */
+.ansari-mobile-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.ansari-mobile-nav.ansari-nav-open::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -2;
+  animation: ansariFadeIn 0.5s forwards;
+}
+
+/* Header background animation */
+.ansari-header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ansari-header-shape {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+}
+
+.ansari-hshape-1 {
+  width: 15rem;
+  height: 15rem;
+  top: -5rem;
+  left: 10%;
+  animation: ansariFloatBubble 15s infinite linear alternate;
+}
+
+.ansari-hshape-2 {
+  width: 12rem;
+  height: 12rem;
+  bottom: -5rem;
+  left: 35%;
+  animation: ansariFloatBubble 18s infinite linear alternate-reverse;
+}
+
+.ansari-hshape-3 {
+  width: 20rem;
+  height: 20rem;
+  top: -10rem;
+  right: 15%;
+  animation: ansariFloatBubble 20s infinite linear alternate;
+}
+
+.ansari-shape-4 {
+  width: 18rem;
+  height: 18rem;
+  bottom: -8rem;
+  right: 5%;
+  animation: ansariFloatBubble 22s infinite linear alternate-reverse;
+}
+
+/* Main Content Wrapper */
+.ansari-content-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+/* Sidebar Styles */
+.ansari-side-panel {
+  width: 280px;
+  background: linear-gradient(145deg, #0f3562, #020b16);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* Sidebar Background */
+.ansari-sidebar-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ansari-side-shape {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+}
+
+.ansari-sshape-1 {
+  width: 12rem;
+  height: 12rem;
+  top: -3rem;
+  left: -4rem;
+  animation: ansariFloatBubble 18s infinite linear alternate;
+}
+
+.ansari-sshape-2 {
+  width: 10rem;
+  height: 10rem;
+  bottom: 30%;
+  right: -5rem;
+  animation: ansariFloatBubble 20s infinite linear alternate-reverse;
+}
+
+.ansari-sshape-3 {
+  width: 16rem;
+  height: 16rem;
+  bottom: -5rem;
+  left: -8rem;
+  animation: ansariFloatBubble 22s infinite linear alternate;
+}
+
+.ansari-logo-holder {
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 5;
+  background: white;
+  margin: 15px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.ansari-logo-holder::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #fffdf9, #f3f3f3, #fbfeff, #ececec);
+  border-radius: 17px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ansari-logo-holder:hover::before {
+  opacity: 1;
+}
+
+.ansari-main-logo {
+  max-width: 85%;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.ansari-main-logo:hover {
+  transform: scale(1.05);
+}
+
+.ansari-side-nav {
+  flex-grow: 1;
+  padding-top: 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.ansari-side-nav ul li {
+  padding: 12px 20px;
+  margin: 5px 15px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.ansari-side-nav ul li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ansari-side-nav ul li.ansari-nav-active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 500;
+}
+
+.ansari-side-nav ul li.ansari-nav-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #ffcb6b;
+}
+
+.ansari-side-nav ul li a {
+  display: block;
+  font-size: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.ansari-side-footer {
+  padding: 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: auto;
+  position: relative;
+  z-index: 5;
+}
+
+/* Main Content Area */
+.ansari-main-content {
+  flex-grow: 1;
+  background-color: #f8f9fa;
+  overflow-y: auto;
+}
+
+.ansari-main-content.ansari-full-width {
+  width: 100%;
+}
+
+/* Hero Section */
+.ansari-hero-area {
+  position: relative;
+  height: 400px;
+  overflow: hidden;
+}
+
+.ansari-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ansari-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  z-index: 1;
+}
+
+.ansari-hero-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 2;
+  width: 80%;
+}
+
+.ansari-hero-text h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.ansari-hero-text p {
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Content Section */
+.ansari-info-section {
+  padding: 40px;
+  background: white;
+  margin: -60px 30px 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 5;
+}
+
+/* Company Details */
+.ansari-company-info {
+  padding: 30px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.ansari-comp-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.ansari-company-info > div:not(.ansari-comp-name):not(.ansari-contact-block) {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.ansari-contact-block {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.ansari-phone-info, .ansari-email-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ansari-phone-info span, .ansari-email-info span {
+  margin: 5px 0;
+  color: #555;
+}
+
+/* Feature Cards */
+.ansari-feature-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.ansari-card-item {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+  border-top: 4px solid #2c3e50;
+}
+
+.ansari-card-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ansari-card-icon {
+  font-size: 36px;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.ansari-card-item h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.ansari-card-item p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Animations */
+@keyframes ansariPulse {
+  0% {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+  50% {
+    filter: drop-shadow(0 4px 8px rgba(0, 123, 255, 0.2));
+  }
+  100% {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+}
+
+@keyframes ansariFloatBubble {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(20px) rotate(5deg);
+  }
+  100% {
+    transform: translateY(-20px) rotate(-5deg);
+  }
+}
+
+@keyframes ansariFadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ansariSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes ansariFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive Styles - Tablet */
+@media (max-width: 992px) {
+  .ansari-content-wrapper {
+    flex-direction: column;
+  }
+  
+  .ansari-info-section {
+    margin: -30px 15px 30px;
+    padding: 20px;
+  }
+  
+  .ansari-hero-area {
+    height: 300px;
+  }
+  
+  .ansari-hero-text h1 {
+    font-size: 1.8rem;
+  }
+  
+  .ansari-contact-block {
+    flex-direction: column;
+  }
+  
+  .ansari-phone-info, .ansari-email-info {
+    margin-bottom: 10px;
+  }
+  
+  .ansari-user-section {
+    padding: 6px 10px;
+  }
+  
+  .ansari-profile-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+    margin-right: 8px;
+  }
+  
+  .ansari-user-name {
+    font-size: 13px;
+    max-width: 100px;
+  }
+  
+  .ansari-logout-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .ansari-logout-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Responsive Styles - Mobile */
+@media (max-width: 576px) {
+  .ansari-top-nav {
+    height: 6rem;
+  }
+  
+  .ansari-content-wrapper.ansari-mobile-mode {
+    padding-top: 6rem;
+  }
+  
+  .ansari-nav-logo {
+    height: 3.5rem;
+  }
+  
+  .ansari-logo-wrapper {
+    padding: 6px 12px;
+  }
+  
+  .ansari-hero-area {
+    height: 250px;
+  }
+  
+  .ansari-hero-text h1 {
+    font-size: 1.5rem;
+  }
+  
+  .ansari-info-section {
+    padding: 15px;
+    margin: -20px 10px 20px;
+  }
+  
+  .ansari-company-info {
+    padding: 20px;
+  }
+  
+  .ansari-comp-name {
+    font-size: 20px;
+  }
+  
+  .ansari-feature-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .ansari-user-section {
+    padding: 4px 8px;
+  }
+  
+  .ansari-profile-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+    margin-right: 6px;
+  }
+  
+  .ansari-user-name {
+    font-size: 12px;
+    max-width: 80px;
+  }
+  
+  .ansari-logout-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .ansari-logout-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Iconography */
+.ansari-icon-transport:before {
+  content: "🚚";
+}
+
+.ansari-icon-logistics:before {
+  content: "📦";
+}
+
+.ansari-icon-global:before {
+  content: "🌐";
+}
