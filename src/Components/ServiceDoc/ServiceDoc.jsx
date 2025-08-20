@@ -42,16 +42,16 @@ const ServiceDoc = () => {
   const checkRateLimit = () => {
     const now = Date.now();
     const timeDiff = now - (lastAttempt || 0);
-    
+
     if (timeDiff < 60000 && authAttempts >= 3) { // 3 attempts per minute
       setSignError('Too many attempts. Please wait 1 minute.');
       return false;
     }
-    
+
     if (timeDiff > 60000) {
       setAuthAttempts(0);
     }
-    
+
     return true;
   };
 
@@ -138,13 +138,13 @@ const ServiceDoc = () => {
   // Countdown timer effect
   useEffect(() => {
     let interval = null;
-    
+
     if (signExpiryTime && isDocumentSigned) {
       interval = setInterval(() => {
         const now = Date.now();
         const remaining = Math.max(0, Math.floor((signExpiryTime - now) / 1000));
         setTimeRemaining(remaining);
-        
+
         if (remaining <= 0) {
           setIsDocumentSigned(false);
           setSupervisorSignUrl('');
@@ -153,7 +153,7 @@ const ServiceDoc = () => {
         }
       }, 1000);
     }
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -169,7 +169,7 @@ const ServiceDoc = () => {
       setShowSuccessModal(true);
       return;
     }
-    
+
     setShowSignModal(true);
     setSignStep(1);
     setSixDigitPassword('');
@@ -283,7 +283,7 @@ const ServiceDoc = () => {
       const keyData = await keyResponse.json();
 
       // Step 5: Get presigned URL for signature
-      const body = { key: keyData.data.sign_key, isLong: false , isAuthSign: true};
+      const body = { key: keyData.data.sign_key, isLong: false, isAuthSign: true };
       const s3response = await apiRequest(
         `${END_POINT}/s3Config/get-pre-signed-url`,
         'POST',
@@ -428,31 +428,36 @@ const ServiceDoc = () => {
 
     return (
       <>
-        <div className="print-button-wrapper no-print wraped-print">
-          <button onClick={handleBackToHistory} className="back-button">
-            ← Back to Service History
-          </button>
-          <button 
-            onClick={handlePrint}
-            className={!isDocumentSigned ? 'disabled-print-button' : ''}
-            style={{
-              cursor: !isDocumentSigned ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {!isDocumentSigned ? '🔒 Sign to Print All' : 'Print All Reports'}
-          </button>
-          <button onClick={signDocument}>Sign the Document</button>
+        <div className="back-bug">
+          <div className="print-button-wrapper no-print wraped-print">
+            <button onClick={handleBackToHistory} className="back-button">
+              ← Back to Service History
+            </button>
+            <button
+              onClick={handlePrint}
+              className={!isDocumentSigned ? 'disabled-print-button' : ''}
+              style={{
+                cursor: !isDocumentSigned ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {!isDocumentSigned ? '🔒 Sign to Print All' : 'Print All Reports'}
+            </button>
+            <button onClick={signDocument}>Sign the Document</button>
+          </div>
         </div>
-        <div className="document-count">
-          <span>Showing {totalCount} document(s) for Equipment: {regNo}</span>
-          {isDocumentSigned && (
-            <div className="signature-status">
-              <span className="signed-indicator">✅ Document Signed</span>
-              <span className="expiry-timer">
-                ⏰ Expires in: {formatTimeRemaining(timeRemaining)}
-              </span>
-            </div>
-          )}
+
+        <div className="back-bug">
+          <div className="document-count">
+            <span>Showing {totalCount} document(s) for Equipment: {regNo}</span>
+            {isDocumentSigned && (
+              <div className="signature-status">
+                <span className="signed-indicator">✅ Document Signed</span>
+                <span className="expiry-timer">
+                  ⏰ Expires in: {formatTimeRemaining(timeRemaining)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {multipleReports.map((report, index) => (
@@ -670,10 +675,26 @@ const ServiceDoc = () => {
 
   return (
     <>
-      <div className="print-button-wrapper no-print wraped-print">
-        <button onClick={handleBackToHistory} className="back-button">
-          ← Back to Service History
-        </button>
+      <div className="back-bug">
+        <div className="print-button-wrapper no-print wraped-print">
+          <button onClick={handleBackToHistory} className="back-button">
+            ← Back to Service History
+          </button>
+          <button
+            onClick={handlePrint}
+            className={!isDocumentSigned ? 'disabled-print-button' : ''}
+            style={{
+              opacity: !isDocumentSigned ? 0.5 : 1,
+              cursor: !isDocumentSigned ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {!isDocumentSigned ? '🔒 Sign to Print' : 'Print Report'}
+          </button>
+          <button onClick={signDocument}>Sign the Document</button>
+        </div>
+      </div>
+
+      <div className="back-bug">
         <div className="document-count">
           <span>Showing {totalCount} document for Equipment: {regNo}</span>
           {isDocumentSigned && (
@@ -685,32 +706,23 @@ const ServiceDoc = () => {
             </div>
           )}
         </div>
-        <button 
-          onClick={handlePrint}
-          className={!isDocumentSigned ? 'disabled-print-button' : ''}
-          style={{
-            opacity: !isDocumentSigned ? 0.5 : 1,
-            cursor: !isDocumentSigned ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {!isDocumentSigned ? '🔒 Sign to Print' : 'Print Report'}
-        </button>
-        <button onClick={signDocument}>Sign the Document</button>
       </div>
 
-      <div className="report-actions no-print single-report-actions">
-        <button
-          className="edit-button"
-          onClick={() => handleEditReport(reportData._id)}
-        >
-          Edit
-        </button>
-        <button
-          className="delete-button"
-          onClick={() => handleDeleteReport(reportData._id)}
-        >
-          Delete
-        </button>
+      <div className="back-bug pb-n">
+        <div className="report-actions no-print single-report-actions">
+          <button
+            className="edit-button"
+            onClick={() => handleEditReport(reportData._id)}
+          >
+            Edit
+          </button>
+          <button
+            className="delete-button"
+            onClick={() => handleDeleteReport(reportData._id)}
+          >
+            Delete
+          </button>
+        </div>
       </div>
 
       <div className="doc-wrapper">

@@ -102,6 +102,8 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
     location.pathname === '/' ||
     location.pathname.startsWith('/service-doc') ||
     location.pathname.startsWith('/all') ||
+    location.pathname.startsWith('/battery-doc') ||
+    location.pathname.startsWith('/tyre-doc') ||
     isCEO;
 
   const currentUser = AuthUtils.getCurrentUser();

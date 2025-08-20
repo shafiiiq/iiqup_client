@@ -21,7 +21,8 @@ body {
 .header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: -10px !important;
+  margin-bottom: -5px !important;
+  margin-top: 5px;
 }
 
 .logo-placeholder {
@@ -303,6 +304,11 @@ td.tick {
 
 .doc-wrapper {
   background: #f1f1f1 !important;
+  margin-top: -1.2rem;
+}
+
+.pb-n {
+  padding-bottom: 2rem;
 }
 
 /* Signature Authentication Modal Styles */
@@ -778,10 +784,9 @@ td.tick {
 
 /* Document Count Enhancement */
 .document-count {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: #f1f1f1;
   padding: 15px;
   border-radius: 8px;
-  border-left: 4px solid #007bff;
   margin: 10px 0;
 }
 
@@ -899,6 +904,12 @@ td.tick {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.back-bug {
+  margin-top: -1.5rem;
+  background-color: #f1f1f1  !important;
+  width: 100vw !important;
 }
 
 /* Hide print button during print */
