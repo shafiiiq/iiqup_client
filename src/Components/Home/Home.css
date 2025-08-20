@@ -591,7 +591,7 @@ ul {
 /* Hero Section */
 .ansari-hero-area {
   position: relative;
-  height: 400px;
+  height: 320px;
   overflow: hidden;
 }
 
@@ -638,7 +638,7 @@ ul {
 .ansari-info-section {
   padding: 40px;
   background: white;
-  margin: -60px 30px 30px;
+  margin: 20px 30px 30px;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
   position: relative;
@@ -649,8 +649,6 @@ ul {
 .ansari-company-info {
   padding: 30px;
   background: #f8f9fa;
-  border-radius: 8px;
-  margin-bottom: 40px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
@@ -663,7 +661,7 @@ ul {
 
 .ansari-company-info > div:not(.ansari-comp-name):not(.ansari-contact-block) {
   margin-bottom: 8px;
-  color: #555;
+  color: 555;
 }
 
 .ansari-contact-block {
@@ -722,6 +720,103 @@ ul {
   color: #666;
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* Leadership Team Section */
+.ansari-leadership-section {
+  padding: 20px 40px;
+  background: white;
+  margin: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.ansari-section-heading {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.ansari-section-heading h2 {
+  font-size: 32px;
+  color: #0f3562;
+  margin-bottom: 15px;
+  position: relative;
+  display: inline-block;
+}
+
+.ansari-section-heading h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(to right, #0f3562, #1e63b0);
+  border-radius: 2px;
+}
+
+.ansari-section-heading p {
+  color: #666;
+  font-size: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ansari-leaders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+}
+
+.ansari-leader-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.13);
+}
+
+.ansari-leader-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.ansari-leader-image {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+}
+
+.ansari-leader-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%; /* This shifts the image down from the top */
+  transition: transform 0.5s ease;
+}
+.ansari-leader-card:hover .ansari-leader-image img {
+  transform: scale(1.1);
+}
+
+.ansari-leader-info {
+  padding: 20px;
+  text-align: center;
+}
+
+.ansari-leader-info h3 {
+  font-size: 18px;
+  color: #0f3562;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.ansari-leader-info p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
 }
 
 /* Animations */
@@ -789,6 +884,11 @@ ul {
     padding: 20px;
   }
   
+  .ansari-leadership-section {
+    padding: 40px 20px;
+    margin: 20px 15px;
+  }
+  
   .ansari-hero-area {
     height: 300px;
   }
@@ -829,6 +929,11 @@ ul {
   .ansari-logout-btn svg {
     width: 16px;
     height: 16px;
+  }
+  
+  .ansari-leaders-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
   }
 }
 
@@ -873,6 +978,24 @@ ul {
   
   .ansari-feature-cards {
     grid-template-columns: 1fr;
+  }
+  
+  .ansari-leadership-section {
+    padding: 30px 15px;
+    margin: 15px 10px;
+  }
+  
+  .ansari-section-heading h2 {
+    font-size: 26px;
+  }
+  
+  .ansari-leaders-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .ansari-leader-image {
+    height: 220px;
   }
   
   .ansari-user-section {

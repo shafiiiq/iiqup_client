@@ -161,8 +161,8 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             <li className={activeLink === '#clients' ? 'active' : ''}>
               <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
             </li>
-            <li className={activeLink === '/notification/next-full-service' ? 'active' : ''}>
-              <Link to="/notification/next-full-service" onClick={() => handleNavClick('/notification/next-full-service')}>Notifications</Link>
+            <li className={activeLink === '/notification' ? 'active' : ''}>
+              <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
             </li>
             <li className={activeLink === '/dashboard' ? 'active' : ''}>
               <Link to="/dashboard" onClick={() => handleNavClick('/dashboard')}>Dashboard</Link>

@@ -596,7 +596,7 @@ function App() {
 
           {/* Notification Routes */}
           <Route
-            path="/notification/next-full-service"
+            path="/notification"
             element={
               <ProtectedRoute>
                 <CEOGuard>
