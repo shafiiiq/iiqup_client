@@ -275,30 +275,9 @@ const LpoDoc = () => {
   };
 
   const handlePrint = () => {
-    const originalContents = document.body.innerHTML;
-    const printElement = componentRef.current.cloneNode(true);
-
-    // Remove controls from the print version
-    const printControls = printElement.querySelector('.controls');
-    if (printControls) printControls.remove();
-
-    // Remove any grid patterns for printing
-    const allElements = printElement.querySelectorAll('*');
-    allElements.forEach(element => {
-      if (element.style.backgroundImage &&
-        (element.style.backgroundImage.includes('grid') ||
-          element.style.backgroundImage.includes('repeating'))) {
-        element.style.backgroundImage = 'none';
-      }
-    });
-
-    document.body.innerHTML = '';
-    document.body.appendChild(printElement);
+    console.log("print");
 
     window.print();
-
-    // Restore original content
-    document.body.innerHTML = originalContents;
   };
 
   const calculateTotal = () => {
@@ -441,7 +420,7 @@ const LpoDoc = () => {
 
         <table className="terms-table">
           <tbody>
-            <tr className="terms-row-large">
+            <tr className={`${lpoData.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
               <td className="terms-header-large">
                 <ul>
                   {lpoData.termsAndConditions.map((term, index) => (
@@ -464,15 +443,15 @@ const LpoDoc = () => {
               <td colSpan="4" className="company-footer">
                 AL ANSARI TRANSPORT & ENTERPRISES W.L.L
               </td>
-              <td className='sign-table'>
+              <td className='sign-table sign-border-td'>
                 Subcontractor OR<br />Service Provider
               </td>
             </tr>
             <tr>
-              <td className='sign-table'>Accounts Dept:</td>
-              <td className='sign-table'>Purchasing Manager</td>
-              <td className='sign-table'>Operations Manager</td>
-              <td className='sign-table'>
+              <td className='sign-table sign-border-td'>Accounts Dept:</td>
+              <td className='sign-table sign-border-td'>Purchasing Manager</td>
+              <td className='sign-table sign-border-td'>Operations Manager</td>
+              <td className='sign-table sign-border-td'>
                 Authorized Signatory<br />
                 {lpoData.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
               </td>
@@ -481,17 +460,17 @@ const LpoDoc = () => {
               </td>
             </tr>
             <tr className="signature-spaces-large">
-              <td className='sign-table'></td>
-              <td className='sign-table'></td>
-              <td className='sign-table'></td>
-              <td className='sign-table'></td>
+              <td className='sign-table sign-border-td'></td>
+              <td className='sign-table sign-border-td'></td>
+              <td className='sign-table sign-border-td'></td>
+              <td className='sign-table sign-border-td'></td>
               <td></td>
             </tr>
             <tr>
-              <td className='sign-table'>{lpoData.signatures.accountsDept}</td>
-              <td className='sign-table'>{lpoData.signatures.purchasingManager}</td>
-              <td className='sign-table'>{lpoData.signatures.operationsManager}</td>
-              <td className='sign-table'>{lpoData.signatures.authorizedSignatory}</td>
+              <td className='sign-table sign-border-td'>{lpoData.signatures.accountsDept}</td>
+              <td className='sign-table sign-border-td'>{lpoData.signatures.purchasingManager}</td>
+              <td className='sign-table sign-border-td'>{lpoData.signatures.operationsManager}</td>
+              <td className='sign-table sign-border-td'>{lpoData.signatures.authorizedSignatory}</td>
               <td></td>
             </tr>
           </tbody>
@@ -501,7 +480,7 @@ const LpoDoc = () => {
           <img src={footer} alt="" />
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -136,9 +136,8 @@ const Complaints = () => {
     };
 
     updateDateTime();
-    //testing comment for now - auto refresh interval
-    // const interval = setInterval(updateDateTime, 10000000);
-    // return () => clearInterval(interval);
+    const interval = setInterval(updateDateTime, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchComplaints = async (showRefresh = false) => {
@@ -187,13 +186,12 @@ const Complaints = () => {
   useEffect(() => {
     fetchComplaints();
 
-    //testing comment for now - auto refresh every 10 seconds
     // Auto-refresh every 10 seconds
-    // const refreshInterval = setInterval(() => {
-    //   fetchComplaints(true);
-    // }, 1000000000);
+    const refreshInterval = setInterval(() => {
+      fetchComplaints(true);
+    }, 4000);
 
-    // return () => clearInterval(refreshInterval);
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const handleRefresh = () => {

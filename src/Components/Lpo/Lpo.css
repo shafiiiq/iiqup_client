@@ -21,7 +21,7 @@ body {
   max-width: 100%;
   background-color: #f1f1f1 !important;
   height: 100% !important;
-  min-height: 1000rem;
+  min-height: 130vh;
 }
 
 .controls {

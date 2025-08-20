@@ -34,6 +34,7 @@ import Applications from './Components/Applications/Applications';
 import Complaints from './Components/Complaints/Complaints';
 import ApplicationsList from './Components/ApplicationsList/ApplicationsList';
 import FormNavigation from './Components/FormNavigation/FormNavigation';
+import SplashScreen from './splash/SplashScreen';
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -62,7 +63,7 @@ function ProtectedRoute({ children, ceoOnly = false }) {
   }
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   // If this is a CEO-only route and user is not CEO, redirect to home
@@ -134,7 +135,7 @@ function CEORedirect() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   if (isCEO) {
@@ -160,7 +161,7 @@ function CEOGuard({ children }) {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   if (isCEO) {
@@ -175,7 +176,41 @@ function App() {
   const [serviceReportData, setServiceReportData] = useState(null);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Splash screen states
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashComplete, setSplashComplete] = useState(false);
+  
   const navigate = useNavigate();
+
+  // Check if splash has been shown in this session
+  useEffect(() => {
+    const splashShown = sessionStorage.getItem('splashShown');
+    
+    if (!splashShown) {
+      // First time loading in this session - show splash
+      setShowSplash(true);
+      sessionStorage.setItem('splashShown', 'true');
+    } else {
+      // Already shown in this session - skip splash
+      setSplashComplete(true);
+    }
+  }, []);
+
+  // Splash screen timing effect (only runs if splash should be shown)
+  useEffect(() => {
+    if (showSplash) {
+      const splashTimer = setTimeout(() => {
+        setShowSplash(false);
+        // Wait for fade out animation to complete
+        setTimeout(() => {
+          setSplashComplete(true);
+        }, 800); // 800ms matches the fade-out animation duration
+      }, 3000); // Show splash for 3 seconds
+
+      return () => clearTimeout(splashTimer);
+    }
+  }, [showSplash]);
 
   // Check for existing session on app load
   useEffect(() => {
@@ -184,12 +219,31 @@ function App() {
       setLoading(false);
     };
 
-    initializeAuth();
-  }, [navigate]);
+    // Only initialize auth after splash screen is complete (or skipped)
+    if (splashComplete) {
+      initializeAuth();
+    }
+  }, [navigate, splashComplete]);
+
+  // Show splash screen first (only if it should be shown)
+  if (showSplash || (showSplash === false && !splashComplete)) {
+    return <SplashScreen />;
+  }
 
   // Show loading while checking session
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: '#000',
+        color: '#fff',
+        fontSize: '18px'
+      }}>
+      </div>
+    );
   }
 
   return (
@@ -712,7 +766,6 @@ function App() {
                 </CEOGuard>
               </ProtectedRoute>
             } />
-
 
           <Route
             path="/lpo-list"

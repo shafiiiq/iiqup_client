@@ -16,11 +16,11 @@ body {
   background-color: #f1f1f1 !important;
 }
 
-.page-container {
+.page-container-doc {
   font-family: Arial, sans-serif;
   max-width: 100%;
   background-color: #f1f1f1 !important;
-  height: 100% !important;
+  max-height: 100vh !important;
 }
 
 .controls {
@@ -193,7 +193,11 @@ body {
 }
 
 /* Updated Terms Row with Larger Height and Font */
-.terms-row-large {
+.terms-row-large-doc.normal {
+  height: 300px !important;
+}
+
+.terms-row-large-doc.more {
   height: fit-content !important;
 }
 
@@ -331,6 +335,10 @@ body {
 .signatures-table td {
   background: transparent !important;
   background-image: none !important;
+}
+
+.signatures-table td.sign-border-td {
+  border: 1px solid #000 !important;
 }
 
 /* Ensure dividers don't have patterns */
