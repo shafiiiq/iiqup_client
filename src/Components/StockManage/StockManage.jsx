@@ -3,6 +3,7 @@ import './StockManage.css';
 import { END_POINT } from '../../constants';
 import Select from 'react-select';
 import { apiRequest } from '../../utils/0auth';
+import ExcelJS from 'exceljs';
 
 function StockManage() {
   const [stocks, setStocks] = useState([]);
@@ -333,6 +334,703 @@ function StockManage() {
     );
   });
 
+  const exportToExcel = async () => {
+    try {
+      setLoading(true);
+
+      // Create a new workbook
+      const workbook = new ExcelJS.Workbook();
+
+      // Create main inventory worksheet
+      const inventorySheet = workbook.addWorksheet('Stock Inventory');
+
+      // Create movement history worksheet (organized by stock)
+      const movementSheet = workbook.addWorksheet('Movement History by Stock');
+
+      // Create consolidated movement history worksheet
+      const consolidatedMovementSheet = workbook.addWorksheet('All Movements Timeline');
+
+      // Add report header and summary to inventory sheet
+      const reportTitle = 'STOCK INVENTORY REPORT';
+      const generatedDate = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+
+      // Calculate summary data
+      const totalItems = stocks.length;
+      const inStockItems = stocks.filter(s => calculateStatus(s.stockCount) === 'available').length;
+      const lowStockItems = stocks.filter(s => calculateStatus(s.stockCount) === 'low').length;
+      const outOfStockItems = stocks.filter(s => calculateStatus(s.stockCount) === 'out').length;
+      const totalStockCount = stocks.reduce((sum, s) => sum + s.stockCount, 0);
+
+      // === INVENTORY SHEET SETUP (same as before) ===
+      // Row 1: Report Title
+      inventorySheet.getCell('A1').value = reportTitle;
+      inventorySheet.mergeCells('A1:M1');
+      const titleCell = inventorySheet.getCell('A1');
+      titleCell.font = { bold: true, size: 18, color: { argb: 'FFFFFFFF' }, italic: true };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      titleCell.border = {
+        top: { style: 'thick' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      inventorySheet.getRow(1).height = 45;
+
+      // Row 2: Generation Date
+      inventorySheet.getCell('A2').value = `Generated: ${generatedDate}`;
+      inventorySheet.mergeCells('A2:M2');
+      const dateCell = inventorySheet.getCell('A2');
+      dateCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' }, italic: true };
+      dateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
+      dateCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      dateCell.border = {
+        top: { style: 'thin' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      inventorySheet.getRow(2).height = 25;
+
+      // Row 3: Empty row for spacing
+      inventorySheet.getRow(3).height = 10;
+
+      // Row 4: Summary Header
+      inventorySheet.getCell('A4').value = 'SUMMARY STATISTICS';
+      inventorySheet.mergeCells('A4:M4');
+      const summaryHeaderCell = inventorySheet.getCell('A4');
+      summaryHeaderCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      summaryHeaderCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8E44AD' } };
+      summaryHeaderCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      summaryHeaderCell.border = {
+        top: { style: 'thick' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      inventorySheet.getRow(4).height = 35;
+
+      // Row 5: Summary Data
+      const summaryRow = inventorySheet.getRow(5);
+      summaryRow.getCell(1).value = `Total Items: ${totalItems}`;
+      summaryRow.getCell(4).value = `In Stock: ${inStockItems}`;
+      summaryRow.getCell(7).value = `Low Stock: ${lowStockItems}`;
+      summaryRow.getCell(10).value = `Out of Stock: ${outOfStockItems}`;
+      summaryRow.getCell(13).value = `Total Stock Count: ${totalStockCount}`;
+
+      // Merge cells for summary data
+      inventorySheet.mergeCells('A5:C5');
+      inventorySheet.mergeCells('D5:F5');
+      inventorySheet.mergeCells('G5:I5');
+      inventorySheet.mergeCells('J5:K5');
+      inventorySheet.mergeCells('M5:M5');
+
+      // Style summary data cells
+      [1, 4, 7, 10, 13].forEach(colNum => {
+        const cell = summaryRow.getCell(colNum);
+        cell.font = { bold: true, size: 11, color: { argb: 'FF2C3E50' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECF0F1' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+      summaryRow.height = 30;
+
+      // Row 6: Empty row for spacing
+      inventorySheet.getRow(6).height = 15;
+
+      // Row 7: Data Table Header
+      const dataHeaderRow = 7;
+      const headers = [
+        { header: 'ID', key: 'id', width: 8 },
+        { header: 'Type', key: 'type', width: 15 },
+        { header: 'Product Name', key: 'product', width: 30 },
+        { header: 'Part Number', key: 'serialNumber', width: 20 },
+        { header: 'Associated Equipment', key: 'equipments', width: 35 },
+        { header: 'Current Stock', key: 'stockCount', width: 15 },
+        { header: 'Rate', key: 'rate', width: 12 },
+        { header: 'Status', key: 'status', width: 15 },
+        { header: 'Date Added', key: 'date', width: 18 },
+        { header: 'Total Movements', key: 'totalMovements', width: 18 },
+        { header: 'Last Activity', key: 'lastActivity', width: 18 },
+        { header: 'Last Action By', key: 'lastActionBy', width: 25 },
+        { header: 'Total Added', key: 'totalAdded', width: 15 }
+      ];
+
+      // Set column widths
+      headers.forEach((header, index) => {
+        inventorySheet.getColumn(index + 1).width = header.width;
+      });
+
+      // Add headers to row 7
+      headers.forEach((header, index) => {
+        inventorySheet.getCell(dataHeaderRow, index + 1).value = header.header;
+      });
+
+      // Style the data table header row
+      const headerRow = inventorySheet.getRow(dataHeaderRow);
+      headerRow.height = 40;
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3498DB' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+
+      // Add inventory data starting from row 8
+      let currentRow = dataHeaderRow + 1;
+      filteredStocks.forEach((stock, index) => {
+        const status = calculateStatus(stock.stockCount);
+        const statusText = status === 'available' ? 'In Stock' :
+          status === 'low' ? 'Low Stock' : 'Out of Stock';
+
+        // Calculate movement statistics
+        const movements = stock.movements || [];
+        const totalMovements = movements.length;
+        const totalAdded = movements.filter(m => m.type === 'add').reduce((sum, m) => sum + (m.quantity || 0), 0);
+
+        let lastActivity = 'N/A';
+        let lastActionBy = 'N/A';
+
+        if (movements.length > 0) {
+          const lastMove = movements[movements.length - 1];
+          lastActivity = new Date(lastMove.date).toLocaleDateString() + ' ' +
+            (lastMove.time || new Date(lastMove.date).toLocaleTimeString());
+
+          if (lastMove.type === 'deduct') {
+            lastActionBy = lastMove.mechanicName || 'Unknown';
+          } else if (lastMove.type === 'add') {
+            lastActionBy = `System (${lastMove.reason || 'Stock Added'})`;
+          }
+        }
+
+        const rowData = [
+          index + 1,
+          stock.type,
+          stock.product,
+          stock.serialNumber,
+          stock.equipments && stock.equipments.length > 0
+            ? stock.equipments.join(', ')
+            : 'N/A',
+          stock.stockCount,
+          stock.rate,
+          statusText,
+          new Date(stock.date).toLocaleDateString(),
+          totalMovements,
+          lastActivity,
+          lastActionBy,
+          totalAdded
+        ];
+
+        // Add row data
+        rowData.forEach((value, colIndex) => {
+          inventorySheet.getCell(currentRow, colIndex + 1).value = value;
+        });
+
+        currentRow++;
+      });
+
+      // Style inventory data rows
+      for (let i = dataHeaderRow + 1; i < currentRow; i++) {
+        const row = inventorySheet.getRow(i);
+        row.height = 35;
+
+        row.eachCell((cell, colNumber) => {
+          cell.font = { size: 10 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+
+          if (i % 2 === 0) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
+          }
+
+          // Status-based coloring for status column
+          const cellValue = cell.value;
+          if (typeof cellValue === 'string') {
+            if (cellValue.includes('Out of Stock')) {
+              cell.font = { size: 10, bold: true, color: { argb: 'FFDC3545' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFEAEA' } };
+            } else if (cellValue.includes('Low Stock')) {
+              cell.font = { size: 10, bold: true, color: { argb: 'FFFD7E14' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3CD' } };
+            } else if (cellValue.includes('In Stock')) {
+              cell.font = { size: 10, bold: true, color: { argb: 'FF28A745' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E8' } };
+            }
+          }
+        });
+      }
+
+      // === MOVEMENT HISTORY BY STOCK SHEET (NEW ORGANIZED APPROACH) ===
+
+      // Movement sheet title
+      movementSheet.getCell('A1').value = 'STOCK MOVEMENT HISTORY (ORGANIZED BY STOCK ITEM)';
+      movementSheet.mergeCells('A1:J1');
+      const movTitleCell = movementSheet.getCell('A1');
+      movTitleCell.font = { bold: true, size: 18, color: { argb: 'FFFFFFFF' }, italic: true };
+      movTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B4513' } };
+      movTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      movTitleCell.border = {
+        top: { style: 'thick' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      movementSheet.getRow(1).height = 45;
+
+      // Movement sheet date
+      movementSheet.getCell('A2').value = `Generated: ${generatedDate}`;
+      movementSheet.mergeCells('A2:J2');
+      const movDateCell = movementSheet.getCell('A2');
+      movDateCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' }, italic: true };
+      movDateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA0522D' } };
+      movDateCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      movDateCell.border = {
+        top: { style: 'thin' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      movementSheet.getRow(2).height = 25;
+
+      // Set movement sheet column widths
+      const movementHeaders = [
+        { header: 'Movement Date', width: 18 },
+        { header: 'Movement Time', width: 15 },
+        { header: 'Action Type', width: 15 },
+        { header: 'Quantity Changed', width: 18 },
+        { header: 'Stock Before', width: 15 },
+        { header: 'Stock After', width: 15 },
+        { header: 'Person/Reason', width: 25 },
+        { header: 'Equipment Name', width: 25 },
+        { header: 'Equipment No.', width: 20 },
+        { header: 'Notes', width: 30 }
+      ];
+
+      movementHeaders.forEach((header, index) => {
+        movementSheet.getColumn(index + 1).width = header.width;
+      });
+
+      let movementRowIndex = 4;
+
+      // Process each stock item separately
+      filteredStocks.forEach((stock, stockIndex) => {
+        // Stock item header
+        movementSheet.getCell(`A${movementRowIndex}`).value = `STOCK ITEM #${stockIndex + 1}: ${stock.product} (${stock.serialNumber})`;
+        movementSheet.mergeCells(`A${movementRowIndex}:J${movementRowIndex}`);
+        const stockHeaderCell = movementSheet.getCell(`A${movementRowIndex}`);
+        stockHeaderCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+        stockHeaderCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A90E2' } };
+        stockHeaderCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        stockHeaderCell.border = {
+          top: { style: 'thick' }, left: { style: 'thick' },
+          bottom: { style: 'thick' }, right: { style: 'thick' }
+        };
+        movementSheet.getRow(movementRowIndex).height = 35;
+        movementRowIndex++;
+
+        // Stock details row
+        const stockDetails = `Current Stock: ${stock.stockCount} | Type: ${stock.type} | Equipment(s): ${stock.equipments && stock.equipments.length > 0 ? stock.equipments.join(', ') : 'N/A'}`;
+        movementSheet.getCell(`A${movementRowIndex}`).value = stockDetails;
+        movementSheet.mergeCells(`A${movementRowIndex}:J${movementRowIndex}`);
+        const stockDetailCell = movementSheet.getCell(`A${movementRowIndex}`);
+        stockDetailCell.font = { bold: true, size: 11, color: { argb: 'FF2C3E50' }, italic: true };
+        stockDetailCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F4FD' } };
+        stockDetailCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        stockDetailCell.border = {
+          top: { style: 'thin' }, left: { style: 'thick' },
+          bottom: { style: 'thin' }, right: { style: 'thick' }
+        };
+        movementSheet.getRow(movementRowIndex).height = 25;
+        movementRowIndex++;
+
+        // Movement headers for this stock
+        movementHeaders.forEach((header, index) => {
+          movementSheet.getCell(movementRowIndex, index + 1).value = header.header;
+        });
+
+        // Style movement headers
+        const movHeaderRow = movementSheet.getRow(movementRowIndex);
+        movHeaderRow.height = 30;
+        movHeaderRow.eachCell((cell) => {
+          cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E8B57' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+        });
+        movementRowIndex++;
+
+        // Add movements for this stock
+        if (stock.movements && Array.isArray(stock.movements) && stock.movements.length > 0) {
+          // Sort movements by date (most recent first)
+          const sortedMovements = [...stock.movements].sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          sortedMovements.forEach((movement, index) => {
+            const movementDate = new Date(movement.date).toLocaleDateString();
+            const movementTime = movement.time || new Date(movement.date).toLocaleTimeString();
+            const actionType = movement.type.charAt(0).toUpperCase() + movement.type.slice(1);
+            const quantityChange = movement.type === 'add' ? `+${movement.quantity}` : `-${movement.quantity}`;
+
+            let personReason = 'N/A';
+            let equipmentName = 'N/A';
+            let equipmentNumber = 'N/A';
+            let notes = '';
+
+            if (movement.type === 'deduct') {
+              personReason = movement.mechanicName || 'Unknown Mechanic';
+              equipmentName = movement.equipmentName || 'Unknown Equipment';
+              equipmentNumber = movement.equipmentNumber || 'No Reg No';
+              notes = `Stock taken for ${equipmentName} by ${personReason}`;
+            } else if (movement.type === 'add') {
+              personReason = `System: ${movement.reason || 'Stock Addition'}`;
+              equipmentName = 'System Operation';
+              equipmentNumber = 'N/A';
+              notes = movement.reason || 'Stock added to inventory';
+            }
+
+            const movementRowData = [
+              movementDate,
+              movementTime,
+              actionType,
+              quantityChange,
+              movement.previousQuantity || 0,
+              movement.newQuantity || 0,
+              personReason,
+              equipmentName,
+              equipmentNumber,
+              notes
+            ];
+
+            // Add movement row data
+            movementRowData.forEach((value, colIndex) => {
+              movementSheet.getCell(movementRowIndex, colIndex + 1).value = value;
+            });
+
+            // Style movement row
+            const row = movementSheet.getRow(movementRowIndex);
+            row.height = 25;
+            row.eachCell((cell, colNumber) => {
+              cell.font = { size: 10 };
+              cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+              cell.border = {
+                top: { style: 'thin' }, left: { style: 'thin' },
+                bottom: { style: 'thin' }, right: { style: 'thin' }
+              };
+
+              // Alternate row colors within each stock section
+              if (index % 2 === 0) {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FFF0' } };
+              }
+
+              // Color code action types
+              const cellValue = cell.value;
+              if (typeof cellValue === 'string') {
+                if (cellValue === 'Add' || cellValue.startsWith('+')) {
+                  cell.font = { size: 10, bold: true, color: { argb: 'FF008000' } };
+                } else if (cellValue === 'Deduct' || cellValue.startsWith('-')) {
+                  cell.font = { size: 10, bold: true, color: { argb: 'FFDC143C' } };
+                }
+              }
+            });
+
+            movementRowIndex++;
+          });
+        } else {
+          // No movements found
+          movementSheet.getCell(`A${movementRowIndex}`).value = 'No movement history available for this stock item';
+          movementSheet.mergeCells(`A${movementRowIndex}:J${movementRowIndex}`);
+          const noMovCell = movementSheet.getCell(`A${movementRowIndex}`);
+          noMovCell.font = { italic: true, size: 11, color: { argb: 'FF666666' } };
+          noMovCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+          noMovCell.alignment = { horizontal: 'center', vertical: 'middle' };
+          noMovCell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+          movementSheet.getRow(movementRowIndex).height = 25;
+          movementRowIndex++;
+        }
+
+        // Add spacing between stock items
+        movementRowIndex += 2;
+      });
+
+      // === CONSOLIDATED MOVEMENT TIMELINE SHEET ===
+
+      // Consolidated timeline title
+      consolidatedMovementSheet.getCell('A1').value = 'ALL STOCK MOVEMENTS - CHRONOLOGICAL TIMELINE';
+      consolidatedMovementSheet.mergeCells('A1:K1');
+      const consTitle = consolidatedMovementSheet.getCell('A1');
+      consTitle.font = { bold: true, size: 18, color: { argb: 'FFFFFFFF' }, italic: true };
+      consTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6A0DAD' } };
+      consTitle.alignment = { horizontal: 'center', vertical: 'middle' };
+      consTitle.border = {
+        top: { style: 'thick' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      consolidatedMovementSheet.getRow(1).height = 45;
+
+      // Date
+      consolidatedMovementSheet.getCell('A2').value = `Generated: ${generatedDate}`;
+      consolidatedMovementSheet.mergeCells('A2:K2');
+      const consDate = consolidatedMovementSheet.getCell('A2');
+      consDate.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' }, italic: true };
+      consDate.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8A2BE2' } };
+      consDate.alignment = { horizontal: 'center', vertical: 'middle' };
+      consDate.border = {
+        top: { style: 'thin' }, left: { style: 'thick' },
+        bottom: { style: 'thick' }, right: { style: 'thick' }
+      };
+      consolidatedMovementSheet.getRow(2).height = 25;
+
+      // Consolidated headers
+      const consolidatedHeaders = [
+        { header: 'Date & Time', width: 20 },
+        { header: 'Product Name', width: 30 },
+        { header: 'Part Number', width: 20 },
+        { header: 'Action', width: 15 },
+        { header: 'Qty Change', width: 15 },
+        { header: 'Before', width: 12 },
+        { header: 'After', width: 12 },
+        { header: 'Person/Reason', width: 25 },
+        { header: 'Equipment Name', width: 25 },
+        { header: 'Equipment No.', width: 20 },
+        { header: 'Stock Item ID', width: 15 }
+      ];
+
+      // Set consolidated sheet column widths and headers
+      consolidatedHeaders.forEach((header, index) => {
+        consolidatedMovementSheet.getColumn(index + 1).width = header.width;
+        consolidatedMovementSheet.getCell(4, index + 1).value = header.header;
+      });
+
+      // Style consolidated headers
+      const consHeaderRow = consolidatedMovementSheet.getRow(4);
+      consHeaderRow.height = 40;
+      consHeaderRow.eachCell((cell) => {
+        cell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF FF6347' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+
+      // Create consolidated movements array
+      const allMovements = [];
+      filteredStocks.forEach((stock, stockIndex) => {
+        if (stock.movements && Array.isArray(stock.movements) && stock.movements.length > 0) {
+          stock.movements.forEach((movement, movIndex) => {
+            allMovements.push({
+              stockId: `ITEM-${stockIndex + 1}`,
+              productName: stock.product,
+              partNumber: stock.serialNumber,
+              date: movement.date,
+              time: movement.time,
+              type: movement.type,
+              quantity: movement.quantity || 0,
+              previousQuantity: movement.previousQuantity || 0,
+              newQuantity: movement.newQuantity || 0,
+              mechanicName: movement.mechanicName || 'N/A',
+              reason: movement.reason || 'N/A',
+              equipmentName: movement.equipmentName || 'N/A',
+              equipmentNumber: movement.equipmentNumber || 'N/A'
+            });
+          });
+        }
+      });
+
+      // Sort all movements by date (most recent first)
+      allMovements.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      // Add consolidated movement data
+      let consRowIndex = 5;
+      allMovements.forEach((movement, index) => {
+        const dateTime = `${new Date(movement.date).toLocaleDateString()} ${movement.time || new Date(movement.date).toLocaleTimeString()}`;
+        const actionType = movement.type.charAt(0).toUpperCase() + movement.type.slice(1);
+        const quantityChange = movement.type === 'add' ? `+${movement.quantity}` : `-${movement.quantity}`;
+
+        let personReason = 'N/A';
+        let equipmentName = 'N/A';
+        let equipmentNumber = 'N/A';
+
+        if (movement.type === 'deduct') {
+          personReason = movement.mechanicName || 'Unknown';
+          equipmentName = movement.equipmentName || 'Unknown';
+          equipmentNumber = movement.equipmentNumber || 'N/A';
+        } else if (movement.type === 'add') {
+          personReason = `System: ${movement.reason}`;
+          equipmentName = 'System Operation';
+          equipmentNumber = 'N/A';
+        }
+
+        const consRowData = [
+          dateTime,
+          movement.productName,
+          movement.partNumber,
+          actionType,
+          quantityChange,
+          movement.previousQuantity,
+          movement.newQuantity,
+          personReason,
+          equipmentName,
+          equipmentNumber,
+          movement.stockId
+        ];
+
+        // Add consolidated row data
+        consRowData.forEach((value, colIndex) => {
+          consolidatedMovementSheet.getCell(consRowIndex, colIndex + 1).value = value;
+        });
+
+        // Style consolidated row
+        const row = consolidatedMovementSheet.getRow(consRowIndex);
+        row.height = 25;
+        row.eachCell((cell, colNumber) => {
+          cell.font = { size: 10 };
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+
+          if (index % 2 === 0) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAF0E6' } };
+          }
+
+          // Color code by action type
+          const cellValue = cell.value;
+          if (typeof cellValue === 'string') {
+            if (cellValue === 'Add' || cellValue.startsWith('+')) {
+              cell.font = { size: 10, bold: true, color: { argb: 'FF228B22' } };
+            } else if (cellValue === 'Deduct' || cellValue.startsWith('-')) {
+              cell.font = { size: 10, bold: true, color: { argb: 'FFDC143C' } };
+            }
+          }
+        });
+
+        consRowIndex++;
+      });
+
+      // Add summary statistics to consolidated sheet
+      if (allMovements.length > 0) {
+        consRowIndex += 2;
+
+        // Summary header
+        consolidatedMovementSheet.getCell(`A${consRowIndex}`).value = 'CONSOLIDATED MOVEMENT SUMMARY';
+        consolidatedMovementSheet.mergeCells(`A${consRowIndex}:K${consRowIndex}`);
+        const consSummCell = consolidatedMovementSheet.getCell(`A${consRowIndex}`);
+        consSummCell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+        consSummCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4682B4' } };
+        consSummCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        consSummCell.border = {
+          top: { style: 'thick' }, left: { style: 'thick' },
+          bottom: { style: 'thick' }, right: { style: 'thick' }
+        };
+        consolidatedMovementSheet.getRow(consRowIndex).height = 35;
+        consRowIndex++;
+
+        // Summary statistics
+        const totalAdditions = allMovements.filter(m => m.type === 'add').length;
+        const totalDeductions = allMovements.filter(m => m.type === 'deduct').length;
+        const totalQuantityAdded = allMovements.filter(m => m.type === 'add').reduce((sum, m) => sum + (m.quantity || 0), 0);
+        const totalQuantityDeducted = allMovements.filter(m => m.type === 'deduct').reduce((sum, m) => sum + (m.quantity || 0), 0);
+        const uniqueStockItems = new Set(allMovements.map(m => m.stockId)).size;
+
+        const summaryStats = [
+          `Total Movements: ${allMovements.length}`,
+          `Stock Items with Activity: ${uniqueStockItems}`,
+          `Total Additions: ${totalAdditions}`,
+          `Total Deductions: ${totalDeductions}`,
+          `Quantity Added: ${totalQuantityAdded}`,
+          `Quantity Deducted: ${totalQuantityDeducted}`,
+          `Net Stock Change: ${totalQuantityAdded - totalQuantityDeducted}`
+        ];
+
+        // Add summary data in a grid format
+        let summaryStartCol = 1;
+        summaryStats.forEach((stat, index) => {
+          if (index % 4 === 0 && index > 0) {
+            consRowIndex++;
+            summaryStartCol = 1;
+          }
+
+          const colSpan = index < 4 ? 3 : 2; // First row spans 3 cols, second row spans 2 cols
+          const startCol = summaryStartCol;
+          const endCol = summaryStartCol + colSpan - 1;
+
+          consolidatedMovementSheet.getCell(consRowIndex, startCol).value = stat;
+          consolidatedMovementSheet.mergeCells(`${String.fromCharCode(64 + startCol)}${consRowIndex}:${String.fromCharCode(64 + endCol)}${consRowIndex}`);
+
+          const summaryCell = consolidatedMovementSheet.getCell(consRowIndex, startCol);
+          summaryCell.font = { bold: true, size: 11, color: { argb: 'FF2C3E50' } };
+          summaryCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECF0F1' } };
+          summaryCell.alignment = { horizontal: 'center', vertical: 'middle' };
+          summaryCell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+
+          summaryStartCol = endCol + 1;
+        });
+
+        consolidatedMovementSheet.getRow(consRowIndex).height = 30;
+      }
+
+      // Generate filename with current date and time
+      const now = new Date();
+      const dateStr = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+      const timeStr = String(now.getHours()).padStart(2, '0') + '-' +
+        String(now.getMinutes()).padStart(2, '0');
+      const filename = `All_Stock_Report_${dateStr}_${timeStr}.xlsx`;
+
+      // Small delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Generate buffer and create blob
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+
+      setMessage({
+        text: 'Enhanced stock report with organized movement history exported successfully! Check the "Movement History by Stock" sheet for organized data.',
+        type: 'success'
+      });
+      setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      setMessage({
+        text: 'Failed to export data to Excel. Please try again.',
+        type: 'error'
+      });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="stock-manage-container">
       <div className="stock-manage-header">
@@ -341,9 +1039,14 @@ function StockManage() {
       </div>
 
       <div className="stock-manage-actions">
-        <button className="stock-manage-add-btn" onClick={openAddForm}>
-          + Add Stock
-        </button>
+        <div className="toolkits-actions">
+          <button className="stock-manage-add-btn" onClick={openAddForm}>
+            Add Stock
+          </button>
+          <button className="export-excel-btn" onClick={exportToExcel}>
+            Export to Excel
+          </button>
+        </div>
         <div className="stock-search-container">
           <div className="stock-search-input-container">
             <input

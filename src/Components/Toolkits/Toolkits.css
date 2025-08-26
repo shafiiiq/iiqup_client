@@ -724,16 +724,16 @@
   .variants-list {
     max-width: 250px;
   }
-  
+
   .variant-colors {
     gap: 4px;
   }
-  
+
   .variant-color-item {
     padding: 4px 6px;
     font-size: 11px;
   }
-  
+
   .variant-color-indicator {
     width: 10px;
     height: 10px;
@@ -837,7 +837,8 @@
   height: 70vh;
   background-color: var(--card-bg);
   box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 1001; /* Higher than toolkit-details */
+  z-index: 1001;
+  /* Higher than toolkit-details */
   overflow-y: auto;
   transition: transform 0.3s;
   padding: 20px;
@@ -972,7 +973,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .history-table {
     font-size: 13px;
   }
-  
+
   .history-table th,
   .history-table td {
     padding: 8px 10px;
@@ -986,6 +987,7 @@ input[type="number"]::-webkit-inner-spin-button {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -996,7 +998,91 @@ input[type="number"]::-webkit-inner-spin-button {
   animation: fadeIn 0.2s ease-out;
 }
 
+.toolkits-actions {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
+/* Export to Excel button styles */
+.export-excel-btn {
+  background-color: #1d6f42;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  min-width: 160px;
+  justify-content: center;
+}
+
+.export-excel-btn:hover {
+  background: linear-gradient(135deg, #1d6f42, #0a793c98);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 39, 11, 0.123);
+}
+
+.export-excel-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+.export-excel-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .toolkits-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .export-excel-btn,
+  .add-toolkit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Loading state for export button */
+.export-excel-btn.loading {
+  background: #6c757d;
+  cursor: wait;
+}
+
+.export-excel-btn.loading::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -1004,20 +1090,20 @@ input[type="number"]::-webkit-inner-spin-button {
     width: auto;
     min-width: 200px;
   }
-  
+
   .variants-list {
     max-width: 200px;
   }
-  
+
   .variant-group {
     padding: 8px;
   }
-  
+
   .variant-colors {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .variant-color-item {
     justify-content: space-between;
     width: 100%;
@@ -1040,17 +1126,17 @@ input[type="number"]::-webkit-inner-spin-button {
   .date-time {
     width: 100%;
   }
-  
+
   .form-row {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     gap: 5px;
   }
-  
+
   .action-btn {
     width: 100%;
   }
@@ -1059,24 +1145,24 @@ input[type="number"]::-webkit-inner-spin-button {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .detail-item .label {
     min-width: auto;
   }
-  
+
   .action-btn-group {
     flex-direction: column;
   }
-  
+
   .action-btn-group button {
     width: 100%;
   }
-  
+
   .variant-actions {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .variant-actions button {
     width: 100%;
   }

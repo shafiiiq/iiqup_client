@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Toolkits.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import ExcelJS from 'exceljs';
 
 const Toolkits = () => {
   // Predefined tool names and colors
@@ -22,6 +23,7 @@ const Toolkits = () => {
   const [stockHistory, setStockHistory] = useState([]);
   const [formMode, setFormMode] = useState('add');
   const [variantFormMode, setVariantFormMode] = useState('add');
+  const [exporting, setExporting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -452,33 +454,33 @@ const Toolkits = () => {
 
   // Delete variant
   const deleteVariant = async (toolkitId, variantId) => {
-   if (!window.confirm('Are you sure you want to delete this variant?')) return;
-   try {
-     const response = await apiRequest(`${END_POINT}/toolkits/delete-variant/${toolkitId}/${variantId}`, 'DELETE');
-     if (!response.ok) throw new Error('Failed to delete variant');
-     const result = await response.json();
+    if (!window.confirm('Are you sure you want to delete this variant?')) return;
+    try {
+      const response = await apiRequest(`${END_POINT}/toolkits/delete-variant/${toolkitId}/${variantId}`, 'DELETE');
+      if (!response.ok) throw new Error('Failed to delete variant');
+      const result = await response.json();
 
-     if (result.data === null) {
-       // Toolkit was deleted because no variants left
-       setToolkits(toolkits.filter(item => item._id !== toolkitId));
-       if (selectedToolkit && selectedToolkit._id === toolkitId) {
-         setSelectedToolkit(null);
-       }
-     } else {
-       // Variant was deleted
-       setToolkits(toolkits.map(t => t._id === toolkitId ? result.data : t));
-       if (selectedToolkit && selectedToolkit._id === toolkitId) {
-         setSelectedToolkit(result.data);
-         if (selectedVariant && selectedVariant._id === variantId) {
-           setSelectedVariant(null);
-         }
-       }
-     }
-   } catch (err) {
-     console.error('Error deleting variant:', err);
-     alert(`Failed to delete variant: ${err.message}`);
-   }
- };
+      if (result.data === null) {
+        // Toolkit was deleted because no variants left
+        setToolkits(toolkits.filter(item => item._id !== toolkitId));
+        if (selectedToolkit && selectedToolkit._id === toolkitId) {
+          setSelectedToolkit(null);
+        }
+      } else {
+        // Variant was deleted
+        setToolkits(toolkits.map(t => t._id === toolkitId ? result.data : t));
+        if (selectedToolkit && selectedToolkit._id === toolkitId) {
+          setSelectedToolkit(result.data);
+          if (selectedVariant && selectedVariant._id === variantId) {
+            setSelectedVariant(null);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting variant:', err);
+      alert(`Failed to delete variant: ${err.message}`);
+    }
+  };
 
   // Reduce stock for a variant
   const handleReduceStock = async () => {
@@ -526,6 +528,205 @@ const Toolkits = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
+  const exportToExcel = async () => {
+    try {
+      setExporting(true);
+
+      // Create a new workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Safety Tools Inventory');
+
+      // Define columns with headers
+      worksheet.columns = [
+        { header: 'Toolkit ID', key: 'toolkitId', width: 12 },
+        { header: 'Tool Name', key: 'toolName', width: 25 },
+        { header: 'Type', key: 'type', width: 20 },
+        { header: 'Variant ID', key: 'variantId', width: 12 },
+        { header: 'Size', key: 'size', width: 12 },
+        { header: 'Color', key: 'color', width: 15 },
+        { header: 'Current Stock', key: 'currentStock', width: 15 },
+        { header: 'Minimum Stock Level', key: 'minStockLevel', width: 22 },
+        { header: 'Status', key: 'status', width: 15 },
+        { header: 'In Use', key: 'inUse', width: 12 },
+        { header: 'First Added', key: 'firstAdded', width: 18 },
+        { header: 'Last Updated', key: 'lastUpdated', width: 18 },
+        { header: 'Total Toolkit Stock', key: 'totalStock', width: 20 },
+        { header: 'Overall Toolkit Status', key: 'overallStatus', width: 25 }
+      ];
+
+      // Style the header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.height = 40; // Set row height to 40px
+      headerRow.eachCell((cell) => {
+        cell.font = {
+          bold: true,
+          size: 14,
+          color: { argb: 'FFFFFFFF' }
+        };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF4472C4' }
+        };
+        cell.alignment = {
+          horizontal: 'center',
+          vertical: 'middle',
+          wrapText: true
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Prepare and add data
+      let rowIndex = 2; // Start from row 2 (after header)
+      filteredToolkits.forEach((toolkit, toolkitIndex) => {
+        if (toolkit.variants && toolkit.variants.length > 0) {
+          toolkit.variants.forEach((variant, variantIndex) => {
+            const status = calculateStatus(variant.stockCount, variant.minStockLevel);
+            const statusText = status === 'available' ? 'In Stock' :
+              status === 'low' ? 'Low Stock' : 'Out of Stock';
+            const overallStatusText = toolkit.overallStatus === 'available' ? 'In Stock' :
+              toolkit.overallStatus === 'low' ? 'Low Stock' : 'Out of Stock';
+
+            const rowData = {
+              toolkitId: toolkitIndex + 1,
+              toolName: toolkit.name,
+              type: toolkit.type,
+              variantId: variantIndex + 1,
+              size: variant.size,
+              color: variant.color,
+              currentStock: variant.stockCount,
+              minStockLevel: variant.minStockLevel,
+              status: statusText,
+              inUse: variant.inuse ? 'Yes' : 'No',
+              firstAdded: new Date(variant.firstAddedDate).toLocaleDateString(),
+              lastUpdated: new Date(variant.lastUpdatedDate).toLocaleDateString(),
+              totalStock: toolkit.totalStock,
+              overallStatus: overallStatusText
+            };
+
+            worksheet.addRow(rowData);
+            rowIndex++;
+          });
+        } else {
+          const overallStatusText = toolkit.overallStatus === 'available' ? 'In Stock' :
+            toolkit.overallStatus === 'low' ? 'Low Stock' : 'Out of Stock';
+
+          const rowData = {
+            toolkitId: toolkitIndex + 1,
+            toolName: toolkit.name,
+            type: toolkit.type,
+            variantId: 'N/A',
+            size: 'N/A',
+            color: 'N/A',
+            currentStock: 0,
+            minStockLevel: 'N/A',
+            status: 'No Variants',
+            inUse: 'N/A',
+            firstAdded: 'N/A',
+            lastUpdated: 'N/A',
+            totalStock: toolkit.totalStock || 0,
+            overallStatus: overallStatusText
+          };
+
+          worksheet.addRow(rowData);
+          rowIndex++;
+        }
+      });
+
+      // Style data rows
+      for (let i = 2; i <= worksheet.rowCount; i++) {
+        const row = worksheet.getRow(i);
+        row.height = 40; // Set row height to 40px
+
+        row.eachCell((cell, colNumber) => {
+          // Base styling for all data cells
+          cell.font = { size: 12 };
+          cell.alignment = {
+            horizontal: 'center',
+            vertical: 'middle',
+            wrapText: true
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+
+          // Alternate row background colors
+          if (i % 2 === 0) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF2F2F2' }
+            };
+          }
+
+          // Status-based text coloring
+          const cellValue = cell.value;
+          if (typeof cellValue === 'string') {
+            if (cellValue.includes('Out of Stock') || cellValue === 'No Variants') {
+              cell.font = {
+                size: 12,
+                bold: true,
+                color: { argb: 'FFC5504B' }
+              };
+            } else if (cellValue.includes('Low Stock')) {
+              cell.font = {
+                size: 12,
+                bold: true,
+                color: { argb: 'FFD99694' }
+              };
+            } else if (cellValue.includes('In Stock')) {
+              cell.font = {
+                size: 12,
+                bold: true,
+                color: { argb: 'FF70AD47' }
+              };
+            }
+          }
+        });
+      }
+
+      // Generate filename with current date
+      const now = new Date();
+      const dateStr = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+      const timeStr = String(now.getHours()).padStart(2, '0') + '-' +
+        String(now.getMinutes()).padStart(2, '0');
+      const filename = `Safety_Tools_Inventory_${dateStr}_${timeStr}.xlsx`;
+
+      // Small delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Generate buffer and create blob
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Failed to export data to Excel. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="toolkits-container">
       <div className="toolkits-header">
@@ -535,7 +736,10 @@ const Toolkits = () => {
 
       <div className="toolkits-actions">
         <button className="add-toolkit-btn" onClick={openAddForm}>
-          + Add Toolkit
+          Add Toolkit
+        </button>
+        <button className="export-excel-btn" onClick={exportToExcel}>
+          Export to Excel
         </button>
       </div>
 

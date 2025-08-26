@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './ServiceHistory.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import logoImage from '../../assets/images/al-ansari.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import { apiRequest } from '../../utils/0auth';
@@ -399,216 +399,210 @@ const ServiceHistory = () => {
     }
   };
 
-  const handleExportToExcel = () => {
-    // Create a workbook
-    const wb = XLSX.utils.book_new();
+  const handleExportToExcel = async () => {
+    try {
+      // Create a workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Service History');
 
-    // Prepare worksheet data
-    const wsData = [];
+      const tabName = activeTab === 'all' ? 'All Services' :
+        activeTab === 'oil' ? 'Oil Service' :
+          activeTab === 'maintenance' ? 'Major Works' :
+            activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
 
-    // Add title and metadata rows
-    const tabName = activeTab === 'all' ? 'All Services' :
-      activeTab === 'oil' ? 'Oil Service' :
-        activeTab === 'maintenance' ? 'Major Works' :
-          activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
+      let currentRow = 1;
 
-    // Main Title (Heading 1)
-    wsData.push([`${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`]);
+      // Add title rows with styling
+      const titleCell = worksheet.getCell('A1');
+      titleCell.value = `${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`;
+      titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(1).height = 45;
 
-    // Subtitle (Heading 2)
-    wsData.push([`Date Range: ${getDateRangeText()}`]);
+      // Add subtitle
+      currentRow++;
+      const subtitleCell = worksheet.getCell(`A${currentRow}`);
+      subtitleCell.value = `Date Range: ${getDateRangeText()}`;
+      subtitleCell.font = { bold: true, size: 14, color: { argb: 'FF000000' } };
+      subtitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
+      subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(currentRow).height = 45;
 
-    // Search term if applicable (Heading 3)
-    if (searchTerm) wsData.push([`Search Term: "${searchTerm}"`]);
+      // Add search term if applicable
+      if (searchTerm) {
+        currentRow++;
+        const searchCell = worksheet.getCell(`A${currentRow}`);
+        searchCell.value = `Search Term: "${searchTerm}"`;
+        searchCell.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+        searchCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } };
+        searchCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(currentRow).height = 45;
+      }
 
-    // Empty row for spacing
-    wsData.push([]);
+      // Empty row
+      currentRow++;
+      worksheet.getRow(currentRow).height = 20;
 
-    // Report generated timestamp (Heading 4)
-    wsData.push([`Report Generated: ${new Date().toLocaleString()}`]);
-    wsData.push([]); // Empty row
+      // Add timestamp
+      currentRow++;
+      const timestampCell = worksheet.getCell(`A${currentRow}`);
+      timestampCell.value = `Report Generated: ${new Date().toLocaleString()}`;
+      timestampCell.font = { italic: true, size: 11, color: { argb: 'FF7F7F7F' } };
+      timestampCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(currentRow).height = 45;
 
-    // Add headers
-    const headers = [
-      'Date',
-      ...(activeTab === 'all' ? ['Service Type'] : []),
-      'Work Description',
-      ...((activeTab === 'oil' || activeTab === 'all') ? ['Serviced Hrs/Km', 'Next Service', 'Next Full Service'] : []),
-      ...((activeTab === 'tyre' || activeTab === 'all') ? ['Location', 'Tyre Model'] : []),
-      ...((activeTab === 'battery' || activeTab === 'all') ? ['Battery Model'] : []),
-      'Remarks'
-    ];
+      // Empty row
+      currentRow++;
+      worksheet.getRow(currentRow).height = 20;
 
-    wsData.push(headers);
-
-    // Add data rows
-    filteredData.forEach(item => {
-      const row = [
-        formatDate(item.date),
-        ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
-        getWorkDescription(item),
-        ...((activeTab === 'oil' || activeTab === 'all') ? [
-          item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-          item.serviceType === 'oil' ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-          item.serviceType === 'oil' && item.fullService ? item.serviceHrs + 3000 : '-'
-        ] : []),
-        ...((activeTab === 'tyre' || activeTab === 'all') ? [
-          item.location ? item.location : '-',
-          item.serviceType === 'tyre' ? item.tyreModel : '-'
-        ] : []),
-        ...((activeTab === 'battery' || activeTab === 'all') ? [
-          item.serviceType === 'battery' ? item.batteryModel : '-'
-        ] : []),
-        getRemarksText(item)
+      // Define headers
+      const headers = [
+        'Date',
+        ...(activeTab === 'all' ? ['Service Type'] : []),
+        'Work Description',
+        ...((activeTab === 'oil' || activeTab === 'all') ? ['Serviced Hrs/Km', 'Next Service', 'Next Full Service'] : []),
+        ...((activeTab === 'tyre' || activeTab === 'all') ? ['Location', 'Tyre Model'] : []),
+        ...((activeTab === 'battery' || activeTab === 'all') ? ['Battery Model'] : []),
+        'Remarks'
       ];
 
-      wsData.push(row);
-    });
+      // Add headers
+      currentRow++;
+      const headerRow = worksheet.getRow(currentRow);
+      headers.forEach((header, index) => {
+        const cell = headerRow.getCell(index + 1);
+        cell.value = header;
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+      headerRow.height = 45;
 
-    // Create worksheet
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
+      // Set column widths
+      const colWidths = [
+        15,  // Date
+        ...(activeTab === 'all' ? [15] : []), // Service Type
+        40,  // Work Description
+        ...((activeTab === 'oil' || activeTab === 'all') ? [15, 15, 18] : []), // Oil columns
+        ...((activeTab === 'tyre' || activeTab === 'all') ? [20, 25] : []), // Tyre columns
+        ...((activeTab === 'battery' || activeTab === 'all') ? [25] : []), // Battery column
+        40   // Remarks
+      ];
 
-    // Set column widths (wider columns for better readability)
-    const colWidths = [
-      { wch: 15 },  // Date (wider)
-      ...(activeTab === 'all' ? [{ wch: 15 }] : []), // Service Type
-      { wch: 40 },  // Work Description (much wider)
-      ...((activeTab === 'oil' || activeTab === 'all') ? [
-        { wch: 15 }, // Serviced Hrs/Km
-        { wch: 15 }, // Next Service
-        { wch: 18 }  // Next Full Service
-      ] : []),
-      ...((activeTab === 'tyre' || activeTab === 'all') ? [
-        { wch: 20 }, // Location
-        { wch: 25 }  // Tyre Model
-      ] : []),
-      ...((activeTab === 'battery' || activeTab === 'all') ? [
-        { wch: 25 }  // Battery Model
-      ] : []),
-      { wch: 40 }    // Remarks (wider)
-    ];
-
-    ws['!cols'] = colWidths;
-
-    // Set row heights (35 for all rows)
-    const rowHeights = [];
-    for (let i = 0; i < wsData.length; i++) {
-      rowHeights.push({ hpt: 35 });
-    }
-    ws['!rows'] = rowHeights;
-
-    // Define merge ranges for title cells
-    if (!ws['!merges']) ws['!merges'] = [];
-
-    // Merge title cells (span all columns)
-    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }); // Main title
-    ws['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } }); // Date range
-    if (searchTerm) {
-      ws['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 2, c: headers.length - 1 } }); // Search term
-      ws['!merges'].push({ s: { r: 4, c: 0 }, e: { r: 4, c: headers.length - 1 } }); // Generated timestamp
-    } else {
-      ws['!merges'].push({ s: { r: 3, c: 0 }, e: { r: 3, c: headers.length - 1 } }); // Generated timestamp
-    }
-
-    // Define styles for different heading levels
-    const heading1Style = {
-      font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "2F5597" } }, // Dark blue
-      alignment: { horizontal: "center", vertical: "center" }
-    };
-
-    const heading2Style = {
-      font: { bold: true, sz: 14, color: { rgb: "000000" } },
-      fill: { fgColor: { rgb: "BDD7EE" } }, // Light blue
-      alignment: { horizontal: "center", vertical: "center" }
-    };
-
-    const heading3Style = {
-      font: { bold: true, sz: 12, color: { rgb: "000000" } },
-      fill: { fgColor: { rgb: "DDEBF7" } }, // Very light blue
-      alignment: { horizontal: "center", vertical: "center" }
-    };
-
-    const heading4Style = {
-      font: { italic: true, sz: 11, color: { rgb: "7F7F7F" } },
-      alignment: { horizontal: "center", vertical: "center" }
-    };
-
-    const headerRowStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "4472C4" } }, // Medium blue
-      alignment: { horizontal: "center", vertical: "center" }
-    };
-
-    // Apply styles to heading rows
-    ws['A1'].s = heading1Style; // Main title
-    ws['A2'].s = heading2Style; // Date range
-
-    if (searchTerm) {
-      ws['A3'].s = heading3Style; // Search term
-      ws['A5'].s = heading4Style; // Generated timestamp
-    } else {
-      ws['A4'].s = heading4Style; // Generated timestamp
-    }
-
-    // Calculate header row position (after all title rows)
-    const headerRow = searchTerm ? 6 : 5;
-
-    // Style headers
-    XLSX.utils.encode_range({ r: headerRow, c: 0 }, { r: headerRow, c: headers.length - 1 })
-      .split(':')
-      .forEach(cell => {
-        if (!ws[cell]) return;
-        ws[cell].s = headerRowStyle;
+      colWidths.forEach((width, index) => {
+        worksheet.getColumn(index + 1).width = width;
       });
 
-    // Style data rows with service-specific colors and center alignment
-    filteredData.forEach((_, index) => {
-      const rowNum = headerRow + 1 + index;
-      const serviceType = filteredData[index].serviceType;
+      // Add data rows
+      filteredData.forEach((item, index) => {
+        currentRow++;
+        const dataRow = worksheet.getRow(currentRow);
 
-      let bgColor;
-      switch (serviceType) {
-        case 'oil':
-          bgColor = "E8F5E8"; // Light green
-          break;
-        case 'maintenance':
-          bgColor = "FFF3CD"; // Light yellow
-          break;
-        case 'tyre':
-          bgColor = "D1ECF1"; // Light blue
-          break;
-        case 'battery':
-          bgColor = "F8D7DA"; // Light red
-          break;
-        default:
-          bgColor = "FFFFFF"; // White
-      }
+        const rowData = [
+          formatDate(item.date),
+          ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
+          getWorkDescription(item),
+          ...((activeTab === 'oil' || activeTab === 'all') ? [
+            item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
+            item.serviceType === 'oil' ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
+            item.serviceType === 'oil' && item.fullService ? item.serviceHrs + 3000 : '-'
+          ] : []),
+          ...((activeTab === 'tyre' || activeTab === 'all') ? [
+            item.location ? item.location : '-',
+            item.serviceType === 'tyre' ? item.tyreModel : '-'
+          ] : []),
+          ...((activeTab === 'battery' || activeTab === 'all') ? [
+            item.serviceType === 'battery' ? item.batteryModel : '-'
+          ] : []),
+          getRemarksText(item)
+        ];
 
-      if (filteredData[index].fullService || filteredData[index].replaced) {
-        bgColor = "FFD3A5"; // Orange for full service/replacement
-      }
-
-      XLSX.utils.encode_range({ r: rowNum, c: 0 }, { r: rowNum, c: headers.length - 1 })
-        .split(':')
-        .forEach(cell => {
-          if (!ws[cell]) return;
-          ws[cell].s = {
-            ...(ws[cell].s || {}),
-            fill: { fgColor: { rgb: bgColor } },
-            alignment: { horizontal: "center", vertical: "center", wrapText: true }
-          };
+        // Set row data
+        rowData.forEach((value, colIndex) => {
+          dataRow.getCell(colIndex + 1).value = value;
         });
-    });
 
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Service History");
+        // Set row height
+        dataRow.height = 45;
 
-    // Generate file name
-    const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        // Determine background color based on service type
+        let bgColor = 'FFFFFFFF'; // White default
+        switch (item.serviceType) {
+          case 'oil':
+            bgColor = 'FFE8F5E8'; // Light green
+            break;
+          case 'maintenance':
+            bgColor = 'FFFFF3CD'; // Light yellow
+            break;
+          case 'tyre':
+            bgColor = 'FFD1ECF1'; // Light blue
+            break;
+          case 'battery':
+            bgColor = 'FFF8D7DA'; // Light red
+            break;
+        }
 
-    // Export the workbook
-    XLSX.writeFile(wb, fileName);
+        if (item.fullService || item.replaced) {
+          bgColor = 'FFFFD3A5'; // Orange for full service/replacement
+        }
+
+        // Style each cell in the row
+        dataRow.eachCell((cell) => {
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          cell.font = { size: 11 };
+        });
+      });
+
+      // Merge title cells
+      worksheet.mergeCells(`A1:${String.fromCharCode(64 + headers.length)}1`); // Main title
+      worksheet.mergeCells(`A2:${String.fromCharCode(64 + headers.length)}2`); // Date range
+
+      if (searchTerm) {
+        worksheet.mergeCells(`A3:${String.fromCharCode(64 + headers.length)}3`); // Search term
+        worksheet.mergeCells(`A5:${String.fromCharCode(64 + headers.length)}5`); // Timestamp
+      } else {
+        worksheet.mergeCells(`A4:${String.fromCharCode(64 + headers.length)}4`); // Timestamp
+      }
+
+      // Generate filename
+      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+      // Generate buffer and create blob for download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+
+      console.log('Service history exported successfully with full styling!');
+
+    } catch (error) {
+      console.error('Error exporting service history:', error);
+      alert('Failed to export service history. Please try again.');
+    }
   };
 
   // Helper function to get work description text
