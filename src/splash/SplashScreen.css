@@ -125,11 +125,12 @@
     justify-content: center;
     z-index: 5;
     min-height: 100px;
+    width: 100%;
 }
 
 .iiqup-splash-logo-image {
-    max-width: 42%;
-    width: 42%;
+    max-width: 30%;
+    width: 30%;
     height: auto;
     display: block;
     object-fit: contain;
@@ -193,12 +194,17 @@
 
 /* Loading animation container */
 .iiqup-splash-loading-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 40px;
     animation: iiqupLoadingEntrance 1s ease-out 0.5s both;
 }
 
 .iiqup-splash-loading-bar {
-    width: 200px;
+    width: 10%;
+    max-width: 10%;
     height: 3px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
