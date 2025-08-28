@@ -169,58 +169,6 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                             <img src={logoImage} alt="Al Ansari Logo" className="ansari-nav-logo" />
                         </div>
 
-                        <div className={`ansari-burger-btn ${menuOpen ? 'ansari-burger-active' : ''}`} onClick={toggleMenu}>
-                            <div className="ansari-burger-inner">
-                                <span className="ansari-burger-line ansari-line-1"></span>
-                                <span className="ansari-burger-line ansari-line-2"></span>
-                                <span className="ansari-burger-line ansari-line-3"></span>
-                            </div>
-                        </div>
-
-                        <nav className={`ansari-mobile-nav ${menuOpen ? 'ansari-nav-open' : ''}`} ref={navRef}>
-                            <div className="ansari-mobile-bg">
-                                <div className="ansari-bg-shape ansari-shape-1"></div>
-                                <div className="ansari-bg-shape ansari-shape-2"></div>
-                                <div className="ansari-bg-shape ansari-shape-3"></div>
-                                <div className="ansari-bg-shape ansari-shape-4"></div>
-                            </div>
-
-                            <div className="nav-indicator" ref={indicatorRef} style={indicatorStyle}></div>
-
-                            <ul>
-                                <li className={activeLink === '/' ? 'ansari-link-active' : ''}>
-                                    <Link to="/" onClick={() => handleNavClick('/')}>Home</Link>
-                                </li>
-                                <li className={activeLink === '/equipments' ? 'ansari-link-active' : ''}>
-                                    <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
-                                </li>
-                                <li className={activeLink === '/stock-manage' ? 'ansari-link-active' : ''}>
-                                    <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
-                                </li>
-                                <li className={activeLink === '/lpo-list' ? 'ansari-link-active' : ''}>
-                                    <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
-                                </li>
-                                <li className={activeLink === '/toolkits' ? 'ansari-link-active' : ''}>
-                                    <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
-                                </li>
-                                <li className={activeLink === '/mechanics' ? 'ansari-link-active' : ''}>
-                                    <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
-                                </li>
-                                <li className={activeLink === '/documents' ? 'active' : ''}>
-                                    <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
-                                </li>
-                                <li className={activeLink === '#clients' ? 'active' : ''}>
-                                    <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
-                                </li>
-                                <li className={activeLink === '/notification/' ? 'ansari-link-active' : ''}>
-                                    <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
-                                </li>
-                                <li className={activeLink === '/dashboard' ? 'ansari-link-active' : ''}>
-                                    <Link to="/dashboard" onClick={() => handleNavClick('/dashboard')}>Dashboard</Link>
-                                </li>
-                            </ul>
-                        </nav>
-
                         {user_logged_in && (
                             <div className="ansari-user-section">
                                 <div className="ansari-profile-icon">
@@ -242,6 +190,13 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                                 </div>
                             </div>
                         )}
+                        <div className={`ansari-burger-btn ${menuOpen ? 'ansari-burger-active' : ''}`} onClick={toggleMenu}>
+                            <div className="ansari-burger-inner">
+                                <span className="ansari-burger-line ansari-line-1"></span>
+                                <span className="ansari-burger-line ansari-line-2"></span>
+                                <span className="ansari-burger-line ansari-line-3"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="ansari-header-bg">
@@ -250,6 +205,53 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                         <div className="ansari-header-shape ansari-hshape-3"></div>
                     </div>
                 </header>
+            )}
+
+            {/* Mobile Navigation - Moved outside of header */}
+            {!isDesktop && (
+                <nav className={`ansari-mobile-nav ${menuOpen ? 'ansari-nav-open' : ''}`} ref={navRef}>
+                    <div className="ansari-mobile-bg">
+                        <div className="ansari-bg-shape ansari-shape-1"></div>
+                        <div className="ansari-bg-shape ansari-shape-2"></div>
+                        <div className="ansari-bg-shape ansari-shape-3"></div>
+                        <div className="ansari-bg-shape ansari-shape-4"></div>
+                    </div>
+
+                    <div className="nav-indicator" ref={indicatorRef} style={indicatorStyle}></div>
+
+                    <ul>
+                        <li className={activeLink === '/' ? 'ansari-link-active' : ''}>
+                            <Link to="/" onClick={() => handleNavClick('/')}>Home</Link>
+                        </li>
+                        <li className={activeLink === '/equipments' ? 'ansari-link-active' : ''}>
+                            <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
+                        </li>
+                        <li className={activeLink === '/stock-manage' ? 'ansari-link-active' : ''}>
+                            <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
+                        </li>
+                        <li className={activeLink === '/lpo-list' ? 'ansari-link-active' : ''}>
+                            <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
+                        </li>
+                        <li className={activeLink === '/toolkits' ? 'ansari-link-active' : ''}>
+                            <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
+                        </li>
+                        <li className={activeLink === '/mechanics' ? 'ansari-link-active' : ''}>
+                            <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
+                        </li>
+                        <li className={activeLink === '/documents' ? 'active' : ''}>
+                            <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
+                        </li>
+                        <li className={activeLink === '#clients' ? 'active' : ''}>
+                            <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
+                        </li>
+                        <li className={activeLink === '/notification/' ? 'ansari-link-active' : ''}>
+                            <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
+                        </li>
+                        <li className={activeLink === '/dashboard' ? 'ansari-link-active' : ''}>
+                            <Link to="/dashboard" onClick={() => handleNavClick('/dashboard')}>Dashboard</Link>
+                        </li>
+                    </ul>
+                </nav>
             )}
 
             <div className={`ansari-content-wrapper ${!isDesktop ? 'ansari-mobile-mode' : ''}`}>

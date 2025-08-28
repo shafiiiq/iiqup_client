@@ -1,9 +1,26 @@
 import { END_POINT } from '../../constants';
 import { COLORS } from './utils/dasboard-utils';
 import { apiRequest } from '../../utils/0auth';
+let equipmentCache = null;
+let cacheTime = 0;
 
 // Fetch dashboard data from API endpoints
 export const fetchDashboardData = async () => {
+    // Get equipment data (use cache if recent)
+    const now = Date.now();
+    if (!equipmentCache || (now - cacheTime) > 30000) {
+        const equipResponse = await apiRequest(`${END_POINT}/equipments/get-equipments`);
+        equipmentCache = await equipResponse.json();
+        cacheTime = now;
+    }
+    
+    // Create brand lookup map
+    const brandMap = new Map();
+    equipmentCache.data.forEach(equip => {
+        brandMap.set(equip.regNo.toString(), equip.brand);
+    });
+
+    // Fetch dashboard data
     const endpoints = [
         `${END_POINT}/dashboard/get-daily-updates`,
         `${END_POINT}/dashboard/get-weekly-updates`,
@@ -13,17 +30,32 @@ export const fetchDashboardData = async () => {
 
     const responses = await Promise.all(
         endpoints.map(url =>
-            apiRequest(url, 'GET')
-                .then(res => {
-                    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-                    return res.json();
-                })
+            apiRequest(url, 'GET').then(res => res.json())
         )
     );
 
     const [dailyData, weeklyData, monthlyData, yearlyData] = responses;
-    console.log(responses[3].data.tyreHistory);
-    
+
+    // Add brand to maintenance history and tyre history in each dataset
+    [dailyData, weeklyData, monthlyData, yearlyData].forEach(dataset => {
+        if (dataset.data?.maintenanceHistory) {
+            dataset.data.maintenanceHistory.forEach(maintenance => {
+                maintenance.brand = brandMap.get(maintenance.regNo.toString()) || 'Unknown';
+            });
+        }
+        
+        if (dataset.data?.tyreHistory) {
+            dataset.data.tyreHistory.forEach(tyre => {
+                tyre.brand = brandMap.get(tyre.equipmentNo.toString()) || 'Unknown';
+            });
+        }
+    });
+
+    // Debug logs
+    console.log(equipmentCache.data[0].brand);
+    console.log(equipmentCache.data[0].regNo);
+    console.log(yearlyData.data.maintenanceHistory[0]);
+    console.log(yearlyData.data.tyreHistory[0]);
 
     const realTimeData = await generateRealTimeAnalytics({
         daily: dailyData.data,

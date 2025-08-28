@@ -99,7 +99,7 @@ const Dashboard = () => {
     // Auto-refresh every 30 seconds
     const refreshInterval = setInterval(() => {
       loadDashboardData(true);
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(refreshInterval);
   }, []);

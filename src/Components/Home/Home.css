@@ -283,17 +283,17 @@ ul {
   background: #ffcb6b;
 }
 
-/* Mobile Navigation */
+/* Mobile Navigation - Fixed for mobile devices */
 .ansari-mobile-nav {
   position: fixed;
   top: 0;
   right: -300px;
   width: 280px;
   height: 100vh;
-  background: linear-gradient(145deg, #0c2d58, #1e5292);
+  background: linear-gradient(145deg, #09192e, #041e3d);
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  z-index: 99;
+  z-index: 999; /* Lower than header z-index */
 }
 
 .ansari-mobile-nav.ansari-nav-open {
@@ -337,6 +337,7 @@ ul {
   font-size: 1rem;
   border-left: 0 solid #ffcb6b;
   transition: all 0.3s ease;
+  color: white;
 }
 
 .ansari-mobile-nav li a:hover, 
@@ -357,16 +358,23 @@ ul {
   z-index: -1;
 }
 
-.ansari-mobile-nav.ansari-nav-open::before {
-  content: '';
+/* Overlay for mobile nav */
+.ansari-nav-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  z-index: -2;
-  animation: ansariFadeIn 0.5s forwards;
+  z-index: 998; /* Below mobile nav but above content */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s ease;
+}
+
+.ansari-nav-overlay.ansari-nav-open {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Header background animation */
@@ -952,7 +960,13 @@ ul {
   }
   
   .ansari-logo-wrapper {
-    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .ansari-user-name {
+    display: none;
   }
   
   .ansari-hero-area {
