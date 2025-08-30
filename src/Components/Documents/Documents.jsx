@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import './Documents.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import jsPDF from 'jspdf';
 
 function DocumentDetails() {
   const { regNo } = useParams();
@@ -169,49 +170,109 @@ function DocumentDetails() {
     }));
   };
 
-  // Fetch all document types from API
-  const fetchDocumentTypes = async () => {
-    try {
-      const response = await apiRequest(`${END_POINT}/documents/get-all-documents`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch document types');
-      }
-
-      const data = await response.json();
-
-      console.log(data);
-
-
-      // Extract unique document types from the response
-      const uniqueDocTypes = new Set();
-
-      if (data.documents && data.documents.length > 0) {
-        data.documents.forEach(doc => {
-          if (doc.documentType && doc.documentType.trim()) {
-            uniqueDocTypes.add(doc.documentType.trim());
-          }
-        });
-      }
-
-      // Convert Set to Array and sort alphabetically
-      const docTypesArray = Array.from(uniqueDocTypes).sort();
-
-      // If no document types found, use fallback
-      if (docTypesArray.length === 0) {
-        setDocumentTypes(fallbackDocumentTypes);
-        setFilteredDocTypes(fallbackDocumentTypes);
-      } else {
-        setDocumentTypes(docTypesArray);
-        setFilteredDocTypes(docTypesArray);
-      }
-    } catch (error) {
-      console.error("Error fetching document types:", error);
-      // Use fallback document types on error
-      setDocumentTypes(fallbackDocumentTypes);
-      setFilteredDocTypes(fallbackDocumentTypes);
-    }
+  const isImageFile = (file) => {
+    const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+    return imageTypes.includes(file.type.toLowerCase()) ||
+      /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(file.name);
   };
+
+  const convertImageToPDF = async (imageFile) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const img = new Image();
+          img.onload = () => {
+            // Create new PDF document
+            const pdf = new jsPDF();
+
+            // Get PDF page dimensions
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            // Calculate image dimensions to fit PDF page
+            const imgWidth = img.width;
+            const imgHeight = img.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+            const finalWidth = imgWidth * ratio;
+            const finalHeight = imgHeight * ratio;
+
+            // Center the image
+            const x = (pdfWidth - finalWidth) / 2;
+            const y = (pdfHeight - finalHeight) / 2;
+
+            // Add image to PDF
+            pdf.addImage(event.target.result, 'JPEG', x, y, finalWidth, finalHeight);
+
+            // Convert PDF to blob
+            const pdfBlob = pdf.output('blob');
+
+            // Create file with PDF extension
+            const fileName = imageFile.name.replace(/\.[^/.]+$/, '.pdf');
+            const pdfFile = new File([pdfBlob], fileName, {
+              type: 'application/pdf',
+              lastModified: Date.now()
+            });
+
+            resolve(pdfFile);
+          };
+
+          img.onerror = () => reject(new Error('Failed to load image'));
+          img.src = event.target.result;
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(imageFile);
+    });
+  };
+
+  // Fetch all document types from API
+  // const fetchDocumentTypes = async () => {
+  //   try {
+  //     const response = await apiRequest(`${END_POINT}/documents/get-all-documents`);
+
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch document types');
+  //     }
+
+  //     const data = await response.json();
+
+  //     console.log(data);
+
+
+  //     // Extract unique document types from the response
+  //     const uniqueDocTypes = new Set();
+
+  //     if (data.documents && data.documents.length > 0) {
+  //       data.documents.forEach(doc => {
+  //         if (doc.documentType && doc.documentType.trim()) {
+  //           uniqueDocTypes.add(doc.documentType.trim());
+  //         }
+  //       });
+  //     }
+
+  //     // Convert Set to Array and sort alphabetically
+  //     const docTypesArray = Array.from(uniqueDocTypes).sort();
+
+  //     // If no document types found, use fallback
+  //     if (docTypesArray.length === 0) {
+  //       setDocumentTypes(fallbackDocumentTypes);
+  //       setFilteredDocTypes(fallbackDocumentTypes);
+  //     } else {
+  //       setDocumentTypes(docTypesArray);
+  //       setFilteredDocTypes(docTypesArray);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching document types:", error);
+  //     // Use fallback document types on error
+  //     setDocumentTypes(fallbackDocumentTypes);
+  //     setFilteredDocTypes(fallbackDocumentTypes);
+  //   }
+  // };
 
   // Handle document type input change (for search/filter)
   const handleDocTypeInputChange = (e) => {
@@ -329,7 +390,7 @@ function DocumentDetails() {
     }
 
     // Fetch document types when component mounts
-    fetchDocumentTypes();
+    // fetchDocumentTypes();
   }, [regNo]);
 
   // Fetch documents when view tab is active
@@ -349,21 +410,40 @@ function DocumentDetails() {
   };
 
   // Handle file selection
-  const handleFileChange = (event) => {
+  // REPLACE your existing handleFileChange function with this:
+  const handleFileChange = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
+    if (!file) return;
 
-      // Preview image if it's an image file
-      if (file.type.startsWith('image/')) {
+    try {
+      if (isImageFile(file)) {
+        setMessage({ text: 'Converting image to PDF...', type: 'info' });
+
+        // Convert image to PDF
+        const convertedFile = await convertImageToPDF(file);
+        setSelectedFile(convertedFile);
+
+        // Still show preview of original image
         const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreviewImage(reader.result);
-        };
+        reader.onloadend = () => setPreviewImage(reader.result);
         reader.readAsDataURL(file);
+
+        setMessage({ text: 'Image converted to PDF successfully!', type: 'success' });
       } else {
-        setPreviewImage(null);
+        // Handle non-image files normally
+        setSelectedFile(file);
+
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = () => setPreviewImage(reader.result);
+          reader.readAsDataURL(file);
+        } else {
+          setPreviewImage(null);
+        }
       }
+    } catch (error) {
+      console.error('Error converting image to PDF:', error);
+      setMessage({ text: `Error converting image: ${error.message}`, type: 'error' });
     }
   };
 
@@ -455,6 +535,9 @@ function DocumentDetails() {
 
       const data = await response.json();
 
+      console.log(data);
+
+
       // Process the documents to flatten the files array
       const processedDocuments = [];
 
@@ -470,6 +553,8 @@ function DocumentDetails() {
                 fileName: file.filename,
                 filePath: file.path,
                 mimetype: file.mimetype,
+                date: file.date,
+                expiry: file.expiry,
                 uploadDate: file.uploadedAt || file.createdAt,
                 createdAt: file.createdAt,
                 updatedAt: file.updatedAt,
@@ -941,7 +1026,7 @@ function DocumentDetails() {
                 type="file"
                 id="document-file"
                 onChange={handleFileChange}
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp" // ADD image formats here
                 required
               />
               {selectedFile && (
@@ -1173,7 +1258,10 @@ function DocumentDetails() {
                           </div>
                           <div className="doc-details-item-name">{doc.fileName}</div>
                           <div className="doc-details-item-info">
-                            {new Date(doc.uploadDate).toLocaleDateString()}
+                            Issued Date: {doc.date}
+                          </div>
+                          <div className="doc-details-item-info">
+                            Expiry Date: {doc.expiry}
                           </div>
                           <div className="doc-details-file-actions">
                             <button

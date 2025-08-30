@@ -35,6 +35,7 @@ import Complaints from './Components/Complaints/Complaints';
 import ApplicationsList from './Components/ApplicationsList/ApplicationsList';
 import FormNavigation from './Components/FormNavigation/FormNavigation';
 import SplashScreen from './splash/SplashScreen';
+import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -252,6 +253,7 @@ function App() {
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
         <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
+        <NavigationButtons />
         <Routes>
           {/* Public Routes */}
           <Route
