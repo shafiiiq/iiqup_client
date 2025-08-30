@@ -14,6 +14,11 @@ function DocumentDetails() {
   const [equipmentData, setEquipmentData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [currentPath, setCurrentPath] = useState([]);
+  const [currentView, setCurrentView] = useState('categories'); // 'categories', 'docTypes', 'files'
+  const [currentCategory, setCurrentCategory] = useState(null);
+  const [currentDocType, setCurrentDocType] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   // New state for managing old document visibility
   const [expandedDocTypes, setExpandedDocTypes] = useState({});
@@ -35,7 +40,9 @@ function DocumentDetails() {
     documentType: '',
     description: '',
     uploadDate: new Date().toISOString().split('T')[0],
-    category: 'certificate' // certificate, inspection, specification, handover
+    category: 'certificate', // certificate, inspection, specification, handover
+    expiry: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0]
   });
 
   // Static fallback document types (in case API fails)
@@ -61,6 +68,99 @@ function DocumentDetails() {
     { value: 'warranty', label: 'Warranty' }
   ];
 
+  const navigateToCategory = (category) => {
+    setCurrentCategory(category);
+    setCurrentView('docTypes');
+    setCurrentPath([
+      { name: 'Documents', view: 'categories' },
+      { name: categories.find(cat => cat.value === category)?.label || category, view: 'docTypes', category }
+    ]);
+  };
+
+  const navigateToDocType = (docType) => {
+    setCurrentDocType({ name: docType });
+    setCurrentView('subfolders');
+    const categoryLabel = categories.find(cat => cat.value === currentCategory)?.label || currentCategory;
+
+    setCurrentPath([
+      { name: 'Documents', view: 'categories' },
+      { name: categoryLabel, view: 'docTypes', category: currentCategory },
+      { name: docType, view: 'subfolders', category: currentCategory, docType: docType }
+    ]);
+  };
+
+  const navigateToSubfolder = (docType, isLatest) => {
+    setCurrentDocType({ name: docType, isLatest });
+    setCurrentView('files');
+    const categoryLabel = categories.find(cat => cat.value === currentCategory)?.label || currentCategory;
+    const subfolderName = isLatest ? 'Latest' : 'Old';
+
+    setCurrentPath([
+      { name: 'Documents', view: 'categories' },
+      { name: categoryLabel, view: 'docTypes', category: currentCategory },
+      { name: docType, view: 'subfolders', category: currentCategory, docType: docType },
+      { name: subfolderName, view: 'files', category: currentCategory, docType: docType, isLatest }
+    ]);
+  };
+
+  const navigateToPath = (pathIndex) => {
+    const targetPath = currentPath[pathIndex];
+    setCurrentPath(currentPath.slice(0, pathIndex + 1));
+
+    if (targetPath.view === 'categories') {
+      setCurrentView('categories');
+      setCurrentCategory(null);
+      setCurrentDocType(null);
+    } else if (targetPath.view === 'docTypes') {
+      setCurrentView('docTypes');
+      setCurrentCategory(targetPath.category);
+      setCurrentDocType(null);
+    } else if (targetPath.view === 'subfolders') {
+      setCurrentView('subfolders');
+      setCurrentCategory(targetPath.category);
+      setCurrentDocType({ name: targetPath.docType });
+    } else if (targetPath.view === 'files') {
+      setCurrentView('files');
+      setCurrentCategory(targetPath.category);
+      setCurrentDocType({ name: targetPath.docType, isLatest: targetPath.isLatest });
+    }
+  };
+
+  const goBack = () => {
+    if (currentPath.length > 1) {
+      navigateToPath(currentPath.length - 2);
+    }
+  };
+
+  // Get file icon function
+  const getFileIcon = (filename, mimetype) => {
+    const ext = filename.split('.').pop().toLowerCase();
+    const mime = mimetype?.toLowerCase() || '';
+
+    if (ext === 'pdf' || mime.includes('pdf')) return '📄';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext) || mime.includes('image')) return '🖼️';
+    if (['doc', 'docx'].includes(ext) || mime.includes('word')) return '📝';
+    if (['xls', 'xlsx'].includes(ext) || mime.includes('spreadsheet')) return '📊';
+    if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation')) return '📑';
+    if (['zip', 'rar', '7z'].includes(ext)) return '🗜️';
+    if (['txt'].includes(ext) || mime.includes('text')) return '📄';
+    return '📎';
+  };
+
+  // Reset navigation when switching to view tab
+  useEffect(() => {
+    if (activeTab === 'view') {
+      setCurrentView('categories');
+      setCurrentPath([{ name: 'Documents', view: 'categories' }]);
+      setCurrentCategory(null);
+      setCurrentDocType(null);
+      setSelectedItems([]);
+      if (regNo) {
+        fetchDocuments();
+      }
+    }
+  }, [activeTab, regNo]);
+
   // Function to toggle old documents visibility
   const toggleOldDocuments = (categoryDocTypeKey) => {
     setExpandedDocTypes(prev => ({
@@ -79,6 +179,9 @@ function DocumentDetails() {
       }
 
       const data = await response.json();
+
+      console.log(data);
+
 
       // Extract unique document types from the response
       const uniqueDocTypes = new Set();
@@ -294,7 +397,9 @@ function DocumentDetails() {
           fileName: selectedFile.name,
           mimeType: selectedFile.type,
           description: formData.description,
-          category: formData.category
+          category: formData.category,
+          date: formData.date,
+          expiry: formData.expiry,
         },
         {}, // customHeaders
         selectedFile // the actual file
@@ -401,42 +506,42 @@ function DocumentDetails() {
       const data = await response.json();
       const body = { key: data.document.filePath, isLong: false };
       const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
-      
+
       if (!s3response.ok) {
         throw new Error(`S3 URL generation failed: ${s3response.status}`);
       }
-      
+
       const s3URL = await s3response.json();
       const fullUrl = s3URL.dataUrl;
 
       // Force download by fetching the file and creating a blob
       setMessage({ text: 'Downloading file...', type: 'info' });
-      
+
       const fileResponse = await apiRequest(fullUrl);
-      
+
       if (!fileResponse.ok) {
         throw new Error(`Failed to fetch file: ${fileResponse.status}`);
       }
-      
+
       // Get the file as blob
       const blob = await fileResponse.blob();
-      
+
       // Create download link with blob URL
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      
+
       link.href = downloadUrl;
       link.download = fileName;
       link.style.display = 'none';
-      
+
       // Add to DOM, click, then remove
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Clean up the blob URL
       URL.revokeObjectURL(downloadUrl);
-      
+
       setMessage({ text: 'Download completed!', type: 'success' });
 
     } catch (error) {
@@ -807,12 +912,24 @@ function DocumentDetails() {
             </div>
 
             <div className="doc-details-form-group">
-              <label htmlFor="uploadDate">Upload Date</label>
+              <label htmlFor="date">Date of Issue</label>
               <input
                 type="date"
-                id="uploadDate"
-                name="uploadDate"
-                value={formData.uploadDate}
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="doc-details-form-group">
+              <label htmlFor="date">Date of Expiry</label>
+              <input
+                type="date"
+                id="expiry"
+                name="expiry"
+                value={formData.expiry}
                 onChange={handleInputChange}
                 required
               />
@@ -866,151 +983,226 @@ function DocumentDetails() {
           {isLoading ? (
             <div className="doc-details-loading">Loading documents...</div>
           ) : (
-            <div className="doc-details-categories">
-              {Object.keys(groupedDocuments).length > 0 ? (
-                Object.entries(groupedDocuments).map(([category, documents]) => {
-                  // Group documents by documentType within each category
-                  const groupedByDocType = documents.reduce((acc, doc) => {
-                    const docType = doc.documentType || 'Unknown';
-                    if (!acc[docType]) {
-                      acc[docType] = [];
-                    }
-                    acc[docType].push(doc);
-                    return acc;
-                  }, {});
+            <div className="doc-details-file-explorer">
+              {/* Toolbar with breadcrumb and back button */}
+              <div className="doc-details-explorer-toolbar">
+                <div className="doc-details-breadcrumb">
+                  {currentPath.map((pathItem, index) => (
+                    <div key={index} className="doc-details-breadcrumb-item">
+                      {index > 0 && <span className="doc-details-breadcrumb-separator">›</span>}
+                      {index === currentPath.length - 1 ? (
+                        <span className="doc-details-breadcrumb-current">
+                          📁 {pathItem.name}
+                        </span>
+                      ) : (
+                        <span
+                          className="doc-details-breadcrumb-link"
+                          onClick={() => navigateToPath(index)}
+                        >
+                          📁 {pathItem.name}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-                  return (
-                    <div key={category} className="doc-details-category-section">
-                      <h3 className="doc-details-category-title">
-                        {categories.find(cat => cat.value === category)?.label || category.toUpperCase()}
-                      </h3>
+                {currentPath.length > 1 && (
+                  <button onClick={goBack} className="doc-details-back-btn">
+                    ← Back
+                  </button>
+                )}
+              </div>
 
-                      {/* Loop through each document type within the category */}
-                      {Object.entries(groupedByDocType).map(([docType, docsOfType]) => {
-                        // Sort documents by upload date (newest first)
-                        const sortedDocs = docsOfType.sort((a, b) =>
-                          new Date(b.uploadDate) - new Date(a.uploadDate)
-                        );
-
-                        const latestDoc = sortedDocs[0];
-                        const olderDocs = sortedDocs.slice(1);
-                        const categoryDocTypeKey = `${category}-${docType}`;
-                        const isExpanded = expandedDocTypes[categoryDocTypeKey];
+              {/* Explorer Content */}
+              <div className="doc-details-explorer-content">
+                {/* Categories View */}
+                {currentView === 'categories' && (
+                  <div className="doc-details-grid-container">
+                    {Object.keys(groupedDocuments).length > 0 ? (
+                      Object.entries(groupedDocuments).map(([category, documents]) => {
+                        const categoryLabel = categories.find(cat => cat.value === category)?.label || category.toUpperCase();
+                        const docCount = documents.length;
 
                         return (
-                          <div key={docType} className="doc-details-doctype-section">
-                            <div className="doc-details-doctype-header">
-                              <h4 className="doc-details-doctype-title">
-                                {docType} ({sortedDocs.length})
-                              </h4>
-                              {olderDocs.length > 0 && (
-                                <button
-                                  onClick={() => toggleOldDocuments(categoryDocTypeKey)}
-                                  className="doc-details-old-toggle-btn"
-                                  style={{
-                                    padding: '4px 12px',
-                                    fontSize: '12px',
-                                    backgroundColor: isExpanded ? '#ff6b6b' : '#4CAF50',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    marginLeft: '10px'
-                                  }}
-                                >
-                                  {isExpanded ? `Hide Old (${olderDocs.length})` : `Show Old (${olderDocs.length})`}
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="doc-details-documents-grid">
-                              {/* Always show the latest document */}
-                              <div className="doc-details-document-card">
-                                <div className="doc-details-document-header">
-                                  <span className="doc-details-document-number">
-                                    Latest
-                                  </span>
-                                  <span className="doc-details-document-date">
-                                    {new Date(latestDoc.uploadDate).toLocaleDateString()}
-                                  </span>
-                                </div>
-
-                                <div className="doc-details-document-filename">
-                                  {latestDoc.fileName}
-                                </div>
-
-                                {latestDoc.description && (
-                                  <p className="doc-details-document-description">
-                                    {latestDoc.description}
-                                  </p>
-                                )}
-
-                                <div className="doc-details-document-actions">
-                                  <button
-                                    onClick={() => handleView(latestDoc._id, latestDoc.fileName)}
-                                    className="doc-details-action-btn view"
-                                  >
-                                    View
-                                  </button>
-                                  <button
-                                    onClick={() => handleDownload(latestDoc._id, latestDoc.fileName)}
-                                    className="doc-details-action-btn download"
-                                  >
-                                    Download
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Show older documents only when expanded */}
-                              {isExpanded && olderDocs.map((doc, index) => (
-                                <div key={doc._id} className="doc-details-document-card" style={{ opacity: 0.8, borderLeft: '3px solid #ffa500' }}>
-                                  <div className="doc-details-document-header">
-                                    <span className="doc-details-document-number" style={{ color: '#ffa500' }}>
-                                      Old #{index + 1}
-                                    </span>
-                                    <span className="doc-details-document-date">
-                                      {new Date(doc.uploadDate).toLocaleDateString()}
-                                    </span>
-                                  </div>
-
-                                  <div className="doc-details-document-filename">
-                                    {doc.fileName}
-                                  </div>
-
-                                  {doc.description && (
-                                    <p className="doc-details-document-description">
-                                      {doc.description}
-                                    </p>
-                                  )}
-
-                                  <div className="doc-details-document-actions">
-                                    <button
-                                      onClick={() => handleView(doc._id, doc.fileName)}
-                                      className="doc-details-action-btn view"
-                                    >
-                                      View
-                                    </button>
-                                    <button
-                                      onClick={() => handleDownload(doc._id, doc.fileName)}
-                                      className="doc-details-action-btn download"
-                                    >
-                                      Download
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
+                          <div
+                            key={category}
+                            className="doc-details-grid-item"
+                            onClick={() => navigateToCategory(category)}
+                          >
+                            <div className="doc-details-folder-icon">📁</div>
+                            <div className="doc-details-item-name">{categoryLabel}</div>
+                            <div className="doc-details-item-info">
+                              {docCount} document{docCount !== 1 ? 's' : ''}
                             </div>
                           </div>
                         );
-                      })}
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="doc-details-no-data">
-                  No documents found for this equipment
-                </div>
-              )}
+                      })
+                    ) : (
+                      <div className="doc-details-empty-state">
+                        <div className="doc-details-empty-icon">📂</div>
+                        <h3>Nothing Found</h3>
+                        <p>No files</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Document Types View */}
+                {currentView === 'docTypes' && currentCategory && (
+                  <div className="doc-details-grid-container">
+                    {(() => {
+                      const categoryDocuments = groupedDocuments[currentCategory] || [];
+                      const groupedByDocType = categoryDocuments.reduce((acc, doc) => {
+                        const docType = doc.documentType || 'Unknown';
+                        if (!acc[docType]) {
+                          acc[docType] = [];
+                        }
+                        acc[docType].push(doc);
+                        return acc;
+                      }, {});
+
+                      return Object.keys(groupedByDocType).length > 0 ?
+                        Object.entries(groupedByDocType).map(([docType, docs]) => (
+                          <div
+                            key={docType}
+                            className="doc-details-grid-item"
+                            onClick={() => navigateToDocType(docType)}
+                          >
+                            <div className="doc-details-folder-icon">📁</div>
+                            <div className="doc-details-item-name">{docType}</div>
+                            <div className="doc-details-item-info">
+                              {docs.length} document{docs.length !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="doc-details-empty-state">
+                            <div className="doc-details-empty-icon">📁</div>
+                            <h3>No Document Types</h3>
+                            <p>No document types found in this category.</p>
+                          </div>
+                        );
+                    })()}
+                  </div>
+                )}
+
+                {/* Subfolders View (Latest/Old) */}
+                {currentView === 'subfolders' && currentCategory && currentDocType && (
+                  <div className="doc-details-grid-container">
+                    {(() => {
+                      const categoryDocuments = groupedDocuments[currentCategory] || [];
+                      const docTypeDocuments = categoryDocuments.filter(doc =>
+                        (doc.documentType || 'Unknown') === currentDocType.name
+                      );
+
+                      const sortedDocs = docTypeDocuments.sort((a, b) =>
+                        new Date(b.uploadDate) - new Date(a.uploadDate)
+                      );
+
+                      const folders = [];
+
+                      // Latest folder (always present if there are documents)
+                      if (sortedDocs.length > 0) {
+                        folders.push(
+                          <div
+                            key="latest"
+                            className="doc-details-grid-item"
+                            onClick={() => navigateToSubfolder(currentDocType.name, true)}
+                          >
+                            <div className="doc-details-folder-icon">📁</div>
+                            <div className="doc-details-item-name">Latest</div>
+                            <div className="doc-details-item-info">1 document</div>
+                            <div className="doc-details-latest-badge">LATEST</div>
+                          </div>
+                        );
+                      }
+
+                      // Old folder (only if there are older documents)
+                      if (sortedDocs.length > 1) {
+                        folders.push(
+                          <div
+                            key="old"
+                            className="doc-details-grid-item"
+                            onClick={() => navigateToSubfolder(currentDocType.name, false)}
+                          >
+                            <div className="doc-details-folder-icon">📁</div>
+                            <div className="doc-details-item-name">Old</div>
+                            <div className="doc-details-item-info">{sortedDocs.length - 1} document{sortedDocs.length - 1 !== 1 ? 's' : ''}</div>
+                            <div className="doc-details-old-badge">OLD</div>
+                          </div>
+                        );
+                      }
+
+                      return folders.length > 0 ? folders : (
+                        <div className="doc-details-empty-state">
+                          <div className="doc-details-empty-icon">📁</div>
+                          <h3>No Documents</h3>
+                          <p>No documents found for this document type.</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Files View */}
+                {currentView === 'files' && currentCategory && currentDocType && (
+                  <div className="doc-details-grid-container">
+                    {(() => {
+                      const categoryDocuments = groupedDocuments[currentCategory] || [];
+                      const docTypeDocuments = categoryDocuments.filter(doc =>
+                        (doc.documentType || 'Unknown') === currentDocType.name
+                      );
+
+                      const sortedDocs = docTypeDocuments.sort((a, b) =>
+                        new Date(b.uploadDate) - new Date(a.uploadDate)
+                      );
+
+                      let docsToShow;
+                      if (currentDocType.isLatest) {
+                        docsToShow = sortedDocs.slice(0, 1); // Only latest
+                      } else {
+                        docsToShow = sortedDocs.slice(1); // All except latest
+                      }
+
+                      return docsToShow.length > 0 ? docsToShow.map((doc) => (
+                        <div
+                          key={doc._id}
+                          className="doc-details-grid-item"
+                        >
+                          <div className="doc-details-file-icon">
+                            {getFileIcon(doc.fileName, doc.mimetype)}
+                          </div>
+                          <div className="doc-details-item-name">{doc.fileName}</div>
+                          <div className="doc-details-item-info">
+                            {new Date(doc.uploadDate).toLocaleDateString()}
+                          </div>
+                          <div className="doc-details-file-actions">
+                            <button
+                              onClick={() => handleView(doc._id, doc.fileName)}
+                              className="doc-details-file-action-btn view"
+                              title="View document"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleDownload(doc._id, doc.fileName)}
+                              className="doc-details-file-action-btn download"
+                              title="Download document"
+                            >
+                              Download
+                            </button>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="doc-details-empty-state">
+                          <div className="doc-details-empty-icon">📄</div>
+                          <h3>No Files</h3>
+                          <p>No files found in this folder.</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

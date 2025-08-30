@@ -604,6 +604,248 @@
   background-color: #2980b9;
 }
 
+.doc-details-file-explorer {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-height: 500px;
+}
+
+.doc-details-explorer-toolbar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.doc-details-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.doc-details-breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.doc-details-breadcrumb-separator {
+  color: #999;
+  margin: 0 4px;
+}
+
+.doc-details-breadcrumb-link {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.doc-details-breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.doc-details-breadcrumb-current {
+  color: #333;
+  font-weight: 500;
+}
+
+.doc-details-back-btn {
+  background: #e9ecef;
+  border: 1px solid #ced4da;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #495057;
+}
+
+.doc-details-back-btn:hover {
+  background: #dee2e6;
+}
+
+.doc-details-explorer-content {
+  padding: 20px;
+  background: #fafbfc;
+  min-height: 400px;
+}
+
+.doc-details-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+  padding: 0;
+}
+
+.doc-details-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 2px solid transparent;
+  min-height: 100px;
+  text-align: center;
+}
+
+.doc-details-grid-item:hover {
+  background: #f0f2f5;
+  border-color: #d1d9e0;
+  transform: translateY(-2px);
+}
+
+.doc-details-grid-item.selected {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.doc-details-folder-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.doc-details-file-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.doc-details-item-name {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+  word-wrap: break-word;
+  line-height: 1.3;
+  max-width: 100%;
+}
+
+.doc-details-item-info {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+.doc-details-file-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.doc-details-grid-item:hover .doc-details-file-actions {
+  opacity: 1;
+}
+
+.doc-details-file-action-btn {
+  padding: 4px 6px;
+  font-size: 10px;
+  border: 1px solid #ccc;
+  background: white;
+  color: #555;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doc-details-file-action-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.doc-details-file-action-btn.view {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.doc-details-file-action-btn.view:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+.doc-details-file-action-btn.download {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.doc-details-file-action-btn.download:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.doc-details-empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #666;
+}
+
+.doc-details-empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+.doc-details-latest-badge {
+  background: #28a745;
+  color: white;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.doc-details-old-badge {
+  background: #fd7e14;
+  color: white;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .doc-details-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+  }
+  
+  .doc-details-folder-icon {
+    font-size: 36px;
+  }
+  
+  .doc-details-file-icon {
+    font-size: 32px;
+  }
+  
+  .doc-details-item-name {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .doc-details-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 12px;
+  }
+  
+  .doc-details-explorer-content {
+    padding: 15px;
+  }
+}
+
 /* Responsive design for progress modal */
 @media (max-width: 480px) {
   .doc-details-progress-modal {
