@@ -217,7 +217,7 @@ function Equipments() {
 
     try {
       const response = await apiRequest(
-        `${END_POINT}/equipments/delete-equipment/${selectedEquipment.id}`,
+        `${END_POINT}/equipments/delete-equipment/${selectedEquipment.regNo}`,
         'DELETE'
       );
 
