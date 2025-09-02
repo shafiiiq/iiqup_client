@@ -158,9 +158,9 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             <li className={activeLink === '/documents' ? 'active' : ''}>
               <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
             </li>
-            <li className={activeLink === '#clients' ? 'active' : ''}>
+            {/* <li className={activeLink === '#clients' ? 'active' : ''}>
               <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
-            </li>
+            </li> */}
             <li className={activeLink === '/notification' ? 'active' : ''}>
               <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
             </li>
