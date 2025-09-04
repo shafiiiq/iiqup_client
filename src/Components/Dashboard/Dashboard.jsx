@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -27,8 +27,14 @@ import DataTable from './Common/DataTable';
 import SummaryInsights from './Common/SummaryInsights';
 import './Dashboard.css';
 import { formatDate, formatDateTime, getStatusColor, COLORS } from './utils/dasboard-utils';
+import Notifications from '../Notification/Notification';
 
 const Dashboard = () => {
+  // Refs for height calculation
+  const statusBarRef = useRef(null);
+  const dashboardHeaderRef = useRef(null);
+  const dashboardTabsRef = useRef(null);
+
   const [dashboardData, setDashboardData] = useState({
     daily: null,
     weekly: null,
@@ -43,6 +49,58 @@ const Dashboard = () => {
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [lastUpdated, setLastUpdated] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [heroHeight, setHeroHeight] = useState(0);
+
+  // Calculate hero height
+  const calculateHeroHeight = () => {
+    if (!statusBarRef.current || !dashboardHeaderRef.current || !dashboardTabsRef.current) {
+      return;
+    }
+
+    const statusBarHeight = statusBarRef.current.offsetHeight;
+    const dashboardHeaderHeight = dashboardHeaderRef.current.offsetHeight;
+    const dashboardTabsHeight = dashboardTabsRef.current.offsetHeight;
+
+    // Convert 4rem to pixels
+    const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const fourRemInPx = 4 * remToPx;
+
+    const totalHeight = statusBarHeight + dashboardHeaderHeight + dashboardTabsHeight + fourRemInPx;
+    setHeroHeight(totalHeight);
+  };
+
+  // Effect for hero height calculation
+  useEffect(() => {
+    // Initial calculation
+    const timer = setTimeout(calculateHeroHeight, 100);
+
+    // Resize observer for better detection
+    const resizeObserver = new ResizeObserver(calculateHeroHeight);
+
+    if (statusBarRef.current) resizeObserver.observe(statusBarRef.current);
+    if (dashboardHeaderRef.current) resizeObserver.observe(dashboardHeaderRef.current);
+    if (dashboardTabsRef.current) resizeObserver.observe(dashboardTabsRef.current);
+
+    // Window resize listener
+    const handleResize = () => {
+      calculateHeroHeight();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  // Recalculate when data changes
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(calculateHeroHeight, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, activeTab, dashboardData]);
 
   // Real-time clock and date
   useEffect(() => {
@@ -80,7 +138,7 @@ const Dashboard = () => {
       if (showRefresh) setRefreshing(true);
       setLoading(!showRefresh);
 
-      const data = await fetchDashboardData();      
+      const data = await fetchDashboardData();
 
       setDashboardData(data);
       setLoading(false);
@@ -95,13 +153,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadDashboardData();
-
-    // Auto-refresh every 30 seconds
-    const refreshInterval = setInterval(() => {
-      loadDashboardData(true);
-    }, 5000);
-
-    return () => clearInterval(refreshInterval);
   }, []);
 
   // Manual refresh
@@ -152,21 +203,46 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <DashboardHeader
-        title="Fleet Management Dashboard"
-        subtitle="Real-time Fleet Analytics & Monitoring"
-        currentDateTime={currentDateTime}
-        refreshing={refreshing}
-        handleRefresh={handleRefresh}
-      />
+      <div
+        className="live-auto-monitor-hero"
+        style={{
+          position: 'absolute',
+          width: '42%',
+          height: `${heroHeight}px`,
+          right: 0,
+          paddingInline: '1rem'
+        }}
+      >
+        <div className="dsh-auto-wraper-live">
+          <div className="dsh-auto-roller-controller">
+            <div className="dsh-roler-move">
+              <Notifications islivemodeON={true} />
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <StatusBar realTimeData={realTimeData} />
+      <div ref={dashboardHeaderRef}>
+        <DashboardHeader
+          title="Fleet Management Dashboard"
+          subtitle="Real-time Fleet Analytics & Monitoring"
+          currentDateTime={currentDateTime}
+          refreshing={refreshing}
+          handleRefresh={handleRefresh}
+        />
+      </div>
 
-      <DashboardTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={['daily', 'weekly', 'monthly', 'yearly']}
-      />
+      <div ref={statusBarRef}>
+        <StatusBar realTimeData={realTimeData} />
+      </div>
+
+      <div ref={dashboardTabsRef}>
+        <DashboardTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          tabs={['daily', 'weekly', 'monthly', 'yearly']}
+        />
+      </div>
 
       <MetricsGrid
         currentStats={currentStats}
@@ -360,7 +436,6 @@ const Dashboard = () => {
           />
         )}
       </div>
-
 
       {/* Stock Health Monitor */}
       {realTimeData?.stockHealth?.length > 0 && (

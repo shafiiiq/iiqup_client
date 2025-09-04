@@ -8,6 +8,8 @@
   --primary: #1e3a8a;
   --primary-light: #3b82f6;
   --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  --live-gradient: linear-gradient(135deg, #0d4d32 0%, #7ec490 100%);
+  --live-border: #0a6345;
   --secondary: #1e40af;
   --accent: #06b6d4;
   --success: #10b981;
@@ -56,6 +58,36 @@ body {
   z-index: 0;
 }
 
+.dsh-auto-wraper-live {
+  width: 100%;
+  height: 100%;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--live-border);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dsh-auto-roller-controller::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: var(--live-gradient);
+  animation: shimmer 3s infinite;
+  z-index: 10000000000000;
+}
+
+
+.dsh-auto-roller-controller {
+  height: 100%; /* Ensure it has a defined height */
+  overflow-y: auto; /* Add this */
+  border-radius: 24px;
+}
+
 .dashboard-content {
   position: relative;
   z-index: 1;
@@ -75,6 +107,7 @@ body {
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
+  max-width: 58%;
 }
 
 .dashboard-header::before {
@@ -184,11 +217,12 @@ body {
   gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
+  max-width: 58%;
 }
 
 .status-item {
   flex: 1;
-  min-width: 200px;
+  min-width: 300px;
   background: var(--glass);
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
@@ -293,6 +327,7 @@ body {
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 0.5rem;
+  max-width: 58%;
 }
 
 .dashboard-tab {
@@ -510,9 +545,9 @@ body {
 
 .activity-timeline {
   position: relative;
-      max-height: 54rem;
-    /* overflow-y: scroll; */
-    overflow-x: hidden;
+  max-height: 54rem;
+  /* overflow-y: scroll; */
+  overflow-x: hidden;
 }
 
 .activity-timeline::before {
@@ -1114,11 +1149,12 @@ body {
 }
 
 @media (max-width: 768px) {
+
   .dashboard-equipment-card,
   .dashboard-maintenance-card {
     padding: 1.5rem;
   }
-  
+
   .equipment-table th,
   .maintenance-table th,
   .equipment-table td,
@@ -1166,17 +1202,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

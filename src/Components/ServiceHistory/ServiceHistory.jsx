@@ -1000,7 +1000,7 @@ const ServiceHistory = () => {
                       {activeTab === 'all' && (
                         <td>
                           <span className={`service-badge ${badge.className}`}>
-                            {badge.text}
+                            {item.fullService ? 'Full Service' : badge.text}
                           </span>
                         </td>
                       )}
@@ -1016,8 +1016,7 @@ const ServiceHistory = () => {
                         <>
                           <td>{item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
                           <td>{item.serviceType === 'oil' ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
-                          <td>{item.serviceType === 'oil' && item.fullService ? item.serviceHrs + 3000 : '-'}</td>
-                        </>
+                          <td>{item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'}</td>                        </>
                       )}
                       {(activeTab === 'tyre' || activeTab === 'all') && (
                         <>

@@ -14,7 +14,29 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const navRef = useRef(null);
   const activeItemRef = useRef(null);
   const indicatorRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // In your Header component
+  useEffect(() => {
+    const isDark = localStorage.getItem('theme') === 'dark';
+    if (isDark) {
+      document.body.classList.add('dark-theme');
+      setIsDarkMode(true);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+
+    if (newTheme) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -170,8 +192,16 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
           </ul>
         </nav>
 
+
         {user_logged_in && (
           <div className="user-section">
+            <label className="theme-switch">
+              <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
+              <span className="slider round">
+                <span className="material-icons sun-icon">wb_sunny</span>
+                <span className="material-icons moon-icon">nightlight_round</span>
+              </span>
+            </label>
             <div className="profile-icon">
               {getProfileInitial()}
             </div>

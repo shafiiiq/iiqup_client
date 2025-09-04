@@ -51,12 +51,6 @@ export const fetchDashboardData = async () => {
         }
     });
 
-    // Debug logs
-    console.log(equipmentCache.data[0].brand);
-    console.log(equipmentCache.data[0].regNo);
-    console.log(yearlyData.data.maintenanceHistory[0]);
-    console.log(yearlyData.data.tyreHistory[0]);
-
     const realTimeData = await generateRealTimeAnalytics({
         daily: dailyData.data,
         weekly: weeklyData.data,

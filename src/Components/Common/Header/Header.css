@@ -1,9 +1,10 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 /* Header.css */
 .main-header {
   position: relative;
   height: 7rem;
   width: 100%;
-  background: linear-gradient(145deg, #0f3562, #1e63b0);
+  background: linear-gradient(145deg, #0f3562, #0a213b);
   color: white;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
@@ -34,7 +35,7 @@
   left: 0;
   width: 30rem;
   height: 100%;
-  background: linear-gradient(90deg, #ffffff, #ffffff, #ffffff80, #043c851e) !important;
+  /* background: linear-gradient(90deg, #ffffff, #ffffff, #ffffff80, #043c851e) !important; */
 }
 
 .logo-section {
@@ -301,6 +302,93 @@ nav {
   z-index: -1;
 }
 
+/* Theme Toggle Switch */
+/* Import Google Material Icons */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+/* Theme Toggle Switch */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-left: 20px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #87CEEB, #4682B4);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 34px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background: white;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.sun-icon, .moon-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Material Icons';
+  font-size: 18px;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 3;
+  color: #333;
+  pointer-events: none;
+}
+
+.sun-icon {
+  left: 8px;
+  opacity: 1;
+}
+
+.moon-icon {
+  right: 8px;
+  opacity: 0;
+}
+
+input:checked + .slider {
+  background: linear-gradient(135deg, #2c3e50, #4a6741);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+input:checked + .slider .sun-icon {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.8);
+}
+
+input:checked + .slider .moon-icon {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
 /* Animations */
 @keyframes floatBubble {
   0% {
@@ -459,3 +547,4 @@ nav {
     display: none;
   }
 }
+

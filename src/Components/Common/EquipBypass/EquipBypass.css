@@ -241,7 +241,7 @@
 
 .equipment-table {
   width: 100%;
-  border-collapse: collapse;
+  /* border-collapse: collapse; */
   font-size: 14px;
 }
 
@@ -462,7 +462,7 @@
 
 .operators-table {
   width: 100%;
-  border-collapse: collapse;
+  /* border-collapse: collapse; */
 }
 
 .operators-table th,
@@ -529,7 +529,7 @@
 
   .equipment-table {
     width: 100%;
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
   }
 
   .equipment-table th {
@@ -645,7 +645,7 @@
 
 .operators-table {
   width: 100%;
-  border-collapse: collapse;
+  /* border-collapse: collapse; */
 }
 
 .operators-table th,

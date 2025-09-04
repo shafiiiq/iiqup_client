@@ -292,22 +292,11 @@
 }
 
 .equipment-table tr:nth-child(even) {
-    background-color: #f9f9f9;
+    /* background-color: #f9f9f9; */
 }
 
 .equipment-table tr:hover {
     background-color: #f1f1f1;
-}
-
-/* Full service row highlighting */
-.full-service-row {
-    background-color: #ffd3a5 !important;
-    /* Orange background */
-}
-
-.full-service-row:hover {
-    background-color: #ffbf80 !important;
-    /* Slightly darker orange on hover */
 }
 
 .no-results {
@@ -488,7 +477,8 @@
 }
 
 .equipment-table tr:nth-child(even) {
-    background-color: #f9f9f9;
+    /* here collided */
+    background-color: #000000;
 }
 
 .equipment-table tr:hover {

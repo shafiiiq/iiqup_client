@@ -12,6 +12,73 @@
   --form-nav-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Dark Theme Variables */
+body.dark-theme {
+  --form-nav-primary-color: #3498db;
+  --form-nav-urgent-color: #e74c3c;
+  --form-nav-medium-color: #f39c12;
+  --form-nav-normal-color: #2ecc71;
+  --form-nav-bg-color: #121212;
+  --form-nav-card-bg: #1e1e1e;
+  --form-nav-text-color: #ffffff;
+  --form-nav-border-color: #333333;
+  --form-nav-hover-bg: #2a2a2a;
+  --form-nav-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Theme Toggle Switch */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-left: 20px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -24,6 +91,7 @@
   padding: 20px;
   min-height: 100vh;
   color: var(--form-nav-text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .form-nav-header {
@@ -112,6 +180,10 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+body.dark-theme .form-nav-icon {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 .form-nav-card-title {
   color: var(--form-nav-text-color);
   font-size: 20px;
@@ -124,6 +196,10 @@
   font-size: 14px;
   line-height: 1.5;
   margin-bottom: 20px;
+}
+
+body.dark-theme .form-nav-card-description {
+  color: #a0aec0;
 }
 
 .form-nav-card-arrow {

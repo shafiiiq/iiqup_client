@@ -4,7 +4,7 @@ import { END_POINT } from '../../constants';
 import './Notification.css';
 import { apiRequest } from '../../utils/0auth';
 
-const Notifications = () => {
+const Notifications = ({ islivemodeON }) => {
   // Quick filter options
   const quickFilters = [
     { id: 'all', label: 'All', type: 'all', color: '#6366f1' },
@@ -574,13 +574,13 @@ const Notifications = () => {
           <div className="ntf-spinner-circle"></div>
           <div className="ntf-spinner-circle"></div>
         </div>
-        <p className="ntf-loading-text">Loading notifications...</p>
+        <p className="ntf-loading-text">Loading Live Updates</p>
       </div>
     );
   }
 
   return (
-    <div className="ntf-container">
+    <div className={`ntf-grid ntf-container ${islivemodeON ? 'round-live' : ''}`}>
       {/* Floating unread badge */}
       {unreadCount > 0 && (
         <div className="ntf-unread-badge" onClick={markAllAsRead}>
@@ -591,7 +591,7 @@ const Notifications = () => {
       <div className="ntf-header">
         <div className="ntf-header-content">
           <h1 className="ntf-title">
-            Notifications Center
+            Live Updates
             {unreadCount > 0 && (
               <span className="ntf-unread-count">{unreadCount} new</span>
             )}
@@ -601,106 +601,114 @@ const Notifications = () => {
             <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
           </div>
         </div>
-        <div className="ntf-date-time">
+        {/* <div className="ntf-date-time">
           <span className="ntf-date">{currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           <span className="ntf-time">{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-        </div>
+        </div> */}
       </div>
 
-      <div className="ntf-actions">
-        <div className="ntf-filter-buttons">
-          {quickFilters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => setSelectedFilter(filter.id)}
-              className={`ntf-filter-btn ${selectedFilter === filter.id ? 'ntf-active' : ''}`}
-              style={{
-                '--ntf-filter-color': filter.color,
-              }}
-            >
-              {filter.label}
-              {selectedFilter === filter.id && (
-                <span className="ntf-filter-indicator"></span>
-              )}
-            </button>
-          ))}
-        </div>
-        <div className="ntf-action-buttons">
-          <button
-            onClick={onRefresh}
-            className="ntf-refresh-btn"
-            disabled={refreshing}
-          >
-            <span className="ntf-refresh-icon">
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path fill="currentColor" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
-              </svg>
-            </span>
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </button>
-          <button
-            onClick={markAllAsRead}
-            className="ntf-mark-read-btn"
-            disabled={unreadCount === 0}
-          >
-            <span className="ntf-mark-read-icon">
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
-              </svg>
-            </span>
-            Mark all as read
-          </button>
-        </div>
-      </div>
+      {
+        islivemodeON ? null : (
+          <div className="ntf-actions">
+            <div className="ntf-filter-buttons">
+              {quickFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setSelectedFilter(filter.id)}
+                  className={`ntf-filter-btn ${selectedFilter === filter.id ? 'ntf-active' : ''}`}
+                  style={{
+                    '--ntf-filter-color': filter.color,
+                  }}
+                >
+                  {filter.label}
+                  {selectedFilter === filter.id && (
+                    <span className="ntf-filter-indicator"></span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="ntf-action-buttons">
+              <button
+                onClick={onRefresh}
+                className="ntf-refresh-btn"
+                disabled={refreshing}
+              >
+                <span className="ntf-refresh-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18">
+                    <path fill="currentColor" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
+                  </svg>
+                </span>
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
+              <button
+                onClick={markAllAsRead}
+                className="ntf-mark-read-btn"
+                disabled={unreadCount === 0}
+              >
+                <span className="ntf-mark-read-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18">
+                    <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
+                  </svg>
+                </span>
+                Mark all as read
+              </button>
+            </div>
+          </div>
+        )
+      }
 
-      <div className="ntf-stats-cards">
-        <div className="ntf-stat-card ntf-total">
-          <div className="ntf-stat-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5Z" />
-            </svg>
+      {
+        islivemodeON ? null : (
+          <div className="ntf-stats-cards">
+            <div className="ntf-stat-card ntf-total">
+              <div className="ntf-stat-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5Z" />
+                </svg>
+              </div>
+              <div className="ntf-stat-content">
+                <div className="ntf-stat-value">{stats.total}</div>
+                <div className="ntf-stat-label">Total</div>
+              </div>
+            </div>
+            <div className="ntf-stat-card ntf-normal">
+              <div className="ntf-stat-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5Z" />
+                </svg>
+              </div>
+              <div className="ntf-stat-content">
+                <div className="ntf-stat-value">{stats.normal}</div>
+                <div className="ntf-stat-label">Normal</div>
+              </div>
+            </div>
+            <div className="ntf-stat-card ntf-special">
+              <div className="ntf-stat-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                </svg>
+              </div>
+              <div className="ntf-stat-content">
+                <div className="ntf-stat-value">{stats.special}</div>
+                <div className="ntf-stat-label">Special</div>
+              </div>
+            </div>
+            <div className="ntf-stat-card ntf-high">
+              <div className="ntf-stat-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path fill="currentColor" d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
+                </svg>
+              </div>
+              <div className="ntf-stat-content">
+                <div className="ntf-stat-value">{stats.highPriority}</div>
+                <div className="ntf-stat-label">High Priority</div>
+              </div>
+            </div>
           </div>
-          <div className="ntf-stat-content">
-            <div className="ntf-stat-value">{stats.total}</div>
-            <div className="ntf-stat-label">Total</div>
-          </div>
-        </div>
-        <div className="ntf-stat-card ntf-normal">
-          <div className="ntf-stat-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5Z" />
-            </svg>
-          </div>
-          <div className="ntf-stat-content">
-            <div className="ntf-stat-value">{stats.normal}</div>
-            <div className="ntf-stat-label">Normal</div>
-          </div>
-        </div>
-        <div className="ntf-stat-card ntf-special">
-          <div className="ntf-stat-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-            </svg>
-          </div>
-          <div className="ntf-stat-content">
-            <div className="ntf-stat-value">{stats.special}</div>
-            <div className="ntf-stat-label">Special</div>
-          </div>
-        </div>
-        <div className="ntf-stat-card ntf-high">
-          <div className="ntf-stat-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
-            </svg>
-          </div>
-          <div className="ntf-stat-content">
-            <div className="ntf-stat-value">{stats.highPriority}</div>
-            <div className="ntf-stat-label">High Priority</div>
-          </div>
-        </div>
-      </div>
+        )
+      }
 
-      <div className="ntf-grid">
+      <div className={`ntf-grid ${islivemodeON ? 'live-dsh-pad' : 'pad-40'}`}>
         {filteredNotifications.length > 0 ? (
           filteredNotifications.slice().reverse().map((notification, index) => {
             const notificationId = notification._id || `${notification.type}_${index}`;
@@ -721,19 +729,22 @@ const Notifications = () => {
                   ));
                 }}
               >
-                <div
-                  className="ntf-priority-indicator"
-                  style={{ backgroundColor: getNotificationColor(notification) }}
-                ></div>
-
                 <div className="ntf-content">
                   <div className="ntf-card-header">
-                    <div className="ntf-icon">
-                      {getNotificationIcon(notification)}
-                    </div>
                     <h3 className="ntf-card-title">
                       {getNotificationTitle(notification)}
                     </h3>
+                    <div className="ntf-card-footer">
+                      <span className="ntf-time-display">
+                        {formatNotificationTime(notification)}
+                      </span>
+                      <span
+                        className="ntf-priority"
+                        style={{ color: getNotificationColor(notification) }}
+                      >
+                        {notification.priority || 'normal'}
+                      </span>
+                    </div>
                     {notification.type === 'special' && (
                       <span className="ntf-tag">
                         {notification.stockInfo?.type === 'equipment' ? 'EQUIPMENT' : 'STOCK'}
@@ -745,18 +756,6 @@ const Notifications = () => {
                   <p className="ntf-message">
                     {getNotificationMessage(notification)}
                   </p>
-
-                  <div className="ntf-card-footer">
-                    <span className="ntf-time-display">
-                      {formatNotificationTime(notification)}
-                    </span>
-                    <span
-                      className="ntf-priority"
-                      style={{ color: getNotificationColor(notification) }}
-                    >
-                      {notification.priority || 'normal'}
-                    </span>
-                  </div>
                 </div>
               </div>
             );
@@ -780,10 +779,7 @@ const Notifications = () => {
           <div className="ntf-panel-content">
             <div className="ntf-panel-header">
               <h2>
-                <span className="ntf-panel-icon">
-                  {getNotificationIcon(selectedNotification)}
-                </span>
-                Notification Details
+                Details
               </h2>
               <button
                 className="ntf-close-btn"

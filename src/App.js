@@ -179,17 +179,17 @@ function App() {
   const [serviceReportData, setServiceReportData] = useState(null);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+
   // Splash screen states
   const [showSplash, setShowSplash] = useState(false);
   const [splashComplete, setSplashComplete] = useState(false);
-  
+
   const navigate = useNavigate();
 
   // Check if splash has been shown in this session
   useEffect(() => {
     const splashShown = sessionStorage.getItem('splashShown');
-    
+
     if (!splashShown) {
       // First time loading in this session - show splash
       setShowSplash(true);
@@ -219,6 +219,13 @@ function App() {
   useEffect(() => {
     const initializeAuth = async () => {
       await checkAutoLogin(setUserLoggedIn, navigate);
+
+      // Set theme based on user preference after auth check
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+      }
+
       setLoading(false);
     };
 

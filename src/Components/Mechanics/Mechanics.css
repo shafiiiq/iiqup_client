@@ -1,4 +1,5 @@
-/* Mechanics.css */
+/* Mechanics.css - Updated with Dark/Light Mode Toggle */
+/* Theme Variables - Light (Default) */
 :root {
   --primary-color: #3498db;
   --urgent-color: #e74c3c;
@@ -13,6 +14,94 @@
   --disabled-text: #6c757d;
   --tab-active-bg: #e3f2fd;
   --tab-hover-bg: #f1f8fe;
+  --table-header-bg: #f8fafc;
+  --table-header-text: #64748b;
+  --table-row-odd: #ffffff;
+  --table-row-hover: #f0f5ff;
+  --modal-bg: #ffffff;
+  --modal-header-bg: #f8fafc;
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #3498db;
+  --scrollbar-thumb-hover: #2980b9;
+}
+
+/* Dark Theme */
+body.dark-theme {
+  --primary-color: #3498db;
+  --urgent-color: #e74c3c;
+  --medium-color: #f39c12;
+  --normal-color: #2ecc71;
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --text-color: #ffffff;
+  --border-color: #333333;
+  --hover-bg: #2a2a2a;
+  --disabled-bg: #333333;
+  --disabled-text: #999999;
+  --tab-active-bg: #2d3748;
+  --tab-hover-bg: #3a3a3a;
+  --table-header-bg: #2d2d2d;
+  --table-header-text: #cccccc;
+  --table-row-odd: #1a1a1a;
+  --table-row-hover: #2a2a2a;
+  --modal-bg: #1e1e1e;
+  --modal-header-bg: #2d2d2d;
+  --scrollbar-track: #2a2a2a;
+  --scrollbar-thumb: #444444;
+  --scrollbar-thumb-hover: #555555;
+}
+
+/* Theme Toggle Switch */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-left: 20px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }
 
 * {
@@ -27,6 +116,7 @@
   padding: 20px;
   min-height: 100vh;
   color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .mechanics-header {
@@ -44,6 +134,7 @@
 
 .date-time {
   background-color: var(--card-bg);
+  color: var(--text-color);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
@@ -70,6 +161,13 @@
   border: 1px solid var(--border-color);
   border-radius: 8px 0 0 8px;
   font-size: 14px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary-color);
 }
 
 .search-btn {
@@ -80,6 +178,11 @@
   border-radius: 0 8px 8px 0;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.2s;
+}
+
+.search-btn:hover {
+  opacity: 0.9;
 }
 
 .add-btn {
@@ -91,6 +194,11 @@
   cursor: pointer;
   font-weight: 500;
   white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  opacity: 0.9;
 }
 
 .tabs-container {
@@ -110,6 +218,7 @@
   font-weight: 500;
   color: var(--text-color);
   white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .tab-btn:hover {
@@ -130,6 +239,8 @@
   background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
 .error-message {
@@ -140,6 +251,7 @@
   background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
 }
 
 .mechanics-table-container,
@@ -155,19 +267,23 @@
 .overtime-table {
   width: 100%;
   font-size: 14px;
+  background-color: var(--card-bg);
 }
 
 .mechanics-table th,
 .toolkits-table th,
 .attendance-table th,
 .overtime-table th {
-  background-color: #f8fafc;
+  background-color: var(--table-header-bg);
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--table-header-text);
   border-bottom: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .mechanics-table td,
@@ -176,13 +292,21 @@
 .overtime-table td {
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.mechanics-table tbody tr:nth-child(odd),
+.toolkits-table tbody tr:nth-child(odd),
+.attendance-table tbody tr:nth-child(odd),
+.overtime-table tbody tr:nth-child(odd) {
+  background-color: var(--table-row-odd);
 }
 
 .mechanics-table tbody tr:hover,
 .toolkits-table tbody tr:hover,
 .attendance-table tbody tr:hover,
 .overtime-table tbody tr:hover {
-  background-color: var(--hover-bg);
+  background-color: var(--table-row-hover);
 }
 
 .action-btns {
@@ -293,13 +417,19 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
+  color: var(--text-color);
+  transition: all 0.2s;
+}
+
+.filter-toggle:hover {
+  background-color: var(--hover-bg);
 }
 
 .filter-options {
   position: absolute;
   right: 0;
   top: 100%;
-  background-color: white;
+  background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -318,6 +448,7 @@
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 14px;
+  color: var(--text-color);
 }
 
 .filter-options button:hover {
@@ -342,6 +473,7 @@
   white-space: nowrap;
   font-weight: 500;
   transition: all 0.2s;
+  color: var(--text-color);
 }
 
 .attendance-tab:hover,
@@ -374,16 +506,31 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
-  background-color: white;
+  background-color: var(--modal-bg);
+  color: var(--text-color);
   border-radius: 8px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  animation: modal-appear 0.3s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .wide-modal {
@@ -396,6 +543,7 @@
   align-items: center;
   padding: 15px 20px;
   border-bottom: 1px solid var(--border-color);
+  background-color: var(--modal-header-bg);
 }
 
 .modal-header h2 {
@@ -409,11 +557,15 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--disabled-text);
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
   color: var(--urgent-color);
+  background-color: rgba(231, 76, 60, 0.1);
 }
 
 .modal-body {
@@ -428,7 +580,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--table-header-text);
 }
 
 .form-group input {
@@ -438,11 +590,14 @@
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.2s;
+  background-color: var(--card-bg);
+  color: var(--text-color);
 }
 
 .form-group input:focus {
   outline: none;
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .form-group input:disabled {
@@ -467,6 +622,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
+  color: var(--text-color);
 }
 
 .cancel-btn:hover {
@@ -491,6 +647,7 @@
 .toolkits-popup-table {
   width: 100%;
   border-collapse: collapse;
+  background-color: var(--card-bg);
 }
 
 .toolkits-popup-table th,
@@ -498,12 +655,13 @@
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-color);
   text-align: left;
+  color: var(--text-color);
 }
 
 .toolkits-popup-table th {
-  background-color: #f8fafc;
+  background-color: var(--table-header-bg);
   font-weight: 600;
-  color: #64748b;
+  color: var(--table-header-text);
 }
 
 .equipment-cell {
@@ -513,14 +671,49 @@
 }
 
 .month-header {
-  background-color: #f5f5f5;
+  background-color: var(--table-header-bg);
   font-weight: bold;
 }
 
 .month-title {
   text-align: center;
   padding: 10px;
-  background-color: #e9ecef;
+  background-color: var(--disabled-bg);
+  color: var(--text-color);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Focus Styles for Accessibility */
+.action-btn:focus,
+.close-btn:focus,
+.cancel-btn:focus,
+.save-btn:focus,
+.search-btn:focus,
+.add-btn:focus,
+.tab-btn:focus,
+.view-all-btn:focus,
+.filter-toggle:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 /* Responsive design */
@@ -546,5 +739,109 @@
   .modal-content {
     width: 95%;
     margin: 0 10px;
+  }
+
+  .theme-switch {
+    margin-left: 10px;
+    width: 50px;
+    height: 28px;
+  }
+
+  .slider:before {
+    height: 20px;
+    width: 20px;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+}
+
+/* Print Styles */
+@media print {
+  body  {
+    visibility: hidden;
+    background-color: white !important;
+  }
+
+  .mechanics-container,
+  .mechanics-container * {
+    visibility: visible;
+  }
+
+  .mechanics-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .search-add-container,
+  .tabs-container,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  .mechanics-header h1 {
+    margin-bottom: 10px;
+    color: black !important;
+  }
+
+  .mechanics-table,
+  .toolkits-table,
+  .attendance-table,
+  .overtime-table {
+    width: 100% !important;
+    font-size: 12px !important;
+    color: black !important;
+  }
+
+  .mechanics-table th,
+  .mechanics-table td,
+  .toolkits-table th,
+  .toolkits-table td,
+  .attendance-table th,
+  .attendance-table td,
+  .overtime-table th,
+  .overtime-table td {
+    padding: 6px 8px !important;
+    color: black !important;
+  }
+
+  /* Add page breaks to avoid cutting tables */
+  .mechanics-table,
+  .toolkits-table,
+  .attendance-table,
+  .overtime-table {
+    page-break-inside: avoid;
+  }
+
+  .date-time {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Print header */
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+
+  /* Add title to print */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: black !important;
+  }
+
+  .print-date {
+    display: block !important;
+    text-align: right;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: black !important;
   }
 }
