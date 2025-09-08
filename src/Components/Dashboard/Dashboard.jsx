@@ -384,13 +384,13 @@ const Dashboard = () => {
         )}
       </div>
 
-      <ActivityTimeline
+      {/* <ActivityTimeline
         currentData={currentData}
         formatDateTime={formatDateTime}
         getActivityContent={getActivityContent}
         COLORS={COLORS}
         isHalf={false}
-      />
+      /> */}
 
       <DataTable
         currentData={currentData}

@@ -34,7 +34,7 @@ const LEADERSHIP_TEAM = [
     {
         id: 4,
         name: 'Mr. Suresh Kanth',
-        position: 'Manager',
+        position: 'Operation Manager',
         image: Manager
     },
     {
@@ -237,6 +237,9 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                         </li>
                         <li className={activeLink === '/mechanics' ? 'ansari-link-active' : ''}>
                             <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
+                        </li>
+                        <li className={activeLink === '#clients' ? 'active' : ''}>
+                            <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
                         </li>
                         <li className={activeLink === '/documents' ? 'active' : ''}>
                             <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>

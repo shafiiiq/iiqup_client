@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './Lpo.css';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import logoImage from '../../assets/images/al-ansari.png';
+import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import footer from '../../assets/images/footer.png';
 import { END_POINT } from '../../constants';

@@ -282,6 +282,8 @@ body.dark-theme {
   gap: 5px;
   min-width: 100px;
   text-align: center;
+  color: rgb(202, 214, 202);
+  background-color: rgb(5, 66, 5);
 }
 
 .action-btn:hover {

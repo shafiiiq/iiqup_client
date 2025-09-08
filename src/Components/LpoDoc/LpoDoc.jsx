@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './LpoDoc.css';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import logoImage from '../../assets/images/al-ansari.png';
+import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import footer from '../../assets/images/footer.png';
 import { useParams } from 'react-router-dom';
@@ -274,10 +274,412 @@ const LpoDoc = () => {
     }
   };
 
-  const handlePrint = () => {
-    console.log("print");
+  // Convert images to base64 for PDF
+  const convertImageToBase64 = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
 
-    window.print();
+  const handlePrint = async () => {
+    try {
+      // Hide controls
+      const controls = document.querySelector('.controls');
+      if (controls) controls.style.display = 'none';
+
+      // Convert images to base64 to ensure they load in PDF
+      const logoBase64 = await convertImageToBase64(logoImage);
+      const textBase64 = await convertImageToBase64(alAnsariText);
+      const footerBase64 = await convertImageToBase64(footer);
+
+      // Create a new window with the document content
+      const printWindow = window.open('', '_blank');
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${getFileName()}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              font-size: 11pt;
+              line-height: 1.3;
+              color: #000;
+              background: white;
+            }
+            
+            .lpo-document {
+              width: 100%;
+              background: white;
+            }
+            
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+            }
+            
+            .logo-placeholder-l img {
+              width: 120px;
+              height: auto;
+            }
+            
+            .company-details-l img {
+              width: 200px;
+              height: auto;
+            }
+            
+            .header-divider {
+              border-top: 0.5pt solid #000;
+              margin: 10px 0;
+            }
+            
+            .lpo-title {
+              text-align: center;
+              font-weight: bold;
+              font-size: 18pt;
+              margin: 10px 0;
+            }
+            
+            .details-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
+            
+            .details-table td {
+              vertical-align: top;
+              padding: 2px;
+              font-size: 10pt;
+              font-weight: 600;
+            }
+            
+            .left-col, .right-col {
+              width: 50%;
+            }
+            
+            .detail-item {
+              margin-bottom: 3px;
+            }
+            
+            .detail-item ul {
+              margin: 2px 0;
+              padding-left: 15px;
+            }
+            
+            .details-divider {
+              border-top: 0.5pt solid #000;
+              margin: 5px 0;
+            }
+            
+            .request-text {
+              margin: 10px 0;
+              text-align: justify;
+              font-size: 10pt;
+            }
+            
+            .items-table-lpo {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 0;
+            }
+            
+            .items-table-lpo th,
+            .items-table-lpo td {
+              border: 0.5pt solid #000;
+              padding: 4px;
+              text-align: center;
+              font-size: 10pt;
+              font-weight: 600;
+            }
+            
+            .total-label {
+              text-align: right;
+              font-weight: bold;
+            }
+            
+            .terms-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: -0.5pt;
+            }
+            
+            .terms-table td {
+              border: 0.5pt solid #000;
+              padding: 5px;
+              font-size: 10pt;
+              vertical-align: top;
+            }
+            
+            .terms-row-large-doc {
+              height: ${lpoData.items.length < 8 ? '250px' : 'auto'};
+            }
+            
+            .terms-header-large ul {
+              margin: 0;
+              padding-left: 15px;
+              line-height: 1.4;
+            }
+            
+            .terms-header-large li:first-child {
+              list-style: none;
+              text-decoration: underline;
+              font-weight: bold;
+              font-size: 11pt;
+              margin-bottom: 8px;
+              margin-left: -15px;
+            }
+            
+            .terms-header-large li {
+              margin-bottom: 5px;
+            }
+            
+            .note-row {
+              font-size: 10pt;
+            }
+            
+            .signatures-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: -0.5pt;
+            }
+            
+            .signatures-table td {
+              border: 0.5pt solid #000;
+              padding: 4px;
+              text-align: center;
+              font-size: 10pt;
+              font-weight: 600;
+            }
+            
+            .company-footer {
+              text-align: left;
+              font-weight: bold;
+              font-size: 12pt;
+            }
+            
+            .signature-spaces-large {
+              height: 80px;
+            }
+            
+            .date-no-border {
+              border: none !important;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+            }
+            
+            .footer img {
+              max-width: 100%;
+              height: auto;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="lpo-document">
+            <div class="header">
+              <div class="logo-placeholder-l">
+                <img src="${logoBase64}" alt="Company Logo" />
+              </div>
+              <div class="company-details-s company-details-l">
+                <img src="${textBase64}" alt="AL Ansari Transport & Enterprises W.L.L" />
+              </div>
+            </div>
+
+            <div class="header-divider"></div>
+
+            <div class="lpo-title">PURCHASE/HIRE ORDER</div>
+
+            <div class="lpo-details">
+              <table class="details-table">
+                <tbody>
+                  <tr>
+                    <td class="left-col">
+                      <div class="detail-item">TO : ${lpoData.vendor}</div>
+                      <div class="detail-item">ATTN : ${lpoData.attention}</div>
+                      <div class="detail-item">DESIGNATION : ${lpoData.designation}</div>
+                      <div class="detail-item">Ref No : ${lpoData.quoteNo}</div>
+                    </td>
+                    <td class="right-col">
+                      <div class="detail-item">DATE : ${lpoData.date}</div>
+                      <div class="detail-item">LPO REF NO : ${lpoData.lpoRef}</div>
+                      <div class="detail-item">
+                        EQUIPMENT:
+                        <ul>
+                          ${lpoData.equipments.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                      </div>
+                      <div class="detail-item">
+                        ${lpoData.workingHrs
+          ? `WORKING HRS : ${lpoData.workingHrs}`
+          : lpoData.runningKm
+            ? `RUNNING KM : ${lpoData.runningKm}`
+            : ''
+        }
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="details-divider"></div>
+
+            <div class="request-text">
+              ${lpoData.requestText}
+            </div>
+
+            <table class="items-table-lpo">
+              <thead>
+                <tr>
+                  <th>SN</th>
+                  <th>Item Description</th>
+                  <th>Qty</th>
+                  <th>Unit Price(QR)</th>
+                  <th>Total Price(QR)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${lpoData.items.map((item, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.description}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>${item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                `).join('')}
+                <tr>
+                  <td colspan="4" class="total-label">
+                    ${lpoData.totalDiscountAmount
+          ? 'Total Amount After Discount (QR)'
+          : 'Total Amount (QR)'
+        }
+                  </td>
+                  <td>
+                    ${lpoData.totalDiscountAmount
+          ? (lpoData.totalDiscountAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : (lpoData.totalAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        }
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table class="terms-table">
+              <tbody>
+                <tr class="terms-row-large-doc">
+                  <td class="terms-header-large">
+                    <ul>
+                      ${lpoData.termsAndConditions.map(term => `<li>${term}</li>`).join('')}
+                    </ul>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="note-row">
+                    <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table class="signatures-table">
+              <tbody>
+                <tr class="company-name-tr">
+                  <td colspan="4" class="company-footer">
+                    AL ANSARI TRANSPORT & ENTERPRISES W.L.L
+                  </td>
+                  <td class="sign-table sign-border-td">
+                    Subcontractor OR<br />Service Provider
+                  </td>
+                </tr>
+                <tr>
+                  <td class="sign-table sign-border-td">Accounts Dept:</td>
+                  <td class="sign-table sign-border-td">Purchasing Manager</td>
+                  <td class="sign-table sign-border-td">Operations Manager</td>
+                  <td class="sign-table sign-border-td">
+                    Authorized Signatory<br />
+                    ${lpoData.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
+                  </td>
+                  <td class="date-no-border sign-table-date">
+                    (Date & Sign with Stamp)
+                  </td>
+                </tr>
+                <tr class="signature-spaces-large">
+                  <td class="sign-table sign-border-td"></td>
+                  <td class="sign-table sign-border-td"></td>
+                  <td class="sign-table sign-border-td"></td>
+                  <td class="sign-table sign-border-td"></td>
+                  <td class="date-no-border"></td>
+                </tr>
+                <tr>
+                  <td class="sign-table sign-border-td">${lpoData.signatures.accountsDept}</td>
+                  <td class="sign-table sign-border-td">${lpoData.signatures.purchasingManager}</td>
+                  <td class="sign-table sign-border-td">${lpoData.signatures.operationsManager}</td>
+                  <td class="sign-table sign-border-td">${lpoData.signatures.authorizedSignatory}</td>
+                  <td class="date-no-border"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <img src="${footerBase64}" alt="Footer" />
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+
+      // Wait for images to load
+      printWindow.addEventListener('load', () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      });
+
+      // Restore controls
+      if (controls) controls.style.display = 'block';
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+
+      // Restore controls
+      const controls = document.querySelector('.controls');
+      if (controls) controls.style.display = 'block';
+    }
   };
 
   const calculateTotal = () => {

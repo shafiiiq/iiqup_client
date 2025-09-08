@@ -175,14 +175,14 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
               <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
             </li>
             <li className={activeLink === '#clients' ? 'active' : ''}>
+              <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
+            </li>
+            <li className={activeLink === '#clients' ? 'active' : ''}>
               <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
             </li>
             <li className={activeLink === '/documents' ? 'active' : ''}>
               <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
             </li>
-            {/* <li className={activeLink === '#clients' ? 'active' : ''}>
-              <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
-            </li> */}
             <li className={activeLink === '/notification' ? 'active' : ''}>
               <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
             </li>

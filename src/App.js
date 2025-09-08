@@ -36,6 +36,7 @@ import ApplicationsList from './Components/ApplicationsList/ApplicationsList';
 import FormNavigation from './Components/FormNavigation/FormNavigation';
 import SplashScreen from './splash/SplashScreen';
 import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
+import Operators from './Components/Operators/Operators';
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -156,6 +157,8 @@ function CEOGuard({ children }) {
   useEffect(() => {
     const checkCEOStatus = async () => {
       const ceoStatus = await AuthUtils.isCEO();
+      console.log("ceo status", ceoStatus);
+      
       setIsCEO(ceoStatus);
       setLoading(false);
     };
@@ -185,6 +188,13 @@ function App() {
   const [splashComplete, setSplashComplete] = useState(false);
 
   const navigate = useNavigate();
+
+  // set dark theme initialy
+  useEffect(() => {
+    return () => {
+      localStorage.setItem('theme', 'dark');
+    };
+  }, []);
 
   // Check if splash has been shown in this session
   useEffect(() => {
@@ -859,6 +869,16 @@ function App() {
               <ProtectedRoute>
                 <CEOGuard>
                   <MechanicForms />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/operators"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <Operators />
                 </CEOGuard>
               </ProtectedRoute>
             }

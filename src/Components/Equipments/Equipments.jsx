@@ -26,6 +26,10 @@ function Equipments() {
     company: 'OUTSIDE',
     outside: true
   });
+  const [sortConfig, setSortConfig] = useState({
+    key: 'year',
+    direction: 'desc' // desc for latest first, asc for oldest first
+  });
 
   // Add Equipment Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -44,6 +48,36 @@ function Equipments() {
     status: 'Active',
     site: ''
   });
+
+  const sortData = (data, key, direction) => {
+    return [...data].sort((a, b) => {
+      let aValue = a[key];
+      let bValue = b[key];
+
+      // Handle year sorting - convert to numbers
+      if (key === 'year') {
+        aValue = parseInt(aValue) || 0;
+        bValue = parseInt(bValue) || 0;
+      }
+
+      // Handle string sorting
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (direction === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
+  const handleYearSort = () => {
+    const newDirection = sortConfig.key === 'year' && sortConfig.direction === 'desc' ? 'asc' : 'desc';
+    setSortConfig({ key: 'year', direction: newDirection });
+  };
 
   const navigate = useNavigate();
   const tableRef = useRef(null);
@@ -98,9 +132,12 @@ function Equipments() {
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
-      setFilteredData(results);
+
+      // Apply sorting to filtered results
+      const sortedResults = sortData(results, sortConfig.key, sortConfig.direction);
+      setFilteredData(sortedResults);
     }
-  }, [searchTerm, equipments]);
+  }, [searchTerm, equipments, sortConfig]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -580,7 +617,23 @@ function Equipments() {
               <th>Machine</th>
               <th>Reg No</th>
               <th>Brand</th>
-              <th>Year</th>
+              <th
+                onClick={handleYearSort}
+                className="sortable-header year-header"
+                title="Click to sort by year"
+              >
+                <div className="header-content">
+                  <span className="header-text">Year</span>
+                  {sortConfig.key === 'year' && (
+                    <span className={`sort-icon ${sortConfig.direction}`}>
+                      {sortConfig.direction === 'desc' ? '▼' : '▲'}
+                    </span>
+                  )}
+                  <span className="sort-hint">
+                    {sortConfig.key !== 'year' && '⇅'}
+                  </span>
+                </div>
+              </th>
               <th>Company</th>
               <th>Istimara Expiry</th>
               <th>Insurance Expiry</th>

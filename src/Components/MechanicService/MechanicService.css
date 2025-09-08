@@ -291,10 +291,6 @@
     width: 12rem;
 }
 
-.equipment-table tr:nth-child(even) {
-    /* background-color: #f9f9f9; */
-}
-
 .equipment-table tr:hover {
     background-color: #f1f1f1;
 }
@@ -478,7 +474,7 @@
 
 .equipment-table tr:nth-child(even) {
     /* here collided */
-    background-color: #000000;
+    background-color: var(--bg-color);
 }
 
 .equipment-table tr:hover {

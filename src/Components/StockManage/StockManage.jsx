@@ -21,6 +21,13 @@ function StockManage() {
   const [selectedEquipments, setSelectedEquipments] = useState([]);
   const [showReduceForm, setShowReduceForm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [mechanics, setMechanics] = useState([]);
+  const [equipmentSearchTerm, setEquipmentSearchTerm] = useState('');
+  const [mechanicSearchTerm, setMechanicSearchTerm] = useState('');
+  const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false);
+  const [showMechanicDropdown, setShowMechanicDropdown] = useState(false);
+  const [filteredEquipments, setFilteredEquipments] = useState([]);
+  const [filteredMechanics, setFilteredMechanics] = useState([]);
 
   const [reduceFormData, setReduceFormData] = useState({
     stockCount: '',
@@ -47,6 +54,91 @@ function StockManage() {
     rate: '',
     stockCount: ''
   });
+
+
+  useEffect(() => {
+    const fetchMechanics = async () => {
+      try {
+        const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`, 'GET');
+        if (!response.ok) throw new Error('Failed to fetch mechanics');
+        const data = await response.json();
+        setMechanics(Array.isArray(data.data) ? data.data : []);
+      } catch (err) {
+        console.error('Error fetching mechanics:', err);
+      }
+    };
+
+    fetchMechanics();
+  }, []);
+
+  // Filter equipments based on search term
+  useEffect(() => {
+    if (equipmentSearchTerm.trim() === '') {
+      setFilteredEquipments(equipments);
+    } else {
+      const filtered = equipments.filter(equipment =>
+        equipment.machine.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
+        equipment.regNo.toLowerCase().includes(equipmentSearchTerm.toLowerCase())
+      );
+      setFilteredEquipments(filtered);
+    }
+  }, [equipmentSearchTerm, equipments]);
+
+  // Filter mechanics based on search term
+  useEffect(() => {
+    if (mechanicSearchTerm.trim() === '') {
+      setFilteredMechanics(mechanics);
+    } else {
+      const filtered = mechanics.filter(mechanic =>
+        mechanic.name.toLowerCase().includes(mechanicSearchTerm.toLowerCase())
+      );
+      setFilteredMechanics(filtered);
+    }
+  }, [mechanicSearchTerm, mechanics]);
+
+  // Handle equipment selection
+  const handleEquipmentSelect = (equipment) => {
+    setReduceFormData({
+      ...reduceFormData,
+      equipmentName: equipment.machine,
+      equipmentNumber: equipment.regNo
+    });
+    setEquipmentSearchTerm(equipment.machine);
+    setShowEquipmentDropdown(false);
+  };
+
+  // Handle mechanic selection
+  const handleMechanicSelect = (mechanic) => {
+    setReduceFormData({
+      ...reduceFormData,
+      mechanicName: mechanic.name
+    });
+    setMechanicSearchTerm(mechanic.name);
+    setShowMechanicDropdown(false);
+  };
+
+  // Handle custom equipment name input
+  const handleEquipmentNameChange = (e) => {
+    const value = e.target.value;
+    setReduceFormData({
+      ...reduceFormData,
+      equipmentName: value,
+      equipmentNumber: '' // Clear equipment number when manually typing
+    });
+    setEquipmentSearchTerm(value);
+    setShowEquipmentDropdown(value.length > 0);
+  };
+
+  // Handle custom mechanic name input
+  const handleMechanicNameChange = (e) => {
+    const value = e.target.value;
+    setReduceFormData({
+      ...reduceFormData,
+      mechanicName: value
+    });
+    setMechanicSearchTerm(value);
+    setShowMechanicDropdown(value.length > 0);
+  };
 
   useEffect(() => {
     const fetchEquipments = async () => {
@@ -1406,15 +1498,41 @@ function StockManage() {
 
               <div className="stock-form-group">
                 <label htmlFor="equipmentName">Equipment Name</label>
-                <input
-                  type="text"
-                  id="equipmentName"
-                  name="equipmentName"
-                  value={reduceFormData.equipmentName}
-                  onChange={(e) => setReduceFormData({ ...reduceFormData, equipmentName: e.target.value })}
-                  placeholder="Enter equipment name"
-                  required
-                />
+                <div className="dropdown-container">
+                  <input
+                    type="text"
+                    id="equipmentName"
+                    name="equipmentName"
+                    value={reduceFormData.equipmentName}
+                    onChange={handleEquipmentNameChange}
+                    onFocus={() => {
+                      setEquipmentSearchTerm(reduceFormData.equipmentName);
+                      setShowEquipmentDropdown(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowEquipmentDropdown(false), 200)}
+                    placeholder="Search or enter equipment name"
+                    required
+                  />
+                  {showEquipmentDropdown && filteredEquipments.length > 0 && (
+                    <div className="search-dropdown">
+                      {filteredEquipments.slice(0, 10).map((equipment) => (
+                        <div
+                          key={equipment._id}
+                          className="dropdown-item"
+                          onClick={() => handleEquipmentSelect(equipment)}
+                        >
+                          <div className="dropdown-item-main">{equipment.machine}</div>
+                          <div className="dropdown-item-sub">Reg No: {equipment.regNo}</div>
+                        </div>
+                      ))}
+                      {filteredEquipments.length > 10 && (
+                        <div className="dropdown-more">
+                          +{filteredEquipments.length - 10} more results...
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="stock-form-group">
@@ -1425,22 +1543,50 @@ function StockManage() {
                   name="equipmentNumber"
                   value={reduceFormData.equipmentNumber}
                   onChange={(e) => setReduceFormData({ ...reduceFormData, equipmentNumber: e.target.value })}
-                  placeholder="Enter equipment number"
+                  placeholder="Auto-filled or enter manually"
                   required
                 />
+                <small style={{ color: 'var(--stock-disabled-text)', fontSize: '12px' }}>
+                  Auto-filled when selecting from equipment dropdown
+                </small>
               </div>
 
               <div className="stock-form-group">
                 <label htmlFor="mechanicName">Mechanic Name</label>
-                <input
-                  type="text"
-                  id="mechanicName"
-                  name="mechanicName"
-                  value={reduceFormData.mechanicName}
-                  onChange={(e) => setReduceFormData({ ...reduceFormData, mechanicName: e.target.value })}
-                  placeholder="Enter mechanic name"
-                  required
-                />
+                <div className="dropdown-container">
+                  <input
+                    type="text"
+                    id="mechanicName"
+                    name="mechanicName"
+                    value={reduceFormData.mechanicName}
+                    onChange={handleMechanicNameChange}
+                    onFocus={() => {
+                      setMechanicSearchTerm(reduceFormData.mechanicName);
+                      setShowMechanicDropdown(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowMechanicDropdown(false), 200)}
+                    placeholder="Search or enter mechanic name"
+                    required
+                  />
+                  {showMechanicDropdown && filteredMechanics.length > 0 && (
+                    <div className="search-dropdown">
+                      {filteredMechanics.slice(0, 10).map((mechanic) => (
+                        <div
+                          key={mechanic._id}
+                          className="dropdown-item"
+                          onClick={() => handleMechanicSelect(mechanic)}
+                        >
+                          <div className="dropdown-item-main">{mechanic.name}</div>
+                        </div>
+                      ))}
+                      {filteredMechanics.length > 10 && (
+                        <div className="dropdown-more">
+                          +{filteredMechanics.length - 10} more results...
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="stock-form-group">

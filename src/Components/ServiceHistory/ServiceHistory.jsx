@@ -3,7 +3,7 @@ import './ServiceHistory.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import ExcelJS from 'exceljs';
-import logoImage from '../../assets/images/al-ansari.png';
+import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import { apiRequest } from '../../utils/0auth';
 

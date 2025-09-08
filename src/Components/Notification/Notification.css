@@ -28,11 +28,11 @@
 /* Dark Theme */
 body.dark-theme {
   --ntf-bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  --ntf-bg-color: #0f172a;
+  --ntf-bg-color: #0e0f0f;
   --ntf-text-primary: #ffffff;
   --ntf-text-secondary: #94a3b8;
   --ntf-text-tertiary: #cbd5e1;
-  --ntf-surface: #1e293b;
+  --ntf-surface: #18181a;
   --ntf-surface-secondary: #334155;
   --ntf-border: #334155;
   --ntf-border-light: #475569;

@@ -956,6 +956,111 @@ body.dark-theme .equipment-table-container {
   color: #ffffff;
 }
 
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: all 0.2s ease;
+  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+  border: 2px solid #dee2e6;
+}
+
+.year-header {
+  background: linear-gradient(145deg, #222324, #bbdefb);
+  border-color: #2196f3;
+}
+
+.sortable-header:hover {
+  background: linear-gradient(145deg, #191a1b, #1d1e1f);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-color: #007bff;
+}
+
+.sortable-header:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-weight: 600;
+  position: relative;
+}
+
+.sort-icon {
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  animation: sortPulse 0.5s ease;
+}
+
+.sort-icon.desc {
+  color: #ff4444;
+  text-shadow: 0 1px 3px rgba(255,68,68,0.3);
+}
+
+.sort-icon.asc {
+  color: #4CAF50;
+  text-shadow: 0 1px 3px rgba(76,175,80,0.3);
+}
+
+.sort-hint {
+  font-size: 10px;
+  color: #6c757d;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sortable-header:hover .sort-hint {
+  opacity: 1;
+}
+
+.sortable-header:hover .header-text {
+  color: #fbfdff;
+}
+
+/* Animation for when sort changes */
+@keyframes sortPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* Add a subtle glow effect */
+.year-header:hover {
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.1),
+    0 0 15px rgba(33,150,243,0.2);
+}
+
+/* For better accessibility - focus states */
+.sortable-header:focus {
+  outline: 3px solid #007bff40;
+  outline-offset: 2px;
+}
+
+/* Additional visual feedback */
+.sortable-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #007bff, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sortable-header:hover::before {
+  opacity: 1;
+}
+
 @keyframes pulse {
 
   0%,

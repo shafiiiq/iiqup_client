@@ -1,7 +1,122 @@
-/* Home.css */
-/* Global Styles */
+/* Home.css with Dark/Light Mode Toggle */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* Theme Variables - Light (Default) */
+:root {
+  --ansari-primary-blue: #0f3562;
+  --ansari-secondary-blue: #1e63b0;
+  --ansari-accent-orange: #ffcb6b;
+  --ansari-accent-orange-hover: #ff8a50;
+  --ansari-background: #f5f5f5;
+  --ansari-card-background: #ffffff;
+  --ansari-text-primary: #333333;
+  --ansari-text-secondary: #666666;
+  --ansari-text-light: #555555;
+  --ansari-border: #e1e4e8;
+  --ansari-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  --ansari-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
+  --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  --ansari-sidebar-bg: linear-gradient(145deg, #0f3562, #020b16);
+  --ansari-header-bg: linear-gradient(145deg, #0f3562, #1e63b0);
+  --ansari-mobile-nav-bg: linear-gradient(145deg, #09192e, #041e3d);
+  --ansari-logo-bg: rgba(255, 255, 255, 0.9);
+  --ansari-user-section-bg: rgba(255, 255, 255, 0.1);
+  --ansari-user-section-hover-bg: rgba(255, 255, 255, 0.15);
+  --ansari-logout-hover-bg: rgba(255, 75, 75, 0.2);
+  --ansari-nav-hover-bg: rgba(255, 255, 255, 0.1);
+  --ansari-nav-active-bg: rgba(255, 255, 255, 0.2);
+  --ansari-header-shape-bg: rgba(255, 255, 255, 0.08);
+  --ansari-sidebar-shape-bg: rgba(255, 255, 255, 0.05);
+  --ansari-main-content-bg: #f8f9fa;
+  --ansari-info-section-bg: #ffffff;
+  --ansari-company-info-bg: #f8f9fa;
+}
+
+/* Dark Theme */
+body.dark-theme {
+  --ansari-primary-blue: #2980b9;
+  --ansari-secondary-blue: #3498db;
+  --ansari-accent-orange: #f39c12;
+  --ansari-accent-orange-hover: #e67e22;
+  --ansari-background: #121212;
+  --ansari-card-background: #1e1e1e;
+  --ansari-text-primary: #ffffff;
+  --ansari-text-secondary: #cccccc;
+  --ansari-text-light: #aaaaaa;
+  --ansari-border: #333333;
+  --ansari-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  --ansari-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.4);
+  --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8));
+  --ansari-sidebar-bg: linear-gradient(145deg, #1a1a1a, #0d1117);
+  --ansari-header-bg: linear-gradient(145deg, #1a1a1a, #2c3e50);
+  --ansari-mobile-nav-bg: linear-gradient(145deg, #1a1a1a, #0d1117);
+  --ansari-logo-bg: rgba(30, 30, 30, 0.9);
+  --ansari-user-section-bg: rgba(255, 255, 255, 0.1);
+  --ansari-user-section-hover-bg: rgba(255, 255, 255, 0.15);
+  --ansari-logout-hover-bg: rgba(255, 75, 75, 0.3);
+  --ansari-nav-hover-bg: rgba(255, 255, 255, 0.1);
+  --ansari-nav-active-bg: rgba(255, 255, 255, 0.2);
+  --ansari-header-shape-bg: rgba(255, 255, 255, 0.05);
+  --ansari-sidebar-shape-bg: rgba(255, 255, 255, 0.03);
+  --ansari-main-content-bg: #181818;
+  --ansari-info-section-bg: #1e1e1e;
+  --ansari-company-info-bg: #2a2a2a;
+}
+
+/* Theme Toggle Switch */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-left: 20px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked+.slider {
+  background-color: #2196F3;
+}
+
+input:checked+.slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -10,9 +125,10 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  color: #333;
-  background-color: #f5f5f5;
+  color: var(--ansari-text-primary);
+  background-color: var(--ansari-background);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -38,7 +154,7 @@ ul {
   left: 0;
   height: 7rem;
   width: 100%;
-  background: linear-gradient(145deg, #0f3562, #1e63b0);
+  background: var(--ansari-header-bg);
   color: white;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
@@ -76,7 +192,7 @@ ul {
   display: flex;
   align-items: center;
   animation: ansariFadeLeft 0.8s ease-out;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.8));
+  background: var(--ansari-logo-bg);
   padding: 8px 15px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -104,7 +220,7 @@ ul {
 .ansari-user-section {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--ansari-user-section-bg);
   backdrop-filter: blur(10px);
   border-radius: 25px;
   padding: 8px 12px;
@@ -114,7 +230,7 @@ ul {
 }
 
 .ansari-user-section:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--ansari-user-section-hover-bg);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -123,7 +239,7 @@ ul {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffcb6b, #ff8a50);
+  background: linear-gradient(135deg, var(--ansari-accent-orange), var(--ansari-accent-orange-hover));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -167,7 +283,7 @@ ul {
 }
 
 .ansari-logout-btn:hover {
-  background: rgba(255, 75, 75, 0.2);
+  background: var(--ansari-logout-hover-bg);
   border-color: rgba(255, 75, 75, 0.4);
   transform: scale(1.05);
 }
@@ -269,7 +385,7 @@ ul {
 .ansari-burger-btn.ansari-burger-active .ansari-line-1 {
   top: 29px;
   transform: rotate(45deg);
-  background: #ffcb6b;
+  background: var(--ansari-accent-orange);
 }
 
 .ansari-burger-btn.ansari-burger-active .ansari-line-2 {
@@ -280,7 +396,7 @@ ul {
 .ansari-burger-btn.ansari-burger-active .ansari-line-3 {
   top: 29px;
   transform: rotate(-45deg);
-  background: #ffcb6b;
+  background: var(--ansari-accent-orange);
 }
 
 /* Mobile Navigation - Fixed for mobile devices */
@@ -290,10 +406,10 @@ ul {
   right: -300px;
   width: 280px;
   height: 100vh;
-  background: linear-gradient(145deg, #09192e, #041e3d);
+  background: var(--ansari-mobile-nav-bg);
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  z-index: 999; /* Lower than header z-index */
+  z-index: 999;
 }
 
 .ansari-mobile-nav.ansari-nav-open {
@@ -335,14 +451,14 @@ ul {
   display: flex;
   justify-content: flex-start;
   font-size: 1rem;
-  border-left: 0 solid #ffcb6b;
+  border-left: 0 solid var(--ansari-accent-orange);
   transition: all 0.3s ease;
   color: white;
 }
 
 .ansari-mobile-nav li a:hover, 
 .ansari-mobile-nav li.ansari-link-active a {
-  border-left: 4px solid #ffcb6b;
+  border-left: 4px solid var(--ansari-accent-orange);
   padding-left: 1.4rem;
   background: rgba(255, 255, 255, 0.05);
 }
@@ -366,7 +482,7 @@ ul {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 998; /* Below mobile nav but above content */
+  z-index: 998;
   opacity: 0;
   visibility: hidden;
   transition: all 0.4s ease;
@@ -389,7 +505,7 @@ ul {
 
 .ansari-header-shape {
   position: absolute;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--ansari-header-shape-bg);
   border-radius: 50%;
 }
 
@@ -432,10 +548,11 @@ ul {
   width: 100vw;
 }
 
+
 /* Sidebar Styles */
 .ansari-side-panel {
   width: 280px;
-  background: linear-gradient(145deg, #0f3562, #020b16);
+  background: linear-gradient(145deg, #09213f, #020b16);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -493,30 +610,11 @@ ul {
   align-items: center;
   position: relative;
   z-index: 5;
-  background: white;
   margin: 15px;
   border-radius: 15px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.ansari-logo-holder::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #fffdf9, #f3f3f3, #fbfeff, #ececec);
-  border-radius: 17px;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.ansari-logo-holder:hover::before {
-  opacity: 1;
 }
 
 .ansari-main-logo {
@@ -588,8 +686,9 @@ ul {
 /* Main Content Area */
 .ansari-main-content {
   flex-grow: 1;
-  background-color: #f8f9fa;
+  background-color: var(--ansari-main-content-bg);
   overflow-y: auto;
+  transition: background-color 0.3s ease;
 }
 
 .ansari-main-content.ansari-full-width {
@@ -615,7 +714,7 @@ ul {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  background: var(--ansari-hero-overlay);
   z-index: 1;
 }
 
@@ -645,31 +744,33 @@ ul {
 /* Content Section */
 .ansari-info-section {
   padding: 40px;
-  background: white;
+  background: var(--ansari-info-section-bg);
   margin: 20px 30px 30px;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ansari-shadow);
   position: relative;
   z-index: 5;
+  transition: background-color 0.3s ease;
 }
 
 /* Company Details */
 .ansari-company-info {
   padding: 30px;
-  background: #f8f9fa;
+  background: var(--ansari-company-info-bg);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
 }
 
 .ansari-comp-name {
   font-size: 24px;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--ansari-text-primary);
   margin-bottom: 15px;
 }
 
 .ansari-company-info > div:not(.ansari-comp-name):not(.ansari-contact-block) {
   margin-bottom: 8px;
-  color: 555;
+  color: var(--ansari-text-light);
 }
 
 .ansari-contact-block {
@@ -686,7 +787,7 @@ ul {
 
 .ansari-phone-info span, .ansari-email-info span {
   margin: 5px 0;
-  color: #555;
+  color: var(--ansari-text-light);
 }
 
 /* Feature Cards */
@@ -698,34 +799,34 @@ ul {
 }
 
 .ansari-card-item {
-  background: white;
+  background: var(--ansari-card-background);
   border-radius: 8px;
   padding: 25px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--ansari-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
   text-align: center;
-  border-top: 4px solid #2c3e50;
+  border-top: 4px solid var(--ansari-primary-blue);
 }
 
 .ansari-card-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--ansari-shadow-hover);
 }
 
 .ansari-card-icon {
   font-size: 36px;
-  color: #2c3e50;
+  color: var(--ansari-primary-blue);
   margin-bottom: 15px;
 }
 
 .ansari-card-item h3 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #2c3e50;
+  color: var(--ansari-text-primary);
 }
 
 .ansari-card-item p {
-  color: #666;
+  color: var(--ansari-text-secondary);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -733,10 +834,11 @@ ul {
 /* Leadership Team Section */
 .ansari-leadership-section {
   padding: 20px 40px;
-  background: white;
+  background: var(--ansari-info-section-bg);
   margin: 30px;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ansari-shadow);
+  transition: background-color 0.3s ease;
 }
 
 .ansari-section-heading {
@@ -746,7 +848,7 @@ ul {
 
 .ansari-section-heading h2 {
   font-size: 32px;
-  color: #0f3562;
+  color: var(--ansari-primary-blue);
   margin-bottom: 15px;
   position: relative;
   display: inline-block;
@@ -760,12 +862,12 @@ ul {
   transform: translateX(-50%);
   width: 80px;
   height: 3px;
-  background: linear-gradient(to right, #0f3562, #1e63b0);
+  background: linear-gradient(to right, var(--ansari-primary-blue), var(--ansari-secondary-blue));
   border-radius: 2px;
 }
 
 .ansari-section-heading p {
-  color: #666;
+  color: var(--ansari-text-secondary);
   font-size: 16px;
   max-width: 600px;
   margin: 0 auto;
@@ -778,18 +880,18 @@ ul {
 }
 
 .ansari-leader-card {
-  background: #fff;
+  background: var(--ansari-card-background);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--ansari-shadow);
   transition: all 0.3s ease;
   position: relative;
-  border: 1px solid rgba(0, 0, 0, 0.13);
+  border: 1px solid var(--ansari-border);
 }
 
 .ansari-leader-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ansari-shadow-hover);
 }
 
 .ansari-leader-image {
@@ -802,9 +904,10 @@ ul {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 30%; /* This shifts the image down from the top */
+  object-position: center 30%;
   transition: transform 0.5s ease;
 }
+
 .ansari-leader-card:hover .ansari-leader-image img {
   transform: scale(1.1);
 }
@@ -816,13 +919,13 @@ ul {
 
 .ansari-leader-info h3 {
   font-size: 18px;
-  color: #0f3562;
+  color: var(--ansari-primary-blue);
   margin-bottom: 5px;
   font-weight: 600;
 }
 
 .ansari-leader-info p {
-  color: #666;
+  color: var(--ansari-text-secondary);
   font-size: 14px;
   margin: 0;
 }
@@ -879,6 +982,19 @@ ul {
   to {
     opacity: 1;
   }
+}
+
+/* Iconography */
+.ansari-icon-transport:before {
+  content: "🚚";
+}
+
+.ansari-icon-logistics:before {
+  content: "📦";
+}
+
+.ansari-icon-global:before {
+  content: "🌐";
 }
 
 /* Responsive Styles - Tablet */
@@ -1037,17 +1153,19 @@ ul {
     width: 14px;
     height: 14px;
   }
-}
 
-/* Iconography */
-.ansari-icon-transport:before {
-  content: "🚚";
-}
+  .theme-switch {
+    margin-left: 10px;
+    width: 50px;
+    height: 28px;
+  }
 
-.ansari-icon-logistics:before {
-  content: "📦";
-}
+  .slider:before {
+    height: 20px;
+    width: 20px;
+  }
 
-.ansari-icon-global:before {
-  content: "🌐";
+  input:checked+.slider:before {
+    transform: translateX(22px);
+  }
 }

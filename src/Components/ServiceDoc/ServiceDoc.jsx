@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import logoImage from '../../assets/images/al-ansari.png';
+import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import mechanicSign from '../../assets/images/mechanic-sign.png';
 import { useParams, useNavigate } from 'react-router-dom';

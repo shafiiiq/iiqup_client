@@ -465,13 +465,6 @@
   /* border-collapse: collapse; */
 }
 
-.operators-table th,
-.operators-table td {
-  border: 1px solid var(--border-color);
-  padding: 8px;
-  text-align: left;
-}
-
 .operators-table th {
   background-color: #f8fafc;
   position: sticky;
@@ -646,20 +639,6 @@
 .operators-table {
   width: 100%;
   /* border-collapse: collapse; */
-}
-
-.operators-table th,
-.operators-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
-
-.operators-table th {
-  background-color: #f2f2f2;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .operators-table tr:nth-child(even) {

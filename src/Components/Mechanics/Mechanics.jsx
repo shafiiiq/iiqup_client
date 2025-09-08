@@ -4,21 +4,18 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 
 const Mechanics = () => {
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState('overview');
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [selectedMechanic, setSelectedMechanic] = useState(null);
-  const [showToolkitPopup, setShowToolkitPopup] = useState(false);
-  const [showAttendanceFilter, setShowAttendanceFilter] = useState(false);
   const [attendanceFilter, setAttendanceFilter] = useState('weekly');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newMechanic, setNewMechanic] = useState({
-    name: '',
-  });
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [overtimeView, setOvertimeView] = useState('monthly'); // 'monthly' or 'daily'
 
   // Get current date and time
   useEffect(() => {
@@ -36,7 +33,7 @@ const Mechanics = () => {
       hours = hours ? hours : 12;
       const timeString = `${hours}:${minutes} ${ampm}`;
 
-      setCurrentDateTime(`${dateString}   |   ${timeString}`);
+      setCurrentDateTime(`${dateString} | ${timeString}`);
     };
 
     updateDateTime();
@@ -49,12 +46,14 @@ const Mechanics = () => {
     const fetchMechanics = async () => {
       try {
         setLoading(true);
-        // In a real implementation:
         const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`);
         if (!response.ok) throw new Error('Failed to fetch mechanics');
         const data = await response.json();
         setMechanics(data.data);
-        setLoading(false)
+        if (data.data.length > 0) {
+          setSelectedMechanic(data.data[0]);
+        }
+        setLoading(false);
       } catch (err) {
         setError(err.message);
         setLoading(false);
@@ -65,10 +64,34 @@ const Mechanics = () => {
     fetchMechanics();
   }, []);
 
+  // Generate avatar with initials
+  const generateAvatar = (name) => {
+    const initials = name
+      .split(' ')
+      .slice(0, 2)
+      .map(word => word.charAt(0).toUpperCase())
+      .join('');
+
+    const colors = [
+      '#3498db', '#e74c3c', '#2ecc71', '#f39c12',
+      '#9b59b6', '#1abc9c', '#34495e', '#e67e22'
+    ];
+    const colorIndex = name.length % colors.length;
+
+    return (
+      <div
+        className="avatar"
+        style={{ backgroundColor: colors[colorIndex] }}
+      >
+        {initials}
+      </div>
+    );
+  };
+
   // Filter mechanics based on search term
   const filteredMechanics = mechanics.filter(mechanic =>
     mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mechanic.userId.toString().includes(searchTerm)
+    mechanic.userId?.toString().includes(searchTerm)
   );
 
   // Format time to AM/PM
@@ -91,494 +114,521 @@ const Mechanics = () => {
     return `${hours}h ${mins}m`;
   };
 
-  // Handle add mechanic
-  const handleAddMechanic = async () => {
-    try {
-      // In a real implementation:
-      const response = await apiRequest(`${END_POINT}/mechanics/add-mechanic`,
-        'POST',
-        newMechanic
-      );
-      const data = await response.json();
+  // Format month display
+  const formatMonthYear = (monthData) => {
+    console.log(monthData);
 
-      setMechanics([...mechanics, data]);
-
-      // For demo
-      const newId = Math.max(...mechanics.map(m => parseInt(m._id))) + 1;
-      const mechanicToAdd = {
-        ...newMechanic,
-        _id: newId.toString(),
-        toolkits: [],
-        attendance: [],
-        overtime: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      setMechanics([...mechanics, mechanicToAdd]);
-      setShowAddForm(false);
-      setNewMechanic({ name: '' });
-    } catch (err) {
-      console.error('Error adding mechanic:', err);
-      alert('Failed to add mechanic');
-    }
+    if (!monthData.month || !monthData.year) return 'Unknown';
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return `${monthNames[monthData.month - 1]} ${monthData.year}`;
   };
 
-  // Handle delete mechanic
-  const handleDeleteMechanic = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this mechanic?')) return;
-
-    try {
-      // In a real implementation:
-      await apiRequest(`${END_POINT}/mechanics/${id}`, 'DELETE');
-      setMechanics(mechanics.filter(m => m._id !== id));
-    } catch (err) {
-      console.error('Error deleting mechanic:', err);
-      alert('Failed to delete mechanic');
-    }
+  // Calculate total time for a month
+  const calculateMonthTotalTime = (monthData) => {
+    if (!monthData.entries || monthData.entries.length === 0) return 0;
+    return monthData.entries.reduce((total, entry) => total + (entry.totalTime || 0), 0);
   };
 
   // Handle edit mechanic
-  const handleEditMechanic = async (updatedMechanic) => {
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditForm({
+      name: selectedMechanic.name,
+      userId: selectedMechanic.userId || ''
+    });
+  };
+
+  const handleSaveEdit = async () => {
     try {
-      // In a real implementation:
-      const response = await apiRequest(`${END_POINT}/mechanics/update-mechanic/${updatedMechanic._id}`,
+      const response = await apiRequest(
+        `${END_POINT}/mechanics/update-mechanic/${selectedMechanic._id}`,
         'PUT',
-        updatedMechanic
+        editForm
       );
       const data = await response.json();
+
       setMechanics(mechanics.map(m => m._id === data._id ? data : m));
-      setSelectedMechanic(null);
+      setSelectedMechanic(data);
+      setIsEditing(false);
     } catch (err) {
       console.error('Error updating mechanic:', err);
       alert('Failed to update mechanic');
     }
   };
 
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({});
+  };
+
+  // Handle delete mechanic
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this mechanic?')) return;
+
+    try {
+      await apiRequest(`${END_POINT}/mechanics/${selectedMechanic._id}`, 'DELETE');
+      const updatedMechanics = mechanics.filter(m => m._id !== selectedMechanic._id);
+      setMechanics(updatedMechanics);
+      setSelectedMechanic(updatedMechanics.length > 0 ? updatedMechanics[0] : null);
+    } catch (err) {
+      console.error('Error deleting mechanic:', err);
+      alert('Failed to delete mechanic');
+    }
+  };
+
+  // Handle month selection for overtime
+  const handleMonthSelect = (monthData) => {
+    setSelectedMonth(monthData.month);
+    setOvertimeView('daily');
+  };
+
+  // Handle back to monthly view
+  const handleBackToMonthly = () => {
+    setSelectedMonth(null);
+    setOvertimeView('monthly');
+  };
+
+  if (loading) {
+    return (
+      <div className="mechanics-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading mechanics data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mechanics-container">
+        <div className="error-state">
+          <p>Error: {error}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mechanics-container">
+      {/* Header */}
       <div className="mechanics-header">
-        <h1 className='mechanics-title'>Mechanics Management</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
-      <div className="search-add-container">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search by name or ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className="search-btn">Search</button>
+        <div className="header-left">
+          <h1>Mechanics Management</h1>
         </div>
-        <button className="add-btn" onClick={() => setShowAddForm(true)}>Add Mechanic</button>
+        <div className="header-right">
+          <div className="date-time">{currentDateTime}</div>
+        </div>
       </div>
 
-      <div className="tabs-container">
-        <button
-          className={`tab-btn ${activeTab === 'details' ? 'active' : ''}`}
-          onClick={() => setActiveTab('details')}
-        >
-          Mechanics Details
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'toolkits' ? 'active' : ''}`}
-          onClick={() => setActiveTab('toolkits')}
-        >
-          Toolkits
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'attendance' ? 'active' : ''}`}
-          onClick={() => setActiveTab('attendance')}
-        >
-          Attendance
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'overtime' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overtime')}
-        >
-          Overtime
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="loading">Loading mechanics data...</div>
-      ) : error ? (
-        <div className="error-message">{error}</div>
-      ) : (
-        <div className="mechanics-content">
-          {activeTab === 'details' && (
-            <div className="mechanics-table-container">
-              <table className="mechanics-table">
-                <thead>
-                  <tr>
-                    <th>SL No</th>
-                    <th>Name</th>
-                    <th>User ID</th>
-                    <th>Toolkits</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMechanics.map((mechanic, index) => (
-                    <tr key={mechanic._id}>
-                      <td>{index + 1}</td>
-                      <td>{mechanic.name}</td>
-                      <td>{mechanic.userId}</td>
-                      <td>{mechanic.toolkits.length}</td>
-                      <td className='action-btns'>
-                        <button
-                          className="action-btn edit"
-                          onClick={() => setSelectedMechanic(mechanic)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="action-btn delete"
-                          onClick={() => handleDeleteMechanic(mechanic._id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="mechanics-layout">
+        {/* Left Sidebar - Mechanics List */}
+        <div className="mechanics-sidebar">
+          <div className="sidebar-header">
+            <h3>Mechanics ({filteredMechanics.length})</h3>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search mechanics..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
             </div>
-          )}
+          </div>
 
-          {activeTab === 'toolkits' && (
-            <div className="toolkits-table-container">
-              <table className="toolkits-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Mechanic Name</th>
-                    <th>Toolkit Name</th>
-                    <th>Type</th>
-                    <th>Assigned On</th>
-                    <th>Toolkits</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMechanics.map(mechanic => {
-                    const latestToolkit = mechanic.toolkits.length > 0
-                      ? mechanic.toolkits[mechanic.toolkits.length - 1]
-                      : null;
+          <div className="mechanics-list">
+            {filteredMechanics.map((mechanic) => (
+              <div
+                key={mechanic._id}
+                className={`mechanic-card ${selectedMechanic?._id === mechanic._id ? 'selected' : ''}`}
+                onClick={() => {
+                  setSelectedMechanic(mechanic);
+                  setActiveTab('overview');
+                  setIsEditing(false);
+                  setSelectedMonth(null);
+                  setOvertimeView('monthly');
+                }}
+              >
+                <div className="mechanic-avatar">
+                  {generateAvatar(mechanic.name)}
+                </div>
+                <div className="mechanic-info">
+                  <h4>{mechanic.name}</h4>
+                  <p className="mechanic-id">ID: {mechanic.userId || mechanic._id}</p>
+                  <div className="mechanic-stats">
+                    <span className="stat">
+                      {mechanic.toolkits?.length || 0} Tools
+                    </span>
+                  </div>
+                </div>
+                <div className="mechanic-status">
+                  <div className="status-indicator active"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                    return (
-                      <tr key={mechanic._id}>
-                        <td>{mechanic._id}</td>
-                        <td>{mechanic.name}</td>
-                        <td>{latestToolkit ? latestToolkit.name : 'N/A'}</td>
-                        <td>{latestToolkit ? latestToolkit.type : 'N/A'}</td>
-                        <td>{latestToolkit ? new Date(latestToolkit.createdAt).toLocaleDateString() : 'N/A'}</td>
-                        <td className="toolkits-cell">
-                          {mechanic.toolkits.length > 0 ? (
-                            <div className="toolkits-hover-container">
-                              <span>{mechanic.toolkits.length} items</span>
-                              <button
-                                className="view-all-btn"
-                                onClick={() => {
-                                  setSelectedMechanic(mechanic);
-                                  setShowToolkitPopup(true);
-                                }}
-                              >
-                                View All
-                              </button>
-                            </div>
-                          ) : 'None'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'attendance' && (
-            <div className="attendance-container">
-              <div className="attendance-filters">
-                <div className="filter-dropdown">
-                  <button
-                    className="filter-toggle"
-                    onClick={() => setShowAttendanceFilter(!showAttendanceFilter)}
-                  >
-                    {attendanceFilter === 'weekly' ? 'Weekly' : 'Monthly'} ▼
-                  </button>
-                  {showAttendanceFilter && (
-                    <div className="filter-options">
-                      <button onClick={() => {
-                        setAttendanceFilter('weekly');
-                        setShowAttendanceFilter(false);
-                      }}>Weekly</button>
-                      <button onClick={() => {
-                        setAttendanceFilter('monthly');
-                        setShowAttendanceFilter(false);
-                      }}>Monthly</button>
+        {/* Main Content Area */}
+        <div className="mechanics-main">
+          {selectedMechanic ? (
+            <>
+              {/* Mechanic Header */}
+              <div className="mechanic-header">
+                <div className="mechanic-profile">
+                  <div className="profile-avatar">
+                    {generateAvatar(selectedMechanic.name)}
+                  </div>
+                  <div className="profile-info">
+                    {isEditing ? (
+                      <div className="edit-form">
+                        <input
+                          type="text"
+                          value={editForm.name}
+                          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                          className="edit-input"
+                        />
+                        <input
+                          type="text"
+                          value={editForm.userId}
+                          onChange={(e) => setEditForm({ ...editForm, userId: e.target.value })}
+                          className="edit-input"
+                          placeholder="User ID"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <h2>{selectedMechanic.name}</h2>
+                        <p className="profile-id">ID: {selectedMechanic.userId || selectedMechanic._id}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="profile-actions">
+                  {isEditing ? (
+                    <div className="edit-actions">
+                      <button onClick={handleSaveEdit} className="save-btn">Save</button>
+                      <button onClick={handleCancelEdit} className="cancel-btn">Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="profile-buttons">
+                      <button onClick={handleEdit} className="edit-btn">Edit</button>
+                      <button onClick={handleDelete} className="delete-btn">Delete</button>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="attendance-tabs">
-                {filteredMechanics.map(mechanic => (
-                  <div
-                    key={mechanic._id}
-                    className={`attendance-tab ${selectedMechanic?._id === mechanic._id ? 'active' : ''}`}
-                    onClick={() => setSelectedMechanic(mechanic)}
-                  >
-                    {mechanic.name.split(' ')[0]}
+              {/* Navigation Tabs */}
+              <div className="detail-tabs">
+                <button
+                  className={`detail-tab ${activeTab === 'overview' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('overview')}
+                >
+                  Overview
+                </button>
+                <button
+                  className={`detail-tab ${activeTab === 'toolkits' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('toolkits')}
+                >
+                  Toolkits ({selectedMechanic.toolkits?.length || 0})
+                </button>
+                <button
+                  className={`detail-tab ${activeTab === 'attendance' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('attendance')}
+                >
+                  Attendance
+                </button>
+                <button
+                  className={`detail-tab ${activeTab === 'overtime' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('overtime')}
+                >
+                  Overtime
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="tab-content">
+                {activeTab === 'overview' && (
+                  <div className="overview-content">
+                    <div className="stats-grid">
+                      <div className="stat-card">
+                        <div className="stat-info">
+                          <h3>{selectedMechanic.toolkits?.length || 0}</h3>
+                          <p>Total Toolkits</p>
+                        </div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-info">
+                          <h3>{selectedMechanic.attendance?.length || 0}</h3>
+                          <p>Attendance Records</p>
+                        </div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-info">
+                          <h3>{selectedMechanic.monthlyOvertime?.length || 0}</h3>
+                          <p>Overtime Records</p>
+                        </div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-info">
+                          <h3>Active</h3>
+                          <p>Status</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="recent-activity">
+                      <h3>Recent Activity</h3>
+                      <div className="activity-list">
+                        {selectedMechanic.attendance?.slice(-5).map((record, index) => (
+                          <div key={index} className="activity-item">
+                            <div className="activity-icon">📍</div>
+                            <div className="activity-content">
+                              <p>Checked in at {formatTime(record.in)}</p>
+                              <span className="activity-date">
+                                {new Date(record.date).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                        {(!selectedMechanic.attendance || selectedMechanic.attendance.length === 0) && (
+                          <p className="no-activity">No recent activity</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                )}
 
-              <div className="attendance-table-container">
-                <table className="attendance-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>In</th>
-                      <th>Break Out</th>
-                      <th>Break In</th>
-                      <th>Out</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedMechanic ? (
-                      selectedMechanic.attendance.map(record => (
-                        <tr key={record._id}>
-                          <td>{new Date(record.date).toLocaleDateString()}</td>
-                          <td>{formatTime(record.in)}</td>
-                          <td>{formatTime(record.breakOut)}</td>
-                          <td>{formatTime(record.breakIn)}</td>
-                          <td>{formatTime(record.out)}</td>
-                          <td>{formatTotalTime(record.totalTime)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="6" className="no-data">Select a mechanic to view attendance</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'overtime' && (
-            <div className="overtime-container">
-              <div className="overtime-tabs">
-                {filteredMechanics.map(mechanic => (
-                  <div
-                    key={mechanic._id}
-                    className={`overtime-tab ${selectedMechanic?._id === mechanic._id ? 'active' : ''}`}
-                    onClick={() => setSelectedMechanic(mechanic)}
-                  >
-                    {mechanic.name.split(' ')[0]}
-                  </div>
-                ))}
-              </div>
-
-              <div className="overtime-table-container">
-                <table className="overtime-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Equipment</th>
-                      <th>Time</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedMechanic ? (
-                      selectedMechanic.monthlyOvertime && selectedMechanic.monthlyOvertime.length > 0 ? (
-                        // Display entries grouped by month with month headers
-                        selectedMechanic.monthlyOvertime.flatMap(monthData => {
-                          const monthRows = [];
-
-                          // Add month header row
-                          monthRows.push(
-                            <tr key={`month-${monthData._id}`} className="month-header">
-                              <td colSpan="4" className="month-title">
-                                {monthData.month} - Total: {monthData.formattedMonthTime}
-                              </td>
+                {activeTab === 'toolkits' && (
+                  <div className="toolkits-content">
+                    <div className="content-header">
+                      <h3>Assigned Toolkits</h3>
+                      <button className="add-toolkit-btn">+ Add Toolkit</button>
+                    </div>
+                    <div className="toolkits-table-wrapper">
+                      <table className="toolkits-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Color</th>
+                            <th>Status</th>
+                            <th>Handover Date</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedMechanic.toolkits?.length > 0 ? (
+                            selectedMechanic.toolkits.map((toolkit) => (
+                              <tr key={toolkit._id}>
+                                <td className="toolkit-name">{toolkit.name}</td>
+                                <td>{toolkit.type}</td>
+                                <td>{toolkit.size}</td>
+                                <td>
+                                  <span className="color-indicator" style={{ backgroundColor: toolkit.color }}>
+                                    {toolkit.color}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className={`status-badge ${toolkit.status?.toLowerCase()}`}>
+                                    {toolkit.status}
+                                  </span>
+                                </td>
+                                <td>{new Date(toolkit.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                  <div className="toolkit-actions">
+                                    <button className="action-btn edit">Edit</button>
+                                    <button className="action-btn delete">Delete</button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="7" className="no-data">No toolkits assigned</td>
                             </tr>
-                          );
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
 
-                          // Add entries for this month
-                          if (monthData.entries && monthData.entries.length > 0) {
-                            monthData.entries.forEach(record => {
-                              const latestTime = record.times && record.times.length > 0
-                                ? record.times[record.times.length - 1]
-                                : null;
+                {activeTab === 'attendance' && (
+                  <div className="attendance-content">
+                    <div className="content-header">
+                      <h3>Attendance Records</h3>
+                      <select
+                        value={attendanceFilter}
+                        onChange={(e) => setAttendanceFilter(e.target.value)}
+                        className="filter-select"
+                      >
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </div>
+                    <div className="attendance-table-wrapper">
+                      <table className="attendance-table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Break Out</th>
+                            <th>Break In</th>
+                            <th>Check Out</th>
+                            <th>Total Hours</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedMechanic.attendance?.length > 0 ? (
+                            selectedMechanic.attendance.map(record => (
+                              <tr key={record._id}>
+                                <td>{new Date(record.date).toLocaleDateString()}</td>
+                                <td>{formatTime(record.in)}</td>
+                                <td>{formatTime(record.breakOut)}</td>
+                                <td>{formatTime(record.breakIn)}</td>
+                                <td>{formatTime(record.out)}</td>
+                                <td>{formatTotalTime(record.totalTime)}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="40" className="no-data">No attendance records</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
 
-                              monthRows.push(
-                                <tr key={record._id}>
-                                  <td>{record.formattedDate || new Date(record.date).toLocaleDateString()}</td>
-                                  <td>
-                                    {record.regNo && record.regNo.length > 0 ? (
-                                      <div className="equipment-cell">
-                                        <span>{record.regNo.length} items</span>
-                                        <button
-                                          className="view-all-btn"
-                                          onClick={() => {
-                                            alert(`Equipment Reg Numbers: ${record.regNo.join(', ')}`);
-                                          }}
-                                        >
-                                          View All
-                                        </button>
-                                      </div>
-                                    ) : 'None'}
+                {activeTab === 'overtime' && (
+                  <div className="overtime-content">
+                    <div className="content-header">
+                      <h3>
+                        {overtimeView === 'monthly' ? 'Overtime Records - Monthly View' :
+                          `${selectedMonth} - Daily Records`
+                        }
+                      </h3>
+                      {overtimeView === 'daily' && (
+                        <button onClick={handleBackToMonthly} className="back-btn">
+                          ← Back to Monthly View
+                        </button>
+                      )}
+                    </div>
+
+                    {overtimeView === 'monthly' ? (
+                      <div className="overtime-monthly-table-wrapper">
+                        <table className="overtime-table">
+                          <thead>
+                            <tr>
+                              <th>Month/Year</th>
+                              <th>Total Days</th>
+                              <th>Total Hours</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedMechanic.monthlyOvertime?.length > 0 ? (
+                              selectedMechanic.monthlyOvertime.map((monthData, index) => (
+                                <tr key={index}>
+                                  <td className="month-cell">{monthData.month}</td>
+                                  <td>{monthData.entries?.length || 0}</td>
+                                  <td className="total-time">
+                                    {formatTotalTime(calculateMonthTotalTime(monthData))}
                                   </td>
                                   <td>
-                                    {latestTime ? (
-                                      `${formatTime(latestTime.in)} - ${formatTime(latestTime.out)}`
-                                    ) : 'N/A'}
+                                    <button
+                                      className="view-details-btn"
+                                      onClick={() => handleMonthSelect(monthData)}
+                                      disabled={!monthData.entries || monthData.entries.length === 0}
+                                    >
+                                      View Details
+                                    </button>
                                   </td>
-                                  <td>{record.formattedTime || formatTotalTime(record.totalTime)}</td>
                                 </tr>
-                              );
-                            });
-                          }
-
-                          return monthRows;
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan="4" className="no-data">No overtime records found</td>
-                        </tr>
-                      )
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="4" className="no-data">No overtime records available</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     ) : (
-                      <tr>
-                        <td colSpan="4" className="no-data">Select a mechanic to view overtime</td>
-                      </tr>
+                      <div className="overtime-daily-table-wrapper">
+                        <table className="overtime-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Equipment</th>
+                              <th>Time Slot</th>
+                              <th>Duration</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedMonth?.entries?.length > 0 ? (
+                              selectedMonth.entries.map((record) => {
+                                const latestTime = record.times && record.times.length > 0
+                                  ? record.times[record.times.length - 1]
+                                  : null;
+                                return (
+                                  <tr key={record._id}>
+                                    <td>{record.formattedDate || new Date(record.date).toLocaleDateString()}</td>
+                                    <td>
+                                      {record.regNo?.length > 0 ? (
+                                        <div className="equipment-list">
+                                          {record.regNo.map((equipment, idx) => (
+                                            <span key={idx} className="equipment-tag">
+                                              {equipment}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <span className="no-equipment">No equipment</span>
+                                      )}
+                                    </td>
+                                    <td>
+                                      {latestTime ? (
+                                        `${formatTime(latestTime.in)} - ${formatTime(latestTime.out)}`
+                                      ) : 'N/A'}
+                                    </td>
+                                    <td className="duration-cell">
+                                      {record.formattedTime || formatTotalTime(record.totalTime)}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan="4" className="no-data">No daily records found for this month</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
-                  </tbody>
-                </table>
+                  </div>
+                )}
               </div>
+            </>
+          ) : (
+            <div className="no-selection">
+              <div className="no-selection-icon">👤</div>
+              <h3>Select a Mechanic</h3>
+              <p>Choose a mechanic from the sidebar to view their details</p>
             </div>
           )}
         </div>
-      )}
-
-      {/* Add Mechanic Form */}
-      {showAddForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Add New Mechanic</h2>
-              <button className="close-btn" onClick={() => setShowAddForm(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Name:</label>
-                <input
-                  type="text"
-                  value={newMechanic.name}
-                  onChange={(e) => setNewMechanic({ ...newMechanic, name: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="cancel-btn" onClick={() => setShowAddForm(false)}>Cancel</button>
-              <button className="save-btn" onClick={handleAddMechanic}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Mechanic Form */}
-      {selectedMechanic && activeTab === 'details' && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Edit Mechanic</h2>
-              <button className="close-btn" onClick={() => setSelectedMechanic(null)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>ID:</label>
-                <input type="text" value={selectedMechanic._id} disabled />
-              </div>
-              <div className="form-group">
-                <label>Name:</label>
-                <input
-                  type="text"
-                  value={selectedMechanic.name}
-                  onChange={(e) => setSelectedMechanic({
-                    ...selectedMechanic,
-                    name: e.target.value
-                  })}
-                />
-              </div>
-              <div className="form-group">
-                <label>User ID:</label>
-                <input
-                  type="text"
-                  value={selectedMechanic.userId}
-                  onChange={(e) => setSelectedMechanic({
-                    ...selectedMechanic,
-                    userId: e.target.value
-                  })}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="cancel-btn" onClick={() => setSelectedMechanic(null)}>Cancel</button>
-              <button className="save-btn" onClick={() => handleEditMechanic(selectedMechanic)}>Save Changes</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toolkits Popup */}
-      {showToolkitPopup && selectedMechanic && (
-        <div className="modal-overlay">
-          <div className="modal-content wide-modal">
-            <div className="modal-header">
-              <h2>Toolkits for {selectedMechanic.name}</h2>
-              <button className="close-btn" onClick={() => setShowToolkitPopup(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <table className="toolkits-popup-table">
-                <thead>
-                  <tr>
-                    <th>Toolkit Name</th>
-                    <th>Type</th>
-                    <th>Size</th>
-                    <th>Color</th>
-                    <th>Status</th>
-                    <th>Assigned On</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedMechanic.toolkits.map(toolkit => (
-                    <tr key={toolkit._id}>
-                      <td>{toolkit.name}</td>
-                      <td>{toolkit.type}</td>
-                      <td>{toolkit.size}</td>
-                      <td>{toolkit.color}</td>
-                      <td>
-                        <span className={`status-badge ${toolkit.status}`}>
-                          {toolkit.status}
-                        </span>
-                      </td>
-                      <td>{new Date(toolkit.createdAt).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="modal-footer">
-              <button className="close-btn" onClick={() => setShowToolkitPopup(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

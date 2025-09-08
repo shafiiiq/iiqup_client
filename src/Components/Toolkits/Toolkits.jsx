@@ -875,7 +875,7 @@ const Toolkits = () => {
               </table>
             </div>
 
-            <div className="toolkit-actions">
+            <div className="toolkit-actions safety-items-action">
               <h3>Actions</h3>
               <div className="action-btn-group">
                 <button className="action-btn edit" onClick={() => openUpdateForm(selectedToolkit)}>
@@ -889,138 +889,140 @@ const Toolkits = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Variant details sidebar */}
-      {selectedVariant && (
-        <div className="variant-details">
-          <div className="details-header">
-            <h2>Variant Details</h2>
-            <button className="close-btn" onClick={() => setSelectedVariant(null)}>×</button>
-          </div>
-          <div className="details-content">
-            <div className="detail-item">
-              <span className="label">Tool Name:</span>
-              <span className="value">{selectedToolkit.name}</span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Size:</span>
-              <span className="value">{selectedVariant.size}</span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Color:</span>
-              <span className="value">
-                <span className="color-indicator" style={{
-                  backgroundColor: selectedVariant.color.toLowerCase() === 'clear' ? 'transparent' : selectedVariant.color.toLowerCase(),
-                  border: selectedVariant.color.toLowerCase() === 'clear' ? '1px dashed #ccc' : 'none'
-                }}></span>
-                {selectedVariant.color}
-              </span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Current Stock:</span>
-              <span className="value">{selectedVariant.stockCount}</span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Minimum Level:</span>
-              <span className="value">{selectedVariant.minStockLevel}</span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Status:</span>
-              <span className={`value status-badge ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}>
-                {calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'available' ? 'In Stock' :
-                  calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
-              </span>
-            </div>
-            <div className="detail-item">
-              <span className="label">In Use:</span>
-              <span className="value">{selectedVariant.inuse ? 'Yes' : 'No'}</span>
-            </div>
-            <div className="detail-item">
-              <span className="label">First Added:</span>
-              <span className="value">{formatDate(selectedVariant.firstAddedDate)}</span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Last Updated:</span>
-              <span className="value">{formatDate(selectedVariant.lastUpdatedDate)}</span>
-            </div>
-
-            <div className="stock-progress">
-              <h3>Stock Level</h3>
-              <div className="progress-container">
-                <div
-                  className={`progress-bar ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}
-                  style={{
-                    width: `${Math.min(100, (selectedVariant.stockCount / (selectedVariant.minStockLevel * 2)) * 100)}%`
-                  }}
-                >
-                  <span className="progress-text">
-                    {selectedVariant.stockCount} / {selectedVariant.minStockLevel} min
-                  </span>
+            {/* Variant details sidebar */}
+            {selectedVariant && (
+              <div className="variant-details">
+                <div className="details-header">
+                  <h2>Variant Details</h2>
+                  <button className="close-btn" onClick={() => setSelectedVariant(null)}>×</button>
                 </div>
-              </div>
-            </div>
+                <div className="details-content">
+                  <div className="detail-item">
+                    <span className="label">Tool Name:</span>
+                    <span className="value">{selectedToolkit.name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">Size:</span>
+                    <span className="value">{selectedVariant.size}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">Color:</span>
+                    <span className="value">
+                      <span className="color-indicator" style={{
+                        backgroundColor: selectedVariant.color.toLowerCase() === 'clear' ? 'transparent' : selectedVariant.color.toLowerCase(),
+                        border: selectedVariant.color.toLowerCase() === 'clear' ? '1px dashed #ccc' : 'none'
+                      }}></span>
+                      {selectedVariant.color}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">Current Stock:</span>
+                    <span className="value">{selectedVariant.stockCount}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">Minimum Level:</span>
+                    <span className="value">{selectedVariant.minStockLevel}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">Status:</span>
+                    <span className={`value status-badge ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}>
+                      {calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'available' ? 'In Stock' :
+                        calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">In Use:</span>
+                    <span className="value">{selectedVariant.inuse ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">First Added:</span>
+                    <span className="value">{formatDate(selectedVariant.firstAddedDate)}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="label">Last Updated:</span>
+                    <span className="value">{formatDate(selectedVariant.lastUpdatedDate)}</span>
+                  </div>
 
-            <div className="variant-actions">
-              <button className="action-btn reduce" onClick={openReduceStockModal}>
-                Reduce Stock
-              </button>
-              <button
-                className="action-btn history"
-                onClick={() => setShowStockHistory(!showStockHistory)}
-              >
-                {showStockHistory ? 'Hide History' : 'Show History'}
-              </button>
-            </div>
+                  <div className="stock-progress">
+                    <h3>Stock Level</h3>
+                    <div className="progress-container">
+                      <div
+                        className={`progress-bar ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}
+                        style={{
+                          width: `${Math.min(100, (selectedVariant.stockCount / (selectedVariant.minStockLevel * 2)) * 100)}%`
+                        }}
+                      >
+                        <span className="progress-text">
+                          {selectedVariant.stockCount} / {selectedVariant.minStockLevel} min
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-            {showStockHistory && (
-              <div className="stock-history-section">
-                <h3>Stock History</h3>
-                <div className="history-table-container">
-                  <table className="history-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                        <th>Previous</th>
-                        <th>Change</th>
-                        <th>New</th>
-                        <th>Reason</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stockHistory.length > 0 ? (
-                        stockHistory.map((history, index) => (
-                          <tr key={index}>
-                            <td>{formatDate(history.timestamp)}</td>
-                            <td>
-                              <span className={`history-badge ${history.action}`}>
-                                {history.action.charAt(0).toUpperCase() + history.action.slice(1)}
-                              </span>
-                            </td>
-                            <td>{history.previousStock}</td>
-                            <td className={history.changeAmount > 0 ? 'positive' : 'negative'}>
-                              {history.changeAmount > 0 ? '+' : ''}{history.changeAmount}
-                            </td>
-                            <td>{history.newStock}</td>
-                            <td>{history.reason}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="6" className="no-history">No stock history available</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  <div className="variant-actions">
+                    <button className="action-btn reduce" onClick={openReduceStockModal}>
+                      Reduce Stock
+                    </button>
+                    <button
+                      className="action-btn history"
+                      onClick={() => setShowStockHistory(!showStockHistory)}
+                    >
+                      {showStockHistory ? 'Hide History' : 'Show History'}
+                    </button>
+                  </div>
+
+                  {showStockHistory && (
+                    <div className="stock-history-section">
+                      <h3>Stock History</h3>
+                      <div className="history-table-container">
+                        <table className="history-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Action</th>
+                              <th>Previous</th>
+                              <th>Change</th>
+                              <th>New</th>
+                              <th>Reason</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {stockHistory.length > 0 ? (
+                              stockHistory.map((history, index) => (
+                                <tr key={index}>
+                                  <td>{formatDate(history.timestamp)}</td>
+                                  <td>
+                                    <span className={`history-badge ${history.action}`}>
+                                      {history.action.charAt(0).toUpperCase() + history.action.slice(1)}
+                                    </span>
+                                  </td>
+                                  <td>{history.previousStock}</td>
+                                  <td className={history.changeAmount > 0 ? 'positive' : 'negative'}>
+                                    {history.changeAmount > 0 ? '+' : ''}{history.changeAmount}
+                                  </td>
+                                  <td>{history.newStock}</td>
+                                  <td>{history.reason}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="6" className="no-history">No stock history available</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
       )}
+
+
 
       {/* Reduce Stock Modal */}
       {showReduceStockModal && (
