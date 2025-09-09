@@ -37,8 +37,15 @@ const FormNavigation = () => {
 
     const navigationItems = [
         {
+            title: 'Normal Service',
+            description: 'Manage Normal service records',
+            path: `/service-history-form/normal/${regNo}`,
+            icon: '🔧',
+            color: '#be12e0ff'
+        },
+        {
             title: 'Oil Service',
-            description: 'Manage service records',
+            description: 'Manage Oil service records',
             path: `/service-history-form/${regNo}`,
             icon: '🔧',
             color: '#3498db'
@@ -59,7 +66,7 @@ const FormNavigation = () => {
         },
         {
             title: 'Major Works',
-            description: 'Complete maintenance records and reports',
+            description: 'Complete maintenance or major records and reports',
             path: `/maintenance-history-form/${regNo}`,
             icon: '📋',
             color: '#e74c3c'

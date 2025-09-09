@@ -11,7 +11,7 @@ function SplashScreen() {
   };
 
   const handleImageLoad = () => {
-    console.log('Image loaded successfully:', NameSplash);
+    return true
   };
 
   return (

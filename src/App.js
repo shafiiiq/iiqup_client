@@ -156,9 +156,7 @@ function CEOGuard({ children }) {
 
   useEffect(() => {
     const checkCEOStatus = async () => {
-      const ceoStatus = await AuthUtils.isCEO();
-      console.log("ceo status", ceoStatus);
-      
+      const ceoStatus = await AuthUtils.isCEO();      
       setIsCEO(ceoStatus);
       setLoading(false);
     };
@@ -397,6 +395,16 @@ function App() {
             }
           />
           <Route
+            path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:normal"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <ServiceForm />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/service-form/:regNo/:date/:location"
             element={
               <ProtectedRoute>
@@ -502,6 +510,16 @@ function App() {
           />
 
           {/* Service History Form Routes */}
+          <Route
+            path="/service-history-form/:normal/:regNo"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <ServiceHistoryForm />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/service-history-form/:regNo"
             element={

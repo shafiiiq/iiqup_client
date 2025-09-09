@@ -6,6 +6,7 @@ import { apiRequest } from '../../utils/0auth';
 
 function ServiceHistoryForm() {
   const { regNo } = useParams();
+  const { normal } = useParams();
   const navigate = useNavigate();
   const [equipmentData, setEquipmentData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -194,7 +195,12 @@ function ServiceHistoryForm() {
 
       // Navigate to success page after short delay
       setTimeout(() => {
-        navigate(`/service-form/${formData.regNo}/${formData.date}/${formData.serviceHrs}/${formData.nextServiceHrs}/${formData.oil}/${formData.oilFilter}/${formData.fuelFilter}/${formData.airFilter}/${formData.acFilter}/${formData.waterSeparator}`);
+        if (normal === 'normal') {
+          console.log("normalll");
+          navigate(`/service-form/${formData.regNo}/${formData.date}/${formData.serviceHrs}/${formData.nextServiceHrs}/${formData.oil}/${formData.oilFilter}/${formData.fuelFilter}/${formData.airFilter}/${formData.acFilter}/${formData.waterSeparator}/normal`);
+        } else {
+          navigate(`/service-form/${formData.regNo}/${formData.date}/${formData.serviceHrs}/${formData.nextServiceHrs}/${formData.oil}/${formData.oilFilter}/${formData.fuelFilter}/${formData.airFilter}/${formData.acFilter}/${formData.waterSeparator}`);
+        }
       }, 1500);
 
     } catch (error) {

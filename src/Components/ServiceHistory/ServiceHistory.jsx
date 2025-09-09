@@ -107,9 +107,9 @@ const ServiceHistory = () => {
   const fetchRemarksAndLocationForServices = async (combinedData) => {
     const dataWithRemarksAndLocation = [...combinedData];
 
-    // Create promises for fetching remarks and location for oil, tyre, and battery services
+    // Create promises for fetching remarks and location for oil, normal, tyre, and battery services
     const remarksPromises = dataWithRemarksAndLocation.map(async (item, index) => {
-      if (['oil', 'tyre', 'battery'].includes(item.serviceType) && item.date) {
+      if (['oil', 'normal', 'tyre', 'battery'].includes(item.serviceType) && item.date) {
         try {
           const formattedDate = formatDate(item.date);
           const response = await apiRequest(`${END_POINT}/service-report/${regNo}/${formattedDate}`);
@@ -124,8 +124,8 @@ const ServiceHistory = () => {
                 updatedItem.remarks = remarksData.data[0].remarks;
               }
 
-              // Add location only for oil services
-              if (item.serviceType === 'oil' && remarksData.data[0].location) {
+              // Add location for oil and normal services
+              if ((item.serviceType === 'oil' || item.serviceType === 'normal') && remarksData.data[0].location) {
                 updatedItem.location = remarksData.data[0].location;
               }
 
@@ -197,22 +197,70 @@ const ServiceHistory = () => {
     const processData = async () => {
       let combinedData = [];
 
+      console.log(serviceHistory);
+
       if (activeTab === 'all') {
         // Combine all service types with type identifier
-        const serviceWithType = serviceHistory.map(item => ({ ...item, serviceType: 'oil', regNo: item.regNo || item.equipmentId }));
-        const maintenanceWithType = maintenanceHistory.map(item => ({ ...item, serviceType: 'maintenance', regNo: item.regNo || item.equipmentId }));
-        const tyreWithType = tyreHistory.map(item => ({ ...item, serviceType: 'tyre', regNo: item.equipmentNo || item.equipmentId }));
-        const batteryWithType = batteryHistory.map(item => ({ ...item, serviceType: 'battery', regNo: item.equipmentNo || item.equipmentId }));
+        const serviceWithType = serviceHistory.map(item => ({
+          ...item,
+          serviceType: item.serviceType || 'oil',
+          regNo: item.regNo || item.equipmentId
+        }));
+        const maintenanceWithType = maintenanceHistory.map(item => ({
+          ...item,
+          serviceType: 'maintenance',
+          regNo: item.regNo || item.equipmentId
+        }));
+        const tyreWithType = tyreHistory.map(item => ({
+          ...item,
+          serviceType: 'tyre',
+          regNo: item.equipmentNo || item.equipmentId
+        }));
+        const batteryWithType = batteryHistory.map(item => ({
+          ...item,
+          serviceType: 'battery',
+          regNo: item.equipmentNo || item.equipmentId
+        }));
 
         combinedData = [...serviceWithType, ...maintenanceWithType, ...tyreWithType, ...batteryWithType];
+
+      } else if (activeTab === 'normal') {
+        combinedData = serviceHistory
+          .filter(item => item.serviceType === 'normal')
+          .map(item => ({
+            ...item,
+            regNo: item.regNo || item.equipmentId
+          }));
+
       } else if (activeTab === 'oil') {
-        combinedData = serviceHistory.map(item => ({ ...item, serviceType: 'oil', regNo: item.regNo || item.equipmentId }));
+        combinedData = serviceHistory
+          .filter(item => !item.serviceType)
+          .map(item => ({
+            ...item,
+            serviceType: 'oil',
+            regNo: item.regNo || item.equipmentId
+          }));
+
       } else if (activeTab === 'maintenance') {
-        combinedData = maintenanceHistory.map(item => ({ ...item, serviceType: 'maintenance', regNo: item.regNo || item.equipmentId }));
+        combinedData = maintenanceHistory.map(item => ({
+          ...item,
+          serviceType: 'maintenance',
+          regNo: item.regNo || item.equipmentId
+        }));
+
       } else if (activeTab === 'tyre') {
-        combinedData = tyreHistory.map(item => ({ ...item, serviceType: 'tyre', regNo: item.equipmentNo || item.equipmentId }));
+        combinedData = tyreHistory.map(item => ({
+          ...item,
+          serviceType: 'tyre',
+          regNo: item.equipmentNo || item.equipmentId
+        }));
+
       } else if (activeTab === 'battery') {
-        combinedData = batteryHistory.map(item => ({ ...item, serviceType: 'battery', regNo: item.equipmentNo || item.equipmentId }));
+        combinedData = batteryHistory.map(item => ({
+          ...item,
+          serviceType: 'battery',
+          regNo: item.equipmentNo || item.equipmentId
+        }));
       }
 
       // Filter for this specific equipment
@@ -264,6 +312,9 @@ const ServiceHistory = () => {
   // Navigate to add service form based on active tab
   const handleAddService = () => {
     switch (activeTab) {
+      case 'normal':
+        navigate(`/service-history-form/${regNo}`);
+        break;
       case 'oil':
         navigate(`/service-history-form/${regNo}`);
         break;
@@ -329,6 +380,9 @@ const ServiceHistory = () => {
   const handleRowClick = (date, serviceType) => {
     let path;
     switch (serviceType) {
+      case 'normal':
+        path = `/service-doc/${regNo}/${date}`;
+        break;
       case 'oil':
         path = `/service-doc/${regNo}/${date}`;
         break;
@@ -597,8 +651,6 @@ const ServiceHistory = () => {
       // Clean up
       window.URL.revokeObjectURL(url);
 
-      console.log('Service history exported successfully with full styling!');
-
     } catch (error) {
       console.error('Error exporting service history:', error);
       alert('Failed to export service history. Please try again.');
@@ -770,6 +822,7 @@ const ServiceHistory = () => {
   // Get service type badge
   const getServiceTypeBadge = (serviceType) => {
     const badges = {
+      normal: { text: 'Normal', className: 'badge-normal' },
       oil: { text: 'Oil', className: 'badge-oil' },
       maintenance: { text: 'Major Works', className: 'badge-maintenance' },
       tyre: { text: 'Tyre', className: 'badge-tyre' },
@@ -785,7 +838,8 @@ const ServiceHistory = () => {
 
   const recordCounts = {
     all: getFilteredCount([...serviceHistory, ...maintenanceHistory, ...tyreHistory, ...batteryHistory]),
-    oil: getFilteredCount(serviceHistory),
+    normal: getFilteredCount(serviceHistory.filter(item => item.serviceType === 'normal')),
+    oil: getFilteredCount(serviceHistory.filter(item => !item.serviceType)),
     maintenance: getFilteredCount(maintenanceHistory),
     tyre: getFilteredCount(tyreHistory),
     battery: getFilteredCount(batteryHistory)
@@ -887,6 +941,12 @@ const ServiceHistory = () => {
           All ({recordCounts.all})
         </button>
         <button
+          className={`tab-btn ${activeTab === 'normal' ? 'active' : ''}`}
+          onClick={() => handleTabChange('normal')}
+        >
+          Normal Service ({recordCounts.normal})
+        </button>
+        <button
           className={`tab-btn ${activeTab === 'oil' ? 'active' : ''}`}
           onClick={() => handleTabChange('oil')}
         >
@@ -965,11 +1025,11 @@ const ServiceHistory = () => {
                 <th className='date-th'>Date</th>
                 {activeTab === 'all' && <th>Service Type</th>}
                 <th>Work Description</th>
-                {(activeTab === 'oil' || activeTab === 'all') && (
+                {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'all') && (
                   <>
                     <th>Serviced Hrs/ Km</th>
                     <th>Next Service</th>
-                    <th>Next Full Service</th>
+                    {(activeTab === 'oil' || activeTab === 'all') && <th>Next Full Service</th>}
                   </>
                 )}
                 {(activeTab === 'tyre' || activeTab === 'all') && (
@@ -992,10 +1052,7 @@ const ServiceHistory = () => {
                 filteredData.map((item, index) => {
                   const badge = getServiceTypeBadge(item.serviceType);
                   return (
-                    <tr
-                      key={index}
-                      className={`${item.serviceType}-service ${item.fullService ? 'full-service-row' : ''} ${item.replaced ? 'replacement-row' : ''}`}
-                    >
+                    <tr key={index} className={`${item.serviceType}-service ${item.fullService ? 'full-service-row' : ''} ${item.replaced ? 'replacement-row' : ''}`}>
                       <td>{formatDate(item.date)}</td>
                       {activeTab === 'all' && (
                         <td>
@@ -1005,18 +1062,21 @@ const ServiceHistory = () => {
                         </td>
                       )}
                       <td style={{ textAlign: 'left' }}>
-                        {item.serviceType === 'oil' && (
+                        {(item.serviceType === 'oil' || item.serviceType === 'normal') && (
                           <div>
-                            <div><strong>Filters:</strong> Fuel Filter: {item.fuelFilter}, Water Sep: {item.waterSeparator}</div>
+                            <div><strong>Fuel Filter: </strong>{item.fuelFilter}, <strong>Water Sep: </strong>{item.waterSeparator}</div>
                             <div><strong>Air Filter:</strong> {item.airFilter}, <strong>A/C Filter:</strong> {item.acFilter ? item.acFilter : ''}</div>
                           </div>
                         )}
                       </td>
-                      {(activeTab === 'oil' || activeTab === 'all') && (
+                      {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'all') && (
                         <>
-                          <td>{item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
-                          <td>{item.serviceType === 'oil' ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
-                          <td>{item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'}</td>                        </>
+                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal') ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
+                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal') ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
+                          {(activeTab === 'oil' || activeTab === 'all') && (
+                            <td>{item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'}</td>
+                          )}
+                        </>
                       )}
                       {(activeTab === 'tyre' || activeTab === 'all') && (
                         <>
@@ -1030,7 +1090,7 @@ const ServiceHistory = () => {
                         </>
                       )}
                       <td style={{ textAlign: 'left' }}>
-                        {item.serviceType === 'oil' && (
+                        {(item.serviceType === 'oil' || item.serviceType === 'normal') && (
                           <div>
                             {item.remarks && <div>{item.remarks}</div>}
                           </div>

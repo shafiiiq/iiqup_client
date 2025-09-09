@@ -6,6 +6,9 @@ import { apiRequest } from '../../utils/0auth';
 
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
+  const { normal } = useParams();
+  console.log("first normal" , normal);
+  
   const { regNo, date, serviceHrs, nextServiceHrs, oil, oilFilter, fuelFilter, airFilter, acFilter, waterSeparator, id, location, runningHours, tyreForm, mechanics, workRemarks } = useParams();
   const [equipments, setEquipments] = useState([]);
   const [currentDateTime, setCurrentDateTime] = useState('');
@@ -232,6 +235,11 @@ const ServiceForm = ({ initialData = {} }) => {
       ...formData,
       checklistItems
     };
+
+    if(normal) {
+      console.log("yes here also normal");
+      completeData.serviceType = 'normal'
+    }
 
     const url = isUpdateMode
       ? `${END_POINT}/service-report/updatewith/${id}`

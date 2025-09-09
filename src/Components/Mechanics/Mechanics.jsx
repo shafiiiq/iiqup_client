@@ -415,39 +415,26 @@ const Mechanics = () => {
                       <table className="toolkits-table">
                         <thead>
                           <tr>
+                            <th>SL NO</th>
+                            <th>Handover Date</th>
                             <th>Name</th>
-                            <th>Type</th>
                             <th>Size</th>
                             <th>Color</th>
-                            <th>Status</th>
-                            <th>Handover Date</th>
-                            <th>Actions</th>
+                            <th>Quantity</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedMechanic.toolkits?.length > 0 ? (
-                            selectedMechanic.toolkits.map((toolkit) => (
+                            selectedMechanic.toolkits.map((toolkit, index) => (
                               <tr key={toolkit._id}>
+                                <td>{selectedMechanic.toolkits.length - index}</td>
+                                <td>{new Date(toolkit.assignedDate).toLocaleDateString()}</td>
                                 <td className="toolkit-name">{toolkit.name}</td>
-                                <td>{toolkit.type}</td>
                                 <td>{toolkit.size}</td>
                                 <td>
-                                  <span className="color-indicator" style={{ backgroundColor: toolkit.color }}>
-                                    {toolkit.color}
-                                  </span>
+                                  {toolkit.color}
                                 </td>
-                                <td>
-                                  <span className={`status-badge ${toolkit.status?.toLowerCase()}`}>
-                                    {toolkit.status}
-                                  </span>
-                                </td>
-                                <td>{new Date(toolkit.createdAt).toLocaleDateString()}</td>
-                                <td>
-                                  <div className="toolkit-actions">
-                                    <button className="action-btn edit">Edit</button>
-                                    <button className="action-btn delete">Delete</button>
-                                  </div>
-                                </td>
+                                <td>{toolkit.quantity}</td>
                               </tr>
                             ))
                           ) : (

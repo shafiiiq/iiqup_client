@@ -41,8 +41,20 @@ const Toolkits = () => {
   const [reduceStockData, setReduceStockData] = useState({
     quantity: 1,
     reason: 'Used',
-    person: ''
+    person: '',
+    personId: null,
+    assignedDate: new Date()
   });
+
+  // States for user data and dropdown
+  const [allUsers, setAllUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // Ref for user dropdown
+  const userDropdownRef = useRef(null);
 
   const filteredToolkits = toolkits;
 
@@ -80,6 +92,128 @@ const Toolkits = () => {
   const filteredColors = predefinedColors.filter(color =>
     color.toLowerCase().includes(colorSearchTerm.toLowerCase())
   );
+
+  // Fetch all users (mechanics, operators, office users)
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const [mechanicsRes, operatorsRes, officeUsersRes] = await Promise.all([
+          apiRequest(`${END_POINT}/mechanics/get-all-mechanic`, 'GET'),
+          apiRequest(`${END_POINT}/operators/get-all-operators`, 'GET'),
+          apiRequest(`${END_POINT}/users/get-all-users`, 'GET')
+        ]);
+
+        // Process mechanics
+        let mechanics = [];
+        if (mechanicsRes.ok) {
+          const mechanicsData = await mechanicsRes.json();
+          mechanics = (mechanicsData.data || []).map(mechanic => ({
+            _id: mechanic._id,
+            name: mechanic.name,
+            type: 'Mechanic'
+          }));
+        }
+
+        // Process operators
+        let operators = [];
+        if (operatorsRes.ok) {
+          const operatorsData = await operatorsRes.json();
+          operators = (operatorsData.data || []).map(operator => ({
+            _id: operator._id,
+            name: operator.name,
+            type: 'Operator'
+          }));
+        }
+
+        // Process office users
+        let officeUsers = [];
+        if (officeUsersRes.ok) {
+          const officeData = await officeUsersRes.json();
+          officeUsers = (officeData.data?.office || []).map(user => ({
+            _id: user._id,
+            name: user.name,
+            type: 'Office User'
+          }));
+        }
+
+        // Combine all users
+        const combinedUsers = [...mechanics, ...operators, ...officeUsers];
+        setAllUsers(combinedUsers);
+        setFilteredUsers(combinedUsers);
+      } catch (err) {
+        console.error('Error fetching users:', err);
+      }
+    };
+
+    fetchAllUsers();
+  }, []);
+
+
+  // Filter users based on search term
+  useEffect(() => {
+    if (userSearchTerm.trim() === '') {
+      setFilteredUsers(allUsers);
+    } else {
+      const filtered = allUsers.filter(user =>
+        user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        user.type.toLowerCase().includes(userSearchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [userSearchTerm, allUsers]);
+
+  // Handle user selection
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setReduceStockData({
+      ...reduceStockData,
+      person: user.name,
+      personId: user._id,
+      reason: `Handovered to ${user.name}`
+    });
+    setUserSearchTerm(user.name);
+    setShowUserDropdown(false);
+  };
+
+  // Handle user search input change
+  const handleUserSearchChange = (e) => {
+    const value = e.target.value;
+    setUserSearchTerm(value);
+    setShowUserDropdown(value.length > 0);
+
+    // Update person in reduceStockData for manual typing
+    setReduceStockData({
+      ...reduceStockData,
+      person: value,
+      personId: null, // Clear ID when manually typing
+      reason: value ? `Handovered to ${value}` : 'Used'
+    });
+  };
+
+  // Handle clicks outside dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (nameDropdownRef.current && !nameDropdownRef.current.contains(event.target)) {
+        setShowNameDropdown(false);
+      }
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target)) {
+        setShowTypeDropdown(false);
+      }
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target)) {
+        setShowSizeDropdown(false);
+      }
+      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target)) {
+        setShowColorDropdown(false);
+      }
+      // Add user dropdown handler
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Update current date and time
   useEffect(() => {
@@ -258,8 +392,11 @@ const Toolkits = () => {
     setReduceStockData({
       quantity: 1,
       reason: 'Used',
-      person: ''
+      person: '',
+      personId: null
     });
+    setUserSearchTerm('');
+    setSelectedUser(null);
     setShowReduceStockModal(true);
   };
 
@@ -483,6 +620,7 @@ const Toolkits = () => {
   };
 
   // Reduce stock for a variant
+  // Reduce stock for a variant
   const handleReduceStock = async () => {
     try {
       const response = await apiRequest(`${END_POINT}/toolkits/reduce-stock/${selectedToolkit._id}/${selectedVariant._id}`,
@@ -491,7 +629,9 @@ const Toolkits = () => {
           quantity: parseInt(reduceStockData.quantity),
           reason: reduceStockData.reason || 'Stock reduced',
           updatedBy: 'User',
-          person: reduceStockData.person
+          person: reduceStockData.person,
+          personId: reduceStockData.personId ,
+          assignedDate: reduceStockData.assignedDate
         }
       );
 
@@ -1054,6 +1194,69 @@ const Toolkits = () => {
               </div>
 
               <div className="form-group">
+                <label htmlFor="assignedDate">Assigned Date</label>
+                <input
+                  type="date"
+                  id="assignedDate"
+                  name="assignedDate"
+                  value={reduceStockData.assignedDate}
+                  onChange={(e) => setReduceStockData({
+                    ...reduceStockData,
+                    assignedDate: e.target.value
+                  })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="reducePerson">Assigned To</label>
+                <div className="custom-dropdown" ref={userDropdownRef}>
+                  <div className="dropdown-input-container">
+                    <input
+                      type="text"
+                      id="reducePerson"
+                      name="person"
+                      value={userSearchTerm}
+                      onChange={handleUserSearchChange}
+                      onFocus={() => {
+                        setUserSearchTerm(reduceStockData.person);
+                        setShowUserDropdown(true);
+                      }}
+                      placeholder="Search or enter person name"
+                      autoComplete="off"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="dropdown-toggle"
+                      onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  {showUserDropdown && filteredUsers.length > 0 && (
+                    <div className="dropdown-menu">
+                      {filteredUsers.slice(0, 15).map((user) => (
+                        <div
+                          key={user._id}
+                          className="dropdown-item"
+                          onClick={() => handleUserSelect(user)}
+                        >
+                          <div className="dropdown-item-main">{user.name}</div>
+                          <div className="dropdown-item-sub">{user.type}</div>
+                        </div>
+                      ))}
+                      {filteredUsers.length > 15 && (
+                        <div className="dropdown-more">
+                          +{filteredUsers.length - 15} more results...
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label htmlFor="reduceReason">Reason</label>
                 <input
                   type="text"
@@ -1068,21 +1271,6 @@ const Toolkits = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="reducePerson">Assigned To</label>
-                <input
-                  type="text"
-                  id="reducePerson"
-                  name="person"
-                  value={reduceStockData.person}
-                  onChange={(e) => setReduceStockData({
-                    ...reduceStockData,
-                    person: e.target.value
-                  })}
-                  required
-                  placeholder="Enter person name"
-                />
-              </div>
 
               <div className="form-actions">
                 <button type="button" className="cancel-btn" onClick={() => setShowReduceStockModal(false)}>

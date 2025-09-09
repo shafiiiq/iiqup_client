@@ -19,11 +19,11 @@ const Operators = () => {
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState('add');
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Sorting states
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
-  
+
   const [formData, setFormData] = useState({
     id: '',
     slNo: '',
@@ -202,7 +202,7 @@ const Operators = () => {
   }, []);
 
   // Filter and sort operators
-  const filteredOperators = operators.filter(operator => 
+  const filteredOperators = operators.filter(operator =>
     operator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     operator.qatarId.includes(searchTerm) ||
     operator.uniqueCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -448,7 +448,7 @@ const Operators = () => {
         {},
         profilePicFile
       );
-      
+
       if (!response.ok) throw new Error('Failed to upload profile picture');
       const result = await response.json();
       return result.data.profilePic;
@@ -463,21 +463,21 @@ const Operators = () => {
   // Form submit handler
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       let profilePicUrl = null;
-      
+
       if (profilePicFile) {
         profilePicUrl = await uploadProfilePicture(formData.qatarId, formData.name);
       }
-      
+
       const operatorData = {
         ...formData,
         ...(profilePicUrl && { profilePic: profilePicUrl })
       };
-      
+
       let response;
-      
+
       if (formMode === 'add') {
         response = await apiRequest(
           `${END_POINT}/operators/create-operator`,
@@ -491,24 +491,24 @@ const Operators = () => {
           operatorData
         );
       }
-      
+
       if (!response.ok) throw new Error(`Failed to ${formMode} operator`);
       const result = await response.json();
-      
+
       if (formMode === 'add') {
         setOperators([...operators, result.data]);
       } else {
-        setOperators(operators.map(op => 
+        setOperators(operators.map(op =>
           op.qatarId === result.data.qatarId ? result.data : op
         ));
         if (selectedOperator && selectedOperator._id === formData._id) {
           setSelectedOperator(result.data);
         }
       }
-      
+
       setShowForm(false);
       setProfilePicFile(null);
-      
+
     } catch (error) {
       console.error('Error submitting form:', error);
       alert(`Failed to ${formMode} operator: ${error.message}`);
@@ -518,20 +518,20 @@ const Operators = () => {
   // Delete operator
   const deleteOperator = async (qatarId) => {
     if (!window.confirm('Are you sure you want to delete this operator?')) return;
-    
+
     try {
       const response = await apiRequest(
         `${END_POINT}/operators/operators/${qatarId}`,
         'DELETE'
       );
-      
+
       if (!response.ok) throw new Error('Failed to delete operator');
-      
+
       setOperators(operators.filter(op => op.qatarId !== qatarId));
       if (selectedOperator && selectedOperator.qatarId === qatarId) {
         setSelectedOperator(null);
       }
-      
+
     } catch (error) {
       console.error('Error deleting operator:', error);
       alert(`Failed to delete operator: ${error.message}`);
@@ -607,8 +607,8 @@ const Operators = () => {
                   <td>
                     <div className="profile-pic-small">
                       {operator.profilePic ? (
-                        <img 
-                          src={operator.profilePic} 
+                        <img
+                          src={operator.profilePic}
                           alt={operator.name}
                           onError={(e) => {
                             e.target.style.display = 'none';
@@ -616,7 +616,7 @@ const Operators = () => {
                           }}
                         />
                       ) : null}
-                      <div 
+                      <div
                         className="profile-initials"
                         style={{
                           display: operator.profilePic ? 'none' : 'flex'
@@ -639,8 +639,8 @@ const Operators = () => {
                     </span>
                   </td>
                   <td className="action-buttons">
-                    <button 
-                      className="action-btn details" 
+                    <button
+                      className="action-btn details"
                       onClick={() => showDetails(operator)}
                     >
                       Details
@@ -664,8 +664,8 @@ const Operators = () => {
             <div className="operator-profile-section">
               <div className="profile-pic-large">
                 {selectedOperator.profilePic ? (
-                  <img 
-                    src={selectedOperator.profilePic} 
+                  <img
+                    src={selectedOperator.profilePic}
                     alt={selectedOperator.name}
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -673,7 +673,7 @@ const Operators = () => {
                     }}
                   />
                 ) : null}
-                <div 
+                <div
                   className="profile-initials-large"
                   style={{
                     display: selectedOperator.profilePic ? 'none' : 'flex'
@@ -826,7 +826,41 @@ const Operators = () => {
                 </div>
                 <div className="detail-item">
                   <span className="label">Assigned Toolkits:</span>
-                  <span className="value">{selectedOperator.toolkits && selectedOperator.toolkits.length > 0 ? selectedOperator.toolkits.join(', ') : 'None'}</span>
+                  <span className="value">{selectedOperator.toolkits && selectedOperator.toolkits.length > 0 ? selectedOperator.toolkits.length : 'None'}</span>
+                </div>
+              </div>
+
+              <div className="detail-group">
+                <h4>Assigned Safety Items</h4>
+                <div>
+                  <table className="operators-table">
+                    <thead>
+                      <tr>
+                        <th>SL NO</th>
+                        <th>Handovered Date</th>
+                        <th>Name</th>
+                        <th>Color</th>
+                        <th>Quantity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOperator.toolkits.length > 0 ? (
+                        selectedOperator.toolkits.slice().reverse().map((toolkit, index) => (
+                          <tr key={toolkit._id}>
+                            <td>{selectedOperator.toolkits.length - index}</td>
+                            <td>{formatDate(toolkit.assignedDate)}</td>
+                            <td>{toolkit.toolkitName}</td>
+                            <td>{toolkit.color}</td>
+                            <td>{toolkit.quantity}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="7" className="no-data">No toolkits assigned</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -863,8 +897,8 @@ const Operators = () => {
                       {profilePicFile ? (
                         <img src={URL.createObjectURL(profilePicFile)} alt="Preview" />
                       ) : formData.profilePic ? (
-                        <img 
-                          src={formData.profilePic} 
+                        <img
+                          src={formData.profilePic}
                           alt="Current"
                           onError={(e) => {
                             e.target.style.display = 'none';
@@ -872,7 +906,7 @@ const Operators = () => {
                           }}
                         />
                       ) : null}
-                      <div 
+                      <div
                         className="profile-initials-form"
                         style={{
                           display: (profilePicFile || formData.profilePic) ? 'none' : 'flex'
@@ -1328,8 +1362,8 @@ const Operators = () => {
                   <button type="button" className="cancel-btn" onClick={() => setShowForm(false)}>
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="submit-btn"
                     disabled={uploading}
                   >

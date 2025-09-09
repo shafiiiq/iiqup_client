@@ -16,6 +16,7 @@
     --disabled-text: #6c757d;
     
     /* Service type colors - darker versions */
+    --normal-service-color: #7d0d8b;
     --oil-service-color: #1e7e34;
     --maintenance-service-color: #d68910;
     --tyre-service-color: #117a8b;
@@ -456,6 +457,10 @@ input:checked + .slider:before {
     text-transform: uppercase;
 }
 
+.badge-normal {
+    background-color: var(--normal-service-color);
+}
+
 .badge-oil {
     background-color: var(--oil-service-color);
 }
@@ -492,6 +497,11 @@ input:checked + .slider:before {
 
 .battery-service {
     background-color: rgba(220, 53, 69, 0.15) !important;
+}
+
+.normal-service {
+    background-color: rgba(125, 13, 139, 0.15) !important;
+    border-left: 3px solid #7d0d8b !important;
 }
 
 /* Enhanced Full Service and Replacement Row Styles */

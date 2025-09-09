@@ -90,11 +90,11 @@ body.dark-theme {
   transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #2196F3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(26px);
 }
 
@@ -407,7 +407,7 @@ input:checked + .slider:before {
 .details-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0 !important;
 }
 
 .detail-item {
@@ -594,6 +594,7 @@ input:checked + .slider:before {
     opacity: 0;
     transform: translateY(-50px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -639,6 +640,7 @@ input:checked + .slider:before {
 
 .form-group {
   margin-bottom: 16px;
+  padding-inline: 1rem;
 }
 
 .form-row {
@@ -775,6 +777,7 @@ input:checked + .slider:before {
   gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
+  padding-right: 1rem;
 }
 
 .cancel-btn {
@@ -1116,8 +1119,13 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeIn {
@@ -1125,6 +1133,7 @@ input[type="number"]::-webkit-inner-spin-button {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1183,6 +1192,28 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .status-indicator.out {
   background-color: var(--out-color);
+}
+
+/* Dropdown Item Styles */
+.dropdown-item-main {
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 2px;
+}
+
+.dropdown-item-sub {
+  font-size: 12px;
+  color: var(--disabled-text);
+  font-style: italic;
+}
+
+.dropdown-more {
+  padding: 8px 15px;
+  font-size: 12px;
+  color: var(--disabled-text);
+  font-style: italic;
+  background-color: var(--hover-bg);
+  text-align: center;
 }
 
 /* Responsive design */
@@ -1287,7 +1318,7 @@ input[type="number"]::-webkit-inner-spin-button {
     width: 20px;
   }
 
-  input:checked + .slider:before {
+  input:checked+.slider:before {
     transform: translateX(22px);
   }
 }
