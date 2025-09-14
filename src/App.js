@@ -302,11 +302,11 @@ function App() {
           onClose={() => { }}
           type="announcements"
           title="Fuel Data Collected"
-          message="We have collected all fuel data from April 2020 to August 31, 2025."
+          message="We have collected all fuel data from April 2020 to September 31, 2025."
           buttonText="Explore Later"
           onButtonClick={() => { }}
         />
-        
+
         {showDevModalHidden && (
           <DevModal
             isOpen={true}
@@ -318,8 +318,6 @@ function App() {
             onButtonClick={dontShowAgain}
           />
         )}
-
-
 
         <Routes>
           {/* Public Routes */}
