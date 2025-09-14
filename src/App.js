@@ -186,6 +186,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(false);
   const [splashComplete, setSplashComplete] = useState(false);
   const [showDevModalHidden, setShowDevModalHidden] = useState(true);
+  const [isExplored, setExplored] = useState(true);
 
   const navigate = useNavigate();
 
@@ -204,6 +205,23 @@ function App() {
       }
     }
   }, []);
+
+   useEffect(() => {
+    const hiddenUntil = sessionStorage.getItem('explored');
+    if (hiddenUntil) {
+      const hideUntilTime = parseInt(hiddenUntil);
+      const now = new Date().getTime();
+
+      if (now < hideUntilTime) {
+        // Still within the "don't show" period
+        setExplored(false);
+      } else {
+        // Time has expired, remove the storage item
+        sessionStorage.removeItem('explored');
+      }
+    }
+  }, []);
+
 
   // set dark theme initialy
   useEffect(() => {
@@ -291,21 +309,34 @@ function App() {
     setShowDevModalHidden(false);
   };
 
+  const explore = () => {
+    const hideUntil = new Date();
+    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
+
+    // Store in sessionStorage instead of component state
+    sessionStorage.setItem('explored', hideUntil.getTime().toString());
+    setExplored(false);
+    navigate('/equipments')
+  };
+
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
         <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
         <NavigationButtons />
 
-        <DevModal
-          isOpen={true}
-          onClose={() => { }}
-          type="announcements"
-          title="Fuel Data Collected"
-          message="We have collected all fuel data from April 2020 to September 31, 2025."
-          buttonText="Explore Later"
-          onButtonClick={() => { }}
-        />
+
+        {isExplored && (
+          <DevModal
+            isOpen={true}
+            onClose={() => { }}
+            type="announcements"
+            title="Fuel Data Collected"
+            message="We have collected all fuel data from April 2020 to September 31, 2025."
+            buttonText="Explore Later"
+            onButtonClick={explore}
+          />
+        )}
 
         {showDevModalHidden && (
           <DevModal

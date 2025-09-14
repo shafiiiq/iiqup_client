@@ -12,13 +12,15 @@ const StatusBar = ({ realTimeData }) => {
 
   return (
     <div className="status-bar">
-      <div className="status-item">
-        <Truck className="status-icon" />
-        <div className="status-content">
-          <span className="status-value">{realTimeData.totalEquipment}</span>
-          <span className="status-label">Total Equipment</span>
+      <Link to="/equipments" className='status-item'>
+        <div className="complaints-item">
+          <Truck className="status-icon" />
+          <div className="status-content">
+            <span className="status-value">{realTimeData.totalEquipment}</span>
+            <span className="status-label">Total Equipment</span>
+          </div>
         </div>
-      </div>
+      </Link>
       <div className="status-item">
         <CheckCircle className="status-icon success" />
         <div className="status-content">
