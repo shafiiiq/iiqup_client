@@ -282,8 +282,6 @@ function App() {
     );
   }
 
-
-
   const dontShowAgain = () => {
     const hideUntil = new Date();
     hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
@@ -299,10 +297,20 @@ function App() {
         <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
         <NavigationButtons />
 
+        <DevModal
+          isOpen={true}
+          onClose={() => { }}
+          type="announcements"
+          title="Fuel Data Collected"
+          message="We have collected all fuel data from April 2020 to August 31, 2025."
+          buttonText="Explore Later"
+          onButtonClick={() => { }}
+        />
+        
         {showDevModalHidden && (
           <DevModal
             isOpen={true}
-            onClose={() => {}}
+            onClose={() => { }}
             type="warning"
             title="Server Maintenance in Progress"
             message="Our servers are currently undergoing maintenance to implement new features. You may experience temporary inconvenience."
@@ -310,6 +318,8 @@ function App() {
             onButtonClick={dontShowAgain}
           />
         )}
+
+
 
         <Routes>
           {/* Public Routes */}
