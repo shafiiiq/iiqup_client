@@ -510,7 +510,7 @@ input:checked+.slider:before {
 .sidebar-content {
   background-color: var(--modal-bg);
   color: var(--text-color);
-  width: 600px;
+  width: 760px;
   max-width: 90vw;
   height: 100%;
   overflow-y: auto;

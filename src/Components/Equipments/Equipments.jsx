@@ -214,6 +214,22 @@ function Equipments() {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+
+    const date = new Date(dateString);
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day}, ${month} ${year}`;
+  };
+
   const handleRowClick = (regNo) => {
     navigate(`/service-history/${regNo}`);
   };
@@ -704,7 +720,9 @@ function Equipments() {
         return <p>No fuel consumption data available.</p>;
       }
 
+
       const fuelData = sidebarContent.data[0];
+      { console.log(fuelData.transactions) }
       return (
         <div className="fuels-list">
           <div className="fuel-summary">
@@ -751,7 +769,7 @@ function Equipments() {
             </div>
           )}
 
-          {fuelData.stationBreakdown && Object.keys(fuelData.stationBreakdown).length > 0 && (
+          {fuelData.transactions && Object.keys(fuelData.transactions).length > 0 && (
             <div className="breakdown-section">
               <h4>Station Breakdown</h4>
               <table className="breakdown-table">
@@ -761,17 +779,17 @@ function Equipments() {
                     <th>Station</th>
                     <th>Liters</th>
                     <th>Amount</th>
-                    <th>Count</th>
+                    <th>Unit Price</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(fuelData.stationBreakdown).map(([station, data], index) => (
+                  {fuelData.transactions.slice().reverse().map((data, index) => (
                     <tr key={index}>
-                      <td>{data.transactionDate}</td>
-                      <td>{station}</td>
-                      <td>{data.liters || 0} L</td>
-                      <td>SAR {data.amount || 0}</td>
-                      <td>{data.count || 0}</td>
+                      <td>{formatDate(data.transactionDate)}</td>
+                      <td>{data.stationName}</td>
+                      <td>{data.liter || 0} L</td>
+                      <td>SAR {data.totalAmount || 0}</td>
+                      <td>{data.unitPrice || 0}</td>
                     </tr>
                   ))}
                 </tbody>
