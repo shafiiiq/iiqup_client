@@ -3,6 +3,7 @@ import './Equipments.css';
 import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import DevModal from '../../common/DevModal';
 
 function Equipments() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,6 +41,7 @@ function Equipments() {
   const [fuelsData, setFuelsData] = useState([]);
   const [isLoadingFuels, setIsLoadingFuels] = useState(false);
   const [showFuelProgressModal, setShowFuelProgressModal] = useState(false);
+  const [fuelProgress, setFuelProgress] = useState(0);
 
   useEffect(() => {
     const fetchMechanics = async () => {
@@ -433,21 +435,30 @@ function Equipments() {
   const handleViewAllFuels = async (e, regNo) => {
     e.stopPropagation();
     setIsLoadingFuels(true);
-    setShowFuelProgressModal(true); // Show progress modal
+    setShowFuelProgressModal(true);
+    setFuelProgress(0);
+
+    // Animate progress from 0 to 90% while loading
+    const progressInterval = setInterval(() => {
+      setFuelProgress(prev => {
+        if (prev >= 90) return prev; // Stop at 90% until completion
+        return prev + Math.random() * 15; // Random increments for smooth animation
+      });
+    }, 150);
 
     try {
       const response = await apiRequest(`${END_POINT}/fuels/equipment-consumption`);
       const data = await response.json();
 
-      // Fixed: Use proper equality operator and correct property access
       const fuelData = data.data.filter(item => item.regNo === regNo);
 
-      console.log(fuelData);
-
       if (data.success) {
-        setSidebarContent({ type: 'fuels', data: fuelData });
-        setSidebarTitle(`Fuel Consumption - ${regNo}`);
-        setShowSidebar(true);
+        setFuelProgress(100); // Complete the progress bar
+        setTimeout(() => {
+          setSidebarContent({ type: 'fuels', data: fuelData });
+          setSidebarTitle(`Fuel Consumption - ${regNo}`);
+          setShowSidebar(true);
+        }, 300);
       } else {
         setDeleteStatus({
           message: data.message || 'Failed to fetch fuel data.',
@@ -463,8 +474,9 @@ function Equipments() {
       setShowStatusModal(true);
       console.error('Error fetching fuel data:', error);
     } finally {
+      clearInterval(progressInterval); // Stop the animation
       setIsLoadingFuels(false);
-      setShowFuelProgressModal(false); // Hide progress modal
+      setTimeout(() => setShowFuelProgressModal(false), 500);
     }
   };
 
@@ -745,6 +757,7 @@ function Equipments() {
               <table className="breakdown-table">
                 <thead>
                   <tr>
+                    <th>Date</th>
                     <th>Station</th>
                     <th>Liters</th>
                     <th>Amount</th>
@@ -754,6 +767,7 @@ function Equipments() {
                 <tbody>
                   {Object.entries(fuelData.stationBreakdown).map(([station, data], index) => (
                     <tr key={index}>
+                      <td>{data.transactionDate}</td>
                       <td>{station}</td>
                       <td>{data.liters || 0} L</td>
                       <td>SAR {data.amount || 0}</td>
@@ -1424,24 +1438,16 @@ function Equipments() {
         </div>
       )}
 
-      {/* Fuel Data Progress Modal */}
-      {showFuelProgressModal && (
-        <div className="modal-overlay">
-          <div className="modal-content progress-modal">
-            <div className="modal-header">
-              <h2>Loading Fuel Data</h2>
-            </div>
-            <div className="modal-body">
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div className="progress-bar-fill"></div>
-                </div>
-                <p>Fetching fuel consumption data, please wait...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Fuel Data Progress Modal using DevModal */}
+      <DevModal
+        isOpen={showFuelProgressModal}
+        type="progress"
+        title="Loading Fuel Data"
+        message="Fetching fuel consumption data, please wait..."
+        progress={fuelProgress}
+        progressText="Processing..."
+      />
+
     </div>
   );
 }
