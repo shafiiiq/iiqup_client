@@ -4,6 +4,7 @@ import './Documents.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import jsPDF from 'jspdf';
+import DevModal from '../../common/DevModal';
 
 function DocumentDetails() {
   const { regNo } = useParams();
@@ -319,39 +320,6 @@ function DocumentDetails() {
     }, 200);
   };
 
-  // Close progress modal
-  const closeProgressModal = () => {
-    setShowProgressModal(false);
-    setUploadProgress(0);
-    setUploadStatus('');
-    setUploadError('');
-  };
-
-  // Cancel upload (you might need to implement actual cancel logic based on your API)
-  const cancelUpload = () => {
-    // Implement actual cancel logic here if your API supports it
-    closeProgressModal();
-    setIsLoading(false);
-    setMessage({ text: 'Upload cancelled', type: 'error' });
-  };
-
-  // Simulate progress updates (replace with actual progress tracking from your S3 upload)
-  const simulateProgress = () => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 15;
-      if (progress > 90) {
-        progress = 90; // Stop at 90% until actual completion
-      }
-      setUploadProgress(Math.min(progress, 90));
-
-      if (progress >= 90) {
-        clearInterval(interval);
-      }
-    }, 200);
-    return interval;
-  };
-
   // Get current date and time
   useEffect(() => {
     const updateDateTime = () => {
@@ -465,8 +433,13 @@ function DocumentDetails() {
     setUploadStatus('uploading');
     setUploadError('');
 
-    // Start progress simulation
-    const progressInterval = simulateProgress();
+    // Animate progress from 0 to 90% while uploading
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) return prev; // Stop at 90% until completion
+        return prev + Math.random() * 15; // Random increments for smooth animation
+      });
+    }, 150);
 
     try {
       const response = await apiRequest(`${END_POINT}/documents/upload-document`,
@@ -507,7 +480,10 @@ function DocumentDetails() {
 
       // Auto-close modal after 2 seconds on success
       setTimeout(() => {
-        closeProgressModal();
+        setShowProgressModal(false);
+        setUploadProgress(0);
+        setUploadStatus('');
+        setUploadError('');
         handleReset();
         setMessage({ text: '', type: '' });
       }, 2000);
@@ -518,6 +494,14 @@ function DocumentDetails() {
       setUploadStatus('error');
       setUploadError(error.message);
       setMessage({ text: `Error: ${error.message}`, type: 'error' });
+
+      // Auto-close error modal after 3 seconds
+      setTimeout(() => {
+        setShowProgressModal(false);
+        setUploadProgress(0);
+        setUploadStatus('');
+        setUploadError('');
+      }, 3000);
     } finally {
       setIsLoading(false);
     }
@@ -801,73 +785,14 @@ function DocumentDetails() {
       )}
 
       {/* Progress Modal */}
-      {showProgressModal && (
-        <div className="doc-details-progress-modal-overlay">
-          <div className="doc-details-progress-modal">
-            <div className="doc-details-progress-header">
-              <div className="doc-details-upload-icon">
-                📄
-              </div>
-              <h3 className="doc-details-progress-title">
-                {uploadStatus === 'uploading' && 'Uploading Document...'}
-                {uploadStatus === 'success' && 'Upload Complete!'}
-                {uploadStatus === 'error' && 'Upload Failed'}
-              </h3>
-            </div>
-
-            {selectedFile && (
-              <p className="doc-details-progress-subtitle">
-                {selectedFile.name}
-              </p>
-            )}
-
-            <div className="doc-details-progress-container">
-              <div className="doc-details-progress-bar-bg">
-                <div
-                  className="doc-details-progress-bar-fill"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
-              <div className="doc-details-progress-percentage">
-                {Math.round(uploadProgress)}%
-              </div>
-              <div className="doc-details-progress-status">
-                {uploadStatus === 'uploading' && 'Uploading to cloud storage...'}
-                {uploadStatus === 'success' && (
-                  <span className="doc-details-progress-success">
-                    Document uploaded successfully!
-                  </span>
-                )}
-                {uploadStatus === 'error' && (
-                  <span className="doc-details-progress-error">
-                    {uploadError || 'Upload failed. Please try again.'}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="doc-details-progress-actions">
-              {uploadStatus === 'uploading' && (
-                <button
-                  onClick={cancelUpload}
-                  className="doc-details-progress-btn doc-details-progress-btn-cancel"
-                >
-                  Cancel
-                </button>
-              )}
-
-              {(uploadStatus === 'success' || uploadStatus === 'error') && (
-                <button
-                  onClick={closeProgressModal}
-                  className="doc-details-progress-btn doc-details-progress-btn-close"
-                >
-                  Close
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <DevModal
+        isOpen={showProgressModal}
+        type="progress"
+        title="Uploading Document"
+        message={selectedFile ? `Uploading: ${selectedFile.name}` : "Uploading to cloud storage..."}
+        progress={uploadProgress}
+        progressText="Processing..."
+      />
 
       {/* Add Document Tab */}
       {activeTab === 'add' && (
