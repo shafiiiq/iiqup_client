@@ -30,6 +30,52 @@ function Equipments() {
     key: 'year',
     direction: 'desc' // desc for latest first, asc for oldest first
   });
+  const [operatorSearchTerm, setOperatorSearchTerm] = useState('');
+  const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
+  const [filteredOperator, setFilteredOperator] = useState([]);
+  const [operator, setOperator] = useState([]);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [sidebarContent, setSidebarContent] = useState(null);
+  const [sidebarTitle, setSidebarTitle] = useState('');
+  const [fuelsData, setFuelsData] = useState([]);
+  const [isLoadingFuels, setIsLoadingFuels] = useState(false);
+  const [showFuelProgressModal, setShowFuelProgressModal] = useState(false);
+
+  useEffect(() => {
+    const fetchMechanics = async () => {
+      try {
+        const response = await apiRequest(`${END_POINT}/operators/get-all-operators`, 'GET');
+        if (!response.ok) throw new Error('Failed to fetch mechanics');
+        const data = await response.json();
+        setOperator(Array.isArray(data.data) ? data.data : []);
+      } catch (err) {
+        console.error('Error fetching mechanics:', err);
+      }
+    };
+
+    fetchMechanics();
+  }, []);
+
+  useEffect(() => {
+    if (operatorSearchTerm.trim() === '') {
+      setFilteredOperator(operator);
+    } else {
+      const filtered = operator.filter(op =>
+        op.name.toLowerCase().includes(operatorSearchTerm.toLowerCase())
+      );
+      setFilteredOperator(filtered);
+    }
+  }, [operatorSearchTerm, operator]);
+
+  // Handle mechanic selection
+  const handleOperatorSelect = (operator) => {
+    setEditFormData({
+      ...editFormData,
+      operator: operator.name
+    });
+    setOperatorSearchTerm(operator.name); // Set search term to selected operator
+    setShowOperatorDropdown(false);
+  };
 
   // Add Equipment Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -230,6 +276,8 @@ function Equipments() {
   const handleEdit = (e, equipment) => {
     e.stopPropagation();
     setEditEquipment(equipment);
+    const currentOperator = equipment.certificationBody[equipment.certificationBody.length - 1] || '';
+
     setEditFormData({
       machine: equipment.machine,
       regNo: equipment.regNo,
@@ -238,8 +286,12 @@ function Equipments() {
       status: equipment.status,
       year: equipment.year,
       company: equipment.company,
-      operator: equipment.certificationBody[equipment.certificationBody.length - 1] || ''
+      operator: currentOperator
     });
+
+    // Reset operator search term to current operator
+    setOperatorSearchTerm(currentOperator);
+    setShowOperatorDropdown(false); // Make sure dropdown is closed
     setShowEditModal(true);
   };
 
@@ -367,17 +419,59 @@ function Equipments() {
   const closeEditModal = () => {
     setShowEditModal(false);
     setEditEquipment(null);
+    setOperatorSearchTerm(''); // Reset search term
+    setShowOperatorDropdown(false); // Close dropdown
   };
 
   const handleViewAllOperators = (e, operators) => {
     e.stopPropagation();
-    setOperatorsData(operators);
-    setShowOperatorsModal(true);
+    setSidebarContent({ type: 'operators', data: operators });
+    setSidebarTitle('All Operators');
+    setShowSidebar(true);
   };
 
-  const closeOperatorsModal = () => {
-    setShowOperatorsModal(false);
-    setOperatorsData([]);
+  const handleViewAllFuels = async (e, regNo) => {
+    e.stopPropagation();
+    setIsLoadingFuels(true);
+    setShowFuelProgressModal(true); // Show progress modal
+
+    try {
+      const response = await apiRequest(`${END_POINT}/fuels/equipment-consumption`);
+      const data = await response.json();
+
+      // Fixed: Use proper equality operator and correct property access
+      const fuelData = data.data.filter(item => item.regNo === regNo);
+
+      console.log(fuelData);
+
+      if (data.success) {
+        setSidebarContent({ type: 'fuels', data: fuelData });
+        setSidebarTitle(`Fuel Consumption - ${regNo}`);
+        setShowSidebar(true);
+      } else {
+        setDeleteStatus({
+          message: data.message || 'Failed to fetch fuel data.',
+          isError: true
+        });
+        setShowStatusModal(true);
+      }
+    } catch (error) {
+      setDeleteStatus({
+        message: 'Error fetching fuel data: ' + error.message,
+        isError: true
+      });
+      setShowStatusModal(true);
+      console.error('Error fetching fuel data:', error);
+    } finally {
+      setIsLoadingFuels(false);
+      setShowFuelProgressModal(false); // Hide progress modal
+    }
+  };
+
+  const closeSidebar = () => {
+    setShowSidebar(false);
+    setSidebarContent(null);
+    setSidebarTitle('');
   };
 
   const handleOperatorMouseEnter = (equipmentId) => {
@@ -566,6 +660,117 @@ function Equipments() {
     };
   }
 
+  // Render sidebar content based on type
+  const renderSidebarContent = () => {
+    if (!sidebarContent) return null;
+
+    if (sidebarContent.type === 'operators') {
+      return (
+        <div className="operators-list">
+          <table className="operators-table">
+            <thead>
+              <tr>
+                <th>SL No</th>
+                <th>Operator Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sidebarContent.data.map((operator, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{operator}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    if (sidebarContent.type === 'fuels') {
+      if (sidebarContent.data.length === 0) {
+        return <p>No fuel consumption data available.</p>;
+      }
+
+      const fuelData = sidebarContent.data[0];
+      return (
+        <div className="fuels-list">
+          <div className="fuel-summary">
+            <h3>Fuel Consumption Summary</h3>
+            <div className="summary-grid">
+              <div className="summary-item">
+                <span className="summary-label">Total Liters:</span>
+                <span className="summary-value">{fuelData.totalLiters || 0} L</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">Total Amount:</span>
+                <span className="summary-value">SAR {fuelData.totalAmount || 0}</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">Total Transactions:</span>
+                <span className="summary-value">{fuelData.totalTransactions || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {fuelData.productBreakdown && Object.keys(fuelData.productBreakdown).length > 0 && (
+            <div className="breakdown-section">
+              <h4>Product Breakdown</h4>
+              <table className="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Liters</th>
+                    <th>Amount</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(fuelData.productBreakdown).map(([product, data], index) => (
+                    <tr key={index}>
+                      <td>{product}</td>
+                      <td>{data.liters || 0} L</td>
+                      <td>SAR {data.amount || 0}</td>
+                      <td>{data.count || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {fuelData.stationBreakdown && Object.keys(fuelData.stationBreakdown).length > 0 && (
+            <div className="breakdown-section">
+              <h4>Station Breakdown</h4>
+              <table className="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Station</th>
+                    <th>Liters</th>
+                    <th>Amount</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(fuelData.stationBreakdown).map(([station, data], index) => (
+                    <tr key={index}>
+                      <td>{station}</td>
+                      <td>{data.liters || 0} L</td>
+                      <td>SAR {data.amount || 0}</td>
+                      <td>{data.count || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="equipment-container">
       <div className="equipment-header">
@@ -639,6 +844,7 @@ function Equipments() {
               <th>Insurance Expiry</th>
               <th>TPC Expiry</th>
               <th>Operator</th>
+              <th>Fuel Consumption</th>
               <th>Site</th>
               <th>Status</th>
               <th>Actions</th>
@@ -693,6 +899,18 @@ function Equipments() {
                       </div>
                     )}
                   </td>
+                  <td
+                    className="fuel-cell"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className="view-fuel-button"
+                      onClick={(e) => handleViewAllFuels(e, item.regNo)}
+                      title="View fuel consumption"
+                    >
+                      View Fuel Data
+                    </button>
+                  </td>
                   <td>{item.site}</td>
                   <td >
                     <span className={`site ${item.status === 'active' ? 'site-active'
@@ -723,7 +941,7 @@ function Equipments() {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="no-results">
+                <td colSpan="14" className="no-results">
                   {equipments.length > 0 ? (
                     searchTerm ? (
                       <>
@@ -749,6 +967,25 @@ function Equipments() {
           </tbody>
         </table>
       </div>
+
+      {/* Sidebar for View All content */}
+      {showSidebar && (
+        <div className="sidebar-overlay" onClick={closeSidebar}>
+          <div className="sidebar-content" onClick={(e) => e.stopPropagation()}>
+            <div className="sidebar-header">
+              <h2>{sidebarTitle}</h2>
+              <button className="close-btn" onClick={closeSidebar}>×</button>
+            </div>
+            <div className="sidebar-body">
+              {isLoadingFuels ? (
+                <div className="loading-spinner">Loading...</div>
+              ) : (
+                renderSidebarContent()
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Equipment Modal */}
       {showAddModal && (
@@ -1044,10 +1281,42 @@ function Equipments() {
                     type="text"
                     id="operator"
                     name="operator"
-                    value={editFormData.operator}
-                    onChange={handleEditInputChange}
+                    value={operatorSearchTerm || editFormData.operator} // Show search term or current operator
+                    onChange={(e) => {
+                      setOperatorSearchTerm(e.target.value); // Update search term as user types
+                      setEditFormData({
+                        ...editFormData,
+                        operator: e.target.value // Also update the form data
+                      });
+                    }}
+                    onFocus={() => {
+                      setOperatorSearchTerm(editFormData.operator || ''); // Initialize search with current value
+                      setShowOperatorDropdown(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowOperatorDropdown(false), 200)}
+                    placeholder="Search or enter operator name"
                     required
                   />
+
+                  {/* Dropdown should be positioned relative to the form group */}
+                  {showOperatorDropdown && filteredOperator.length > 0 && (
+                    <div className="search-dropdown">
+                      {filteredOperator.slice(0, 10).map((operator) => (
+                        <div
+                          key={operator._id}
+                          className="dropdown-item"
+                          onClick={() => handleOperatorSelect(operator)}
+                        >
+                          <div className="dropdown-item-main">{operator.name}</div>
+                        </div>
+                      ))}
+                      {filteredOperator.length > 10 && (
+                        <div className="dropdown-more">
+                          +{filteredOperator.length - 10} more results...
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label htmlFor="site">Site:</label>
@@ -1081,45 +1350,6 @@ function Equipments() {
             <div className="modal-footer">
               <button className="action-btn cancel" onClick={closeEditModal}>Cancel</button>
               <button className="action-btn save" onClick={handleUpdateEquipment}>Save Changes</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Operators Modal */}
-      {showOperatorsModal && (
-        <div className="modal-overlay">
-          <div className="modal-content operators">
-            <div className="modal-header">
-              <h2>All Operators</h2>
-              <button className="close-btn" onClick={closeOperatorsModal}>×</button>
-            </div>
-            <div className="modal-body">
-              {operatorsData.length > 0 ? (
-                <div className="operators-list">
-                  <table className="operators-table">
-                    <thead>
-                      <tr>
-                        <th>SL No</th>
-                        <th>Operator Name</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {operatorsData.map((operator, index) => (
-                        <tr key={index}>
-                          <td>{index + 1}</td>
-                          <td>{operator}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p>No operator data available.</p>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="action-btn ok" onClick={closeOperatorsModal}>Close</button>
             </div>
           </div>
         </div>
@@ -1189,6 +1419,25 @@ function Equipments() {
             <div className="modal-footer">
               <button className="action-btn cancel" onClick={closeOutsideEquipmentModal}>Cancel</button>
               <button className="action-btn save" onClick={handleAddOutsideEquipment}>Add Equipment</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fuel Data Progress Modal */}
+      {showFuelProgressModal && (
+        <div className="modal-overlay">
+          <div className="modal-content progress-modal">
+            <div className="modal-header">
+              <h2>Loading Fuel Data</h2>
+            </div>
+            <div className="modal-body">
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div className="progress-bar-fill"></div>
+                </div>
+                <p>Fetching fuel consumption data, please wait...</p>
+              </div>
             </div>
           </div>
         </div>

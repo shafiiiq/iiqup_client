@@ -37,6 +37,7 @@ import FormNavigation from './Components/FormNavigation/FormNavigation';
 import SplashScreen from './splash/SplashScreen';
 import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
 import Operators from './Components/Operators/Operators';
+import DevModal from './common/DevModal';
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -156,7 +157,7 @@ function CEOGuard({ children }) {
 
   useEffect(() => {
     const checkCEOStatus = async () => {
-      const ceoStatus = await AuthUtils.isCEO();      
+      const ceoStatus = await AuthUtils.isCEO();
       setIsCEO(ceoStatus);
       setLoading(false);
     };
@@ -184,8 +185,25 @@ function App() {
   // Splash screen states
   const [showSplash, setShowSplash] = useState(false);
   const [splashComplete, setSplashComplete] = useState(false);
+  const [showDevModalHidden, setShowDevModalHidden] = useState(true);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const hiddenUntil = sessionStorage.getItem('devModalHidden');
+    if (hiddenUntil) {
+      const hideUntilTime = parseInt(hiddenUntil);
+      const now = new Date().getTime();
+
+      if (now < hideUntilTime) {
+        // Still within the "don't show" period
+        setShowDevModalHidden(false);
+      } else {
+        // Time has expired, remove the storage item
+        sessionStorage.removeItem('devModalHidden');
+      }
+    }
+  }, []);
 
   // set dark theme initialy
   useEffect(() => {
@@ -264,11 +282,35 @@ function App() {
     );
   }
 
+
+
+  const dontShowAgain = () => {
+    const hideUntil = new Date();
+    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
+
+    // Store in sessionStorage instead of component state
+    sessionStorage.setItem('devModalHidden', hideUntil.getTime().toString());
+    setShowDevModalHidden(false);
+  };
+
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
         <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
         <NavigationButtons />
+
+        {showDevModalHidden && (
+          <DevModal
+            isOpen={true}
+            onClose={() => {}}
+            type="warning"
+            title="Server Maintenance in Progress"
+            message="Our servers are currently undergoing maintenance to implement new features. You may experience temporary inconvenience."
+            buttonText="Don't Show Again"
+            onButtonClick={dontShowAgain}
+          />
+        )}
+
         <Routes>
           {/* Public Routes */}
           <Route
@@ -823,6 +865,26 @@ function App() {
               <ProtectedRoute>
                 <CEOGuard>
                   <LpoList isForAllEquip={true} />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* remove this modal note it */}
+          <Route
+            path="/dev-modal"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <DevModal
+                    isOpen={true}
+                    onClose={() => { }}
+                    type="success"
+                    title="Success!"
+                    message="You have successfully login into the system"
+                    buttonText="Go to main screen"
+                    onButtonClick={() => navigate('/dashboard')}
+                  />
                 </CEOGuard>
               </ProtectedRoute>
             }
