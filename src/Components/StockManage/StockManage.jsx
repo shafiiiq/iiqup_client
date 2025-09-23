@@ -212,11 +212,82 @@ function StockManage() {
   }, []);
 
   const handlePrint = () => {
+    // Store original states
     const originalTitle = document.title;
-    document.title = `Stock_Inventory_Report_${new Date().toISOString().split('T')[0]}`;
-    window.print();
-    document.title = originalTitle;
+    const originalBodyClass = document.body.className;
+
+    try {
+      // Set document title for print job
+      const dateStr = new Date().toISOString().split('T')[0];
+      document.title = `Stock_Inventory_Report_${dateStr}`;
+
+      // Add unique print mode class to body to trigger print styles
+      document.body.className = (originalBodyClass + ' stock-manage-print-mode').trim();
+
+      // Add unique timestamp to header for CSS to display
+      const headerElement = document.querySelector('.stock-manage-header');
+      if (headerElement) {
+        const currentDate = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        const currentTime = new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+        headerElement.setAttribute('data-sm-print-timestamp', `${currentDate} at ${currentTime}`);
+      }
+
+      // Remove any conflicting print elements that might exist
+      const conflictingElements = document.querySelectorAll(
+        '.sm-temp-print-header, .sm-temp-print-date, .print-header, .print-date'
+      );
+      conflictingElements.forEach(element => {
+        if (element) {
+          element.style.display = 'none';
+        }
+      });
+
+      // Small delay to ensure styles are applied
+      setTimeout(() => {
+        // Trigger print
+        window.print();
+
+        // Cleanup after a short delay (after print dialog)
+        setTimeout(() => {
+          // Restore original states
+          document.title = originalTitle;
+          document.body.className = originalBodyClass;
+
+          // Remove the timestamp attribute
+          if (headerElement) {
+            headerElement.removeAttribute('data-sm-print-timestamp');
+          }
+
+          // Restore any hidden elements
+          conflictingElements.forEach(element => {
+            if (element) {
+              element.style.display = '';
+            }
+          });
+        }, 500);
+      }, 100);
+
+    } catch (error) {
+      // Error handling - restore states if something goes wrong
+      console.error('Print error:', error);
+      document.title = originalTitle;
+      document.body.className = originalBodyClass;
+
+      const headerElement = document.querySelector('.stock-manage-header');
+      if (headerElement) {
+        headerElement.removeAttribute('data-sm-print-timestamp');
+      }
+    }
   };
+
 
   const handleAddStock = async (e) => {
     e.preventDefault();
@@ -1124,7 +1195,7 @@ function StockManage() {
   };
 
   return (
-    <div className="stock-manage-container">
+    <div className="stock-manage-container no-conflict-stocks">
       <div className="stock-manage-header">
         <h1 className="stock-manage-title">Stock Management</h1>
         <div className="stock-manage-datetime">{currentDateTime}</div>

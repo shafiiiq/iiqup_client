@@ -164,9 +164,14 @@ body {
   margin-bottom: 0 !important;
 }
 
+.items-table-lpo th:first-child, .items-table-lpo td:first-child {
+  border-left: 1px solid #000 !important;
+}
+
 .items-table-lpo th, 
 .items-table-lpo td {
-  border: 1px solid #000 !important;
+  border-right: 1px solid #000 !important;
+  border-top: 1px solid #000 !important;
   padding: 5px !important;
   font-size: 15px !important;
   text-align: center !important;
@@ -187,7 +192,7 @@ body {
 }
 
 .terms-table td {
-  border: 1px solid #000 !important;
+  /* border: 1px solid #000 !important; */
   padding: 5px !important;
   font-size: 15px !important;
 }
@@ -341,6 +346,24 @@ body {
   border: 1px solid #000 !important;
 }
 
+.sign-border-td-l {
+  border-left: 1px solid #000 !important;
+}
+
+.sign-border-td-t {
+  border-top: 1px solid #000 !important;
+}
+
+
+.sign-border-td-r {
+  border-right: 1px solid #000 !important;
+}
+
+
+.sign-border-td-b {
+  border-bottom: 1px solid #000 !important;
+}
+
 /* Ensure dividers don't have patterns */
 .header-divider,
 .details-divider {
@@ -360,4 +383,8 @@ body {
   font-weight: bold !important;
   padding: 12px !important;
   font-size: 16pt !important;
+}
+
+.date-no-border {
+  border: none !important;
 }

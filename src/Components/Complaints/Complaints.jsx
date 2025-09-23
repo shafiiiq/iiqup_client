@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, RefreshCw, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { END_POINT } from '../../constants';
 import './Complaints.css';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { apiRequest } from '../../utils/0auth';
 
 // Async Media Component for handling media URLs
@@ -121,38 +121,50 @@ const Complaints = () => {
   const [videoErrors, setVideoErrors] = useState({}); // Track video loading errors
   const [videoLoadingStates, setVideoLoadingStates] = useState({}); // Track video loading states
 
+  const { complaintId, regNo } = useParams()
+
   // Real-time clock and date
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      });
+  // useEffect(() => {
+  //   const updateDateTime = () => {
+  //     const now = new Date();
+  //     const timeString = now.toLocaleTimeString('en-US', {
+  //       hour: '2-digit',
+  //       minute: '2-digit',
+  //       second: '2-digit',
+  //       hour12: true
+  //     });
 
-      setLastUpdated(`Last updated: ${timeString}`);
-    };
+  //     setLastUpdated(`Last updated: ${timeString}`);
+  //   };
 
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
+  //   updateDateTime();
+  //   // const interval = setInterval(updateDateTime, 4000);
+  //   // return () => clearInterval(interval);
+  // }, []);
   const fetchComplaints = async (showRefresh = false) => {
     try {
       if (showRefresh) setRefreshing(true);
       setLoading(!showRefresh);
 
-      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`);
+      let response;
+
+      if (complaintId) {
+        response = await apiRequest(`${END_POINT}/complaints/get-complaints/${complaintId}`);
+      } else {
+        response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`);
+      }
+
       if (!response.ok) throw new Error('Failed to fetch complaints');
 
       const data = await response.json();
-      if (!Array.isArray(data)) throw new Error('Invalid data format: expected array');
+
+      // Convert to array if fetching single complaint
+      const complaintsArray = complaintId ? [data] : data;
+
+      if (!Array.isArray(complaintsArray)) throw new Error('Invalid data format: expected array');
 
       // Sort complaints by createdAt in descending order (newest first)
-      const sortedComplaints = [...data].sort((a, b) =>
+      const sortedComplaints = [...complaintsArray].sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
       );
 
@@ -187,11 +199,11 @@ const Complaints = () => {
     fetchComplaints();
 
     // Auto-refresh every 10 seconds
-    const refreshInterval = setInterval(() => {
-      fetchComplaints(true);
-    }, 4000);
+    // const refreshInterval = setInterval(() => {
+    //   fetchComplaints(true);
+    // }, 4000);
 
-    return () => clearInterval(refreshInterval);
+    // return () => clearInterval(refreshInterval);
   }, []);
 
   const handleRefresh = () => {
@@ -687,6 +699,18 @@ const Complaints = () => {
             </div>
           );
         })}
+        {
+          complaintId ? (
+            <div className="complaint-card-container">
+              <Link to={`/service-form-nav/${regNo}`}>
+                <button>
+                  Complete the work
+                </button>
+              </Link>
+
+            </div>
+          ) : ''
+        }
       </div>
     </div>
   );

@@ -684,15 +684,15 @@ const Operators = () => {
               </div>
               <div className="profile-info">
                 <h3>{selectedOperator.name}</h3>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Qatar ID:</span>
                   <span className="value">{selectedOperator.qatarId}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Unique Code:</span>
                   <span className="value">{selectedOperator.uniqueCode}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Status:</span>
                   <span className={`value status-badge ${calculateOperatorStatus(selectedOperator)}`}>
                     {calculateOperatorStatus(selectedOperator) === 'active' ? 'Active' :
@@ -705,27 +705,27 @@ const Operators = () => {
             <div className="details-grid">
               <div className="detail-group">
                 <h4>Personal Information</h4>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Employee ID:</span>
                   <span className="value">{selectedOperator.id}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Serial No:</span>
                   <span className="value">{selectedOperator.slNo}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Nationality:</span>
                   <span className="value">{selectedOperator.nationality}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Date of Birth:</span>
                   <span className="value">{formatDate(selectedOperator.dob)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Contact No:</span>
                   <span className="value">{selectedOperator.contactNo || 'N/A'}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Email:</span>
                   <span className="value">{selectedOperator.email || 'N/A'}</span>
                 </div>
@@ -733,27 +733,27 @@ const Operators = () => {
 
               <div className="detail-group">
                 <h4>Employment Details</h4>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">User Type:</span>
                   <span className="value">{selectedOperator.userType}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Sponsorship:</span>
                   <span className="value">{selectedOperator.sponsorship}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Working In:</span>
                   <span className="value">{selectedOperator.workingIn}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Date of Joining:</span>
                   <span className="value">{formatDate(selectedOperator.doj)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Equipment Number:</span>
                   <span className="value">{selectedOperator.equipmentNumber || 'N/A'}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Workmen Compensation:</span>
                   <span className="value">{selectedOperator.workmenCompensationAdded === 'yes' ? 'Yes' : 'No'}</span>
                 </div>
@@ -761,43 +761,43 @@ const Operators = () => {
 
               <div className="detail-group">
                 <h4>Document Details</h4>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Passport No:</span>
                   <span className="value">{selectedOperator.passportNo || 'N/A'}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Passport Expiry:</span>
                   <span className={`value ${isExpired(selectedOperator.passportExpiry) ? 'expired' : ''}`}>
                     {formatDate(selectedOperator.passportExpiry)}
                     {isExpired(selectedOperator.passportExpiry) && ' (Expired)'}
                   </span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">QID Expiry:</span>
                   <span className={`value ${isExpired(selectedOperator.qidExpiry) ? 'expired' : ''}`}>
                     {formatDate(selectedOperator.qidExpiry)}
                     {isExpired(selectedOperator.qidExpiry) && ' (Expired)'}
                   </span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Health Card Expiry:</span>
                   <span className={`value ${isExpired(selectedOperator.healthCardExpiry) ? 'expired' : ''}`}>
                     {formatDate(selectedOperator.healthCardExpiry)}
                     {isExpired(selectedOperator.healthCardExpiry) && ' (Expired)'}
                   </span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">License Type:</span>
                   <span className="value">{selectedOperator.licenceType || 'N/A'}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">License Expiry:</span>
                   <span className={`value ${isExpired(selectedOperator.licenceExpiry) ? 'expired' : ''}`}>
                     {formatDate(selectedOperator.licenceExpiry)}
                     {isExpired(selectedOperator.licenceExpiry) && ' (Expired)'}
                   </span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Labour Contract Expiry:</span>
                   <span className={`value ${isExpired(selectedOperator.labourContractExpiry) ? 'expired' : ''}`}>
                     {formatDate(selectedOperator.labourContractExpiry)}
@@ -808,23 +808,23 @@ const Operators = () => {
 
               <div className="detail-group">
                 <h4>System Information</h4>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Verified:</span>
                   <span className="value">{selectedOperator.isVerified ? 'Yes' : 'No'}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Verified At:</span>
                   <span className="value">{formatDate(selectedOperator.verifiedAt)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Created At:</span>
                   <span className="value">{formatDate(selectedOperator.createdAt)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Last Updated:</span>
                   <span className="value">{formatDate(selectedOperator.updatedAt)}</span>
                 </div>
-                <div className="detail-item">
+                <div className="operator-detail-item">
                   <span className="label">Assigned Toolkits:</span>
                   <span className="value">{selectedOperator.toolkits && selectedOperator.toolkits.length > 0 ? selectedOperator.toolkits.length : 'None'}</span>
                 </div>

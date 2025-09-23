@@ -512,9 +512,17 @@ td.tick {
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Disabled Print Button */
@@ -539,13 +547,11 @@ td.tick {
   left: 0;
   right: 0;
   bottom: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(162, 165, 173, 0.5) 10px,
-    rgba(110, 116, 122, 0.5) 20px
-  );
+  background: repeating-linear-gradient(45deg,
+      transparent,
+      transparent 10px,
+      rgba(162, 165, 173, 0.5) 10px,
+      rgba(110, 116, 122, 0.5) 20px);
   pointer-events: none;
 }
 
@@ -749,6 +755,7 @@ td.tick {
     opacity: 0;
     transform: translateY(-50px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -824,23 +831,23 @@ td.tick {
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .warning-buttons,
   .success-buttons {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .warning-buttons button,
   .success-buttons button {
     width: 100%;
   }
-  
+
   .print-button-wrapper {
     flex-wrap: wrap;
     gap: 10px;
   }
-  
+
   .modal-content {
     margin: 20px;
     width: calc(100% - 40px);
@@ -887,9 +894,19 @@ td.tick {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 /* No Signature Indicator */
@@ -908,7 +925,7 @@ td.tick {
 
 .back-bug {
   margin-top: -1.5rem;
-  background-color: #f1f1f1  !important;
+  background-color: #f1f1f1 !important;
   width: 100vw !important;
 }
 
@@ -922,87 +939,87 @@ td.tick {
   .modal-overlay {
     display: none !important;
   }
-  
+
   .signature-status {
     display: none !important;
   }
-  
+
   .signed-indicator {
     display: none !important;
   }
-  
+
   .expiry-timer {
     display: none !important;
   }
-  
+
   .warning-modal {
     display: none !important;
   }
-  
+
   .success-modal {
     display: none !important;
   }
-  
+
   .modal-content {
     display: none !important;
   }
-  
+
   .modal-header {
     display: none !important;
   }
-  
+
   .modal-body {
     display: none !important;
   }
-  
+
   .auth-step {
     display: none !important;
   }
-  
+
   .auth-buttons {
     display: none !important;
   }
-  
+
   .warning-buttons {
     display: none !important;
   }
-  
+
   .success-buttons {
     display: none !important;
   }
-  
+
   .document-count {
     display: none !important;
   }
-  
+
   .print-button-wrapper {
     display: none !important;
   }
-  
+
   .report-actions {
     display: none !important;
   }
-  
+
   .single-report-actions {
     display: none !important;
   }
-  
+
   .edit-button {
     display: none !important;
   }
-  
+
   .delete-button {
     display: none !important;
   }
-  
+
   .add-report-button {
     display: none !important;
   }
-  
+
   .disabled-print-button {
     display: none !important;
   }
-  
+
   .main-header {
     display: none !important;
   }

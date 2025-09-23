@@ -54,6 +54,8 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   }, []);
 
   useEffect(() => {
+    console.log(location.pathname);
+    
     setActiveLink(location.pathname);
   }, [location]);
 
@@ -168,17 +170,20 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             <li className={activeLink === '/stock-manage' ? 'active' : ''}>
               <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
             </li>
-            <li className={activeLink === '#clients' ? 'active' : ''}>
+            <li className={activeLink === '/toolkits' ? 'active' : ''}>
               <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
             </li>
-            <li className={activeLink === '#clients' ? 'active' : ''}>
+            <li className={activeLink === '/mechanics' ? 'active' : ''}>
               <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
             </li>
-            <li className={activeLink === '#clients' ? 'active' : ''}>
+            <li className={activeLink === '/operators' ? 'active' : ''}>
               <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
             </li>
-            <li className={activeLink === '#clients' ? 'active' : ''}>
+            <li className={activeLink === '/lpo-list' ? 'active' : ''}>
               <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
+            </li>
+             <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
+              <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>
             </li>
             <li className={activeLink === '/documents' ? 'active' : ''}>
               <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>

@@ -347,6 +347,8 @@ body {
   width: 100% !important;
   border-collapse: collapse !important;
   margin-bottom: 0 !important;
+  background-color: white !important;
+  color: black !important;
 }
 
 .items-table th, 
@@ -360,6 +362,12 @@ body {
 
 .items-table th {
   font-weight: bold !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+.items-table th, .items-table td {
+  color: black !important;
 }
 
 .table-input {
@@ -458,7 +466,7 @@ body {
 }
 
 .terms-table td {
-  border: 1px solid #000 !important;
+  /* border: 1px solid #000 !important; */
   padding: 10px !important;
   font-size: 12pt !important;
 }

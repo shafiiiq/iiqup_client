@@ -38,6 +38,11 @@ import SplashScreen from './splash/SplashScreen';
 import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
 import Operators from './Components/Operators/Operators';
 import DevModal from './common/DevModal';
+import { apiRequest } from './utils/0auth';
+import { END_POINT } from './constants';
+import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
+import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
+import BackchargeList from './Components/BackchargeList/BackchargeList';
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -107,6 +112,7 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
     location.pathname.startsWith('/all') ||
     location.pathname.startsWith('/battery-doc') ||
     location.pathname.startsWith('/tyre-doc') ||
+    location.pathname.startsWith('/backcharge-doc') ||
     isCEO;
 
   const currentUser = AuthUtils.getCurrentUser();
@@ -187,8 +193,130 @@ function App() {
   const [splashComplete, setSplashComplete] = useState(false);
   const [showDevModalHidden, setShowDevModalHidden] = useState(true);
   const [isExplored, setExplored] = useState(true);
+  const [isLPOAlert, setisLPOAlert] = useState(false);
+  const [newLPO, setNewLPO] = useState([]);
+  const [isWorkAlert, setisWorkAlert] = useState(false);
+  const [newWork, setNewWork] = useState([]);
+  const [currentModalIndex, setCurrentModalIndex] = useState(0);
 
   const navigate = useNavigate();
+
+  // Helper function to handle button click
+  const handleModalButtonClick = () => {
+    if (currentModalIndex < newLPO.length - 1) {
+      // Not the last item, show next
+      setCurrentModalIndex(currentModalIndex + 1);
+    } else {
+      // Last item, create LPO
+      createLPO(newLPO[currentModalIndex]);
+      // Reset modal index and close modal
+      setCurrentModalIndex(0);
+      setisLPOAlert(false);
+    }
+  };
+
+  const handleWorkModalButtonClick = () => {
+    if (currentModalIndex < newWork.length - 1) {
+      // Not the last item, show next
+      setCurrentModalIndex(currentModalIndex + 1);
+    } else {
+      // Last item, call storeNewWork function (not as constructor)
+      storeNewWork(newWork[currentModalIndex]);
+      // Reset modal index and close modal
+      setCurrentModalIndex(0);
+      setisWorkAlert(false);
+    }
+  };;
+
+  // Helper function to get button text
+  const getButtonText = () => {
+    if (newLPO.length <= 1) {
+      return "Check the video and Store";
+    }
+    return currentModalIndex < newLPO.length - 1 ? "Show Next" : "Check the video and Store";
+  };
+
+  const getAlertOfLPO = async () => {
+    try {
+      // Check if LPO was recently created
+      const createdLPO = sessionStorage.getItem('createdLPO');
+      if (createdLPO) {
+        const hideUntilTime = parseInt(createdLPO);
+        const now = new Date().getTime();
+
+        if (now < hideUntilTime) {
+          // Still within the "don't show" period
+          return;
+        } else {
+          // Time has expired, remove the storage item
+          sessionStorage.removeItem('createdLPO');
+        }
+      }
+
+      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
+      const data = await response.json();
+
+      // Filter items where workflowStatus is "sent_to_workshop"
+      const lpoItems = data.filter(item => item.workflowStatus === "sent_to_workshop");
+
+      // Update the newLPO state with filtered data
+      setNewLPO(lpoItems);
+
+      // Set alert to true if there are any items with "sent_to_workshop" status
+      setisLPOAlert(lpoItems.length > 0);
+
+    } catch (error) {
+      console.error('Error fetching LPO data:', error);
+      // Optionally reset states on error
+      setNewLPO([]);
+      setisLPOAlert(false);
+    }
+  };
+
+  const getAlertWork = async () => {
+    try {
+      // Check if LPO was recently created
+      const workNotified = sessionStorage.getItem('workNotified');
+      if (workNotified) {
+        const hideUntilTime = parseInt(workNotified);
+        const now = new Date().getTime();
+
+        if (now < hideUntilTime) {
+          // Still within the "don't show" period
+          return;
+        } else {
+          // Time has expired, remove the storage item
+          sessionStorage.removeItem('workNotified');
+        }
+      }
+
+      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
+      const data = await response.json();
+
+      // Filter items where workflowStatus is "sent_to_workshop"
+      const newWorks = data.filter(item => item.workflowStatus === "completed");
+
+      // Update the newLPO state with filtered data
+      setNewWork(newWorks);
+
+      // Set alert to true if there are any items with "sent_to_workshop" status
+      setisWorkAlert(newWorks.length > 0);
+
+    } catch (error) {
+      console.error('Error fetching Works data:', error);
+      // Optionally reset states on error
+      setNewWork([]);
+      setisWorkAlert(false);
+    }
+  };
+
+  // alert watching for lpo 
+  useEffect(() => {
+    return () => {
+      getAlertOfLPO()
+      getAlertWork()
+    };
+  }, []);
 
   useEffect(() => {
     const hiddenUntil = sessionStorage.getItem('devModalHidden');
@@ -206,7 +334,7 @@ function App() {
     }
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const hiddenUntil = sessionStorage.getItem('explored');
     if (hiddenUntil) {
       const hideUntilTime = parseInt(hiddenUntil);
@@ -319,12 +447,79 @@ function App() {
     navigate('/equipments')
   };
 
+  const createLPO = (lpoItem = null,) => {
+    console.log(lpoItem);
+    
+    const hideUntil = new Date();
+    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
+
+    // Store in sessionStorage instead of component state
+    sessionStorage.setItem('createdLPO', hideUntil.getTime().toString());
+    setisLPOAlert(false);
+
+    // If you need to do something with the lpoItem, do it here
+    if (lpoItem) {
+      console.log('Creating LPO for:', lpoItem.regNo);
+      // Add any specific logic for the LPO item here
+    }
+
+    navigate(`/lpo-form/${lpoItem.regNo}/${lpoItem._id}`);
+  };
+
+  const storeNewWork = (workItem = null,) => {
+    const hideUntil = new Date();
+    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
+
+    // Store in sessionStorage instead of component state
+    sessionStorage.setItem('workNotified', hideUntil.getTime().toString());
+    setisWorkAlert(false);
+
+    // If you need to do something with the lpoItem, do it here
+    if (workItem) {
+      console.log('Creating Work data for:', workItem._id);
+      // Add any specific logic for the LPO item here
+    }
+
+    navigate(`/complaints/${workItem._id}/${workItem.regNo}`);
+  };
+
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
         <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
         <NavigationButtons />
 
+        {isWorkAlert && newWork.length > 0 && (
+          <DevModal
+            isOpen={true}
+            onClose={() => {
+              // Reset index when modal is closed
+              setCurrentModalIndex(0);
+              setisLPOAlert(false);
+            }}
+            type="announcements"
+            title={`${newWork[currentModalIndex]?.assignedMechanic.mechanicName} Completed the work - ${newWork[currentModalIndex]?.regNo}`}
+            message={`Mechanic ${newWork[currentModalIndex]?.assignedMechanic.mechanicName} is completed the work of equipment - ${newWork[currentModalIndex]?.regNo}, Please check the video and explain the actual work to process and store. (${currentModalIndex + 1} of ${newWork.length})`}
+            buttonText={getButtonText()}
+            onButtonClick={handleWorkModalButtonClick}
+          />
+        )}
+
+        {isLPOAlert && newLPO.length > 0 && (
+          <DevModal
+            isOpen={true}
+            onClose={() => {
+              // Reset index when modal is closed
+              setCurrentModalIndex(0);
+              setisLPOAlert(false);
+            }}
+            type="announcements"
+            title="Hamza Requested to buy an item"
+            message={`Quotation raised for ${newLPO[currentModalIndex]?.regNo}. (${currentModalIndex + 1} of ${newLPO.length}) Please check your phone to know more.`}
+            buttonText={getButtonText()}
+            onButtonClick={handleModalButtonClick}
+          />
+        )}
 
         {isExplored && (
           <DevModal
@@ -810,9 +1005,64 @@ function App() {
             }
           />
 
+          <Route
+            path="/backcharge-form"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <BackchargeForm />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/backcharge-list"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <BackchargeList />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/backcharge-doc/:refNo"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <BackchargeDoc />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/backcharge-doc"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <BackchargeDoc />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
           {/* complaints route  */}
           <Route
             path="/complaints"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <Complaints />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/complaints/:complaintId/:regNo"
             element={
               <ProtectedRoute>
                 <CEOGuard>
@@ -868,7 +1118,7 @@ function App() {
           />
 
           <Route
-            path="/lpo-form/:regNo"
+            path="/lpo-form/:regNo/:complaintId"
             element={
               <ProtectedRoute>
                 <CEOGuard>
@@ -885,7 +1135,18 @@ function App() {
                   <LpoDoc />
                 </CEOGuard>
               </ProtectedRoute>
-            } />
+            }
+          />
+
+          <Route path="/lpo-doc/:lpoRef/:complaintId"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <LpoDoc />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/lpo-list"

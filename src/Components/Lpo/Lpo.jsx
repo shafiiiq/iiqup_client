@@ -10,7 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { apiRequest } from '../../utils/0auth';
 
 const Lpo = ({ isStock, isAllEquip }) => {
-  const { regNo } = useParams();
+  const { regNo, complaintId } = useParams();
   const isForStock = isStock;
   const isForAllEquipm = isAllEquip;
 
@@ -235,10 +235,27 @@ const Lpo = ({ isStock, isAllEquip }) => {
       const result = await response.json();
 
       if (result.success) {
-        setSaveStatus('LPO saved successfully!');
-        setTimeout(() => setSaveStatus(''), 3000);
-        navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}`);
-        return true;
+
+        const data = {
+          lpoData: dataToSave,
+          createdBy: 'WSM-4f428b'
+        }
+
+        const response = await apiRequest(`${END_POINT}/complaints/create-lpo/${complaintId}`,
+          'POST',
+          data
+        );
+
+        const result = await response.json();
+
+        if (result.status === 200) {
+          setSaveStatus('LPO saved and sended for for approval, await until approved!');
+
+          setTimeout(() => setSaveStatus(''), 3000);
+          navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/${complaintId}`);
+          return true;
+        }
+
       } else {
         setSaveStatus(`Error: ${result.message || 'Already created with this LPO Number'}`);
         return false;

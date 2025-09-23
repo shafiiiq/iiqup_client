@@ -550,7 +550,7 @@ input:checked + .slider:before {
   border-bottom: 1px solid var(--border-color);
 }
 
-.detail-item {
+.operator-detail-item {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -559,14 +559,14 @@ input:checked + .slider:before {
   gap: 15px;
 }
 
-.detail-item .label {
+.operator-detail-item .label {
   font-weight: 600;
   color: var(--table-header-text);
   min-width: 150px;
   flex-shrink: 0;
 }
 
-.detail-item .value {
+.operator-detail-item .value {
   color: var(--text-color);
   display: flex;
   align-items: center;
@@ -574,7 +574,7 @@ input:checked + .slider:before {
   text-align: right;
 }
 
-.detail-item .value.expired {
+.operator-detail-item .value.expired {
   color: var(--out-color);
   font-weight: 600;
 }
@@ -992,13 +992,13 @@ input:checked + .slider:before {
 }
 
 /* Focus Styles for Accessibility */
-.action-btn:focus,
+/* .action-btn:focus,
 .close-btn:focus,
 .cancel-btn:focus,
 .submit-btn:focus {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
-}
+} */
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -1093,17 +1093,17 @@ input:checked + .slider:before {
     width: 100%;
   }
 
-  .detail-item {
+  .operator-detail-item {
     flex-direction: column;
     gap: 4px;
     align-items: flex-start;
   }
 
-  .detail-item .label {
+  .operator-detail-item .label {
     min-width: auto;
   }
 
-  .detail-item .value {
+  .operator-detail-item .value {
     text-align: left;
   }
 
@@ -1403,10 +1403,10 @@ input:checked + .slider:before {
 }
 
 /* Enhanced Focus Indicators */
-*:focus {
+/* *:focus {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
-}
+} */
 
 button:focus,
 input:focus,

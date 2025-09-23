@@ -1238,79 +1238,107 @@ input:checked+.slider:before {
 }
 
 /* Print Styles */
+/* Print Styles - Fixed Version */
 @media print {
-  body {
+  /* Hide the body content initially */
+  body * {
     visibility: hidden;
-    background-color: white !important;
+  }
+  
+  /* Hide specific elements that shouldn't print */
+  .stock-manage-actions,
+  .stock-search-container, 
+  .stock-manage-datetime,
+  .stock-manage-details,
+  .stock-form-modal-overlay,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
   }
 
+  /* Show only the container and its contents */
   .stock-manage-container,
   .stock-manage-container * {
     visibility: visible;
   }
 
+  /* Position the container at the top */
   .stock-manage-container {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
-  .stock-manage-actions,
-  .stock-manage-details,
-  .stock-form-modal-overlay {
+
+
+  .stock-manage-title {
     display: none !important;
   }
 
-  .stock-manage-header h1,
-  .stock-manage-title {
-    margin-bottom: 10px;
-    color: black !important;
+  /* Hide the separate print elements since we're using the existing header */
+  .print-header,
+  .print-date {
+    display: block !important;
   }
 
+  /* Table styles */
   .stock-manage-table {
     width: 100% !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     color: black !important;
+    border-collapse: collapse !important;
+    margin-top: 20px;
   }
 
   .stock-manage-table th,
   .stock-manage-table td {
-    padding: 6px 8px !important;
+    padding: 8px 6px !important;
     color: black !important;
+    border: 1px solid #ddd !important;
+    text-align: center !important;
   }
 
-  /* Add page breaks to avoid cutting tables */
-  .stock-manage-table {
+  .stock-manage-table th {
+    background-color: #f5f5f5 !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+  }
+
+  .stock-equipment-item {
+    border: none !important;
+    color: black !important;
+    background: none !important;
+  }
+
+  .stock-manage-table-container {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Status badges for print */
+  .stock-manage-status-badge {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+  }
+
+  /* Page settings */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Avoid page breaks within table rows */
+  .stock-manage-table tr {
     page-break-inside: avoid;
   }
 
-  .stock-manage-datetime {
-    background-color: white !important;
-    color: black !important;
-  }
-
-  /* Print header */
-  @page {
-    size: auto;
-    margin: 10mm;
-  }
-
-  /* Add title to print */
-  .print-header {
-    display: block !important;
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    color: black !important;
-  }
-
-  .print-date {
-    display: block !important;
-    text-align: right;
-    margin-bottom: 15px;
-    font-size: 14px;
-    color: black !important;
+  /* Ensure table header repeats on each page */
+  .stock-manage-table thead {
+    display: table-header-group;
   }
 }
