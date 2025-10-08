@@ -43,6 +43,7 @@ import { END_POINT } from './constants';
 import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
 import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
 import BackchargeList from './Components/BackchargeList/BackchargeList';
+import PortfolioAdmin from './Components/Dev/Dev';
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -505,7 +506,7 @@ function App() {
           />
         )}
 
-        {isLPOAlert && newLPO.length > 0 && (
+        {/* {isLPOAlert && newLPO.length > 0 && (
           <DevModal
             isOpen={true}
             onClose={() => {
@@ -519,9 +520,9 @@ function App() {
             buttonText={getButtonText()}
             onButtonClick={handleModalButtonClick}
           />
-        )}
+        )} */}
 
-        {isExplored && (
+        {/* {isExplored && (
           <DevModal
             isOpen={true}
             onClose={() => { }}
@@ -531,9 +532,9 @@ function App() {
             buttonText="Explore Now"
             onButtonClick={explore}
           />
-        )}
+        )} */}
 
-        {showDevModalHidden && (
+        {/* {showDevModalHidden && (
           <DevModal
             isOpen={true}
             onClose={() => { }}
@@ -543,7 +544,7 @@ function App() {
             buttonText="Don't Show Again"
             onButtonClick={dontShowAgain}
           />
-        )}
+        )} */}
 
         <Routes>
           {/* Public Routes */}
@@ -1263,7 +1264,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
