@@ -19,6 +19,8 @@ const Operators = () => {
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState('add');
   const [searchTerm, setSearchTerm] = useState('');
+  const [profilePicUrls, setProfilePicUrls] = useState({});
+  const [fullScreenImage, setFullScreenImage] = useState(null);
 
   // Sorting states
   const [sortField, setSortField] = useState('name');
@@ -126,6 +128,28 @@ const Operators = () => {
       }
     });
   };
+
+  // Load profile pic URLs when operators are fetched
+  useEffect(() => {
+    const loadProfilePics = async () => {
+      const urls = {};
+
+      for (const operator of operators) {
+        if (operator.profilePic?.filePath) {
+          const url = await getProfilePicUrl(operator.profilePic.filePath);
+          if (url) {
+            urls[operator.qatarId] = url;
+          }
+        }
+      }
+
+      setProfilePicUrls(urls);
+    };
+
+    if (operators.length > 0) {
+      loadProfilePics();
+    }
+  }, [operators]);
 
   // Update current date and time
   useEffect(() => {
@@ -544,6 +568,81 @@ const Operators = () => {
     return sortDirection === 'asc' ? '↑' : '↓';
   };
 
+  const getProfilePicUrl = async (filePath) => {
+    if (!filePath) return null;
+
+    try {
+      const body = { key: filePath, isLong: false };
+      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+
+      if (!s3response.ok) return null;
+
+      const s3URL = await s3response.json();
+      return s3URL.dataUrl;
+    } catch (error) {
+      console.error('Error getting profile pic URL:', error);
+      return null;
+    }
+  };
+
+  const FullScreenImageViewer = () => {
+    if (!fullScreenImage) return null;
+
+    return (
+      <div
+        className="fullscreen-image-overlay"
+        onClick={() => setFullScreenImage(null)}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.95)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          cursor: 'pointer'
+        }}
+      >
+        <button
+          onClick={() => setFullScreenImage(null)}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: 'none',
+            color: 'white',
+            fontSize: '30px',
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
+        >
+          ×
+        </button>
+        <img
+          src={fullScreenImage}
+          alt="Full screen"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: '90%',
+            maxHeight: '90%',
+            objectFit: 'contain',
+            borderRadius: '8px'
+          }}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="operators-container">
       <div className="operators-header">
@@ -605,10 +704,14 @@ const Operators = () => {
                 <tr key={operator._id || operator.qatarId}>
                   <td>{index + 1}</td>
                   <td>
-                    <div className="profile-pic-small">
-                      {operator.profilePic ? (
+                    <div
+                      className="profile-pic-small"
+                      onClick={() => profilePicUrls[operator.qatarId] && setFullScreenImage(profilePicUrls[operator.qatarId])}
+                      style={{ cursor: profilePicUrls[operator.qatarId] ? 'pointer' : 'default' }}
+                    >
+                      {profilePicUrls[operator.qatarId] ? (
                         <img
-                          src={operator.profilePic}
+                          src={profilePicUrls[operator.qatarId]}
                           alt={operator.name}
                           onError={(e) => {
                             e.target.style.display = 'none';
@@ -619,7 +722,7 @@ const Operators = () => {
                       <div
                         className="profile-initials"
                         style={{
-                          display: operator.profilePic ? 'none' : 'flex'
+                          display: profilePicUrls[operator.qatarId] ? 'none' : 'flex'
                         }}
                       >
                         {getInitials(operator.name)}
@@ -662,10 +765,14 @@ const Operators = () => {
           </div>
           <div className="details-content">
             <div className="operator-profile-section">
-              <div className="profile-pic-large">
-                {selectedOperator.profilePic ? (
+              <div
+                className="profile-pic-large"
+                onClick={() => profilePicUrls[selectedOperator.qatarId] && setFullScreenImage(profilePicUrls[selectedOperator.qatarId])}
+                style={{ cursor: profilePicUrls[selectedOperator.qatarId] ? 'pointer' : 'default' }}
+              >
+                {profilePicUrls[selectedOperator.qatarId] ? (
                   <img
-                    src={selectedOperator.profilePic}
+                    src={profilePicUrls[selectedOperator.qatarId]}
                     alt={selectedOperator.name}
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -676,7 +783,7 @@ const Operators = () => {
                 <div
                   className="profile-initials-large"
                   style={{
-                    display: selectedOperator.profilePic ? 'none' : 'flex'
+                    display: profilePicUrls[selectedOperator.qatarId] ? 'none' : 'flex'
                   }}
                 >
                   {getInitials(selectedOperator.name)}
@@ -895,11 +1002,18 @@ const Operators = () => {
                   <div className="profile-upload">
                     <div className="profile-preview">
                       {profilePicFile ? (
-                        <img src={URL.createObjectURL(profilePicFile)} alt="Preview" />
-                      ) : formData.profilePic ? (
                         <img
-                          src={formData.profilePic}
+                          src={URL.createObjectURL(profilePicFile)}
+                          alt="Preview"
+                          onClick={() => setFullScreenImage(URL.createObjectURL(profilePicFile))}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      ) : profilePicUrls[formData.qatarId] ? (
+                        <img
+                          src={profilePicUrls[formData.qatarId]}
                           alt="Current"
+                          onClick={() => setFullScreenImage(profilePicUrls[formData.qatarId])}
+                          style={{ cursor: 'pointer' }}
                           onError={(e) => {
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'flex';
@@ -909,7 +1023,7 @@ const Operators = () => {
                       <div
                         className="profile-initials-form"
                         style={{
-                          display: (profilePicFile || formData.profilePic) ? 'none' : 'flex'
+                          display: (profilePicFile || profilePicUrls[formData.qatarId]) ? 'none' : 'flex'
                         }}
                       >
                         {getInitials(formData.name)}
@@ -1375,6 +1489,7 @@ const Operators = () => {
           </div>
         </div>
       )}
+      <FullScreenImageViewer />
     </div>
   );
 };
