@@ -701,13 +701,12 @@ const Complaints = () => {
         })}
         {
           complaintId ? (
-            <div className="complaint-card-container">
+            <div className="complaint-card-container work-navigation">
               <Link to={`/service-form-nav/${regNo}`}>
                 <button>
-                  Complete the work
+                  Conclude & Store to database 
                 </button>
               </Link>
-
             </div>
           ) : ''
         }

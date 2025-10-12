@@ -8,6 +8,11 @@ import footer from '../../assets/images/footer.png';
 import { useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import accountsSign from '../../assets/images/accounts-sign.jpg';
+import pmSign from '../../assets/images/pm-sign.jpg';
+import managerSign from '../../assets/images/manager-sign.jpg';
+import authSign from '../../assets/images/authorise-sign.jpg';
+import companySeal from '../../assets/images/company-seal.png';
 
 const LpoDoc = () => {
   const params = useParams();
@@ -868,6 +873,9 @@ const LpoDoc = () => {
       </div>
 
       <div className="lpo-document" ref={componentRef} style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
+        <div className="draft-watermark">
+          DRAFT
+        </div>
         <div className="header">
           <div className="logo-placeholder-l">
             <img src={logoImage} alt="Company Logo" />
@@ -991,10 +999,10 @@ const LpoDoc = () => {
               </td>
             </tr>
             <tr>
-              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t'>Accounts Dept:</td>
-              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t'>Purchasing Manager</td>
-              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t'>Operations Manager</td>
-              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t'>
+              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
+              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
+              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
+              <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
                 Authorized Signatory<br />
                 {lpoData.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
               </td>
@@ -1003,17 +1011,70 @@ const LpoDoc = () => {
               </td>
             </tr>
             <tr className="signature-spaces-large">
-              <td className='sign-table sign-border-td-r'></td>
-              <td className='sign-table sign-border-td-r'></td>
-              <td className='sign-table sign-border-td-r'></td>
-              <td className='sign-table sign-border-td-r'></td>
+              <td className='sign-table lpo-signs sign-border-td-r'>
+                <img
+                    className='accounts-sign'
+                    src={accountsSign}
+                    alt="Supervisor Signature"
+                    onError={(e) => {
+                      console.log('Signature URL expired or failed to load');
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                <span className="account-no-signature ml-2">Not Signed</span>
+              </td>
+              <td className='sign-table lpo-signs sign-border-td-r'>
+                <img
+                    className='accounts-sign'
+                    src={pmSign}
+                    alt="Supervisor Signature"
+                    onError={(e) => {
+                      console.log('Signature URL expired or failed to load');
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                <span className="account-no-signature ml-2">Not Signed</span>
+              </td>
+              <td className='sign-table lpo-signs sign-border-td-r'>
+                <img
+                    className='accounts-sign'
+                    src={managerSign}
+                    alt="Supervisor Signature"
+                    onError={(e) => {
+                      console.log('Signature URL expired or failed to load');
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                <span className="account-no-signature ml-2">Not Signed</span>
+              </td>
+              <td className='sign-table lpo-signs sign-border-td-r'>
+                <img
+                    className='accounts-sign'
+                    src={authSign}
+                    alt="Supervisor Signature"
+                    onError={(e) => {
+                      console.log('Signature URL expired or failed to load');
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                   <img
+                    className='company-seal'
+                    src={companySeal}
+                    alt="Supervisor Signature"
+                    onError={(e) => {
+                      console.log('Signature URL expired or failed to load');
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                <span className="account-no-signature ml-2">Not Signed</span>
+              </td>
               <td></td>
             </tr>
             <tr>
-              <td className='sign-table sign-border-td-r sign-border-td-t'>{lpoData.signatures.accountsDept}</td>
-              <td className='sign-table sign-border-td-r sign-border-td-t'>{lpoData.signatures.purchasingManager}</td>
-              <td className='sign-table sign-border-td-r sign-border-td-t'>{lpoData.signatures.operationsManager}</td>
-              <td className='sign-table sign-border-td-r sign-border-td-t'>{lpoData.signatures.authorizedSignatory}</td>
+              <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.accountsDept}</td>
+              <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.purchasingManager}</td>
+              <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.operationsManager}</td>
+              <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.authorizedSignatory}</td>
               <td className='date-no-border'></td>
             </tr>
           </tbody>

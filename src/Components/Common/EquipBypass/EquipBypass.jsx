@@ -9,6 +9,8 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
     const [equipments, setEquipments] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [currentDateTime, setCurrentDateTime] = useState('');
+    const [pendingLpos, setPendingLpos] = useState([]);
+    const [showPendingAlert, setShowPendingAlert] = useState(false);
 
     const navigate = useNavigate();
     const tableRef = useRef(null);
@@ -43,7 +45,10 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
     useEffect(() => {
         fetchEquipments();
-    }, []);
+        if (isLPO) {
+            fetchPendingLpos();
+        }
+    }, [isLPO]);
 
 
     const fetchEquipments = async () => {
@@ -54,6 +59,25 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
             setFilteredData(data.data);
         } catch (error) {
             console.error('Error fetching equipment records:', error);
+        }
+    };
+
+    const fetchPendingLpos = async () => {
+        try {
+            const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
+            const data = await response.json();
+
+            // Filter complaints where workflowStatus is "sent_to_workshop"
+            const pendingItems = data.filter(item => item.workflowStatus === "sent_to_workshop");
+
+            setPendingLpos(pendingItems);
+            console.log(pendingItems);
+
+            setShowPendingAlert(pendingItems.length > 0);
+        } catch (error) {
+            console.error('Error fetching pending LPOs:', error);
+            setPendingLpos([]);
+            setShowPendingAlert(false);
         }
     };
 
@@ -111,12 +135,72 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
     };
 
+    const handleCreateLpoFromComplaint = (lpoItem) => {
+        navigate(`/lpo-form/${lpoItem.regNo}/${lpoItem._id}`);
+    };
+
+    const handleClosePendingAlert = () => {
+        setShowPendingAlert(false);
+    };
+
     return (
         <div className="equipment-container">
             <div className="equipment-header">
                 <h1 className='equip-title'>Select the equipment</h1>
                 <div className="date-time">{currentDateTime}</div>
             </div>
+
+            {/* Pending LPO Alert - Show only when isLPO is true */}
+            {isLPO && showPendingAlert && pendingLpos.length > 0 && (
+                <div className="pending-lpo-alert">
+                    <div className="alert-header">
+                        <h3 className="alert-title">⚠️ Pending LPO Requests ({pendingLpos.length})</h3>
+                        <button className="alert-close-btn" onClick={handleClosePendingAlert}>×</button>
+                    </div>
+                    <div className="pending-lpo-list">
+                        {pendingLpos.map((lpoItem) => (
+                            <div key={lpoItem._id} className="pending-lpo-item">
+                                <div className="pending-lpo-info">
+                                    <div className="info-row">
+                                        <span className="info-label">Operator:</span>
+                                        <span className="info-value">{lpoItem.name}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Equipment:</span>
+                                        <span className="info-value">{lpoItem.regNo || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Comments:</span>
+                                        <span className="info-value">{lpoItem.approvalTrail[1].comments || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Requested By:</span>
+                                        <span className="info-value">{lpoItem.approvalTrail[1].role || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Registered Time:</span>
+                                        <span className="info-value">{lpoItem.createdAt || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Requsted Time:</span>
+                                        <span className="info-value">{lpoItem.createdAt || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Assigned Mechanic:</span>
+                                        <span className="info-value">{lpoItem.assignedMechanic?.mechanicName || 'N/A'}</span>
+                                    </div>
+                                </div>
+                                <button
+                                    className="action-btn create-lpo"
+                                    onClick={() => handleCreateLpoFromComplaint(lpoItem)}
+                                >
+                                    Create LPO
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="controls-container">
                 <div className="search-container">

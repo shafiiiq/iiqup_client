@@ -757,6 +757,243 @@
   gap: 0.5rem;
 }
 
+/* Pending LPO Alert Styles */
+.pending-lpo-alert {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+  overflow: hidden;
+  animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: rgba(255, 193, 7, 0.2);
+  border-bottom: 2px solid #ffc107;
+}
+
+.alert-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #856404;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #856404;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.alert-close-btn:hover {
+  background-color: rgba(255, 193, 7, 0.4);
+  color: #d39e00;
+}
+
+.pending-lpo-list {
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pending-lpo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 15px 20px;
+  border-radius: 6px;
+  border-left: 4px solid #ffc107;
+  transition: all 0.2s ease;
+}
+
+.pending-lpo-item:hover {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+  transform: translateX(4px);
+}
+
+.pending-lpo-info {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-right: 15px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #666666;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  color: #333333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.action-btn.create-lpo {
+  background-color: #ffc107;
+  color: #333333;
+  white-space: nowrap;
+  padding: 10px 20px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.action-btn.create-lpo:hover {
+  background-color: #ffb300;
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4);
+}
+
+.action-btn.create-lpo:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+/* Dark theme support */
+body.dark-theme .pending-lpo-alert {
+  background: linear-gradient(135deg, #332701 0%, #4d3a0f 100%);
+  border-color: #997404;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .alert-header {
+  background-color: rgba(153, 116, 4, 0.2);
+  border-bottom-color: #997404;
+}
+
+body.dark-theme .alert-title {
+  color: #ffc107;
+}
+
+body.dark-theme .alert-close-btn {
+  color: #ffc107;
+}
+
+body.dark-theme .alert-close-btn:hover {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffd700;
+}
+
+body.dark-theme .pending-lpo-item {
+  background-color: rgba(77, 58, 15, 0.6);
+  border-left-color: #ffc107;
+}
+
+body.dark-theme .pending-lpo-item:hover {
+  background-color: rgba(77, 58, 15, 0.9);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+body.dark-theme .info-label {
+  color: #cccccc;
+}
+
+body.dark-theme .info-value {
+  color: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pending-lpo-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pending-lpo-info {
+    width: 100%;
+    grid-template-columns: 1fr;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .action-btn.create-lpo {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .alert-title {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pending-lpo-alert {
+    margin-bottom: 15px;
+  }
+
+  .alert-header {
+    padding: 12px 15px;
+  }
+
+  .alert-title {
+    font-size: 14px;
+  }
+
+  .pending-lpo-list {
+    padding: 12px 15px;
+    gap: 10px;
+  }
+
+  .pending-lpo-item {
+    padding: 12px 15px;
+  }
+
+  .pending-lpo-info {
+    gap: 10px;
+  }
+
+  .action-btn.create-lpo {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .lpo-cat-btn {

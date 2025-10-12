@@ -43,6 +43,9 @@ function Equipments() {
   const [showFuelProgressModal, setShowFuelProgressModal] = useState(false);
   const [fuelProgress, setFuelProgress] = useState(0);
 
+  const [completedWorks, setCompletedWorks] = useState([]);
+  const [showCompletedWorkAlert, setShowCompletedWorkAlert] = useState(false);
+
   useEffect(() => {
     const fetchMechanics = async () => {
       try {
@@ -160,6 +163,7 @@ function Equipments() {
 
   useEffect(() => {
     fetchEquipments();
+    fetchCompletedWorks();
   }, []);
 
   const fetchEquipments = async () => {
@@ -170,6 +174,26 @@ function Equipments() {
       setFilteredData(data.data);
     } catch (error) {
       console.error('Error fetching equipment records:', error);
+    }
+  };
+
+  const fetchCompletedWorks = async () => {
+    try {
+      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
+      const data = await response.json();
+
+      // Filter complaints where workflowStatus is "completed"
+      const completedWorksList = data.filter(item => item.workflowStatus === "completed");
+
+      console.log(data);
+
+
+      setCompletedWorks(completedWorksList);
+      setShowCompletedWorkAlert(completedWorksList.length > 0);
+    } catch (error) {
+      console.error('Error fetching completed works:', error);
+      setCompletedWorks([]);
+      setShowCompletedWorkAlert(false);
     }
   };
 
@@ -186,6 +210,15 @@ function Equipments() {
       setFilteredData(sortedResults);
     }
   }, [searchTerm, equipments, sortConfig]);
+
+
+  const handleNavigateToComplaint = (workItem) => {
+    navigate(`/complaints/${workItem._id}/${workItem.regNo}`);
+  };
+
+  const handleCloseCompletedWorkAlert = () => {
+    setShowCompletedWorkAlert(false);
+  };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -805,6 +838,53 @@ function Equipments() {
 
   return (
     <div className="equipment-container">
+      {/* Completed Work Alert */}
+      {showCompletedWorkAlert && completedWorks.length > 0 && (
+        <div className="completed-work-alert">
+          <div className="alert-header">
+            <h3 className="alert-title">✓ Completed Work ({completedWorks.length})</h3>
+            <button className="alert-close-btn" onClick={handleCloseCompletedWorkAlert}>×</button>
+          </div>
+          <div className="work-alert-list">
+            {completedWorks.map((workItem) => (
+              <div key={workItem._id} className="work-alert-item">
+                <div className="work-alert-info">
+                  <div className="info-row">
+                    <span className="info-label">Operator:</span>
+                    <span className="info-value">{workItem.name}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Equipment:</span>
+                    <span className="info-value">{workItem.regNo || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Comments:</span>
+                    <span className="info-value">{workItem.approvalTrail[1].comments || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Completed By:</span>
+                    <span className="info-value">{workItem.assignedMechanic?.mechanicName || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Registered Time:</span>
+                    <span className="info-value">{workItem.createdAt || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Completed Time:</span>
+                    <span className="info-value">{workItem.createdAt || 'N/A'}</span>
+                  </div>
+                </div>
+                <button
+                  className="action-btn view-work"
+                  onClick={() => handleNavigateToComplaint(workItem)}
+                >
+                  View Work
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="equipment-header">
         <h1 className='equip-title'>Equipment Inventory</h1>
         <div className="date-time">{currentDateTime}</div>

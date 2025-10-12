@@ -326,7 +326,7 @@ td.tick {
 }
 
 .modal-content {
-  background: white;
+  background: rgb(154, 163, 172) !important;
   border-radius: 8px;
   padding: 0;
   max-width: 400px;
@@ -342,7 +342,7 @@ td.tick {
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid #eee;
-  background-color: #f8f9fa;
+  background-color: #f8f9fa !important; 
   border-radius: 8px 8px 0 0;
 }
 
@@ -562,7 +562,7 @@ td.tick {
 }
 
 .warning-header {
-  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  background: linear-gradient(135deg, #acb1b9, #c4c0b5);
   color: #856404;
   border-bottom: 2px solid #ffc107;
 }
@@ -578,7 +578,7 @@ td.tick {
 .warning-message {
   text-align: center;
   padding: 25px 20px;
-  background-color: #fffbf0;
+  background-color: #bdc3ce;
 }
 
 .warning-message p {

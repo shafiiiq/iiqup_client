@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useState, createContext, useEffect } from 'react';
 import { AuthUtils, checkAutoLogin } from './utils/authUtils';
+import { apiRequest } from './utils/0auth';
+import { END_POINT } from './constants';
 
 // All your existing imports
 import Home from './Components/Home/Home';
@@ -38,12 +40,9 @@ import SplashScreen from './splash/SplashScreen';
 import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
 import Operators from './Components/Operators/Operators';
 import DevModal from './common/DevModal';
-import { apiRequest } from './utils/0auth';
-import { END_POINT } from './constants';
 import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
 import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
-import BackchargeList from './Components/BackchargeList/BackchargeList';
-import PortfolioAdmin from './Components/Dev/Dev';
+import BackchargeList from './Components/BackchargeList/BackchargeList';;
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -490,7 +489,7 @@ function App() {
         <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
         <NavigationButtons />
 
-        {isWorkAlert && newWork.length > 0 && (
+        {/* {isWorkAlert && newWork.length > 0 && (
           <DevModal
             isOpen={true}
             onClose={() => {
@@ -504,7 +503,7 @@ function App() {
             buttonText={getButtonText()}
             onButtonClick={handleWorkModalButtonClick}
           />
-        )}
+        )} */}
 
         {/* {isLPOAlert && newLPO.length > 0 && (
           <DevModal
