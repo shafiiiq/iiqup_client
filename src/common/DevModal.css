@@ -396,6 +396,201 @@
     outline-offset: 2px;
 }
 
+/* Input modal styles */
+.dm-card-input {
+    height: auto;
+    min-height: 320px;
+}
+
+.dm-card-activation {
+    min-height: 600px !important;
+    min-width: 1200px !important;
+}
+
+/* Device info styling */
+.dm-device-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+}
+
+.dm-device-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.dm-device-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+}
+
+.dm-device-value {
+    color: white;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Input section */
+.dm-input-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 8px;
+    justify-content: center;
+}
+
+.dm-input-label {
+    margin-bottom: 0 !important;
+    font-size: 0.95rem !important;
+}
+
+.dm-input {
+    width: 100%;
+    padding: 20px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+    transition: all 200ms ease;
+    backdrop-filter: blur(8px);
+    text-align: center; 
+}
+
+.dm-input::placeholder {
+    color: rgba(31, 41, 55, 0.4);
+    letter-spacing: normal;
+    text-align: center;
+}
+
+.dm-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    background: white;
+}
+
+.dm-input-error {
+    color: #fee;
+    background: rgba(220, 38, 38, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+}
+
+/* Footer with multiple buttons */
+.dm-footer {
+    display: flex;
+    gap: 12px;
+}
+
+.dm-cta-secondary {
+    flex: 1;
+}
+
+.dm-cta:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dm-cta:disabled:hover {
+    transform: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Cell input container */
+.dm-cell-input-container {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.dm-cell-input {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 200ms ease;
+    backdrop-filter: blur(8px);
+}
+
+.dm-cell-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    background: white;
+    transform: scale(1.05);
+}
+
+.dm-card-cells {
+    min-height: 380px;
+    min-width: 850px;
+}
+
+@media (max-width: 900px) {
+    .dm-card-cells {
+        min-width: 95vw;
+    }
+    
+    .dm-cell-input {
+        width: 40px;
+        height: 50px;
+        font-size: 1.1rem;
+    }
+    
+    .dm-cell-input-container {
+        gap: 6px;
+    }
+}
+
+/* Mobile adjustments for input modals */
+@media (max-width: 480px) {
+    .dm-card-input,
+    .dm-card-activation {
+        min-height: 400px;
+    }
+
+    .dm-device-info {
+        padding: 12px;
+    }
+
+    .dm-device-item {
+        font-size: 0.85rem;
+    }
+
+    .dm-input {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .dm-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
 

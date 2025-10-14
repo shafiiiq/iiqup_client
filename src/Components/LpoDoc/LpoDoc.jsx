@@ -8,11 +8,8 @@ import footer from '../../assets/images/footer.png';
 import { useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
-import accountsSign from '../../assets/images/accounts-sign.jpg';
-import pmSign from '../../assets/images/pm-sign.jpg';
-import managerSign from '../../assets/images/manager-sign.jpg';
-import authSign from '../../assets/images/authorise-sign.jpg';
-import companySeal from '../../assets/images/company-seal.png';
+import { getDeviceFingerprint, getLocationInfo } from '../../utils/deviceFingerprint';
+import DevModal from '../../common/DevModal';
 
 const LpoDoc = () => {
   const params = useParams();
@@ -49,7 +46,386 @@ const LpoDoc = () => {
     }
   });
 
+  const [globalActivation, setGlobalActivation] = useState({
+    isActivated: false,
+    isTrusted: false,
+    checked: false
+  });
+
+  const [signatureStates, setSignatureStates] = useState({
+    accounts: { url: '', loading: false },
+    pm: { url: '', loading: false },
+    manager: { url: '', loading: false },
+    authorized: { url: '', loading: false },
+    seal: { url: '', loading: false }
+  });
+
+  const [activationModal, setActivationModal] = useState({
+    show: false,
+    step: 1 // 1: activation key, 2: confirmation
+  });
+
+  // Timer states for each signature
+  const [timers, setTimers] = useState({
+    accounts: 0,
+    pm: 0,
+    manager: 0,
+    authorized: 0,
+    seal: 0
+  });
+
   const componentRef = useRef();
+
+  const [activationKey, setActivationKey] = useState('');
+  const [deviceInfo, setDeviceInfo] = useState(null);
+  const [activationError, setActivationError] = useState('');
+  const [activationLoading, setActivationLoading] = useState(false);
+
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [showTrustModal, setShowTrustModal] = useState(false);
+  const [showNotTrustedModal, setShowNotTrustedModal] = useState(false);
+
+
+  // Add useEffect for device info on mount
+  useEffect(() => {
+    const initializeDeviceInfo = async () => {
+      try {
+        const fingerprint = getDeviceFingerprint();
+        const location = await getLocationInfo();
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user._id;
+
+        if (!userId) {
+          console.warn('User ID not found in localStorage');
+          setGlobalActivation({ isActivated: false, isTrusted: false, checked: true });
+          return;
+        }
+
+        const info = {
+          userId: userId,
+          deviceFingerprint: fingerprint.uniqueCode,
+          ipAddress: location.ipAddress,
+          location: `${location.city}, ${location.region}, ${location.country}`,
+          userAgent: fingerprint.userAgent,
+          browserInfo: fingerprint.browserInfo
+        };
+
+        setDeviceInfo(info);
+
+        // Check if already activated and trusted - USE info directly, not deviceInfo state
+        const status = await checkSignatureActivationWithInfo(info);
+        setGlobalActivation({
+          isActivated: status.isActivated,
+          isTrusted: status.isTrusted,
+          checked: true
+        });
+
+        // Auto-load signatures if activated and trusted
+        if (status.isActivated && status.isTrusted) {
+          // Load all signatures immediately
+          await Promise.all([
+            loadSignatureWithInfo('accounts', info),
+            loadSignatureWithInfo('pm', info),
+            loadSignatureWithInfo('manager', info),
+            loadSignatureWithInfo('authorized', info),
+            loadSignatureWithInfo('seal', info)
+          ]);
+        }
+      } catch (error) {
+        console.error('Failed to initialize device info:', error);
+        setGlobalActivation({ isActivated: false, isTrusted: false, checked: true });
+      }
+    };
+
+    initializeDeviceInfo();
+  }, []);
+
+  // New function: Check activation with provided deviceInfo (doesn't rely on state)
+  const checkSignatureActivationWithInfo = async (info) => {
+    if (!info) {
+      return { isActivated: false, isTrusted: false };
+    }
+
+    try {
+      const signTypes = ['accounts', 'pm', 'manager', 'authorized', 'seal'];
+      let allActivated = true;
+      let allTrusted = true;
+
+      // Check all 5 types
+      for (const signType of signTypes) {
+        const response = await apiRequest(
+          `${END_POINT}/users/verify-device-trust`,
+          'POST',
+          { signType: signType, deviceInfo: info }
+        );
+
+        const result = await response.json();
+
+        if (!result.data.isActivated) {
+          allActivated = false;
+        }
+        if (!result.data.isTrusted) {
+          allTrusted = false;
+        }
+      }
+
+      return {
+        isActivated: allActivated,
+        isTrusted: allTrusted
+      };
+    } catch (error) {
+      console.error('Error checking activation:', error);
+      return { isActivated: false, isTrusted: false };
+    }
+  };
+
+  // New function: Load signature with provided deviceInfo (doesn't rely on state)
+  const loadSignatureWithInfo = async (signType, info) => {
+    setSignatureStates(prev => ({
+      ...prev,
+      [signType]: { ...prev[signType], loading: true }
+    }));
+
+    try {
+      const keyResponse = await apiRequest(
+        `${END_POINT}/users/doc-0auth-${signType}-sign-key`,
+        'POST',
+        { deviceInfo: info }
+      );
+
+      if (!keyResponse.ok) {
+        throw new Error('Failed to get signature key');
+      }
+
+      const keyData = await keyResponse.json();
+
+      const s3Response = await apiRequest(
+        `${END_POINT}/s3Config/get-pre-signed-url`,
+        'POST',
+        { key: keyData.data.sign_key, isLong: false, isLpoSign: true }
+      );
+
+      if (!s3Response.ok) {
+        throw new Error('Failed to get signature URL');
+      }
+
+      const s3Data = await s3Response.json();
+
+      setSignatureStates(prev => ({
+        ...prev,
+        [signType]: {
+          url: s3Data.dataUrl,
+          loading: false
+        }
+      }));
+
+    } catch (error) {
+      console.error(`Error loading ${signType} signature:`, error);
+      setSignatureStates(prev => ({
+        ...prev,
+        [signType]: { url: '', loading: false }
+      }));
+    }
+  };
+
+  // New function: Check if signature is activated
+  const checkSignatureActivation = async () => {
+    if (!deviceInfo) {
+      return { isActivated: false, isTrusted: false };
+    }
+
+    try {
+      const signTypes = ['accounts', 'pm', 'manager', 'authorized', 'seal'];
+      let allActivated = true;
+      let allTrusted = true;
+
+      // Check all 5 types
+      for (const signType of signTypes) {
+        const response = await apiRequest(
+          `${END_POINT}/users/verify-device-trust`,
+          'POST',
+          { signType: signType, deviceInfo }
+        );
+
+        const result = await response.json();
+
+        if (!result.data.isActivated) {
+          allActivated = false;
+        }
+        if (!result.data.isTrusted) {
+          allTrusted = false;
+        }
+      }
+
+      return {
+        isActivated: allActivated,
+        isTrusted: allTrusted
+      };
+    } catch (error) {
+      console.error('Error checking activation:', error);
+      return { isActivated: false, isTrusted: false };
+    }
+  };
+
+
+  const handleLoadAllSignatures = async () => {
+    const status = await checkSignatureActivation();
+
+    if (!status.isActivated) {
+      setShowActivationModal(true);
+      return;
+    }
+
+    if (!status.isTrusted) {
+      setShowNotTrustedModal(true);
+      return;
+    }
+
+    // Load all signatures
+    loadSignature('accounts');
+    loadSignature('pm');
+    loadSignature('manager');
+    loadSignature('authorized');
+    loadSignature('seal');
+  };
+
+
+  // New function: Open activation modal
+  const openActivationModal = () => {
+    setActivationModal({
+      show: true,
+      step: 1
+    });
+    setActivationKey('');
+    setActivationError('');
+  };
+
+  // New function: Handle activation
+  const handleActivation = async () => {
+    if (activationKey.length !== 20) {
+      setActivationError('Please enter a valid 20-digit activation key');
+      return;
+    }
+
+    setActivationLoading(true);
+    setActivationError('');
+
+    try {
+      const signTypes = ['accounts', 'pm', 'manager', 'authorized', 'seal'];
+
+      for (const signType of signTypes) {
+        const response = await apiRequest(
+          `${END_POINT}/users/activate-signature`,
+          'POST',
+          {
+            activationKey,
+            signType: signType,
+            deviceInfo
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || `Failed to activate ${signType}`);
+        }
+      }
+
+      // Close activation modal and show trust modal
+      setShowActivationModal(false);
+      setActivationLoading(false);
+      setActivationKey('');
+      setActivationError('');
+      setShowTrustModal(true);
+
+    } catch (error) {
+      console.error('Activation error:', error);
+      setActivationError(error.message);
+      setActivationLoading(false);
+    }
+  };
+
+  // New function: Confirm browser trust
+  const confirmBrowserTrust = () => {
+    setShowTrustModal(false);
+    setGlobalActivation({
+      isActivated: true,
+      isTrusted: true,
+      checked: true
+    });
+
+    // Load all signatures
+    loadSignature('accounts');
+    loadSignature('pm');
+    loadSignature('manager');
+    loadSignature('authorized');
+    loadSignature('seal');
+  };
+  //Load signature
+  const loadSignature = async (signType) => {
+    setSignatureStates(prev => ({
+      ...prev,
+      [signType]: { ...prev[signType], loading: true }
+    }));
+
+    try {
+      const keyResponse = await apiRequest(
+        `${END_POINT}/users/doc-0auth-${signType}-sign-key`,
+        'POST',
+        { deviceInfo }
+      );
+
+      if (!keyResponse.ok) {
+        throw new Error('Failed to get signature key');
+      }
+
+      const keyData = await keyResponse.json();
+
+      const s3Response = await apiRequest(
+        `${END_POINT}/s3Config/get-pre-signed-url`,
+        'POST',
+        { key: keyData.data.sign_key, isLong: false, isLpoSign: true }
+      );
+
+      if (!s3Response.ok) {
+        throw new Error('Failed to get signature URL');
+      }
+
+      const s3Data = await s3Response.json();
+
+      setSignatureStates(prev => ({
+        ...prev,
+        [signType]: {
+          url: s3Data.dataUrl,
+          loading: false
+        }
+      }));
+
+    } catch (error) {
+      console.error(`Error loading ${signType} signature:`, error);
+      alert(`Failed to load signature: ${error.message}`);
+      setSignatureStates(prev => ({
+        ...prev,
+        [signType]: { url: '', loading: false }
+      }));
+    }
+  };
+
+  // New function: Refresh signature
+  const refreshSignature = (signType) => {
+    setSignatureStates(prev => ({
+      ...prev,
+      [signType]: { url: '', expires: null, loading: false }
+    }));
+    loadSignature(signType);
+  };
+
+  // New function: Format time
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
 
   // Fetch LPO data from API
   useEffect(() => {
@@ -829,6 +1205,7 @@ const LpoDoc = () => {
     return lpoData.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
   };
 
+
   if (loading) {
     return (
       <div className="page-container">
@@ -859,6 +1236,30 @@ const LpoDoc = () => {
       <div className="controls">
         <p>Current LPO Number: {lpoCounter}</p>
         <p>LPO Reference: {lpoData.lpoRef}</p>
+
+        <div className="activation-buttons-section">
+          {!globalActivation.checked ? (
+            <div className="status-badge checking">🔄 Checking Status...</div>
+          ) : !globalActivation.isActivated ? (
+            <button
+              onClick={handleLoadAllSignatures}
+              className="action-button activation-btn not-activated"
+            >
+              🔓 Not Activated - Click to Activate
+            </button>
+          ) : !globalActivation.isTrusted ? (
+            <div className="status-badge not-trusted">
+              <button
+                onClick={handleLoadAllSignatures}
+                className="action-button activation-btn not-activated"
+              >⚠️ Device Not Trusted - Contact Admin
+              </button>
+            </div>
+          ) : (
+            <div className="status-badge activated">✅ Activated & Trusted</div>
+          )}
+        </div>
+
         <div className="button-group">
           <button className="action-button download-button" onClick={sendToApprove}>
             Send For Approval
@@ -1011,62 +1412,70 @@ const LpoDoc = () => {
               </td>
             </tr>
             <tr className="signature-spaces-large">
+              {/* Accounts */}
               <td className='sign-table lpo-signs sign-border-td-r'>
-                <img
+                {signatureStates.accounts.url ? (
+                  <img
                     className='accounts-sign'
-                    src={accountsSign}
-                    alt="Supervisor Signature"
-                    onError={(e) => {
-                      console.log('Signature URL expired or failed to load');
-                      e.target.style.display = 'none';
-                    }}
+                    src={signatureStates.accounts.url}
+                    alt="Accounts Signature"
+                    onError={(e) => e.target.style.display = 'none'}
                   />
-                <span className="account-no-signature ml-2">Not Signed</span>
+                ) : (
+                  <span className="account-no-signature">Not Signed</span>
+                )}
               </td>
+
+              {/* PM */}
               <td className='sign-table lpo-signs sign-border-td-r'>
-                <img
+                {signatureStates.pm.url ? (
+                  <img
                     className='accounts-sign'
-                    src={pmSign}
-                    alt="Supervisor Signature"
-                    onError={(e) => {
-                      console.log('Signature URL expired or failed to load');
-                      e.target.style.display = 'none';
-                    }}
+                    src={signatureStates.pm.url}
+                    alt="PM Signature"
+                    onError={(e) => e.target.style.display = 'none'}
                   />
-                <span className="account-no-signature ml-2">Not Signed</span>
+                ) : (
+                  <span className="account-no-signature">Not Signed</span>
+                )}
               </td>
+
+              {/* Manager */}
               <td className='sign-table lpo-signs sign-border-td-r'>
-                <img
+                {signatureStates.manager.url ? (
+                  <img
                     className='accounts-sign'
-                    src={managerSign}
-                    alt="Supervisor Signature"
-                    onError={(e) => {
-                      console.log('Signature URL expired or failed to load');
-                      e.target.style.display = 'none';
-                    }}
+                    src={signatureStates.manager.url}
+                    alt="Manager Signature"
+                    onError={(e) => e.target.style.display = 'none'}
                   />
-                <span className="account-no-signature ml-2">Not Signed</span>
+                ) : (
+                  <span className="account-no-signature">Not Signed</span>
+                )}
               </td>
+
+              {/* Authorized + Seal */}
               <td className='sign-table lpo-signs sign-border-td-r'>
-                <img
-                    className='accounts-sign'
-                    src={authSign}
-                    alt="Supervisor Signature"
-                    onError={(e) => {
-                      console.log('Signature URL expired or failed to load');
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                   <img
-                    className='company-seal'
-                    src={companySeal}
-                    alt="Supervisor Signature"
-                    onError={(e) => {
-                      console.log('Signature URL expired or failed to load');
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                <span className="account-no-signature ml-2">Not Signed</span>
+                {signatureStates.authorized.url ? (
+                  <div className="signature-display">
+                    <img
+                      className='accounts-sign'
+                      src={signatureStates.authorized.url}
+                      alt="Authorized Signature"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                    {signatureStates.seal.url && (
+                      <img
+                        className='company-seal'
+                        src={signatureStates.seal.url}
+                        alt="Company Seal"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <span className="account-no-signature">Not Signed</span>
+                )}
               </td>
               <td></td>
             </tr>
@@ -1084,6 +1493,47 @@ const LpoDoc = () => {
           <img src={footer} alt="" />
         </div>
       </div>
+      {/* Activation Key Modal */}
+      <DevModal
+        isOpen={showActivationModal}
+        onClose={() => setShowActivationModal(false)}
+        type="activation"
+        title="Activate Signatures"
+        message="Enter your 20-digit activation key to activate all signatures"
+        showInput={true}
+        useCellInput={true}  
+        cellCount={20} 
+        inputValue={activationKey}
+        onInputChange={setActivationKey}
+        inputError={activationError}
+        deviceInfo={deviceInfo}
+        buttonText={activationLoading ? "Activating..." : "Activate"}
+        onButtonClick={handleActivation}
+        preventClose={activationLoading}
+      />
+
+      {/* Trust Browser Modal */}
+      <DevModal
+        isOpen={showTrustModal}
+        onClose={() => { }}
+        type="success"
+        title="Key has been Activated"
+        message="Your key has been activated now. You can able to load and use all signatures."
+        buttonText="Trust this browser"
+        onButtonClick={confirmBrowserTrust}
+        preventClose={true}
+      />
+
+      {/* Not Trusted Modal */}
+      <DevModal
+        isOpen={showNotTrustedModal}
+        onClose={() => setShowNotTrustedModal(false)}
+        type="warning"
+        title="Device Not Trusted"
+        message="This device is activated but not yet trusted by the administrator. Please contact your system administrator to enable trust for this device."
+        buttonText="Close"
+        onButtonClick={() => setShowNotTrustedModal(false)}
+      />
     </div >
   );
 };
