@@ -571,7 +571,7 @@ const ServiceDoc = () => {
           isOpen={showWarningModal}
           onClose={() => setShowWarningModal(false)}
           type="warning"
-          title="⚠️ Document Not Signed"
+          title="!Document Not Signed"
           message="You must sign the document before printing! This ensures document authenticity and compliance."
           buttonText="Sign Document Now"
           secondaryButtonText="Cancel"
@@ -587,8 +587,8 @@ const ServiceDoc = () => {
           isOpen={showSuccessModal}
           onClose={() => setShowSuccessModal(false)}
           type="success"
-          title="✅ Document Signed Successfully!"
-          message="🎉 Your document has been digitally signed! ⏰ Signature valid for 10 seconds. 📄 You can now print the document."
+          title="Document Signed Successfully!"
+          message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
           buttonText="Print Now"
           secondaryButtonText="Close"
           onButtonClick={() => {
@@ -782,7 +782,7 @@ const ServiceDoc = () => {
         isOpen={showWarningModal}
         onClose={() => setShowWarningModal(false)}
         type="warning"
-        title="⚠️ Document Not Signed"
+        title="!Document Not Signed"
         message="You must sign the document before printing! This ensures document authenticity and compliance."
         buttonText="Sign Document Now"
         secondaryButtonText="Cancel"
@@ -798,8 +798,8 @@ const ServiceDoc = () => {
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         type="success"
-        title="✅ Document Signed Successfully!"
-        message="🎉 Your document has been digitally signed! ⏰ Signature valid for 10 seconds. 📄 You can now print the document."
+        title="Document Signed Successfully!"
+        message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
         buttonText="Print Now"
         secondaryButtonText="Close"
         onButtonClick={() => {
