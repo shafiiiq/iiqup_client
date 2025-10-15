@@ -7,6 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import '../ServiceDoc/ServiceDoc.css'
 import { apiRequest } from '../../utils/0auth';
+import DevModal from '../../common/DevModal';
 
 const ServiceDoc = () => {
   const { regNo, date, serviceType, startDate, endDate, monthsCount } = useParams();
@@ -18,8 +19,6 @@ const ServiceDoc = () => {
   const [supervisorSignUrl, setSupervisorSignUrl] = useState('');
 
   // Signature authentication states
-  const [showSignModal, setShowSignModal] = useState(false);
-  const [signStep, setSignStep] = useState(1); // 1: 6-digit, 2: OTP
   const [sixDigitPassword, setSixDigitPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [signLoading, setSignLoading] = useState(false);
@@ -32,11 +31,17 @@ const ServiceDoc = () => {
   const [signatureCache, setSignatureCache] = useState({});
   const [isDocumentSigned, setIsDocumentSigned] = useState(false);
   const [signExpiryTime, setSignExpiryTime] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const navigate = useNavigate();
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(0);
-
-  const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReportId, setDeleteReportId] = useState(null);
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
 
   // Rate limiting check
   const checkRateLimit = () => {
@@ -161,7 +166,6 @@ const ServiceDoc = () => {
 
   // Enhanced sign document function
   const signDocument = () => {
-    // Check if already signed and not expired
     const cachedUrl = checkSignatureCache('default');
     if (cachedUrl) {
       setSupervisorSignUrl(cachedUrl);
@@ -170,8 +174,7 @@ const ServiceDoc = () => {
       return;
     }
 
-    setShowSignModal(true);
-    setSignStep(1);
+    setShowPasswordModal(true);
     setSixDigitPassword('');
     setOtpCode('');
     setSignError('');
@@ -195,14 +198,16 @@ const ServiceDoc = () => {
     setSignLoading(true);
     setSignError('');
 
-    // Check rate limiting
     if (!checkRateLimit()) {
       setSignLoading(false);
       return;
     }
 
     try {
-      // Step 1: Verify 6-digit password
+      setShowPasswordModal(false);
+      setShowLoadingModal(true);
+      setLoadingMessage('Verifying password...');
+
       const passwordResponse = await apiRequest(
         `${END_POINT}/users/six-digit-auth/verify`,
         'POST',
@@ -213,9 +218,9 @@ const ServiceDoc = () => {
         throw new Error('Invalid 6-digit password');
       }
 
-      setDocAUTHmiddle(sixDigitPassword)
+      setDocAUTHmiddle(sixDigitPassword);
+      setLoadingMessage('Sending OTP to authorized email...');
 
-      // Step 2: Request OTP
       const otpResponse = await apiRequest(
         `${END_POINT}/otp/request`,
         'POST',
@@ -226,14 +231,17 @@ const ServiceDoc = () => {
         throw new Error('Failed to send OTP');
       }
 
-      // Move to OTP step
-      setSignStep(2);
+      setShowLoadingModal(false);
+      setShowOtpModal(true);
       setSignLoading(false);
+      setSignError('');
     } catch (error) {
       console.error('Six-digit verification error:', error);
       setAuthAttempts(prev => prev + 1);
       setLastAttempt(Date.now());
-      setSignError('Authentication failed. Please try again.');
+      setSignError(error.message || 'Authentication failed. Please try again.');
+      setShowLoadingModal(false);
+      setShowPasswordModal(true);
       setSignLoading(false);
     }
   };
@@ -248,10 +256,12 @@ const ServiceDoc = () => {
     setSignError('');
 
     try {
-      // Get user data (assuming you have access to userData)
+      setShowOtpModal(false);
+      setShowLoadingModal(true);
+      setLoadingMessage('Verifying OTP code...');
+
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-      // Step 3: Verify OTP
       const otpResponse = await apiRequest(
         `${END_POINT}/otp/verify`,
         'POST',
@@ -263,26 +273,26 @@ const ServiceDoc = () => {
       );
 
       if (!otpResponse.ok) {
-        throw new Error('Invalid OTP');
+        throw new Error('Invalid OTP code. Please check and try again.');
       }
 
-      // Step 4: Get signature key
+      setLoadingMessage('Generating signature key...');
+
       const keyResponse = await apiRequest(
         `${END_POINT}/users/doc-0auth-sign-key`,
         'POST',
-        {
-          password: docAUTHmiddle
-        }
+        { password: docAUTHmiddle }
       );
 
       if (!keyResponse.ok) {
-        throw new Error('Failed to get signature key');
+        throw new Error('Failed to generate signature key');
       }
 
-      setDocAUTHmiddle('')
+      setDocAUTHmiddle('');
       const keyData = await keyResponse.json();
 
-      // Step 5: Get presigned URL for signature
+      setLoadingMessage('Applying digital signature...');
+
       const body = { key: keyData.data.sign_key, isLong: false, isAuthSign: true };
       const s3response = await apiRequest(
         `${END_POINT}/s3Config/get-pre-signed-url`,
@@ -291,51 +301,39 @@ const ServiceDoc = () => {
       );
 
       if (!s3response.ok) {
-        throw new Error(`S3 URL generation failed: ${s3response.status}`);
+        throw new Error('Failed to generate signature URL');
       }
 
       const s3URL = await s3response.json();
       const fullUrl = s3URL.dataUrl;
 
-      // Cache the signature (10 seconds = 10000ms)
-      const expiryTime = Date.now() + 10000; // 10 seconds
+      const expiryTime = Date.now() + 10000;
       setSignatureCache(prev => ({
         ...prev,
-        'default': {
-          url: fullUrl,
-          expiry: expiryTime
-        }
+        'default': { url: fullUrl, expiry: expiryTime }
       }));
 
       setSupervisorSignUrl(fullUrl);
       setIsDocumentSigned(true);
       setSignExpiryTime(expiryTime);
-      setTimeRemaining(10); // 10 seconds
+      setTimeRemaining(10);
 
-      // Close modal and reset states
-      setShowSignModal(false);
-      setSignStep(1);
       setSixDigitPassword('');
       setOtpCode('');
       setSignLoading(false);
-      setAuthAttempts(0); // Reset attempts on success
+      setAuthAttempts(0);
+      setSignError('');
 
-      // Show success modal instead of alert
+      setShowLoadingModal(false);
       setShowSuccessModal(true);
 
     } catch (error) {
       console.error('OTP verification error:', error);
-      setSignError('Verification failed. Please try again.');
+      setSignError(error.message || 'Verification failed. Please try again.');
+      setShowLoadingModal(false);
+      setShowOtpModal(true);
       setSignLoading(false);
     }
-  };
-
-  const closeSignModal = () => {
-    setShowSignModal(false);
-    setSignStep(1);
-    setSixDigitPassword('');
-    setOtpCode('');
-    setSignError('');
   };
 
   // Your existing helper functions
@@ -375,22 +373,27 @@ const ServiceDoc = () => {
     navigate(`/service-form/update/${reportId}`);
   };
 
-  const handleDeleteReport = async (reportId) => {
-    if (window.confirm('Are you sure you want to delete this report?')) {
-      try {
-        const response = await apiRequest(`${END_POINT}/service-report/deletewith/${reportId}`,
-          'DELETE',
-        );
+  const handleDeleteReport = (reportId) => {
+    setDeleteReportId(reportId);
+    setShowDeleteModal(true);
+  };
 
-        if (response.ok) {
-          window.location.reload();
-        } else {
-          alert('Failed to delete the report. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error deleting report:', error);
-        alert('An error occurred while deleting the report.');
+  const confirmDeleteReport = async () => {
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/service-report/deletewith/${deleteReportId}`,
+        'DELETE'
+      );
+
+      if (response.ok) {
+        setShowDeleteModal(false);
+        window.location.reload();
+      } else {
+        alert('Failed to delete the report. Please try again.');
       }
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      alert('An error occurred while deleting the report.');
     }
   };
 
@@ -514,144 +517,110 @@ const ServiceDoc = () => {
             </div>
           </div>
         ))}
+        {/* Password Modal */}
+        <DevModal
+          isOpen={showPasswordModal}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setSixDigitPassword('');
+            setSignError('');
+          }}
+          type="authentication"
+          title="Document Signature Authentication"
+          message="Step 1: Enter your 6-digit password"
+          showInput={true}
+          inputValue={sixDigitPassword}
+          onInputChange={(value) => setSixDigitPassword(value.replace(/\D/g, ''))}
+          inputPlaceholder="Enter 6-digit password"
+          inputMaxLength={6}
+          inputError={signError}
+          buttonText={signLoading ? "Verifying..." : "Verify & Send OTP"}
+          onButtonClick={handleSixDigitVerification}
+          preventClose={signLoading}
+        />
 
-        {/* Signature Authentication Modal */}
-        {showSignModal && (
-          <div className="modal-overlay no-print">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h3>Document Signature Authentication</h3>
-                <button className="close-button" onClick={closeSignModal}>×</button>
-              </div>
+        {/* OTP Modal */}
+        <DevModal
+          isOpen={showOtpModal}
+          onClose={() => {
+            setShowOtpModal(false);
+            setOtpCode('');
+            setSignError('');
+          }}
+          type="otp"
+          title="Enter OTP Code"
+          message="OTP has been sent to the authorized email"
+          showInput={true}
+          inputValue={otpCode}
+          onInputChange={(value) => setOtpCode(value.replace(/\D/g, ''))}
+          inputPlaceholder="Enter 6-digit OTP"
+          inputMaxLength={6}
+          inputError={signError}
+          buttonText={signLoading ? "Signing..." : "Sign Document"}
+          secondaryButtonText="Back"
+          onSecondaryClick={() => {
+            setShowOtpModal(false);
+            setShowPasswordModal(true);
+          }}
+          onButtonClick={handleOtpVerification}
+          preventClose={signLoading}
+        />
 
-              <div className="modal-body">
-                {signStep === 1 && (
-                  <div className="auth-step">
-                    <h4>Step 1: Enter 6-Digit Password</h4>
-                    <input
-                      type="password"
-                      maxLength="6"
-                      placeholder="Enter 6-digit password"
-                      value={sixDigitPassword}
-                      onChange={(e) => setSixDigitPassword(e.target.value.replace(/\D/g, ''))}
-                      className="auth-input"
-                    />
-                    {signError && <div className="error-message">{signError}</div>}
-                    <button
-                      onClick={handleSixDigitVerification}
-                      disabled={signLoading || sixDigitPassword.length !== 6}
-                      className="auth-button"
-                    >
-                      {signLoading ? 'Verifying...' : 'Verify & Send OTP'}
-                    </button>
-                  </div>
-                )}
+        {/* Warning Modal */}
+        <DevModal
+          isOpen={showWarningModal}
+          onClose={() => setShowWarningModal(false)}
+          type="warning"
+          title="⚠️ Document Not Signed"
+          message="You must sign the document before printing! This ensures document authenticity and compliance."
+          buttonText="Sign Document Now"
+          secondaryButtonText="Cancel"
+          onButtonClick={() => {
+            setShowWarningModal(false);
+            signDocument();
+          }}
+          onSecondaryClick={() => setShowWarningModal(false)}
+        />
 
-                {signStep === 2 && (
-                  <div className="auth-step">
-                    <h4>Step 2: Enter OTP</h4>
-                    <p>OTP has been sent to the authorized email</p>
-                    <input
-                      type="text"
-                      maxLength="6"
-                      placeholder="Enter 6-digit OTP"
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                      className="auth-input"
-                    />
-                    {signError && <div className="error-message">{signError}</div>}
-                    <div className="auth-buttons">
-                      <button
-                        onClick={() => setSignStep(1)}
-                        className="back-button-modal"
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={handleOtpVerification}
-                        disabled={signLoading || otpCode.length !== 6}
-                        className="auth-button"
-                      >
-                        {signLoading ? 'Signing...' : 'Sign Document'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Success Modal */}
+        <DevModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          type="success"
+          title="✅ Document Signed Successfully!"
+          message="🎉 Your document has been digitally signed! ⏰ Signature valid for 10 seconds. 📄 You can now print the document."
+          buttonText="Print Now"
+          secondaryButtonText="Close"
+          onButtonClick={() => {
+            setShowSuccessModal(false);
+            handlePrint();
+          }}
+          onSecondaryClick={() => setShowSuccessModal(false)}
+        />
 
-        {/* Warning Modal for Unsigned Document */}
-        {showWarningModal && (
-          <div className="modal-overlay no-print">
-            <div className="modal-content warning-modal">
-              <div className="modal-header warning-header">
-                <h3>⚠️ Document Not Signed</h3>
-                <button className="close-button" onClick={() => setShowWarningModal(false)}>×</button>
-              </div>
-              <div className="modal-body">
-                <div className="warning-message">
-                  <p>🔒 You must sign the document before printing!</p>
-                  <p>This ensures document authenticity and compliance.</p>
-                </div>
-                <div className="warning-buttons">
-                  <button
-                    onClick={() => {
-                      setShowWarningModal(false);
-                      signDocument();
-                    }}
-                    className="sign-now-button"
-                  >
-                    Sign Document Now
-                  </button>
-                  <button
-                    onClick={() => setShowWarningModal(false)}
-                    className="cancel-button"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Delete Confirmation Modal */}
+        <DevModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          type="error"
+          title="Delete Report?"
+          message="Are you sure you want to delete this report? This action cannot be undone."
+          buttonText="Delete"
+          secondaryButtonText="Cancel"
+          onButtonClick={confirmDeleteReport}
+          onSecondaryClick={() => setShowDeleteModal(false)}
+        />
 
-        {/* Success Modal for Signed Document */}
-        {showSuccessModal && (
-          <div className="modal-overlay no-print">
-            <div className="modal-content success-modal">
-              <div className="modal-header success-header">
-                <h3>✅ Document Signed Successfully!</h3>
-                <button className="close-button" onClick={() => setShowSuccessModal(false)}>×</button>
-              </div>
-              <div className="modal-body">
-                <div className="success-message">
-                  <p>🎉 Your document has been digitally signed!</p>
-                  <p>⏰ Signature valid for: <strong>10 seconds</strong></p>
-                  <p>📄 You can now print the document.</p>
-                </div>
-                <div className="success-buttons">
-                  <button
-                    onClick={() => {
-                      setShowSuccessModal(false);
-                      handlePrint();
-                    }}
-                    className="print-now-button"
-                  >
-                    Print Now
-                  </button>
-                  <button
-                    onClick={() => setShowSuccessModal(false)}
-                    className="close-success-button"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Loading Modal */}
+        <DevModal
+          isOpen={showLoadingModal}
+          onClose={() => { }}
+          type="progress"
+          title="Processing..."
+          message={loadingMessage}
+          progress={100}
+          preventClose={true}
+        />
       </>
     );
   }
@@ -759,144 +728,110 @@ const ServiceDoc = () => {
           </div>
         </div>
       </div>
+      {/* Password Modal */}
+      <DevModal
+        isOpen={showPasswordModal}
+        onClose={() => {
+          setShowPasswordModal(false);
+          setSixDigitPassword('');
+          setSignError('');
+        }}
+        type="authentication"
+        title="Document Signature Authentication"
+        message="Step 1: Enter your 6-digit password"
+        showInput={true}
+        inputValue={sixDigitPassword}
+        onInputChange={(value) => setSixDigitPassword(value.replace(/\D/g, ''))}
+        inputPlaceholder="Enter 6-digit password"
+        inputMaxLength={6}
+        inputError={signError}
+        buttonText={signLoading ? "Verifying..." : "Verify & Send OTP"}
+        onButtonClick={handleSixDigitVerification}
+        preventClose={signLoading}
+      />
 
-      {/* Signature Authentication Modal */}
-      {showSignModal && (
-        <div className="modal-overlay no-print">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Document Signature Authentication</h3>
-              <button className="close-button" onClick={closeSignModal}>×</button>
-            </div>
+      {/* OTP Modal */}
+      <DevModal
+        isOpen={showOtpModal}
+        onClose={() => {
+          setShowOtpModal(false);
+          setOtpCode('');
+          setSignError('');
+        }}
+        type="otp"
+        title="Enter OTP Code"
+        message="OTP has been sent to the authorized email"
+        showInput={true}
+        inputValue={otpCode}
+        onInputChange={(value) => setOtpCode(value.replace(/\D/g, ''))}
+        inputPlaceholder="Enter 6-digit OTP"
+        inputMaxLength={6}
+        inputError={signError}
+        buttonText={signLoading ? "Signing..." : "Sign Document"}
+        secondaryButtonText="Back"
+        onSecondaryClick={() => {
+          setShowOtpModal(false);
+          setShowPasswordModal(true);
+        }}
+        onButtonClick={handleOtpVerification}
+        preventClose={signLoading}
+      />
 
-            <div className="modal-body">
-              {signStep === 1 && (
-                <div className="auth-step">
-                  <h4>Step 1: Enter 6-Digit Password</h4>
-                  <input
-                    type="password"
-                    maxLength="6"
-                    placeholder="Enter 6-digit password"
-                    value={sixDigitPassword}
-                    onChange={(e) => setSixDigitPassword(e.target.value.replace(/\D/g, ''))}
-                    className="auth-input"
-                  />
-                  {signError && <div className="error-message">{signError}</div>}
-                  <button
-                    onClick={handleSixDigitVerification}
-                    disabled={signLoading || sixDigitPassword.length !== 6}
-                    className="auth-button"
-                  >
-                    {signLoading ? 'Verifying...' : 'Verify & Send OTP'}
-                  </button>
-                </div>
-              )}
+      {/* Warning Modal */}
+      <DevModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        type="warning"
+        title="⚠️ Document Not Signed"
+        message="You must sign the document before printing! This ensures document authenticity and compliance."
+        buttonText="Sign Document Now"
+        secondaryButtonText="Cancel"
+        onButtonClick={() => {
+          setShowWarningModal(false);
+          signDocument();
+        }}
+        onSecondaryClick={() => setShowWarningModal(false)}
+      />
 
-              {signStep === 2 && (
-                <div className="auth-step">
-                  <h4>Step 2: Enter OTP</h4>
-                  <p>OTP has been sent to the authorized email</p>
-                  <input
-                    type="text"
-                    maxLength="6"
-                    placeholder="Enter 6-digit OTP"
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    className="auth-input"
-                  />
-                  {signError && <div className="error-message">{signError}</div>}
-                  <div className="auth-buttons">
-                    <button
-                      onClick={() => setSignStep(1)}
-                      className="back-button-modal"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={handleOtpVerification}
-                      disabled={signLoading || otpCode.length !== 6}
-                      className="auth-button"
-                    >
-                      {signLoading ? 'Signing...' : 'Sign Document'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Success Modal */}
+      <DevModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        type="success"
+        title="✅ Document Signed Successfully!"
+        message="🎉 Your document has been digitally signed! ⏰ Signature valid for 10 seconds. 📄 You can now print the document."
+        buttonText="Print Now"
+        secondaryButtonText="Close"
+        onButtonClick={() => {
+          setShowSuccessModal(false);
+          handlePrint();
+        }}
+        onSecondaryClick={() => setShowSuccessModal(false)}
+      />
 
-      {/* Warning Modal for Unsigned Document */}
-      {showWarningModal && (
-        <div className="modal-overlay no-print">
-          <div className="modal-content warning-modal">
-            <div className="modal-header warning-header">
-              <h3>⚠️ Document Not Signed</h3>
-              <button className="close-button" onClick={() => setShowWarningModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="warning-message">
-                <p>🔒 You must sign the document before printing!</p>
-                <p>This ensures document authenticity and compliance.</p>
-              </div>
-              <div className="warning-buttons">
-                <button
-                  onClick={() => {
-                    setShowWarningModal(false);
-                    signDocument();
-                  }}
-                  className="sign-now-button"
-                >
-                  Sign Document Now
-                </button>
-                <button
-                  onClick={() => setShowWarningModal(false)}
-                  className="cancel-button"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Confirmation Modal */}
+      <DevModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        type="error"
+        title="Delete Report?"
+        message="Are you sure you want to delete this report? This action cannot be undone."
+        buttonText="Delete"
+        secondaryButtonText="Cancel"
+        onButtonClick={confirmDeleteReport}
+        onSecondaryClick={() => setShowDeleteModal(false)}
+      />
 
-      {/* Success Modal for Signed Document */}
-      {showSuccessModal && (
-        <div className="modal-overlay no-print">
-          <div className="modal-content success-modal">
-            <div className="modal-header success-header">
-              <h3>✅ Document Signed Successfully!</h3>
-              <button className="close-button" onClick={() => setShowSuccessModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="success-message">
-                <p>🎉 Your document has been digitally signed!</p>
-                <p>⏰ Signature valid for: <strong>10 seconds</strong></p>
-                <p>📄 You can now print the document.</p>
-              </div>
-              <div className="success-buttons">
-                <button
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    handlePrint();
-                  }}
-                  className="print-now-button"
-                >
-                  Print Now
-                </button>
-                <button
-                  onClick={() => setShowSuccessModal(false)}
-                  className="close-success-button"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Loading Modal */}
+      <DevModal
+        isOpen={showLoadingModal}
+        onClose={() => { }}
+        type="progress"
+        title="Processing..."
+        message={loadingMessage}
+        progress={100}
+        preventClose={true}
+      />
     </>
   );
 };

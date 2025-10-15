@@ -3,7 +3,7 @@ import './DevModal.css';
 
 const DevModal = ({
   isOpen = false,
-  onClose = () => {},
+  onClose = () => { },
   type = 'success',
   title = '',
   message = '',
@@ -17,7 +17,7 @@ const DevModal = ({
   // NEW PROPS
   showInput = false,
   inputValue = '',
-  onInputChange = () => {},
+  onInputChange = () => { },
   inputPlaceholder = '',
   inputMaxLength = null,
   inputError = '',
@@ -121,8 +121,13 @@ const DevModal = ({
   const stop = (e) => e.stopPropagation();
 
   const handleCTA = () => {
+    // Don't proceed if there's an input error
+    if (showInput && inputError) {
+      return;
+    }
+
     if (onButtonClick) onButtonClick();
-    if (type !== 'progress' && !preventClose) handleClose();
+    // Don't auto-close - let parent component control modal state
   };
 
   const handleSecondary = () => {
@@ -170,7 +175,7 @@ const DevModal = ({
     const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '');
     const newValue = pastedText.substring(0, cellCount);
     onInputChange(newValue);
-    
+
     // Focus the next empty cell or last cell
     const nextIndex = Math.min(newValue.length, cellCount - 1);
     cellRefs.current[nextIndex]?.focus();
@@ -232,7 +237,23 @@ const DevModal = ({
       textColor: '#ffffff',
       ctaColor: '#3730a3',
       svg: 'key'
-    }
+    },
+    authentication: {
+      primary: '#a4c725ff',
+      secondary: '#959e17ff',
+      accent: '#8daf2fff',
+      textColor: '#ffffff',
+      ctaColor: '#6e7509ff',
+      svg: 'key'
+    },
+    otp: {
+      primary: '#f19763ff',
+      secondary: '#c06418ff',
+      accent: '#f8d881ff',
+      textColor: '#ffffff',
+      ctaColor: '#923e17ff',
+      svg: 'key'
+    },
   }[type] || palette.success;
 
   const renderIcon = () => {
@@ -246,8 +267,8 @@ const DevModal = ({
       case 'check':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
             />
@@ -256,8 +277,8 @@ const DevModal = ({
       case 'times':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
             />
@@ -266,8 +287,8 @@ const DevModal = ({
       case 'warning':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
             />
@@ -276,8 +297,8 @@ const DevModal = ({
       case 'sync':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
             />
@@ -286,8 +307,8 @@ const DevModal = ({
       case 'progress':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
             />
@@ -296,8 +317,8 @@ const DevModal = ({
       case 'announcement':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
             />
@@ -306,8 +327,8 @@ const DevModal = ({
       case 'key':
         return (
           <svg {...iconProps}>
-            <path 
-              fill="currentColor" 
+            <path
+              fill="currentColor"
               fillOpacity="0.15"
               d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
             />
@@ -328,7 +349,7 @@ const DevModal = ({
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
       />
-      
+
       <div
         className={`dm-overlay ${visible ? 'dm-visible' : ''}`}
         onClick={handleOverlayClick}
@@ -358,7 +379,7 @@ const DevModal = ({
           {type !== 'progress' && !preventClose && (
             <button className="dm-close" onClick={handleClose} aria-label="Close">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
               </svg>
             </button>
           )}
@@ -367,7 +388,7 @@ const DevModal = ({
             <h2 className="dm-title" style={{ color: palette.textColor }}>
               {title}
             </h2>
-            
+
             {deviceInfo && (
               <div className="dm-device-info">
                 <div className="dm-device-item">
@@ -456,9 +477,9 @@ const DevModal = ({
             {type === 'progress' && (
               <div className="dm-progress-section">
                 <div className="dm-progress-bar">
-                  <div 
-                    className="dm-progress-fill" 
-                    style={{ 
+                  <div
+                    className="dm-progress-fill"
+                    style={{
                       width: `${Math.min(100, Math.max(0, progress))}%`,
                       background: `linear-gradient(90deg, ${palette.accent}, white)`
                     }}
@@ -483,7 +504,7 @@ const DevModal = ({
                 <button
                   className="dm-cta dm-cta-secondary"
                   onClick={handleSecondary}
-                  style={{ 
+                  style={{
                     backgroundColor: 'rgba(255,255,255,0.15)',
                     color: 'white',
                     backdropFilter: 'blur(8px)'
@@ -496,10 +517,11 @@ const DevModal = ({
                 <button
                   className="dm-cta"
                   onClick={handleCTA}
-                  disabled={showInput && inputError}
-                  style={{ 
-                    backgroundColor: 'rgba(255,255,255,0.95)',
-                    color: palette.ctaColor 
+                  disabled={showInput && !!inputError}
+                  style={{
+                    backgroundColor: (showInput && inputError) ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)',
+                    color: palette.ctaColor,
+                    cursor: (showInput && inputError) ? 'not-allowed' : 'pointer'
                   }}
                 >
                   {buttonText}

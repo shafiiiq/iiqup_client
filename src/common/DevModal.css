@@ -402,6 +402,16 @@
     min-height: 320px;
 }
 
+.dm-card-authentication {
+    min-height: 390px !important;
+    min-width: 640px !important;
+}
+
+.dm-card-otp {
+    min-height: 390px !important;
+    min-width: 640px !important;
+}
+
 .dm-card-activation {
     min-height: 600px !important;
     min-width: 1200px !important;

@@ -52,6 +52,13 @@ const LpoDoc = () => {
     checked: false
   });
 
+  const [signatureFlags, setSignatureFlags] = useState({
+    pmSigned: false,
+    accountsSigned: false,
+    managerSigned: false,
+    ceoSigned: false
+  });
+
   const [signatureStates, setSignatureStates] = useState({
     accounts: { url: '', loading: false },
     pm: { url: '', loading: false },
@@ -88,6 +95,7 @@ const LpoDoc = () => {
 
   // Add useEffect for device info on mount
   useEffect(() => {
+    // In initializeDeviceInfo useEffect
     const initializeDeviceInfo = async () => {
       try {
         const fingerprint = getDeviceFingerprint();
@@ -112,7 +120,6 @@ const LpoDoc = () => {
 
         setDeviceInfo(info);
 
-        // Check if already activated and trusted - USE info directly, not deviceInfo state
         const status = await checkSignatureActivationWithInfo(info);
         setGlobalActivation({
           isActivated: status.isActivated,
@@ -120,17 +127,9 @@ const LpoDoc = () => {
           checked: true
         });
 
-        // Auto-load signatures if activated and trusted
-        if (status.isActivated && status.isTrusted) {
-          // Load all signatures immediately
-          await Promise.all([
-            loadSignatureWithInfo('accounts', info),
-            loadSignatureWithInfo('pm', info),
-            loadSignatureWithInfo('manager', info),
-            loadSignatureWithInfo('authorized', info),
-            loadSignatureWithInfo('seal', info)
-          ]);
-        }
+        // This part is missing - you need to get the flags from the API response!
+        // Add this to your fetchLpoData or get it here
+
       } catch (error) {
         console.error('Failed to initialize device info:', error);
         setGlobalActivation({ isActivated: false, isTrusted: false, checked: true });
@@ -180,7 +179,21 @@ const LpoDoc = () => {
   };
 
   // New function: Load signature with provided deviceInfo (doesn't rely on state)
-  const loadSignatureWithInfo = async (signType, info) => {
+  // Modified function signature - add flags parameter
+  const loadSignatureWithInfo = async (signType, info, flags) => {
+    // Use the passed flags instead of signatureFlags state
+    const shouldLoad = {
+      'accounts': flags.accountsSigned,
+      'pm': flags.pmSigned,
+      'manager': flags.managerSigned,
+      'authorized': flags.ceoSigned,
+      'seal': flags.ceoSigned
+    };
+
+    if (!shouldLoad[signType]) {
+      return; // Skip loading if flag is false
+    }
+
     setSignatureStates(prev => ({
       ...prev,
       [signType]: { ...prev[signType], loading: true }
@@ -353,15 +366,28 @@ const LpoDoc = () => {
       checked: true
     });
 
-    // Load all signatures
+    // Use current signatureFlags state (it should be updated by now)
     loadSignature('accounts');
     loadSignature('pm');
     loadSignature('manager');
     loadSignature('authorized');
     loadSignature('seal');
   };
+
   //Load signature
   const loadSignature = async (signType) => {
+    const shouldLoad = {
+      'accounts': signatureFlags.accountsSigned,
+      'pm': signatureFlags.pmSigned,
+      'manager': signatureFlags.managerSigned,
+      'authorized': signatureFlags.ceoSigned,
+      'seal': signatureFlags.ceoSigned
+    };
+
+    if (!shouldLoad[signType]) {
+      return;
+    }
+
     setSignatureStates(prev => ({
       ...prev,
       [signType]: { ...prev[signType], loading: true }
@@ -410,64 +436,50 @@ const LpoDoc = () => {
     }
   };
 
-  // New function: Refresh signature
-  const refreshSignature = (signType) => {
-    setSignatureStates(prev => ({
-      ...prev,
-      [signType]: { url: '', expires: null, loading: false }
-    }));
-    loadSignature(signType);
-  };
-
-  // New function: Format time
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-
   // Fetch LPO data from API
   useEffect(() => {
-    if (refNo) {
+    // Only fetch when we have checked activation status and have device info
+    if (refNo && globalActivation.checked && deviceInfo) {
       fetchLpoData();
     }
-  }, [refNo]);
+  }, [refNo, globalActivation.checked, deviceInfo]);
 
   // Check image loading status
   useEffect(() => {
     if (!componentRef.current) return;
 
-    const images = componentRef.current.querySelectorAll('img');
-    if (images.length === 0) {
-      setImagesLoaded(true);
-      return;
-    }
-
-    let loadedCount = 0;
-    const checkAllLoaded = () => {
-      loadedCount++;
-      if (loadedCount === images.length) {
+    const checkImages = () => {
+      const images = componentRef.current.querySelectorAll('img');
+      if (images.length === 0) {
         setImagesLoaded(true);
+        return;
       }
-    };
 
-    images.forEach(img => {
-      if (img.complete) {
-        checkAllLoaded();
-      } else {
-        img.addEventListener('load', checkAllLoaded);
-        img.addEventListener('error', checkAllLoaded);
-      }
-    });
+      let loadedCount = 0;
+      const totalImages = images.length;
+      
+      const checkAllLoaded = () => {
+        loadedCount++;
+        if (loadedCount === totalImages) {
+          setImagesLoaded(true);
+        }
+      };
 
-    return () => {
       images.forEach(img => {
-        img.removeEventListener('load', checkAllLoaded);
-        img.removeEventListener('error', checkAllLoaded);
+        if (img.complete && img.naturalHeight !== 0) {
+          checkAllLoaded();
+        } else {
+          img.addEventListener('load', checkAllLoaded);
+          img.addEventListener('error', checkAllLoaded);
+        }
       });
     };
-  }, [lpoData]);
+
+    // Delay check to ensure signature images are in DOM
+    const timeoutId = setTimeout(checkImages, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [lpoData, signatureStates]);
 
   const fetchLpoData = async () => {
     try {
@@ -482,7 +494,7 @@ const LpoDoc = () => {
       const decodedRefNo = decodeURIComponent(refNo);
       const apiUrl = `${END_POINT}/lpo/get-lpo-by-ref/${decodedRefNo}`;
 
-      const response = await apiRequest(apiUrl, 'GET',);
+      const response = await apiRequest(apiUrl, 'GET');
 
       const contentType = response.headers.get('content-type');
 
@@ -505,6 +517,20 @@ const LpoDoc = () => {
 
       if (data.success && data.data) {
         const lpo = data.data;
+
+        // Create flags object first
+        const flags = {
+          pmSigned: lpo.pmSigned || false,
+          accountsSigned: lpo.accountsSigned || false,
+          managerSigned: lpo.managerSigned || false,
+          ceoSigned: lpo.ceoSigned || false
+        };
+
+        console.log(lpo.pmSigned);
+        console.log(lpo.accountsSigned);
+        console.log(lpo.managerSigned);
+        console.log(lpo.ceoSigned);
+        console.log("New signature flags:", flags);
 
         setLpoData({
           vendor: lpo.company?.vendor || '',
@@ -532,7 +558,20 @@ const LpoDoc = () => {
           }
         });
 
+        setSignatureFlags(flags); // Update state
         setLpoCounter(lpo.lpoCounter || 1);
+
+        // NOW load signatures if activated and trusted, passing the flags
+        if (globalActivation.isActivated && globalActivation.isTrusted && deviceInfo) {
+          console.log("Loading signatures with flags:", flags);
+          await Promise.all([
+            loadSignatureWithInfo('accounts', deviceInfo, flags),
+            loadSignatureWithInfo('pm', deviceInfo, flags),
+            loadSignatureWithInfo('manager', deviceInfo, flags),
+            loadSignatureWithInfo('authorized', deviceInfo, flags),
+            loadSignatureWithInfo('seal', deviceInfo, flags)
+          ]);
+        }
       } else {
         console.error("LPO not found in response:", data);
         setError(data.message || 'LPO not found');
@@ -1274,8 +1313,8 @@ const LpoDoc = () => {
       </div>
 
       <div className="lpo-document" ref={componentRef} style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
-        <div className="draft-watermark">
-          DRAFT
+        <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
+          {signatureFlags.ceoSigned && signatureStates.seal.url ? 'AUTHORIZED' : 'DRAFT'}
         </div>
         <div className="header">
           <div className="logo-placeholder-l">
@@ -1413,70 +1452,97 @@ const LpoDoc = () => {
             </tr>
             <tr className="signature-spaces-large">
               {/* Accounts */}
-              <td className='sign-table lpo-signs sign-border-td-r'>
-                {signatureStates.accounts.url ? (
-                  <img
-                    className='accounts-sign'
-                    src={signatureStates.accounts.url}
-                    alt="Accounts Signature"
-                    onError={(e) => e.target.style.display = 'none'}
-                  />
-                ) : (
-                  <span className="account-no-signature">Not Signed</span>
-                )}
-              </td>
-
-              {/* PM */}
-              <td className='sign-table lpo-signs sign-border-td-r'>
-                {signatureStates.pm.url ? (
-                  <img
-                    className='accounts-sign'
-                    src={signatureStates.pm.url}
-                    alt="PM Signature"
-                    onError={(e) => e.target.style.display = 'none'}
-                  />
-                ) : (
-                  <span className="account-no-signature">Not Signed</span>
-                )}
-              </td>
-
-              {/* Manager */}
-              <td className='sign-table lpo-signs sign-border-td-r'>
-                {signatureStates.manager.url ? (
-                  <img
-                    className='accounts-sign'
-                    src={signatureStates.manager.url}
-                    alt="Manager Signature"
-                    onError={(e) => e.target.style.display = 'none'}
-                  />
-                ) : (
-                  <span className="account-no-signature">Not Signed</span>
-                )}
-              </td>
-
-              {/* Authorized + Seal */}
-              <td className='sign-table lpo-signs sign-border-td-r'>
-                {signatureStates.authorized.url ? (
-                  <div className="signature-display">
+              {signatureFlags.accountsSigned && (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  {signatureStates.accounts.url ? (
                     <img
                       className='accounts-sign'
-                      src={signatureStates.authorized.url}
-                      alt="Authorized Signature"
+                      src={signatureStates.accounts.url}
+                      alt="Accounts Signature"
                       onError={(e) => e.target.style.display = 'none'}
                     />
-                    {signatureStates.seal.url && (
+                  ) : (
+                    <span className="account-no-signature">Not Signed</span>
+                  )}
+                </td>
+              )}
+              {!signatureFlags.accountsSigned && (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  <span className="account-no-signature">Not Signed</span>
+                </td>
+              )}
+
+              {/* PM */}
+              {signatureFlags.pmSigned && (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  {signatureStates.pm.url ? (
+                    <img
+                      className='accounts-sign'
+                      src={signatureStates.pm.url}
+                      alt="PM Signature"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  ) : (
+                    <span className="account-no-signature">Not Signed</span>
+                  )}
+                </td>
+              )}
+              {!signatureFlags.pmSigned && (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  <span className="account-no-signature">Not Signed</span>
+                </td>
+              )}
+
+              {/* Manager */}
+              {signatureFlags.managerSigned && (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  {signatureStates.manager.url ? (
+                    <img
+                      className='accounts-sign'
+                      src={signatureStates.manager.url}
+                      alt="Manager Signature"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  ) : (
+                    <span className="account-no-signature">Not Signed</span>
+                  )}
+                </td>
+              )}
+              {!signatureFlags.managerSigned && (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  <span className="account-no-signature">Not Signed</span>
+                </td>
+              )}
+
+              {/* Authorized + Seal - Only show if CEO signed */}
+              {signatureFlags.ceoSigned ? (
+                <td className='sign-table lpo-signs sign-border-td-r'>
+                  {signatureStates.authorized.url ? (
+                    <div className="signature-display">
                       <img
-                        className='company-seal'
-                        src={signatureStates.seal.url}
-                        alt="Company Seal"
+                        className='accounts-sign'
+                        src={signatureStates.authorized.url}
+                        alt="Authorized Signature"
                         onError={(e) => e.target.style.display = 'none'}
                       />
-                    )}
-                  </div>
-                ) : (
+                      {signatureStates.seal.url && (
+                        <img
+                          className='company-seal'
+                          src={signatureStates.seal.url}
+                          alt="Company Seal"
+                          onError={(e) => e.target.style.display = 'none'}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <span className="account-no-signature">Not Signed</span>
+                  )}
+                </td>
+              ) : (
+                <td className='sign-table lpo-signs sign-border-td-r'>
                   <span className="account-no-signature">Not Signed</span>
-                )}
-              </td>
+                </td>
+              )}
               <td></td>
             </tr>
             <tr>
@@ -1501,8 +1567,8 @@ const LpoDoc = () => {
         title="Activate Signatures"
         message="Enter your 20-digit activation key to activate all signatures"
         showInput={true}
-        useCellInput={true}  
-        cellCount={20} 
+        useCellInput={true}
+        cellCount={20}
         inputValue={activationKey}
         onInputChange={setActivationKey}
         inputError={activationError}
