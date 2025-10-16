@@ -244,15 +244,14 @@ body {
 }
 
 .sign-table img {
-  width: 2.5rem;
-  margin-left: 1rem;
+  margin-left: 0.1rem;
   bottom: 0.1rem;
   position: absolute;
 }
 
 .sign-table .mechanic-sign {
-  top: -10px;
-  width: 5rem;
+  top: -19px;
+  width: 7rem;
   transform: rotateX(-20deg) !important;
 }
 
@@ -342,7 +341,7 @@ td.tick {
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid #eee;
-  background-color: #f8f9fa !important; 
+  background-color: #f8f9fa !important;
   border-radius: 8px 8px 0 0;
 }
 
@@ -466,8 +465,8 @@ td.tick {
 
 /* Signature display styles */
 .supervisor-sign {
-  max-width: 100px;
-  max-height: 50px;
+  top: -15px;
+  width: 7rem;
   object-fit: contain;
 }
 

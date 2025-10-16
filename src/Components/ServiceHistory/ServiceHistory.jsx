@@ -6,6 +6,7 @@ import ExcelJS from 'exceljs';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import { apiRequest } from '../../utils/0auth';
+import DevModal from '../../common/DevModal';
 
 const ServiceHistory = () => {
   // Get the regNo from URL parameters and setup navigation
@@ -26,12 +27,14 @@ const ServiceHistory = () => {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [showCustomDateInputs, setShowCustomDateInputs] = useState(false);
+  const [deleteReport, setDeleteReport] = useState({});
 
   // Separate state for each service type
   const [serviceHistory, setServiceHistory] = useState([]);
   const [maintenanceHistory, setMaintenanceHistory] = useState([]);
   const [tyreHistory, setTyreHistory] = useState([]);
   const [batteryHistory, setBatteryHistory] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -401,25 +404,27 @@ const ServiceHistory = () => {
     navigate(path);
   };
 
-  const handleDetete = async (item) => {
+  const handleDeleteReport = (item) => {
+    setDeleteReport(item);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteReport = async () => {
     let url
 
-    alert('Are you sure')
-
-    if (item.serviceType == 'oil') {
-      url = `${END_POINT}/service-history/delete-service-history/oil/${item._id}`
-    } else if (item.serviceType == 'tyre') {
-      url = `${END_POINT}/service-history/delete-service-history/tyre/${item._id}`
-    } else if (item.serviceType == 'battery') {
-      url = `${END_POINT}/service-history/delete-service-history/battery/${item._id}`
+    if (deleteReport.serviceType == 'oil') {
+      url = `${END_POINT}/service-history/delete-service-history/oil/${deleteReport._id}`
+    } else if (deleteReport.serviceType == 'tyre') {
+      url = `${END_POINT}/service-history/delete-service-history/tyre/${deleteReport._id}`
+    } else if (deleteReport.serviceType == 'battery') {
+      url = `${END_POINT}/service-history/delete-service-history/battery/${deleteReport._id}`
     } else {
-      url = `${END_POINT}/service-history/delete-service-history/maintanance/${item._id}`
+      url = `${END_POINT}/service-history/delete-service-history/maintanance/${deleteReport._id}`
     }
     const response = await apiRequest(url, 'DELETE')
     const data = await response.json()
 
     if (data.success) {
-      alert('Deleted Successfully')
       window.location.reload()
     }
   }
@@ -848,6 +853,19 @@ const ServiceHistory = () => {
 
   return (
     <div className="service-history-container">
+      {/* Delete Confirmation Modal */}
+      <DevModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        type="error"
+        title="Delete Report?"
+        message="Are you sure you want to delete this report? This action cannot be undone."
+        buttonText="Delete"
+        secondaryButtonText="Cancel"
+        onButtonClick={confirmDeleteReport}
+        onSecondaryClick={() => setShowDeleteModal(false)}
+      />
+
       <div className="service-header">
         <h1 className="service-title">Service History</h1>
         <div className="date-time">{currentDateTime}</div>
@@ -1117,7 +1135,7 @@ const ServiceHistory = () => {
                         </button>
                       </td>
                       <td className="document-column">
-                        <button className="action-btn delete-h" onClick={() => handleDetete(item)}>
+                        <button className="action-btn delete-h" onClick={() => handleDeleteReport(item)}>
                           Delete
                         </button>
                       </td>

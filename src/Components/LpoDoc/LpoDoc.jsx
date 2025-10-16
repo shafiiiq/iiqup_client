@@ -352,7 +352,7 @@ const LpoDoc = () => {
 
     } catch (error) {
       console.error('Activation error:', error);
-      setActivationError(error.message);
+      setActivationError(`${error.message}, failed attempt, refresh and try again`);
       setActivationLoading(false);
     }
   };
@@ -457,7 +457,7 @@ const LpoDoc = () => {
 
       let loadedCount = 0;
       const totalImages = images.length;
-      
+
       const checkAllLoaded = () => {
         loadedCount++;
         if (loadedCount === totalImages) {
