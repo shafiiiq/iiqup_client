@@ -1131,7 +1131,7 @@ const Toolkits = () => {
                             {stockHistory.length > 0 ? (
                               stockHistory.map((history, index) => (
                                 <tr key={index}>
-                                  <td>{formatDate(history.timestamp)}</td>
+                                  <td>{formatDate(history.assignedDate)}</td>
                                   <td>
                                     <span className={`history-badge ${history.action}`}>
                                       {history.action.charAt(0).toUpperCase() + history.action.slice(1)}

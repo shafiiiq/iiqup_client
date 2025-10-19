@@ -389,16 +389,6 @@ function Equipments() {
     }
   };
 
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setSelectedEquipment(null);
-  };
-
-  const closeStatusModal = () => {
-    setShowStatusModal(false);
-    setDeleteStatus({ message: '', isError: false });
-  };
-
   // Updated handleAdd function to show modal instead of navigate
   const handleAdd = () => {
     setShowAddModal(true);
@@ -1285,41 +1275,29 @@ function Equipments() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Confirm Deletion</h2>
-              <button className="close-btn" onClick={cancelDelete}>×</button>
-            </div>
-            <div className="modal-body">
-              <p>Are you sure you want to delete the equipment with registration number <strong>{selectedEquipment?.regNo}</strong>?</p>
-              <p>This action cannot be undone.</p>
-            </div>
-            <div className="modal-footer">
-              <button className="action-btn cancel" onClick={cancelDelete}>Cancel</button>
-              <button className="action-btn confirm-delete" onClick={confirmDelete}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DevModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        type="error"
+        title="Delete Equipment?"
+        message={`Are you sure you want to delete the equipment with registration number ${selectedEquipment?.regNo}`}
+        buttonText="Delete"
+        secondaryButtonText="Cancel"
+        onButtonClick={confirmDelete}
+        onSecondaryClick={() => setShowDeleteModal(false)}
+      />
 
       {/* Status Modal */}
       {showStatusModal && (
-        <div className="modal-overlay">
-          <div className={`modal-content ${deleteStatus.isError ? 'error' : 'success'}`}>
-            <div className="modal-header">
-              <h2>{deleteStatus.isError ? 'Error' : 'Success'}</h2>
-              <button className="close-btn" onClick={closeStatusModal}>×</button>
-            </div>
-            <div className="modal-body">
-              <p>{deleteStatus.message}</p>
-            </div>
-            <div className="modal-footer">
-              <button className="action-btn ok" onClick={closeStatusModal}>OK</button>
-            </div>
-          </div>
-        </div>
+        <DevModal
+          isOpen={showStatusModal}
+          onClose={() => setShowStatusModal(false)}
+          type={deleteStatus.isError ? 'error' : 'success'}
+          title={deleteStatus.isError ? 'Error' : 'Success'}
+          message={deleteStatus.message}
+          secondaryButtonText={deleteStatus.isError ? 'X' : 'Ok'}
+          onSecondaryClick={() => setShowStatusModal(false)}
+        />
       )}
 
       {/* Edit Equipment Modal */}
