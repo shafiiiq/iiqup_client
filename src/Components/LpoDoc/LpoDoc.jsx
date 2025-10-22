@@ -1314,7 +1314,7 @@ const LpoDoc = () => {
 
       <div className="lpo-document" ref={componentRef} style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
         <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
-          {signatureFlags.ceoSigned && signatureStates.seal.url ? 'AUTHORIZED' : 'DRAFT'}
+          {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
         </div>
         <div className="header">
           <div className="logo-placeholder-l">
