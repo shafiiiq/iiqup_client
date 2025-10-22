@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import NameSplash from '../assets/images/iiqup-name-splash.png';
+import NameSplash from '../assets/images/al-ansari.png';
 import "./SplashScreen.css";
 
 function SplashScreen() {
