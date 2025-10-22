@@ -1459,6 +1459,7 @@ const LpoDoc = () => {
                       className='accounts-sign'
                       src={signatureStates.accounts.url}
                       alt="Accounts Signature"
+                      crossOrigin="anonymous"
                       onError={(e) => e.target.style.display = 'none'}
                     />
                   ) : (
@@ -1480,6 +1481,7 @@ const LpoDoc = () => {
                       className='accounts-sign'
                       src={signatureStates.pm.url}
                       alt="PM Signature"
+                      crossOrigin="anonymous"
                       onError={(e) => e.target.style.display = 'none'}
                     />
                   ) : (
@@ -1501,6 +1503,7 @@ const LpoDoc = () => {
                       className='accounts-sign'
                       src={signatureStates.manager.url}
                       alt="Manager Signature"
+                      crossOrigin="anonymous"
                       onError={(e) => e.target.style.display = 'none'}
                     />
                   ) : (
@@ -1523,6 +1526,7 @@ const LpoDoc = () => {
                         className='accounts-sign'
                         src={signatureStates.authorized.url}
                         alt="Authorized Signature"
+                        crossOrigin="anonymous"
                         onError={(e) => e.target.style.display = 'none'}
                       />
                       {signatureStates.seal.url && (
@@ -1530,6 +1534,7 @@ const LpoDoc = () => {
                           className='company-seal'
                           src={signatureStates.seal.url}
                           alt="Company Seal"
+                          crossOrigin="anonymous"
                           onError={(e) => e.target.style.display = 'none'}
                         />
                       )}
