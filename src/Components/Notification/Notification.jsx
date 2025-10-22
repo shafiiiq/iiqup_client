@@ -249,9 +249,16 @@ const Notifications = ({ islivemodeON }) => {
     }
   };
 
+  const body = {
+    uniqueCode: uniqueCode
+  }
+
   const fetchNormalNotifications = async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/notification/get-all-notification`);
+      const response = await apiRequest(`${END_POINT}/notification/get-all-notification`,
+        'POST',
+        body
+      );
       const data = await response.json();
 
       if (response.ok && data.status === 200) {

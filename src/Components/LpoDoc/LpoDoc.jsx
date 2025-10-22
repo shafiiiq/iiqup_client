@@ -727,6 +727,147 @@ const LpoDoc = () => {
     }
   };
 
+  const sendMail = async () => {
+    if (!imagesLoaded) {
+      alert('Please wait for all images to load before generating PDF');
+      return;
+    }
+
+    const input = componentRef.current;
+
+    try {
+      // Hide controls during capture
+      const controls = document.querySelector('.controls');
+      if (controls) controls.style.visibility = 'hidden';
+
+      // Apply clean styles for PDF generation
+      const originalStyles = {
+        background: input.style.background,
+        backgroundImage: input.style.backgroundImage,
+        backgroundSize: input.style.backgroundSize,
+        backgroundRepeat: input.style.backgroundRepeat,
+        backgroundPosition: input.style.backgroundPosition,
+        backgroundAttachment: input.style.backgroundAttachment
+      };
+
+      // Remove any background patterns/grids
+      input.style.background = '#FFFFFF';
+      input.style.backgroundImage = 'none';
+      input.style.backgroundSize = 'auto';
+      input.style.backgroundRepeat = 'no-repeat';
+      input.style.backgroundPosition = 'initial';
+      input.style.backgroundAttachment = 'initial';
+
+      // Clean up child elements with grid backgrounds
+      const allElements = input.querySelectorAll('*');
+      const elementsOriginalStyles = [];
+
+      allElements.forEach((element, index) => {
+        elementsOriginalStyles[index] = {
+          background: element.style.background,
+          backgroundImage: element.style.backgroundImage,
+          backgroundSize: element.style.backgroundSize,
+          backgroundRepeat: element.style.backgroundRepeat,
+          backgroundPosition: element.style.backgroundPosition,
+          backgroundAttachment: element.style.backgroundAttachment
+        };
+
+        if (element.style.backgroundImage &&
+          (element.style.backgroundImage.includes('grid') ||
+            element.style.backgroundImage.includes('linear-gradient') ||
+            element.style.backgroundImage.includes('repeating'))) {
+          element.style.backgroundImage = 'none';
+        }
+      });
+
+      // Generate canvas from the component
+      const canvas = await html2canvas(input, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: input.scrollWidth,
+        windowHeight: input.scrollHeight,
+        backgroundColor: '#FFFFFF',
+        ignoreElements: (element) => {
+          const computedStyle = window.getComputedStyle(element);
+          return computedStyle.backgroundImage &&
+            (computedStyle.backgroundImage.includes('grid') ||
+              computedStyle.backgroundImage.includes('repeating'));
+        },
+        removeContainer: true,
+        foreignObjectRendering: false
+      });
+
+      // Restore original styles
+      Object.assign(input.style, originalStyles);
+      allElements.forEach((element, index) => {
+        Object.assign(element.style, elementsOriginalStyles[index]);
+      });
+
+      // Restore controls visibility
+      if (controls) controls.style.visibility = 'visible';
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+      // Convert PDF to blob for email
+      const pdfBlob = pdf.output('blob');
+      const fileName = getFileName() + '.pdf';
+
+      // Send email with attachment via your backend
+      const emailResponse = await apiRequest(
+        `${END_POINT}/lpo/send-lpo-email`,
+        'POST',
+        {
+          fileName: fileName,
+          subject: fileName,
+          body: 'Please find attached LPO.',
+          cc: 'malik@ansarigroup.co',
+          lpoRef: lpoData.lpoRef
+        },
+        { 'Content-Type': 'application/json' }
+      );
+
+      const result = await emailResponse.json();
+
+      if (!emailResponse.ok || result.status !== 200) {
+        throw new Error(result.message || 'Email sending failed');
+      }
+
+      // Upload PDF to the pre-signed URL if provided
+      if (result.uploadUrl) {
+        const s3Response = await fetch(result.uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/pdf'
+          },
+          body: pdfBlob
+        });
+
+        if (!s3Response.ok) {
+          throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
+        }
+      }
+
+      alert('Email sent successfully with LPO attachment!');
+
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert(`Failed to send email: ${error.message}`);
+    }
+  };
+  
   const handleDownloadPdf = async () => {
     if (!imagesLoaded) {
       alert('Please wait for all images to load before generating PDF');
@@ -1305,6 +1446,9 @@ const LpoDoc = () => {
           </button>
           <button className="action-button download-button" onClick={handleDownloadPdf}>
             Download as PDF
+          </button>
+          <button className="action-button download-button" onClick={sendMail}>
+            Send Email
           </button>
           <button className="action-button print-button" onClick={handlePrint}>
             Print
