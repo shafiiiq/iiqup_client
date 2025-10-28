@@ -122,11 +122,18 @@ body {
   position: absolute;
 }
 
+img.accounts-sign {
+  bottom: -4rem !important;
+  margin-left: -2rem !important;
+  position: absolute;
+  width: 15rem !important;
+}
+
 img.company-seal {
-  width: 13rem !important;
-  top: 0.2rem;
+  left: -8px;
+  top: -1.8rem;
+  width: 17rem !important;
   z-index: 999999;
-  left: -1px;
 }
 
 .text-align-center {
