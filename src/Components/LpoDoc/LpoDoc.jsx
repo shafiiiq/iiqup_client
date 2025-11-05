@@ -604,94 +604,114 @@ const LpoDoc = () => {
       return;
     }
 
-    const input = componentRef.current;
-
     try {
       // Hide controls during capture
       const controls = document.querySelector('.controls');
       if (controls) controls.style.visibility = 'hidden';
 
-      // Apply clean styles for PDF generation
-      const originalStyles = {
-        background: input.style.background,
-        backgroundImage: input.style.backgroundImage,
-        backgroundSize: input.style.backgroundSize,
-        backgroundRepeat: input.style.backgroundRepeat,
-        backgroundPosition: input.style.backgroundPosition,
-        backgroundAttachment: input.style.backgroundAttachment
-      };
+      // ✅ Get all .lpo-document divs
+      const allDocuments = document.querySelectorAll('.lpo-document');
 
-      // Remove any background patterns/grids
-      input.style.background = '#FFFFFF';
-      input.style.backgroundImage = 'none';
-      input.style.backgroundSize = 'auto';
-      input.style.backgroundRepeat = 'no-repeat';
-      input.style.backgroundPosition = 'initial';
-      input.style.backgroundAttachment = 'initial';
+      if (allDocuments.length === 0) {
+        alert('No documents found to generate PDF');
+        if (controls) controls.style.visibility = 'visible';
+        return;
+      }
 
-      // Clean up child elements with grid backgrounds
-      const allElements = input.querySelectorAll('*');
-      const elementsOriginalStyles = [];
-
-      allElements.forEach((element, index) => {
-        elementsOriginalStyles[index] = {
-          background: element.style.background,
-          backgroundImage: element.style.backgroundImage,
-          backgroundSize: element.style.backgroundSize,
-          backgroundRepeat: element.style.backgroundRepeat,
-          backgroundPosition: element.style.backgroundPosition,
-          backgroundAttachment: element.style.backgroundAttachment
-        };
-
-        // Remove grid/pattern backgrounds but keep solid colors and borders
-        if (element.style.backgroundImage &&
-          (element.style.backgroundImage.includes('grid') ||
-            element.style.backgroundImage.includes('linear-gradient') ||
-            element.style.backgroundImage.includes('repeating'))) {
-          element.style.backgroundImage = 'none';
-        }
-      });
-
-      // Generate canvas from the component
-      const canvas = await html2canvas(input, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: input.scrollWidth,
-        windowHeight: input.scrollHeight,
-        backgroundColor: '#FFFFFF',
-        ignoreElements: (element) => {
-          const computedStyle = window.getComputedStyle(element);
-          return computedStyle.backgroundImage &&
-            (computedStyle.backgroundImage.includes('grid') ||
-              computedStyle.backgroundImage.includes('repeating'));
-        },
-        removeContainer: true,
-        foreignObjectRendering: false
-      });
-
-      // Restore original styles
-      Object.assign(input.style, originalStyles);
-      allElements.forEach((element, index) => {
-        Object.assign(element.style, elementsOriginalStyles[index]);
-      });
-
-      // Restore controls visibility
-      if (controls) controls.style.visibility = 'visible';
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      // Create PDF instance
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      // ✅ Process each .lpo-document div
+      for (let i = 0; i < allDocuments.length; i++) {
+        const input = allDocuments[i];
+
+        // Apply clean styles for PDF generation
+        const originalStyles = {
+          background: input.style.background,
+          backgroundImage: input.style.backgroundImage,
+          backgroundSize: input.style.backgroundSize,
+          backgroundRepeat: input.style.backgroundRepeat,
+          backgroundPosition: input.style.backgroundPosition,
+          backgroundAttachment: input.style.backgroundAttachment
+        };
+
+        // Remove any background patterns/grids
+        input.style.background = '#FFFFFF';
+        input.style.backgroundImage = 'none';
+        input.style.backgroundSize = 'auto';
+        input.style.backgroundRepeat = 'no-repeat';
+        input.style.backgroundPosition = 'initial';
+        input.style.backgroundAttachment = 'initial';
+
+        // Clean up child elements with grid backgrounds
+        const allElements = input.querySelectorAll('*');
+        const elementsOriginalStyles = [];
+
+        allElements.forEach((element, index) => {
+          elementsOriginalStyles[index] = {
+            background: element.style.background,
+            backgroundImage: element.style.backgroundImage,
+            backgroundSize: element.style.backgroundSize,
+            backgroundRepeat: element.style.backgroundRepeat,
+            backgroundPosition: element.style.backgroundPosition,
+            backgroundAttachment: element.style.backgroundAttachment
+          };
+
+          // Remove grid/pattern backgrounds but keep solid colors and borders
+          if (element.style.backgroundImage &&
+            (element.style.backgroundImage.includes('grid') ||
+              element.style.backgroundImage.includes('linear-gradient') ||
+              element.style.backgroundImage.includes('repeating'))) {
+            element.style.backgroundImage = 'none';
+          }
+        });
+
+        // Generate canvas from this document
+        const canvas = await html2canvas(input, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: false,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: input.scrollWidth,
+          windowHeight: input.scrollHeight,
+          backgroundColor: '#FFFFFF',
+          ignoreElements: (element) => {
+            const computedStyle = window.getComputedStyle(element);
+            return computedStyle.backgroundImage &&
+              (computedStyle.backgroundImage.includes('grid') ||
+                computedStyle.backgroundImage.includes('repeating'));
+          },
+          removeContainer: true,
+          foreignObjectRendering: false
+        });
+
+        // Restore original styles
+        Object.assign(input.style, originalStyles);
+        allElements.forEach((element, index) => {
+          Object.assign(element.style, elementsOriginalStyles[index]);
+        });
+
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        const imgWidth = 210;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // ✅ Add new page for documents after the first one
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Add image to current page
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      }
+
+      // Restore controls visibility
+      if (controls) controls.style.visibility = 'visible';
 
       // Convert PDF to blob for S3 upload
       const pdfBlob = pdf.output('blob');
@@ -734,8 +754,152 @@ const LpoDoc = () => {
     } catch (error) {
       console.error('Error uploading LPO:', error);
       alert(`Upload failed: ${error.message}`);
+
+      // Restore controls in case of error
+      const controls = document.querySelector('.controls');
+      if (controls) controls.style.visibility = 'visible';
     }
   };
+
+  // old function 
+  // const sendToApprove = async () => {
+  //   if (!imagesLoaded) {
+  //     alert('Please wait for all images to load before generating PDF');
+  //     return;
+  //   }
+
+  //   const input = componentRef.current;
+
+  //   try {
+  //     // Hide controls during capture
+  //     const controls = document.querySelector('.controls');
+  //     if (controls) controls.style.visibility = 'hidden';
+
+  //     // Apply clean styles for PDF generation
+  //     const originalStyles = {
+  //       background: input.style.background,
+  //       backgroundImage: input.style.backgroundImage,
+  //       backgroundSize: input.style.backgroundSize,
+  //       backgroundRepeat: input.style.backgroundRepeat,
+  //       backgroundPosition: input.style.backgroundPosition,
+  //       backgroundAttachment: input.style.backgroundAttachment
+  //     };
+
+  //     // Remove any background patterns/grids
+  //     input.style.background = '#FFFFFF';
+  //     input.style.backgroundImage = 'none';
+  //     input.style.backgroundSize = 'auto';
+  //     input.style.backgroundRepeat = 'no-repeat';
+  //     input.style.backgroundPosition = 'initial';
+  //     input.style.backgroundAttachment = 'initial';
+
+  //     // Clean up child elements with grid backgrounds
+  //     const allElements = input.querySelectorAll('*');
+  //     const elementsOriginalStyles = [];
+
+  //     allElements.forEach((element, index) => {
+  //       elementsOriginalStyles[index] = {
+  //         background: element.style.background,
+  //         backgroundImage: element.style.backgroundImage,
+  //         backgroundSize: element.style.backgroundSize,
+  //         backgroundRepeat: element.style.backgroundRepeat,
+  //         backgroundPosition: element.style.backgroundPosition,
+  //         backgroundAttachment: element.style.backgroundAttachment
+  //       };
+
+  //       // Remove grid/pattern backgrounds but keep solid colors and borders
+  //       if (element.style.backgroundImage &&
+  //         (element.style.backgroundImage.includes('grid') ||
+  //           element.style.backgroundImage.includes('linear-gradient') ||
+  //           element.style.backgroundImage.includes('repeating'))) {
+  //         element.style.backgroundImage = 'none';
+  //       }
+  //     });
+
+  //     // Generate canvas from the component
+  //     const canvas = await html2canvas(input, {
+  //       scale: 2,
+  //       logging: false,
+  //       useCORS: true,
+  //       allowTaint: false,
+  //       scrollX: 0,
+  //       scrollY: 0,
+  //       windowWidth: input.scrollWidth,
+  //       windowHeight: input.scrollHeight,
+  //       backgroundColor: '#FFFFFF',
+  //       ignoreElements: (element) => {
+  //         const computedStyle = window.getComputedStyle(element);
+  //         return computedStyle.backgroundImage &&
+  //           (computedStyle.backgroundImage.includes('grid') ||
+  //             computedStyle.backgroundImage.includes('repeating'));
+  //       },
+  //       removeContainer: true,
+  //       foreignObjectRendering: false
+  //     });
+
+  //     // Restore original styles
+  //     Object.assign(input.style, originalStyles);
+  //     allElements.forEach((element, index) => {
+  //       Object.assign(element.style, elementsOriginalStyles[index]);
+  //     });
+
+  //     // Restore controls visibility
+  //     if (controls) controls.style.visibility = 'visible';
+
+  //     const imgData = canvas.toDataURL('image/png', 1.0);
+  //     const pdf = new jsPDF({
+  //       orientation: 'portrait',
+  //       unit: 'mm',
+  //       format: 'a4'
+  //     });
+
+  //     const imgWidth = 210;
+  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  //     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+  //     // Convert PDF to blob for S3 upload
+  //     const pdfBlob = pdf.output('blob');
+
+  //     // First get the pre-signed URL from backend
+  //     const uploadResponse = await apiRequest(
+  //       `${END_POINT}/complaints/upload-lpo/${complaintId}`,
+  //       'POST',
+  //       {
+  //         fileName: getFileName() + '.pdf',
+  //         uploadedBy: 'WORKSHOP_MANAGER',
+  //         lpoRef: `LPO-${Date.now()}`,
+  //         description: 'LPO document generated from system'
+  //       },
+  //       { 'Content-Type': 'application/json' }
+  //     );
+
+  //     const result = await uploadResponse.json();
+  //     console.log('Upload response:', result);
+
+  //     if (!uploadResponse.ok || result.status !== 200) {
+  //       throw new Error(result.message || 'Upload failed');
+  //     }
+
+  //     // Now upload the actual file to S3 using the pre-signed URL
+  //     const s3Response = await fetch(result.uploadUrl, {
+  //       method: 'PUT',
+  //       headers: {
+  //         'Content-Type': 'application/pdf'
+  //       },
+  //       body: pdfBlob
+  //     });
+
+  //     if (!s3Response.ok) {
+  //       throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
+  //     }
+
+  //     alert('LPO uploaded successfully!');
+
+  //   } catch (error) {
+  //     console.error('Error uploading LPO:', error);
+  //     alert(`Upload failed: ${error.message}`);
+  //   }
+  // };
 
   const sendMail = async () => {
     if (!imagesLoaded) {
@@ -884,102 +1048,123 @@ const LpoDoc = () => {
       return;
     }
 
-    const input = componentRef.current;
-
     try {
       // Hide controls during capture
       const controls = document.querySelector('.controls');
       if (controls) controls.style.visibility = 'hidden';
 
-      // Apply clean styles for PDF generation
-      const originalStyles = {
-        background: input.style.background,
-        backgroundImage: input.style.backgroundImage,
-        backgroundSize: input.style.backgroundSize,
-        backgroundRepeat: input.style.backgroundRepeat,
-        backgroundPosition: input.style.backgroundPosition,
-        backgroundAttachment: input.style.backgroundAttachment
-      };
+      // ✅ Get all .lpo-document divs
+      const allDocuments = document.querySelectorAll('.lpo-document');
 
-      // Remove any background patterns/grids
-      input.style.background = '#FFFFFF';
-      input.style.backgroundImage = 'none';
-      input.style.backgroundSize = 'auto';
-      input.style.backgroundRepeat = 'no-repeat';
-      input.style.backgroundPosition = 'initial';
-      input.style.backgroundAttachment = 'initial';
+      if (allDocuments.length === 0) {
+        alert('No documents found to generate PDF');
+        return;
+      }
 
-      // Also clean up any child elements that might have grid backgrounds
-      const allElements = input.querySelectorAll('*');
-      const elementsOriginalStyles = [];
-
-      allElements.forEach((element, index) => {
-        elementsOriginalStyles[index] = {
-          background: element.style.background,
-          backgroundImage: element.style.backgroundImage,
-          backgroundSize: element.style.backgroundSize,
-          backgroundRepeat: element.style.backgroundRepeat,
-          backgroundPosition: element.style.backgroundPosition,
-          backgroundAttachment: element.style.backgroundAttachment
-        };
-
-        // Remove grid/pattern backgrounds but keep solid colors and borders
-        if (element.style.backgroundImage &&
-          (element.style.backgroundImage.includes('grid') ||
-            element.style.backgroundImage.includes('linear-gradient') ||
-            element.style.backgroundImage.includes('repeating'))) {
-          element.style.backgroundImage = 'none';
-        }
-      });
-
-      const canvas = await html2canvas(input, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: input.scrollWidth,
-        windowHeight: input.scrollHeight,
-        backgroundColor: '#FFFFFF',
-        // Additional options to prevent grid patterns
-        ignoreElements: (element) => {
-          // Ignore elements with grid or pattern backgrounds
-          const computedStyle = window.getComputedStyle(element);
-          return computedStyle.backgroundImage &&
-            (computedStyle.backgroundImage.includes('grid') ||
-              computedStyle.backgroundImage.includes('repeating'));
-        },
-        // Remove any CSS filters that might cause artifacts
-        removeContainer: true,
-        foreignObjectRendering: false
-      });
-
-      // Restore original styles
-      Object.assign(input.style, originalStyles);
-      allElements.forEach((element, index) => {
-        Object.assign(element.style, elementsOriginalStyles[index]);
-      });
-
-      // Restore controls visibility
-      if (controls) controls.style.visibility = 'visible';
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      // Create PDF instance
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm (slightly reduced for margins)
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // ✅ Process each .lpo-document div
+      for (let i = 0; i < allDocuments.length; i++) {
+        const input = allDocuments[i];
 
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        // Apply clean styles for PDF generation
+        const originalStyles = {
+          background: input.style.background,
+          backgroundImage: input.style.backgroundImage,
+          backgroundSize: input.style.backgroundSize,
+          backgroundRepeat: input.style.backgroundRepeat,
+          backgroundPosition: input.style.backgroundPosition,
+          backgroundAttachment: input.style.backgroundAttachment
+        };
+
+        // Remove any background patterns/grids
+        input.style.background = '#FFFFFF';
+        input.style.backgroundImage = 'none';
+        input.style.backgroundSize = 'auto';
+        input.style.backgroundRepeat = 'no-repeat';
+        input.style.backgroundPosition = 'initial';
+        input.style.backgroundAttachment = 'initial';
+
+        // Clean up child elements with grid backgrounds
+        const allElements = input.querySelectorAll('*');
+        const elementsOriginalStyles = [];
+
+        allElements.forEach((element, index) => {
+          elementsOriginalStyles[index] = {
+            background: element.style.background,
+            backgroundImage: element.style.backgroundImage,
+            backgroundSize: element.style.backgroundSize,
+            backgroundRepeat: element.style.backgroundRepeat,
+            backgroundPosition: element.style.backgroundPosition,
+            backgroundAttachment: element.style.backgroundAttachment
+          };
+
+          if (element.style.backgroundImage &&
+            (element.style.backgroundImage.includes('grid') ||
+              element.style.backgroundImage.includes('linear-gradient') ||
+              element.style.backgroundImage.includes('repeating'))) {
+            element.style.backgroundImage = 'none';
+          }
+        });
+
+        // Generate canvas from this document
+        const canvas = await html2canvas(input, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: false,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: input.scrollWidth,
+          windowHeight: input.scrollHeight,
+          backgroundColor: '#FFFFFF',
+          ignoreElements: (element) => {
+            const computedStyle = window.getComputedStyle(element);
+            return computedStyle.backgroundImage &&
+              (computedStyle.backgroundImage.includes('grid') ||
+                computedStyle.backgroundImage.includes('repeating'));
+          },
+          removeContainer: true,
+          foreignObjectRendering: false
+        });
+
+        // Restore original styles
+        Object.assign(input.style, originalStyles);
+        allElements.forEach((element, index) => {
+          Object.assign(element.style, elementsOriginalStyles[index]);
+        });
+
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        const imgWidth = 210; // A4 width in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // ✅ Add new page for documents after the first one
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Add image to current page
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      }
+
+      // Restore controls visibility
+      if (controls) controls.style.visibility = 'visible';
+
+      // Save the PDF with all pages
       pdf.save(getFileName() + '.pdf');
+
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Error generating PDF. Please try again.');
+
+      // Restore controls
+      const controls = document.querySelector('.controls');
+      if (controls) controls.style.visibility = 'visible';
     }
   };
 
@@ -1584,7 +1769,7 @@ const LpoDoc = () => {
                 </td>
               </tr>
               <tr>
-                <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l ${lpoData.items.length >= 12 && lpoData.items.length <= 20 ? 'sign-border-td-b' : ''}`}>
+                <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l`}>
                   <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
                 </td>
               </tr>
@@ -1825,7 +2010,7 @@ const LpoDoc = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l ${lpoData.items.length > 20 && lpoData.items.length > 12 ? 'sign-border-td-b' : ''}`}>
+                    <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l`}>
                       <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
                     </td>
                   </tr>
