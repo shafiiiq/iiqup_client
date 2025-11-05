@@ -218,6 +218,10 @@ const Lpo = ({ isStock, isAllEquip }) => {
         dataToSave.totalAmount = subtotal; // Total without discount
       }
 
+      if (complaintId) {
+        dataToSave.complaintId = complaintId
+      }
+
       // Only include workingHrs or runningKm if not for stock/all equipment
       if (!isForStock && !isForAllEquipm) {
         if (workingHrsMode === 'WORKING HRS') {
