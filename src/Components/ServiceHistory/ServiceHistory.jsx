@@ -106,6 +106,57 @@ const ServiceHistory = () => {
     }
   };
 
+  const fetchServiceReportforMajor = async (combinedData) => {
+    const dataWithRemarksAndLocation = [...combinedData];
+
+    // Create promises for fetching remarks and location for oil, normal, tyre, and battery services
+    const remarksPromises = dataWithRemarksAndLocation.map(async (item, index) => {
+      if (['maintenance'].includes(item.serviceType) && item.date) {
+        try {
+          const formattedDate = formatDate(item.date);
+          const response = await apiRequest(`${END_POINT}/service-report/${regNo}/${formattedDate}`);
+
+          if (response.ok) {
+            const remarksData = await response.json();
+            if (remarksData?.data?.[0]) {
+              const updatedItem = { ...dataWithRemarksAndLocation[index] };
+
+              // Add remarks for all service types
+              if (remarksData.data[0].remarks) {
+                updatedItem.remarks = remarksData.data[0].remarks;
+              }
+
+
+              if (remarksData.data[0].serviceHrs) {
+                updatedItem.serviceHrs = remarksData.data[0].serviceHrs;
+              }
+
+              if (remarksData.data[0].nextServiceHrs) {
+                updatedItem.nextServiceHrs = remarksData.data[0].nextServiceHrs;
+              }
+
+              if (remarksData.data[0].location) {
+                updatedItem.location = remarksData.data[0].location;
+              }
+
+              if (remarksData.data[0].remarks) {
+                updatedItem.majorRemarks = remarksData.data[0].remarks;
+              }
+
+              dataWithRemarksAndLocation[index] = updatedItem;
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching remarks and location for ${item.serviceType} service on ${item.date}:`, error);
+        }
+      }
+    });
+
+    // Wait for all remarks and location data to be fetched
+    await Promise.all(remarksPromises);
+    return dataWithRemarksAndLocation;
+  };
+
   // Function to fetch remarks and location for oil services, and remarks for tyre and battery services
   const fetchRemarksAndLocationForServices = async (combinedData) => {
     const dataWithRemarksAndLocation = [...combinedData];
@@ -276,12 +327,21 @@ const ServiceHistory = () => {
 
       // Fetch remarks and location for oil, tyre, and battery services
       const dataWithRemarksAndLocation = await fetchRemarksAndLocationForServices(dateFilteredData);
+      const dataOfMajorWork = await fetchServiceReportforMajor(dateFilteredData);      
 
       // Sort by date (newest first)
       dataWithRemarksAndLocation.sort((a, b) => new Date(b.date) - new Date(a.date));
+      dataOfMajorWork.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       // Apply search term filter
-      const results = dataWithRemarksAndLocation.filter(item => {
+      let results = dataWithRemarksAndLocation.filter(item => {
+        if (!searchTerm) return true;
+        return Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+
+      results = dataOfMajorWork.filter(item => {
         if (!searchTerm) return true;
         return Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
@@ -289,6 +349,9 @@ const ServiceHistory = () => {
       });
 
       setFilteredData(results);
+
+      console.log("resultsssss:    ,,,,", results);
+      
     };
 
     processData();
@@ -1043,7 +1106,7 @@ const ServiceHistory = () => {
                 <th className='date-th'>Date</th>
                 {activeTab === 'all' && <th>Service Type</th>}
                 <th>Work Description</th>
-                {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'all') && (
+                {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') && (
                   <>
                     <th>Serviced Hrs/ Km</th>
                     <th>Next Service</th>
@@ -1087,10 +1150,10 @@ const ServiceHistory = () => {
                           </div>
                         )}
                       </td>
-                      {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'all') && (
+                      {(activeTab === 'oil' || activeTab === 'normal'  || activeTab === 'maintenance' || activeTab === 'all') && (
                         <>
-                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal') ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
-                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal') ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
+                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
+                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
                           {(activeTab === 'oil' || activeTab === 'all') && (
                             <td>{item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'}</td>
                           )}
@@ -1115,7 +1178,7 @@ const ServiceHistory = () => {
                         )}
                         {item.serviceType === 'maintenance' && (
                           <div>
-                            {item.workRemarks && <div>{item.workRemarks}</div>}
+                            {item.majorRemarks && <div>{item.majorRemarks}</div>}
                           </div>
                         )}
                         {item.serviceType === 'tyre' && (
