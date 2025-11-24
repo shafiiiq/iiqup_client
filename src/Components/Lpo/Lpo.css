@@ -32,7 +32,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .button-group {
@@ -50,7 +50,7 @@ body {
   font-size: 16px;
   font-weight: 500;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .download-button {
@@ -88,7 +88,7 @@ body {
   background-color: white !important;
   font-size: 12pt !important;
   line-height: 1.4 !important;
-  box-shadow: 0 0 20px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15) !important;
   position: relative !important;
   margin-bottom: 2rem !important;
   font-family: 'Times New Roman', serif !important;
@@ -127,6 +127,15 @@ body {
   margin-right: 0 !important;
 }
 
+.amendment-badge {
+  background-color: #ff9800;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
 .header-divider {
   border-top: 2px solid #000;
   margin: 15px 0;
@@ -158,7 +167,8 @@ body {
   padding: 8px !important;
 }
 
-.left-col, .right-col {
+.left-col,
+.right-col {
   width: 50% !important;
 }
 
@@ -294,6 +304,7 @@ body {
 }
 
 .dropdown-option {
+  background: white;
   padding: 10px 12px;
   cursor: pointer;
   border-bottom: 1px solid #f0f0f0;
@@ -308,13 +319,17 @@ body {
   border-bottom: none;
 }
 
-.company-name, .equipment-reg, .attention-name {
+.company-name,
+.equipment-reg,
+.attention-name {
   font-weight: bold;
   font-size: 12pt;
   color: #333;
 }
 
-.company-details, .equipment-machine, .attention-designation {
+.company-details,
+.equipment-machine,
+.attention-designation {
   font-size: 10pt;
   color: #666;
   margin-top: 2px;
@@ -351,7 +366,7 @@ body {
   color: black !important;
 }
 
-.items-table th, 
+.items-table th,
 .items-table td {
   border: 1px solid #000 !important;
   padding: 8px !important;
@@ -366,7 +381,8 @@ body {
   color: black !important;
 }
 
-.items-table th, .items-table td {
+.items-table th,
+.items-table td {
   color: black !important;
 }
 
@@ -424,7 +440,8 @@ body {
   gap: 4px;
 }
 
-.add-row-btn, .remove-row-btn {
+.add-row-btn,
+.remove-row-btn {
   width: 20px;
   height: 20px;
   border: none;
@@ -556,20 +573,24 @@ body {
   text-align: center !important;
   border: 1px solid #000 !important;
   vertical-align: middle !important;
-} 
+}
 
 .sign-table-date {
   text-align: start !important;
   font-size: 13px !important;
 }
 
-.signatures-table  {
+.signatures-table {
   border: 1px solid #000 !important;
 }
 
 .signature-spaces-large td {
   height: 80px !important;
   vertical-align: bottom !important;
+}
+
+.text-move-to-left {
+  margin-left: 26rem !important;
 }
 
 .equipment-multi-select {
@@ -583,6 +604,8 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  background-color: white !important;
+  border: none !important;
 }
 
 .equipment-tag {
@@ -685,7 +708,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     linear-gradient(90deg, #f8f9fa 0px, transparent 1px),
     linear-gradient(#f8f9fa 0px, transparent 1px);
   background-size: 20px 20px;
@@ -695,7 +718,9 @@ body {
 }
 
 /* Subtle animations */
-.editable-input, .table-input, .equipment-field {
+.editable-input,
+.table-input,
+.equipment-field {
   transition: all 0.3s ease !important;
 }
 
@@ -746,7 +771,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -757,7 +782,7 @@ body {
   background: #f0f8ff;
   border: 1px solid #0066cc;
   color: #0066cc;
-  
+
   padding: 3px 8px;
   border-radius: 3px;
   cursor: pointer;
@@ -1038,23 +1063,23 @@ body {
     min-width: 280px;
     margin: 20px;
   }
-  
+
   .discount-popup-actions {
     flex-direction: column;
   }
-  
+
   .discount-apply-btn,
   .discount-cancel-btn {
     width: 100%;
     margin: 2px 0;
   }
-  
+
   .discount-controls {
     display: block;
     margin-top: 5px;
     margin-left: 0;
   }
-  
+
   .discount-info {
     position: fixed;
     top: 50%;

@@ -85,11 +85,11 @@ body.dark-theme {
   transition: .4s;
 }
 
-.lpo-theme-switch input:checked + .lpo-slider {
+.lpo-theme-switch input:checked+.lpo-slider {
   background-color: #2196F3;
 }
 
-.lpo-theme-switch input:checked + .lpo-slider:before {
+.lpo-theme-switch input:checked+.lpo-slider:before {
   transform: translateX(26px);
 }
 
@@ -327,6 +327,11 @@ body.dark-theme {
   background-color: #c0392b;
 }
 
+.action-btn.amendment {
+  background-color: #dad728;
+  color: rgb(39, 44, 10);
+}
+
 .action-btn.filter {
   background-color: #9b59b6;
   color: white;
@@ -520,6 +525,7 @@ body.dark-theme {
     opacity: 0;
     transform: translateY(-50px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -689,38 +695,38 @@ body.dark-theme {
     align-items: flex-start;
     gap: 15px;
   }
-  
+
   .lpo-header-controls {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .controls-container {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-container {
     max-width: 100%;
   }
-  
+
   .date-filter-container {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .lpo-theme-switch {
     margin-left: 10px;
     width: 50px;
     height: 28px;
   }
-  
+
   .lpo-slider:before {
     height: 20px;
     width: 20px;
   }
-  
-  .lpo-theme-switch input:checked + .lpo-slider:before {
+
+  .lpo-theme-switch input:checked+.lpo-slider:before {
     transform: translateX(22px);
   }
 }
@@ -729,30 +735,30 @@ body.dark-theme {
   .lpo-container {
     padding: 10px;
   }
-  
+
   .lpo-header h1 {
     font-size: 1.75rem;
   }
-  
+
   .buttons-container {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .action-btn {
     width: 100%;
   }
-  
+
   .modal-content {
     width: 95%;
     margin: 10px;
   }
-  
+
   .detail-row {
     flex-direction: column;
     gap: 5px;
   }
-  
+
   .detail-label {
     width: 100%;
   }

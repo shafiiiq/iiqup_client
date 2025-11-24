@@ -14,6 +14,10 @@ import {
   prepareToolkitPerformance,
   prepareBarChartData,
   getActivityContent,
+  fetchLast5DaysComparison,
+  fetchLast5MonthsComparison,
+  fetchLast5YearsComparison,
+  prepareComparisonChartData
 } from './dashboardApi';
 
 // Import components
@@ -51,23 +55,18 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [heroHeight, setHeroHeight] = useState(0);
 
-  // Calculate hero height
-  const calculateHeroHeight = () => {
-    if (!statusBarRef.current || !dashboardHeaderRef.current || !dashboardTabsRef.current) {
-      return;
-    }
+  const [comparisonData, setComparisonData] = useState({
+    last5Days: null,
+    last5Months: null,
+    last5Years: null
+  });
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [activeComparison, setActiveComparison] = useState('days'); // 'days', 'months', 'years'
 
-    const statusBarHeight = statusBarRef.current.offsetHeight;
-    const dashboardHeaderHeight = dashboardHeaderRef.current.offsetHeight;
-    const dashboardTabsHeight = dashboardTabsRef.current.offsetHeight;
-
-    // Convert 4rem to pixels
-    const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    const fourRemInPx = 4 * remToPx;
-
-    const totalHeight = statusBarHeight + dashboardHeaderHeight + dashboardTabsHeight + fourRemInPx;
-    setHeroHeight(totalHeight);
-  };
+  useEffect(() => {
+    // Load comparison data when component mounts
+    loadComparisonData('days');
+  }, []);
 
   // Effect for hero height calculation
   useEffect(() => {
@@ -131,6 +130,73 @@ const Dashboard = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const loadComparisonData = async (type) => {
+    try {
+      setComparisonLoading(true);
+
+      let data;
+      if (type === 'days') {
+        data = await fetchLast5DaysComparison();
+        setComparisonData(prev => ({ ...prev, last5Days: data }));
+      } else if (type === 'months') {
+        data = await fetchLast5MonthsComparison();
+        setComparisonData(prev => ({ ...prev, last5Months: data }));
+      } else if (type === 'years') {
+        data = await fetchLast5YearsComparison();
+        setComparisonData(prev => ({ ...prev, last5Years: data }));
+      }
+
+      setComparisonLoading(false);
+    } catch (err) {
+      console.error('Error fetching comparison data:', err);
+      setComparisonLoading(false);
+    }
+  };
+
+  // Calculate hero height
+  const calculateHeroHeight = () => {
+    if (!statusBarRef.current || !dashboardHeaderRef.current || !dashboardTabsRef.current) {
+      return;
+    }
+
+    const statusBarHeight = statusBarRef.current.offsetHeight;
+    const dashboardHeaderHeight = dashboardHeaderRef.current.offsetHeight;
+    const dashboardTabsHeight = dashboardTabsRef.current.offsetHeight;
+
+    // Convert 4rem to pixels
+    const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const fourRemInPx = 4 * remToPx;
+
+    const totalHeight = statusBarHeight + dashboardHeaderHeight + dashboardTabsHeight + fourRemInPx;
+    setHeroHeight(totalHeight);
+  };
+
+  const handleComparisonChange = (type) => {
+    setActiveComparison(type);
+
+    // Load data if not already loaded
+    if (type === 'days' && !comparisonData.last5Days) {
+      loadComparisonData('days');
+    } else if (type === 'months' && !comparisonData.last5Months) {
+      loadComparisonData('months');
+    } else if (type === 'years' && !comparisonData.last5Years) {
+      loadComparisonData('years');
+    }
+  };
+
+  // 6. GET CURRENT COMPARISON DATA
+  const getCurrentComparisonData = () => {
+    if (activeComparison === 'days') return comparisonData.last5Days;
+    if (activeComparison === 'months') return comparisonData.last5Months;
+    if (activeComparison === 'years') return comparisonData.last5Years;
+    return null;
+  };
+
+  const currentComparisonData = getCurrentComparisonData();
+  const comparisonChartData = currentComparisonData
+    ? prepareComparisonChartData(currentComparisonData, currentComparisonData.period)
+    : [];
 
   // Fetch dashboard data wrapper
   const loadDashboardData = async (showRefresh = false) => {
@@ -382,6 +448,104 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+      </div>
+
+
+      {/* COMPARISON SECTION */}
+      <div className="chart-card-container">
+        <div className="chart-card full-width break-it">
+          <div className="chart-header">
+            <h3>Historical Comparison Analysis</h3>
+            <p>Compare activities across different time periods</p>
+
+            {/* Comparison Tabs */}
+            <div className="comparison-tabs" style={{ marginTop: '1rem' }}>
+              <button
+                className={`comparison-tab ${activeComparison === 'days' ? 'active' : ''}`}
+                onClick={() => handleComparisonChange('days')}
+                disabled={comparisonLoading}
+              >
+                Last 5 Days
+              </button>
+              <button
+                className={`comparison-tab ${activeComparison === 'months' ? 'active' : ''}`}
+                onClick={() => handleComparisonChange('months')}
+                disabled={comparisonLoading}
+              >
+                Last 5 Months
+              </button>
+              <button
+                className={`comparison-tab ${activeComparison === 'years' ? 'active' : ''}`}
+                onClick={() => handleComparisonChange('years')}
+                disabled={comparisonLoading}
+              >
+                Last 5 Years
+              </button>
+            </div>
+          </div>
+
+          <div className="chart-container large cmp-hd">
+            {comparisonLoading ? (
+              <div className="loading-container" style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="loading-spinner"></div>
+                <p>Loading comparison data...</p>
+              </div>
+            ) : comparisonChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={450}>
+                <BarChart data={comparisonChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="label"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="Service History" fill={COLORS.infoLighter} stackId="a" />
+                  <Bar dataKey="Service Reports" fill={COLORS.primaryLight} stackId="a" />
+                  <Bar dataKey="Maintenance" fill={COLORS.success} stackId="a" />
+                  <Bar dataKey="Tyre History" fill={COLORS.infoLight} stackId="a" />
+                  <Bar dataKey="Battery History" fill={COLORS.accent} stackId="a" />
+                  <Bar dataKey="Equipment" fill={COLORS.info} stackId="a" />
+                  <Bar dataKey="Stocks" fill={COLORS.warning} stackId="a" />
+                  <Bar dataKey="Toolkit" fill={COLORS.danger} stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data" style={{ height: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <TrendingUp size={48} />
+                <p>No comparison data available</p>
+              </div>
+            )}
+          </div>
+
+          {/* Comparison Summary */}
+          {!comparisonLoading && comparisonChartData.length > 0 && (
+            <div className="comparison-summary">
+              <h4 style={{ marginBottom: '1rem', color: 'white'}}>Summary</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                {comparisonChartData.map((item, index) => (
+                  <div key={index} style={{
+                    padding: '0.75rem',
+                    backgroundColor: 'rgba(255, 255, 255, 0.09)',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: 'white'
+                  }}>
+                    <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{item.label}</div>
+                    <div style={{ fontSize: '1.5rem', color: COLORS.primaryLighter, fontWeight: '700' }}>
+                      {item.Total}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#d4e6ffff' }}>Total Activities</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* <ActivityTimeline

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './LpoList.css';
 import { apiRequest } from '../../utils/0auth';
@@ -62,7 +62,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     try {
       const response = await apiRequest(url, 'GET');
       const data = await response.json()
-      
+
       setLpos(data.data);
       setFilteredData(data.data);
     } catch (error) {
@@ -140,6 +140,11 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     e.stopPropagation();
     setSelectedLpo(lpo);
     setShowDeleteModal(true);
+  };
+
+  const handleAmendment = (e, lpo) => {
+    e.stopPropagation();
+    navigate(`/lpo-form/amendment/${encodeURIComponent(lpo.lpoRef)}`);
   };
 
   const confirmDelete = async () => {
@@ -373,6 +378,12 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                       onClick={(e) => handleDeleteClick(e, lpo)}
                     >
                       Delete
+                    </button>
+                    <button
+                      className="action-btn amendment"
+                      onClick={(e) => handleAmendment(e, lpo)}
+                    >
+                      Amendment
                     </button>
                   </td>
                 </tr>

@@ -2,6 +2,7 @@
 export const COLORS = {
   primary: '#1e3a8a',
   primaryLight: '#3b82f6',
+  primaryLighter: '#a1c5ffff',
   secondary: '#1e40af',
   accent: '#06b6d4',
   success: '#10b981',
@@ -11,6 +12,7 @@ export const COLORS = {
   dark: '#0f172a',
   light: '#f8fafc',
   infoLight: '#ffbbefff',
+  infoLighter: '#75e6afff',
   chartColors: ['#1e3a8a', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 };
 
@@ -50,5 +52,3 @@ export const formatDate = (dateString) => {
     year: 'numeric'
   });
 };
-
-

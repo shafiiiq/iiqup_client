@@ -3,16 +3,19 @@ import './Lpo.css';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import logoImage from '../../assets/images/al-ansari-color.png';
-import alAnsariText from '../../assets/images/al-ansari-text.png';
+import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import footer from '../../assets/images/footer.png';
 import { END_POINT } from '../../constants';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiRequest } from '../../utils/0auth';
 
-const Lpo = ({ isStock, isAllEquip }) => {
-  const { regNo, complaintId } = useParams();
+const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
+  const { regNo, complaintId, refNo } = useParams();
   const isForStock = isStock;
   const isForAllEquipm = isAllEquip;
+  const isEditMode = edit && refNo;
+  const isAmendmentEditMode = amendment && amendmentEdit && refNo;
+  const isAmendmentMode = amendment && refNo;
 
   const navigate = useNavigate();
 
@@ -44,6 +47,7 @@ const Lpo = ({ isStock, isAllEquip }) => {
     lpoRef: '',
     attention: '',
     designation: '',
+    complaintId: '',
     quoteNo: '',
     workingHrs: '',
     runningKm: '',
@@ -68,6 +72,18 @@ const Lpo = ({ isStock, isAllEquip }) => {
   const attnRef = useRef();
   const discountPopupRef = useRef();
 
+  useEffect(() => {
+    if ((isEditMode || isAmendmentMode) && refNo) {
+      fetchLpoForEdit();
+    } if ((isAmendmentEditMode) && refNo) {
+      fetchLpoForAmendmentEdit();
+    } else {
+      // Only fetch new LPO number when creating new
+      fetchLatestLpoNumber();
+    }
+    handleRouteSpecificLogic();
+  }, [regNo, isEditMode, isAmendmentMode, refNo]);
+
   const generateLpoRef = (lpoNumber) => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -75,10 +91,127 @@ const Lpo = ({ isStock, isAllEquip }) => {
     return `ATE${lpoNumber}/SP/${month}/${year}`;
   };
 
-  useEffect(() => {
-    fetchLatestLpoNumber();
-    handleRouteSpecificLogic();
-  }, [regNo]);
+  const formatDate = (dateString) => {
+    const now = new Date(dateString);
+    const date = String(now.getDate() + 1).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    return `${date}/${month}/${year}`
+  };
+
+  const fetchLpoForAmendmentEdit = async () => {
+    try {
+      setIsLoading(true);
+      const decodedRefNo = decodeURIComponent(refNo);
+      const response = await apiRequest(`${END_POINT}/lpo/get-lpo-by-ref/${decodedRefNo}`, 'GET');
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const lpo = data.data;
+        const latestAmendment = lpo.amendments[lpo.amendments.length - 1];
+
+        setLpoCounter(lpo.lpoCounter || 1);
+        setLpoData({
+          vendor: latestAmendment?.amendedCompany?.vendor || '',
+          equipments: latestAmendment?.amendedEquipments || [],
+          date: formatDate(latestAmendment?.amendmentDate) || new Date().toLocaleDateString('en-GB'),
+          lpoRef: lpo.lpoRef || '',
+          complaintId: lpo.complaintId || '',
+          attention: latestAmendment?.amendedCompany?.attention || '',
+          designation: latestAmendment?.amendedCompany?.designation || '',
+          quoteNo: latestAmendment?.amendedQuoteNo || lpo.quoteNo || '',
+          workingHrs: latestAmendment?.amendedWorkingHrs || '',
+          runningKm: latestAmendment?.amendedRunningKm || '',
+          requestText: latestAmendment?.amendedRequestText || '',
+          items: latestAmendment?.amendedItems || [],
+          discount: latestAmendment?.amendedDiscount || 0
+        });
+
+        // Set working hours mode based on amendment data
+        if (latestAmendment?.amendedRunningKm) {
+          setWorkingHrsMode('RUNNING KM');
+        } else if (latestAmendment?.amendedWorkingHrs) {
+          setWorkingHrsMode('WORKING HRS');
+        } else if (lpo.runningKm) {
+          setWorkingHrsMode('RUNNING KM');
+        }
+
+        // Set CEO mode based on signatures
+        if (lpo.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') {
+          setCeoMode('MANAGING DIRECTOR');
+        }
+
+        // Set payment terms from amendment if available, otherwise from main LPO
+        if (latestAmendment?.amendedTermsAndConditions && latestAmendment.amendedTermsAndConditions.length > 0) {
+          const filteredTerms = latestAmendment.amendedTermsAndConditions.filter(term => term !== 'Terms & Conditions');
+          setPaymentTerms(filteredTerms);
+        } else if (lpo.termsAndConditions && lpo.termsAndConditions.length > 0) {
+          const filteredTerms = lpo.termsAndConditions.filter(term => term !== 'Terms & Conditions');
+          setPaymentTerms(filteredTerms);
+        }
+
+        // Set discount display mode
+        setShowDiscountInTotal(latestAmendment?.amendedTotalAmount !== undefined || lpo.totalDiscountAmount !== undefined);
+      }
+    } catch (error) {
+      console.error('Error fetching LPO for amendment edit:', error);
+      setSaveStatus('Error loading LPO data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchLpoForEdit = async () => {
+    try {
+      setIsLoading(true);
+      const decodedRefNo = decodeURIComponent(refNo);
+      const response = await apiRequest(`${END_POINT}/lpo/get-lpo-by-ref/${decodedRefNo}`, 'GET');
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const lpo = data.data;
+
+        setLpoCounter(lpo.lpoCounter || 1);
+        setLpoData({
+          vendor: lpo.company?.vendor || '',
+          equipments: lpo.equipments || [],
+          date: lpo.date || new Date().toLocaleDateString('en-GB'),
+          lpoRef: lpo.lpoRef || '',
+          complaintId: lpo.complaintId || '',
+          attention: lpo.company?.attention || '',
+          designation: lpo.company?.designation || '',
+          quoteNo: lpo.quoteNo || '',
+          workingHrs: lpo.workingHrs || '',
+          runningKm: lpo.runningKm || '',
+          requestText: lpo.requestText || '',
+          items: lpo.items || [],
+          discount: lpo.discount || 0
+        });
+
+        // Set modes based on saved data
+        if (lpo.runningKm) {
+          setWorkingHrsMode('RUNNING KM');
+        }
+        if (lpo.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') {
+          setCeoMode('MANAGING DIRECTOR');
+        }
+
+        // Set payment terms
+        if (lpo.termsAndConditions && lpo.termsAndConditions.length > 0) {
+          const filteredTerms = lpo.termsAndConditions.filter(term => term !== 'Terms & Conditions');
+          setPaymentTerms(filteredTerms);
+        }
+
+        // Set discount display mode
+        setShowDiscountInTotal(lpo.totalDiscountAmount !== undefined);
+      }
+    } catch (error) {
+      console.error('Error fetching LPO for edit:', error);
+      setSaveStatus('Error loading LPO data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleRouteSpecificLogic = async () => {
     if (isForStock) {
@@ -166,8 +299,6 @@ const Lpo = ({ isStock, isAllEquip }) => {
 
   const saveLpoData = async () => {
     const currentFieldValue = workingHrsMode === 'WORKING HRS' ? lpoData.workingHrs : lpoData.runningKm;
-
-    // Skip validation for workingHrs/runningKm if it's for stock or all equipment
     const shouldValidateHrsKm = !isForStock && !isForAllEquipm;
 
     if (!lpoData.vendor || !lpoData.equipments || !lpoData.attention || !lpoData.designation ||
@@ -182,7 +313,7 @@ const Lpo = ({ isStock, isAllEquip }) => {
     }
 
     setIsLoading(true);
-    setSaveStatus('Saving...');
+    setSaveStatus(isAmendmentMode ? 'Processing Amendment...' : isEditMode ? 'Updating...' : 'Saving...');
 
     try {
       const dataToSave = {
@@ -197,7 +328,7 @@ const Lpo = ({ isStock, isAllEquip }) => {
           designation: lpoData.designation
         },
         items: lpoData.items.filter(item => item.description.trim() !== ''),
-        paymentTerms: paymentTerms,
+        termsAndConditions: ['Terms & Conditions', ...paymentTerms],
         lpoCounter: lpoCounter,
         signatures: {
           accountsDept: 'ROSHAN SHA',
@@ -206,23 +337,31 @@ const Lpo = ({ isStock, isAllEquip }) => {
           authorizedSignatory: getSignatoryName(),
           authorizedSignatoryTitle: ceoMode
         },
+        isAmendmented: isAmendmentMode ? true : false,
         discount: lpoData.discount,
         showDiscountInTotal: showDiscountInTotal,
-        type: isForStock ? 'stock' : isForAllEquipm ? 'all_equipment' : 'specific_equipment'
+        type: isForStock ? 'stock' : isForAllEquipm ? 'all_equipment' : 'specific_equipment',
+        // Reset signature flags for amendment
+        ...(isAmendmentMode && {
+          pmSigned: false,
+          accountsSigned: false,
+          managerSigned: false,
+          ceoSigned: false,
+          isAmendment: true,
+          amendmentDate: new Date().toLocaleDateString('en-GB')
+        })
       };
 
-      // Add the total amount field based on whether discount is shown or not
       if (showDiscountInTotal) {
-        dataToSave.totalDiscountAmount = totalAmount; // Total after discount
+        dataToSave.totalDiscountAmount = totalAmount;
       } else {
-        dataToSave.totalAmount = subtotal; // Total without discount
+        dataToSave.totalAmount = subtotal;
       }
 
       if (complaintId) {
-        dataToSave.complaintId = complaintId
+        dataToSave.complaintId = complaintId;
       }
 
-      // Only include workingHrs or runningKm if not for stock/all equipment
       if (!isForStock && !isForAllEquipm) {
         if (workingHrsMode === 'WORKING HRS') {
           dataToSave.workingHrs = lpoData.workingHrs;
@@ -231,37 +370,86 @@ const Lpo = ({ isStock, isAllEquip }) => {
         }
       }
 
-      const response = await apiRequest(`${END_POINT}/lpo/add-lpo`,
-        'POST',
-        dataToSave
-      );
+      // Use PUT for edit/amendment mode, POST for create mode
+      const endpoint = (isEditMode || isAmendmentMode)
+        ? `${END_POINT}/lpo/update-lpo/${encodeURIComponent(lpoData.lpoRef)}`
+        : `${END_POINT}/lpo/add-lpo`;
 
+      const method = (isEditMode || isAmendmentMode) ? 'PUT' : 'POST';
+
+      const response = await apiRequest(endpoint, method, dataToSave);
       const result = await response.json();
 
       if (result.success) {
+        // For amendment, send for approval again
+        if (isAmendmentMode && complaintId) {
+          const amendmentData = {
+            lpoData: dataToSave,
+            createdBy: 'WSM-4f428b',
+            isAmendment: true
+          };
 
-        const data = {
-          lpoData: dataToSave,
-          createdBy: 'WSM-4f428b'
-        }
+          const complaintResponse = await apiRequest(
+            `${END_POINT}/complaints/create-lpo/${complaintId}`,
+            'POST',
+            amendmentData
+          );
 
-        const response = await apiRequest(`${END_POINT}/complaints/create-lpo/${complaintId}`,
-          'POST',
-          data
-        );
+          const complaintResult = await complaintResponse.json();
 
-        const result = await response.json();
+          if (complaintResult.status === 200) {
+            setSaveStatus('Amendment saved and sent for approval!');
+            setTimeout(() => {
+              setSaveStatus('');
+              navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/${complaintId}`);
+            }, 2000);
+            return true;
+          }
+        } else if (!isEditMode && !isAmendmentMode && complaintId) {
+          // Original create flow
+          const data = {
+            lpoData: dataToSave,
+            createdBy: 'WSM-4f428b'
+          };
 
-        if (result.status === 200) {
-          setSaveStatus('LPO saved and sended for for approval, await until approved!');
+          const complaintResponse = await apiRequest(
+            `${END_POINT}/complaints/create-lpo/${complaintId}`,
+            'POST',
+            data
+          );
 
-          setTimeout(() => setSaveStatus(''), 3000);
-          navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/${complaintId}`);
+          const complaintResult = await complaintResponse.json();
+
+          if (complaintResult.status === 200) {
+            setSaveStatus('LPO saved and sent for approval!');
+            setTimeout(() => {
+              setSaveStatus('');
+              navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/${complaintId}`);
+            }, 2000);
+            return true;
+          }
+        } else {
+          // For edit mode without complaint
+          setSaveStatus(
+            isAmendmentMode ? 'Amendment saved successfully!' :
+              isEditMode ? 'LPO updated successfully!' :
+                'LPO saved successfully!'
+          );
+          setTimeout(() => {
+            setSaveStatus('');
+            if (isAmendmentMode) {
+              console.log("yessssssssssss");
+              navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/amendment/${true}/${complaintId || lpoData.complaintId || ''}`);
+            } else {
+              console.log("noooo");
+              navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/${complaintId || ''}`);
+            }
+
+          }, 2000);
           return true;
         }
-
       } else {
-        setSaveStatus(`Error: ${result.message || 'Already created with this LPO Number'}`);
+        setSaveStatus(`Error: ${result.message || 'Operation failed'}`);
         return false;
       }
     } catch (error) {
@@ -497,6 +685,10 @@ const Lpo = ({ isStock, isAllEquip }) => {
     <div className="page-container">
       <div className="controls">
         <p>Current LPO Number: {lpoCounter}</p>
+        <p>
+          {isAmendmentMode ? 'Amending' : isEditMode ? 'Editing' : 'Creating'} LPO: {lpoData.lpoRef}
+          {isAmendmentMode && <span className="amendment-badge"> (Amendment)</span>}
+        </p>
         {saveStatus && (
           <p className={`save-status ${saveStatus.includes('Error') ? 'error' : 'success'}`}>
             {saveStatus}
@@ -504,7 +696,15 @@ const Lpo = ({ isStock, isAllEquip }) => {
         )}
         <div className="button-group">
           <button className="action-button download-button" onClick={handleSave} disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save LPO'}
+            {isLoading ? (
+              isAmendmentMode ? 'Processing Amendment...' :
+                isEditMode ? 'Updating...' :
+                  'Saving...'
+            ) : (
+              isAmendmentMode ? 'Save Amendment & Send for Approval' :
+                isEditMode ? 'Update LPO' :
+                  'Save LPO'
+            )}
           </button>
         </div>
       </div>
@@ -514,7 +714,7 @@ const Lpo = ({ isStock, isAllEquip }) => {
           <div className="logo-placeholder-l">
             <img src={logoImage} alt="Company Logo" />
           </div>
-          <div className="company-details-sl company-details-l">
+          <div className="company-details-sl company-details-l text-move-to-left">
             <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
           </div>
         </div>

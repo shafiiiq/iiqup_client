@@ -5,21 +5,27 @@ import html2canvas from 'html2canvas';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import footer from '../../assets/images/footer.png';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { getDeviceFingerprint, getLocationInfo } from '../../utils/deviceFingerprint';
 import DevModal from '../../common/DevModal';
 
 const LpoDoc = () => {
+  const navigate = useNavigate()
   const params = useParams();
   const refNo = params.lpoRef;
   const complaintId = params.complaintId;
+  const amendment = params.amendment;
+
+  console.log("amendment", amendment);
+
 
   const [lpoCounter, setLpoCounter] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [amendmentData, setAmendmentData] = useState(null);
   const [lpoData, setLpoData] = useState({
     vendor: '',
     equipments: [],
@@ -33,7 +39,9 @@ const LpoDoc = () => {
     workingHrs: '',
     runningKm: '',
     items: [],
+    complaintId: '',
     totalAmount: 0,
+    isAmendment: amendment || false,
     totalDiscountAmount: null,
     termsAndConditions: [
       'Terms & Conditions',
@@ -447,10 +455,16 @@ const LpoDoc = () => {
 
   // Check image loading status
   useEffect(() => {
-    if (!componentRef.current) return;
+
+    if (!componentRef.current) {
+      setImagesLoaded(true);
+      return;
+    }
 
     const checkImages = () => {
       const images = componentRef.current.querySelectorAll('img');
+      console.log(images);
+
       if (images.length === 0) {
         setImagesLoaded(true);
         return;
@@ -496,8 +510,6 @@ const LpoDoc = () => {
       const apiUrl = `${END_POINT}/lpo/get-lpo-by-ref/${decodedRefNo}`;
 
       const response = await apiRequest(apiUrl, 'GET');
-
-
       const contentType = response.headers.get('content-type');
 
       if (!response.ok) {
@@ -521,13 +533,11 @@ const LpoDoc = () => {
         const lpo = data.data;
 
         const complaint = await apiRequest(`${END_POINT}/complaints/get-complaints/${lpo.complaintId}`, 'GET');
-
-        let jobCode = null
+        let jobCode = null;
         if (complaint) {
-          jobCode = complaint.complaintId
+          jobCode = complaint.complaintId;
         }
 
-        // Create flags object first
         const flags = {
           pmSigned: lpo.pmSigned || false,
           accountsSigned: lpo.accountsSigned || false,
@@ -535,12 +545,7 @@ const LpoDoc = () => {
           ceoSigned: lpo.ceoSigned || false
         };
 
-        console.log(lpo.pmSigned);
-        console.log(lpo.accountsSigned);
-        console.log(lpo.managerSigned);
-        console.log(lpo.ceoSigned);
-        console.log("New signature flags:", flags);
-
+        // Set original LPO data
         setLpoData({
           vendor: lpo.company?.vendor || '',
           equipments: lpo.equipments || '',
@@ -548,6 +553,7 @@ const LpoDoc = () => {
           lpoRef: lpo.lpoRef || '',
           quoteNo: lpo.quoteNo || '',
           jobCode: jobCode || '',
+          complaintId: lpo.complaintId || '',
           attention: lpo.company?.attention || '',
           designation: lpo.company?.designation || '',
           workingHrs: lpo.workingHrs || '',
@@ -555,6 +561,7 @@ const LpoDoc = () => {
           requestText: lpo.requestText || '',
           items: lpo.items || [],
           totalAmount: lpo.totalAmount || 0,
+          isAmendment: amendment === 'true' || amendment === true,
           totalDiscountAmount: lpo.totalDiscountAmount || null,
           termsAndConditions: lpo.termsAndConditions || [
             'Terms & Conditions',
@@ -568,10 +575,45 @@ const LpoDoc = () => {
           }
         });
 
-        setSignatureFlags(flags); // Update state
+        // If LPO is amended and has amendments, get the latest amendment
+        if (lpo.isAmendmented && lpo.amendments && lpo.amendments.length > 0) {
+          const latestAmendment = lpo.amendments[lpo.amendments.length - 1];
+
+          setAmendmentData({
+            vendor: latestAmendment.amendedCompany?.vendor || lpo.company?.vendor || '',
+            equipments: latestAmendment.amendedEquipments || lpo.equipments || '',
+            date: lpo.date || '',
+            lpoRef: lpo.lpoRef || '',
+            quoteNo: latestAmendment.amendedQuoteNo || lpo.quoteNo || '',
+            jobCode: jobCode || '',
+            complaintId: lpo.complaintId || '',
+            attention: latestAmendment.amendedCompany?.attention || lpo.company?.attention || '',
+            designation: latestAmendment.amendedCompany?.designation || lpo.company?.designation || '',
+            workingHrs: lpo.workingHrs || '',
+            runningKm: lpo.runningKm || '',
+            requestText: latestAmendment.amendedRequestText || lpo.requestText || '',
+            items: latestAmendment.amendedItems || lpo.items || [],
+            totalAmount: latestAmendment.amendedTotalAmount || lpo.totalAmount || 0,
+            isAmendment: true,
+            amendmentDate: new Date(latestAmendment.amendmentDate).toLocaleDateString('en-GB'),
+            amendmentReason: latestAmendment.reason || 'Amendment requested',
+            totalDiscountAmount: latestAmendment.amendedDiscount || lpo.totalDiscountAmount || null,
+            termsAndConditions: latestAmendment.amendedTermsAndConditions || lpo.termsAndConditions || [
+              'Terms & Conditions',
+              'Payment will be made within 90 days from the day of submission of invoice'
+            ],
+            signatures: lpo.signatures || {
+              accountsDept: 'ROSHAN SHA',
+              purchasingManager: 'ABDUL MALIK',
+              operationsManager: 'SURESHKANTH',
+              authorizedSignatory: 'AHAMMED KAMAL'
+            }
+          });
+        }
+
+        setSignatureFlags(flags);
         setLpoCounter(lpo.lpoCounter || 1);
 
-        // NOW load signatures if activated and trusted, passing the flags
         if (globalActivation.isActivated && globalActivation.isTrusted && deviceInfo) {
           console.log("Loading signatures with flags:", flags);
           await Promise.all([
@@ -600,6 +642,7 @@ const LpoDoc = () => {
 
   const sendToApprove = async () => {
     if (!imagesLoaded) {
+      console.log("imagesLoaded", imagesLoaded);
       alert('Please wait for all images to load before generating PDF');
       return;
     }
@@ -716,15 +759,19 @@ const LpoDoc = () => {
       // Convert PDF to blob for S3 upload
       const pdfBlob = pdf.output('blob');
 
+      console.log("lpoData.complaintId", lpoData.complaintId);
+
+
       // First get the pre-signed URL from backend
       const uploadResponse = await apiRequest(
-        `${END_POINT}/complaints/upload-lpo/${complaintId}`,
+        `${END_POINT}/complaints/upload-lpo/${complaintId || lpoData.complaintId}`,
         'POST',
         {
           fileName: getFileName() + '.pdf',
           uploadedBy: 'WORKSHOP_MANAGER',
-          lpoRef: `LPO-${Date.now()}`,
-          description: 'LPO document generated from system'
+          lpoRef: lpoData.lpoRef,
+          description: 'LPO document generated from system',
+          isAmendment: lpoData.isAmendment || false
         },
         { 'Content-Type': 'application/json' }
       );
@@ -761,284 +808,11 @@ const LpoDoc = () => {
     }
   };
 
-  // old function 
-  // const sendToApprove = async () => {
-  //   if (!imagesLoaded) {
-  //     alert('Please wait for all images to load before generating PDF');
-  //     return;
-  //   }
-
-  //   const input = componentRef.current;
-
-  //   try {
-  //     // Hide controls during capture
-  //     const controls = document.querySelector('.controls');
-  //     if (controls) controls.style.visibility = 'hidden';
-
-  //     // Apply clean styles for PDF generation
-  //     const originalStyles = {
-  //       background: input.style.background,
-  //       backgroundImage: input.style.backgroundImage,
-  //       backgroundSize: input.style.backgroundSize,
-  //       backgroundRepeat: input.style.backgroundRepeat,
-  //       backgroundPosition: input.style.backgroundPosition,
-  //       backgroundAttachment: input.style.backgroundAttachment
-  //     };
-
-  //     // Remove any background patterns/grids
-  //     input.style.background = '#FFFFFF';
-  //     input.style.backgroundImage = 'none';
-  //     input.style.backgroundSize = 'auto';
-  //     input.style.backgroundRepeat = 'no-repeat';
-  //     input.style.backgroundPosition = 'initial';
-  //     input.style.backgroundAttachment = 'initial';
-
-  //     // Clean up child elements with grid backgrounds
-  //     const allElements = input.querySelectorAll('*');
-  //     const elementsOriginalStyles = [];
-
-  //     allElements.forEach((element, index) => {
-  //       elementsOriginalStyles[index] = {
-  //         background: element.style.background,
-  //         backgroundImage: element.style.backgroundImage,
-  //         backgroundSize: element.style.backgroundSize,
-  //         backgroundRepeat: element.style.backgroundRepeat,
-  //         backgroundPosition: element.style.backgroundPosition,
-  //         backgroundAttachment: element.style.backgroundAttachment
-  //       };
-
-  //       // Remove grid/pattern backgrounds but keep solid colors and borders
-  //       if (element.style.backgroundImage &&
-  //         (element.style.backgroundImage.includes('grid') ||
-  //           element.style.backgroundImage.includes('linear-gradient') ||
-  //           element.style.backgroundImage.includes('repeating'))) {
-  //         element.style.backgroundImage = 'none';
-  //       }
-  //     });
-
-  //     // Generate canvas from the component
-  //     const canvas = await html2canvas(input, {
-  //       scale: 2,
-  //       logging: false,
-  //       useCORS: true,
-  //       allowTaint: false,
-  //       scrollX: 0,
-  //       scrollY: 0,
-  //       windowWidth: input.scrollWidth,
-  //       windowHeight: input.scrollHeight,
-  //       backgroundColor: '#FFFFFF',
-  //       ignoreElements: (element) => {
-  //         const computedStyle = window.getComputedStyle(element);
-  //         return computedStyle.backgroundImage &&
-  //           (computedStyle.backgroundImage.includes('grid') ||
-  //             computedStyle.backgroundImage.includes('repeating'));
-  //       },
-  //       removeContainer: true,
-  //       foreignObjectRendering: false
-  //     });
-
-  //     // Restore original styles
-  //     Object.assign(input.style, originalStyles);
-  //     allElements.forEach((element, index) => {
-  //       Object.assign(element.style, elementsOriginalStyles[index]);
-  //     });
-
-  //     // Restore controls visibility
-  //     if (controls) controls.style.visibility = 'visible';
-
-  //     const imgData = canvas.toDataURL('image/png', 1.0);
-  //     const pdf = new jsPDF({
-  //       orientation: 'portrait',
-  //       unit: 'mm',
-  //       format: 'a4'
-  //     });
-
-  //     const imgWidth = 210;
-  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  //     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-  //     // Convert PDF to blob for S3 upload
-  //     const pdfBlob = pdf.output('blob');
-
-  //     // First get the pre-signed URL from backend
-  //     const uploadResponse = await apiRequest(
-  //       `${END_POINT}/complaints/upload-lpo/${complaintId}`,
-  //       'POST',
-  //       {
-  //         fileName: getFileName() + '.pdf',
-  //         uploadedBy: 'WORKSHOP_MANAGER',
-  //         lpoRef: `LPO-${Date.now()}`,
-  //         description: 'LPO document generated from system'
-  //       },
-  //       { 'Content-Type': 'application/json' }
-  //     );
-
-  //     const result = await uploadResponse.json();
-  //     console.log('Upload response:', result);
-
-  //     if (!uploadResponse.ok || result.status !== 200) {
-  //       throw new Error(result.message || 'Upload failed');
-  //     }
-
-  //     // Now upload the actual file to S3 using the pre-signed URL
-  //     const s3Response = await fetch(result.uploadUrl, {
-  //       method: 'PUT',
-  //       headers: {
-  //         'Content-Type': 'application/pdf'
-  //       },
-  //       body: pdfBlob
-  //     });
-
-  //     if (!s3Response.ok) {
-  //       throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
-  //     }
-
-  //     alert('LPO uploaded successfully!');
-
-  //   } catch (error) {
-  //     console.error('Error uploading LPO:', error);
-  //     alert(`Upload failed: ${error.message}`);
-  //   }
-  // };
-
-  const sendMail = async () => {
-    if (!imagesLoaded) {
-      alert('Please wait for all images to load before generating PDF');
-      return;
-    }
-
-    const input = componentRef.current;
-
-    try {
-      // Hide controls during capture
-      const controls = document.querySelector('.controls');
-      if (controls) controls.style.visibility = 'hidden';
-
-      // Apply clean styles for PDF generation
-      const originalStyles = {
-        background: input.style.background,
-        backgroundImage: input.style.backgroundImage,
-        backgroundSize: input.style.backgroundSize,
-        backgroundRepeat: input.style.backgroundRepeat,
-        backgroundPosition: input.style.backgroundPosition,
-        backgroundAttachment: input.style.backgroundAttachment
-      };
-
-      // Remove any background patterns/grids
-      input.style.background = '#FFFFFF';
-      input.style.backgroundImage = 'none';
-      input.style.backgroundSize = 'auto';
-      input.style.backgroundRepeat = 'no-repeat';
-      input.style.backgroundPosition = 'initial';
-      input.style.backgroundAttachment = 'initial';
-
-      // Clean up child elements with grid backgrounds
-      const allElements = input.querySelectorAll('*');
-      const elementsOriginalStyles = [];
-
-      allElements.forEach((element, index) => {
-        elementsOriginalStyles[index] = {
-          background: element.style.background,
-          backgroundImage: element.style.backgroundImage,
-          backgroundSize: element.style.backgroundSize,
-          backgroundRepeat: element.style.backgroundRepeat,
-          backgroundPosition: element.style.backgroundPosition,
-          backgroundAttachment: element.style.backgroundAttachment
-        };
-
-        if (element.style.backgroundImage &&
-          (element.style.backgroundImage.includes('grid') ||
-            element.style.backgroundImage.includes('linear-gradient') ||
-            element.style.backgroundImage.includes('repeating'))) {
-          element.style.backgroundImage = 'none';
-        }
-      });
-
-      // Generate canvas from the component
-      const canvas = await html2canvas(input, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: input.scrollWidth,
-        windowHeight: input.scrollHeight,
-        backgroundColor: '#FFFFFF',
-        ignoreElements: (element) => {
-          const computedStyle = window.getComputedStyle(element);
-          return computedStyle.backgroundImage &&
-            (computedStyle.backgroundImage.includes('grid') ||
-              computedStyle.backgroundImage.includes('repeating'));
-        },
-        removeContainer: true,
-        foreignObjectRendering: false
-      });
-
-      // Restore original styles
-      Object.assign(input.style, originalStyles);
-      allElements.forEach((element, index) => {
-        Object.assign(element.style, elementsOriginalStyles[index]);
-      });
-
-      // Restore controls visibility
-      if (controls) controls.style.visibility = 'visible';
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-      // Convert PDF to blob for email
-      const pdfBlob = pdf.output('blob');
-      const fileName = getFileName() + '.pdf';
-
-      // Send email with attachment via your backend
-      const emailResponse = await apiRequest(
-        `${END_POINT}/lpo/send-lpo-email`,
-        'POST',
-        {
-          fileName: fileName,
-          subject: fileName,
-          body: 'Please find attached LPO.',
-          cc: 'malik@ansarigroup.co',
-          lpoRef: lpoData.lpoRef
-        },
-        { 'Content-Type': 'application/json' }
-      );
-
-      const result = await emailResponse.json();
-
-      if (!emailResponse.ok || result.status !== 200) {
-        throw new Error(result.message || 'Email sending failed');
-      }
-
-      // Upload PDF to the pre-signed URL if provided
-      if (result.uploadUrl) {
-        const s3Response = await fetch(result.uploadUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/pdf'
-          },
-          body: pdfBlob
-        });
-
-        if (!s3Response.ok) {
-          throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
-        }
-      }
-
-      alert('Email sent successfully with LPO attachment!');
-
-    } catch (error) {
-      console.error('Error sending email:', error);
-      alert(`Failed to send email: ${error.message}`);
+  const EditLPO = () => {
+    if (amendmentData) {
+      navigate(`/lpo-form/amendment-edit/true/${encodeURIComponent(lpoData.lpoRef)}`);
+    } else {
+      navigate(`/lpo-form/edit/${encodeURIComponent(lpoData.lpoRef)}`);
     }
   };
 
@@ -1606,179 +1380,554 @@ const LpoDoc = () => {
     );
   }
 
-  return (
-    <div className="page-container">
-      <div className="controls">
-        <p>Current LPO Number: {lpoCounter}</p>
-        <p>LPO Reference: {lpoData.lpoRef}</p>
+  const LpoDocumentComponent = ({ data, watermarkText, showOriginalLabel = false }) => {
+    const calculateItemTotal = () => {
+      return data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+    };
 
-        <div className="activation-buttons-section">
-          {!globalActivation.checked ? (
-            <div className="status-badge checking">🔄 Checking Status...</div>
-          ) : !globalActivation.isActivated ? (
-            <button
-              onClick={handleLoadAllSignatures}
-              className="action-button activation-btn not-activated"
-            >
-              🔓 Not Activated - Click to Activate
-            </button>
-          ) : !globalActivation.isTrusted ? (
-            <div className="status-badge not-trusted">
-              <button
-                onClick={handleLoadAllSignatures}
-                className="action-button activation-btn not-activated"
-              >⚠️ Device Not Trusted - Contact Admin
-              </button>
+    return (
+      <>
+        {/* Page 1 */}
+        <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
+          <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : watermarkText === 'ORIGINAL' ? 'authorized-watermark' : watermarkText === 'AMENDED' ? 'authorized-watermark' : 'draft-watermark'}>
+            {watermarkText}
+          </div>
+
+
+          {data.isAmendment && data.amendmentDate && (
+            <div style={{
+              textAlign: 'center',
+              padding: '8px',
+              margin: '10px 0',
+              fontWeight: 'bold'
+            }}>
+              [AMENDMENT 1]
             </div>
-          ) : (
-            <div className="status-badge activated">✅ Activated & Trusted</div>
           )}
-        </div>
 
-        <div className="button-group">
-          <button className="action-button download-button" onClick={sendToApprove}>
-            Send For Approval
-          </button>
-          <button className="action-button download-button" onClick={handleDownloadPdf}>
-            Download as PDF
-          </button>
-          <button className="action-button download-button" onClick={sendMail}>
-            Send Email
-          </button>
-          <button className="action-button print-button" onClick={handlePrint}>
-            Print
-          </button>
-        </div>
-      </div>
-
-      {/* page 1 */}
-      <div className="lpo-document" ref={componentRef} style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
-        <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
-          {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
-        </div>
-        <div className="header">
-          <div className="logo-placeholder-l">
-            <img src={logoImage} alt="Company Logo" />
+          <div className="header">
+            <div className="logo-placeholder-l">
+              <img src={logoImage} alt="Company Logo" />
+            </div>
+            <div className="company-details-s company-details-l">
+              <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
+            </div>
           </div>
-          <div className="company-details-s company-details-l">
-            <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
+
+          <div className="header-divider"></div>
+          <div className="lpo-title">PURCHASE/HIRE ORDER</div>
+
+          <div className="lpo-details">
+            <table className="details-table">
+              <tbody>
+                <tr>
+                  <td className="left-col">
+                    <div className="detail-item">TO : {data.vendor}</div>
+                    <div className="detail-item">ATTN : {data.attention}</div>
+                    <div className="detail-item">DESIGNATION : {data.designation}</div>
+                    <div className="detail-item">Ref No : {data.quoteNo}</div>
+                  </td>
+                  <td className="right-col">
+                    <div className="detail-item">DATE : {data.date}</div>
+                    <div className="detail-item">LPO REF NO : {data.lpoRef}</div>
+                    {data.jobCode && (
+                      <div className="detail-item">JOB/COMPLAINT NO : {data.jobCode}</div>
+                    )}
+                    <div className="detail-item">
+                      EQUIPMENT:
+                      <ul>
+                        {data.equipments.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="detail-item">
+                      {data.workingHrs
+                        ? `WORKING HRS : ${data.workingHrs}`
+                        : data.runningKm
+                          ? `RUNNING KM : ${data.runningKm}`
+                          : ''
+                      }
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
 
-        <div className="header-divider"></div>
+          <div className="details-divider"></div>
+          <div className="request-text">{data.requestText}</div>
 
-        <div className="lpo-title">PURCHASE/HIRE ORDER</div>
-
-        <div className="lpo-details">
-          <table className="details-table">
-            <tbody>
+          <table className="items-table-lpo">
+            <thead>
               <tr>
-                <td className="left-col">
-                  <div className="detail-item">TO : {lpoData.vendor}</div>
-                  <div className="detail-item">ATTN : {lpoData.attention}</div>
-                  <div className="detail-item">DESIGNATION : {lpoData.designation}</div>
-                  <div className="detail-item">Ref No : {lpoData.quoteNo}</div>
-                </td>
-                <td className="right-col">
-                  <div className="detail-item">DATE : {lpoData.date}</div>
-                  <div className="detail-item">LPO REF NO : {lpoData.lpoRef}</div>
-                  {
-                    lpoData.jobCode ? (
-                      <div className="detail-item">JOB/COMPLAINT NO : {lpoData.jobCode}</div>
-                    ) : ''
-                  }
-                  <div className="detail-item">
-                    EQUIPMENT:
+                <th>SN</th>
+                <th>Item Description</th>
+                <th>Qty</th>
+                <th>Unit Price(QR)</th>
+                <th>Total Price(QR)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.slice(0, 20).map((item, index, array) => (
+                <tr className={`${index === array.length - 1 && data.items.length >= 20 ? 'sign-border-td-b' : ''}`} key={item._id || item.id || index}>
+                  <td>{index + 1}</td>
+                  <td>{item.description}</td>
+                  <td>{item.quantity}</td>
+                  <td>{item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td>{item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              ))}
+              {data.items.length <= 20 && (
+                <tr>
+                  <td colSpan="4" className="total-label">
+                    {data.totalDiscountAmount ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
+                  </td>
+                  <td>
+                    {(data.totalDiscountAmount || data.totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {data.items.length <= 20 && (
+            <table className="terms-table">
+              <tbody>
+                <tr className={`${data.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
+                  <td className="terms-header-large sign-border-td-r sign-border-td-b sign-border-td-l sign-border-td-t">
                     <ul>
-                      {lpoData.equipments.map((item, index) => (
-                        <li key={index}>{item}</li>
+                      {data.termsAndConditions.map((term, index) => (
+                        <li key={index}>{term}</li>
                       ))}
                     </ul>
-                  </div>
-                  <div className="detail-item">
-                    {lpoData.workingHrs
-                      ? `WORKING HRS : ${lpoData.workingHrs}`
-                      : lpoData.runningKm
-                        ? `RUNNING KM : ${lpoData.runningKm}`
-                        : ''
-                    }
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="note-row sign-border-td-r sign-border-td-l">
+                    <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+
+          {data.items.length <= 12 && (
+            <table className="signatures-table">
+              <tbody>
+                <tr className='company-name-tr'>
+                  <td colSpan="4" className="company-footer sign-border-td-r">
+                    AL ANSARI TRANSPORT & ENTERPRISES W.L.L
+                  </td>
+                  <td className='sign-table'>Subcontractor OR<br />Service Provider</td>
+                </tr>
+                <tr>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
+                    Authorized Signatory<br />
+                    {data.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
+                  </td>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
+                  <td className='sign-table-date sign-border-td-t'>(Date & Sign with Stamp)</td>
+                </tr>
+                <tr className="signature-spaces-large">
+                  {signatureFlags.pmSigned ? (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      {signatureStates.pm.url ? (
+                        <img className='accounts-sign pm-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                      ) : (
+                        <span className="account-no-signature">Not Signed</span>
+                      )}
+                    </td>
+                  ) : (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      <span className="account-no-signature">Not Signed</span>
+                    </td>
+                  )}
+
+                  {signatureFlags.managerSigned ? (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      {signatureStates.manager.url ? (
+                        <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                      ) : (
+                        <span className="account-no-signature">Not Signed</span>
+                      )}
+                    </td>
+                  ) : (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      <span className="account-no-signature">Not Signed</span>
+                    </td>
+                  )}
+
+                  {signatureFlags.ceoSigned ? (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      {signatureStates.authorized.url ? (
+                        <div className="signature-display">
+                          <img className='accounts-sign' src={signatureStates.authorized.url} alt="Authorized Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                          {signatureStates.seal.url && (
+                            <img className='company-seal' src={signatureStates.seal.url} alt="Company Seal" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                          )}
+                        </div>
+                      ) : (
+                        <span className="account-no-signature">Not Signed</span>
+                      )}
+                    </td>
+                  ) : (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      <span className="account-no-signature">Not Signed</span>
+                    </td>
+                  )}
+
+                  {signatureFlags.accountsSigned ? (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      {signatureStates.accounts.url ? (
+                        <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                      ) : (
+                        <span className="account-no-signature">Not Signed</span>
+                      )}
+                    </td>
+                  ) : (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      <span className="account-no-signature">Not Signed</span>
+                    </td>
+                  )}
+                  <td></td>
+                </tr>
+                <tr>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.purchasingManager}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.operationsManager}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.authorizedSignatory}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.accountsDept}</td>
+                  <td className='date-no-border'></td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+
+          <div className="document-timestamp">
+            This document was generated by the system on {new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            })}, at {new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })}.
+          </div>
+
+          <div className='footer'>
+            <img src={footer} alt="" />
+          </div>
         </div>
 
-        <div className="details-divider"></div>
+        {/* Second page - only if items > 12 */}
+        {data.items.length > 12 && (
+          <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
+            <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
+              {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
+            </div>
 
-        <div className="request-text">
-          {lpoData.requestText}
-        </div>
+            {/* Header */}
+            <div className="header">
+              <div className="logo-placeholder-l">
+                <img src={logoImage} alt="Company Logo" />
+              </div>
+              <div className="company-details-s company-details-l">
+                <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
+              </div>
+            </div>
 
-        <table className="items-table-lpo">
-          <thead>
-            <tr>
-              <th>SN</th>
-              <th>Item Description</th>
-              <th>Qty</th>
-              <th>Unit Price(QR)</th>
-              <th>Total Price(QR)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lpoData.items.slice(0, 20).map((item, index, array) => (
-              <tr className={`${index === array.length - 1 && lpoData.items.length >= 20 ? 'sign-border-td-b' : ''}`} key={item._id || item.id || index}>
-                <td>{index + 1}</td>
-                <td>{item.description}</td>
-                <td>{item.quantity}</td>
-                <td>{item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td>{item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              </tr>
-            ))}
-            {lpoData.items.length <= 20 && (
-              <tr>
-                <td colSpan="4" className="total-label">
-                  {
-                    lpoData.totalDiscountAmount
-                      ? 'Total Amount After Discount (QR)'
-                      : 'Total Amount (QR)'
-                  }
-                </td>
-                <td>
-                  {
-                    lpoData.totalDiscountAmount
-                      ? (lpoData.totalDiscountAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                      : (lpoData.totalAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                  }
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            <div className="header-divider"></div>
 
-        {lpoData.items.length <= 20 && (
-          <table className="terms-table">
-            <tbody>
-              <tr className={`${lpoData.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
-                <td className="terms-header-large sign-border-td-r sign-border-td-b sign-border-td-l sign-border-td-t">
-                  <ul>
-                    {lpoData.termsAndConditions.map((term, index) => (
-                      <li key={index}>{term}</li>
-                    ))}
-                  </ul>
-                </td>
-              </tr>
-              <tr>
-                <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l`}>
-                  <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            {/* Remaining items from 13 onwards */}
+            <table className="items-table-lpo">
+              {
+                data.items.length > 20 ? (
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Item Description</th>
+                      <th>Qty</th>
+                      <th>Unit Price(QR)</th>
+                      <th>Total Price(QR)</th>
+                    </tr>
+                  </thead>
+                ) : ''
+              }
+              <tbody>
+                {data.items.slice(20, 48).map((item, index, array) => (
+                  <tr className={`${index === array.length - 1 && data.items.length >= 48 ? 'sign-border-td-b' : ''}`} key={item._id || item.id || index}>
+                    <td>{index + 21}</td>
+                    <td>{item.description}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>{item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                ))}
+                {data.items.length > 20 && data.items.length <= 48 && (
+                  <tr>
+                    <td colSpan="4" className="total-label">
+                      {
+                        data.totalDiscountAmount
+                          ? 'Total Amount After Discount (QR)'
+                          : 'Total Amount (QR)'
+                      }
+                    </td>
+                    <td>
+                      {
+                        data.totalDiscountAmount
+                          ? (data.totalDiscountAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                          : (data.totalAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      }
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            {
+              data.items.length > 20 && data.items.length <= 48 && (
+                <table className="terms-table">
+                  <tbody>
+                    <tr className={`${data.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
+                      <td className="terms-header-large sign-border-td-r sign-border-td-b sign-border-td-l sign-border-td-t">
+                        <ul>
+                          {data.termsAndConditions.map((term, index) => (
+                            <li key={index}>{term}</li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l`}>
+                        <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              )
+            }
+
+            {
+              data.items.length < 42 && (
+                <>
+                  {/* Signatures table */}
+                  <table className="signatures-table">
+                    <tbody>
+                      <tr className='company-name-tr'>
+                        <td colSpan="4" className="company-footer sign-border-td-r">
+                          AL ANSARI TRANSPORT & ENTERPRISES W.L.L
+                        </td>
+                        <td className='sign-table'>
+                          Subcontractor OR<br />Service Provider
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
+                        <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
+                        <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
+                          Authorized Signatory<br />
+                          {data.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
+                        </td>
+                        <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
+                        <td className='sign-table-date sign-border-td-t'>
+                          (Date & Sign with Stamp)
+                        </td>
+                      </tr>
+
+                      <tr className="signature-spaces-large">
+                        {/* PM */}
+                        {signatureFlags.pmSigned && (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            {signatureStates.pm.url ? (
+                              <img className='accounts-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                            ) : (
+                              <span className="account-no-signature">Not Signed</span>
+                            )}
+                          </td>
+                        )}
+                        {!signatureFlags.pmSigned && (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            <span className="account-no-signature">Not Signed</span>
+                          </td>
+                        )}
+
+                        {/* Manager */}
+                        {signatureFlags.managerSigned && (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            {signatureStates.manager.url ? (
+                              <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                            ) : (
+                              <span className="account-no-signature">Not Signed</span>
+                            )}
+                          </td>
+                        )}
+                        {!signatureFlags.managerSigned && (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            <span className="account-no-signature">Not Signed</span>
+                          </td>
+                        )}
+
+                        {/* Authorized + Seal */}
+                        {signatureFlags.ceoSigned ? (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            {signatureStates.authorized.url ? (
+                              <div className="signature-display">
+                                <img className='accounts-sign' src={signatureStates.authorized.url} alt="Authorized Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                                {signatureStates.seal.url && (
+                                  <img className='company-seal' src={signatureStates.seal.url} alt="Company Seal" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                                )}
+                              </div>
+                            ) : (
+                              <span className="account-no-signature">Not Signed</span>
+                            )}
+                          </td>
+                        ) : (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            <span className="account-no-signature">Not Signed</span>
+                          </td>
+                        )}
+
+                        {/* Accounts */}
+                        {signatureFlags.accountsSigned && (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            {signatureStates.accounts.url ? (
+                              <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                            ) : (
+                              <span className="account-no-signature">Not Signed</span>
+                            )}
+                          </td>
+                        )}
+                        {!signatureFlags.accountsSigned && (
+                          <td className='sign-table lpo-signs sign-border-td-r'>
+                            <span className="account-no-signature">Not Signed</span>
+                          </td>
+                        )}
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.purchasingManager}</td>
+                        <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.operationsManager}</td>
+                        <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.authorizedSignatory}</td>
+                        <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.accountsDept}</td>
+                        <td className='date-no-border'></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              )
+            }
+
+            {/* Footer */}
+            <div className='footer'>
+              <img src={footer} alt="" />
+            </div>
+
+            <div className="document-timestamp">
+              This document was generated by the system on {new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })}, at {new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              })}.
+            </div>
+          </div>
         )}
 
-        {lpoData.items.length <= 12 && (
-          <>
+        {/* Third page - only if items > 43 */}
+        {data.items.length > 48 && (
+          <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
+            <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
+              {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
+            </div>
+
+            {/* Header */}
+            <div className="header">
+              <div className="logo-placeholder-l">
+                <img src={logoImage} alt="Company Logo" />
+              </div>
+              <div className="company-details-s company-details-l">
+                <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
+              </div>
+            </div>
+
+            <div className="header-divider"></div>
+
+            {/* Remaining items from 13 onwards */}
+            <table className="items-table-lpo">
+              {
+                data.items.length > 20 ? (
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Item Description</th>
+                      <th>Qty</th>
+                      <th>Unit Price(QR)</th>
+                      <th>Total Price(QR)</th>
+                    </tr>
+                  </thead>
+                ) : ''
+              }
+              <tbody>
+                {data.items.slice(49).map((item, index) => (
+                  <tr key={item._id || item.id || index}>
+                    <td>{index + 49}</td>
+                    <td>{item.description}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>{item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                ))}
+                {data.items.length > 48 && (
+                  <tr>
+                    <td colSpan="4" className="total-label">
+                      {
+                        data.totalDiscountAmount
+                          ? 'Total Amount After Discount (QR)'
+                          : 'Total Amount (QR)'
+                      }
+                    </td>
+                    <td>
+                      {
+                        data.totalDiscountAmount
+                          ? (data.totalDiscountAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                          : (data.totalAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      }
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            {
+              data.items.length > 48 && (
+                <table className="terms-table">
+                  <tbody>
+                    <tr className={`${data.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
+                      <td className="terms-header-large sign-border-td-r sign-border-td-b sign-border-td-l sign-border-td-t">
+                        <ul>
+                          {data.termsAndConditions.map((term, index) => (
+                            <li key={index}>{term}</li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l ${data.items.length > 20 && data.items.length > 12 ? 'sign-border-td-b' : ''}`}>
+                        <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              )
+            }
+
+            {/* Signatures table */}
             <table className="signatures-table">
               <tbody>
                 <tr className='company-name-tr'>
@@ -1794,7 +1943,7 @@ const LpoDoc = () => {
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
                     Authorized Signatory<br />
-                    {lpoData.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
+                    {data.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
                   </td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
                   <td className='sign-table-date sign-border-td-t'>
@@ -1807,13 +1956,7 @@ const LpoDoc = () => {
                   {signatureFlags.pmSigned && (
                     <td className='sign-table lpo-signs sign-border-td-r'>
                       {signatureStates.pm.url ? (
-                        <img
-                          className='accounts-sign'
-                          src={signatureStates.pm.url}
-                          alt="PM Signature"
-                          crossOrigin="anonymous"
-                          onError={(e) => e.target.style.display = 'none'}
-                        />
+                        <img className='accounts-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
                         <span className="account-no-signature">Not Signed</span>
                       )}
@@ -1829,13 +1972,7 @@ const LpoDoc = () => {
                   {signatureFlags.managerSigned && (
                     <td className='sign-table lpo-signs sign-border-td-r'>
                       {signatureStates.manager.url ? (
-                        <img
-                          className='accounts-sign'
-                          src={signatureStates.manager.url}
-                          alt="Manager Signature"
-                          crossOrigin="anonymous"
-                          onError={(e) => e.target.style.display = 'none'}
-                        />
+                        <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
                         <span className="account-no-signature">Not Signed</span>
                       )}
@@ -1847,26 +1984,14 @@ const LpoDoc = () => {
                     </td>
                   )}
 
-                  {/* Authorized + Seal - Only show if CEO signed */}
+                  {/* Authorized + Seal */}
                   {signatureFlags.ceoSigned ? (
                     <td className='sign-table lpo-signs sign-border-td-r'>
                       {signatureStates.authorized.url ? (
                         <div className="signature-display">
-                          <img
-                            className='accounts-sign'
-                            src={signatureStates.authorized.url}
-                            alt="Authorized Signature"
-                            crossOrigin="anonymous"
-                            onError={(e) => e.target.style.display = 'none'}
-                          />
+                          <img className='accounts-sign' src={signatureStates.authorized.url} alt="Authorized Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                           {signatureStates.seal.url && (
-                            <img
-                              className='company-seal'
-                              src={signatureStates.seal.url}
-                              alt="Company Seal"
-                              crossOrigin="anonymous"
-                              onError={(e) => e.target.style.display = 'none'}
-                            />
+                            <img className='company-seal' src={signatureStates.seal.url} alt="Company Seal" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                           )}
                         </div>
                       ) : (
@@ -1883,13 +2008,7 @@ const LpoDoc = () => {
                   {signatureFlags.accountsSigned && (
                     <td className='sign-table lpo-signs sign-border-td-r'>
                       {signatureStates.accounts.url ? (
-                        <img
-                          className='accounts-sign'
-                          src={signatureStates.accounts.url}
-                          alt="Accounts Signature"
-                          crossOrigin="anonymous"
-                          onError={(e) => e.target.style.display = 'none'}
-                        />
+                        <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
                         <span className="account-no-signature">Not Signed</span>
                       )}
@@ -1903,463 +2022,121 @@ const LpoDoc = () => {
                   <td></td>
                 </tr>
                 <tr>
-                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.purchasingManager}</td>
-                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.operationsManager}</td>
-                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.authorizedSignatory}</td>
-                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.accountsDept}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.purchasingManager}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.operationsManager}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.authorizedSignatory}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.accountsDept}</td>
                   <td className='date-no-border'></td>
                 </tr>
               </tbody>
             </table>
-          </>
-        )}
 
-        <div className='footer'>
-          <img src={footer} alt="" />
+            {/* Footer */}
+            <div className='footer'>
+              <img src={footer} alt="" />
+            </div>
+
+            <div className="document-timestamp">
+              This document was generated by the system on {new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })}, at {new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              })}.
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  return (
+    <div className="page-container">
+      <div className="controls">
+        <div className="activation-buttons-section">
+          {!globalActivation.checked ? (
+            <div className="status-badge checking">🔄 Checking Status...</div>
+          ) : !globalActivation.isActivated ? (
+            <button
+              onClick={handleLoadAllSignatures}
+              className="action-button activation-btn not-activated"
+            >
+              Not Activated - Click to Activate
+            </button>
+          ) : !globalActivation.isTrusted ? (
+            <div className="status-badge not-trusted">
+              <button
+                onClick={handleLoadAllSignatures}
+                className="action-button activation-btn not-activated"
+              >Device Not Trusted - Contact Admin
+              </button>
+            </div>
+          ) : (
+            <div className="status-badge activated"> Activated & Trusted</div>
+          )}
         </div>
 
-        <div className="document-timestamp">
-          This document was generated by the system on {new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-          })}, at {new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-          })}.
+        <p>Current LPO Number: {lpoCounter}</p>
+        <p>LPO Reference: {lpoData.lpoRef}</p>
+
+        <div className="button-group">
+          <button className="action-button lpo-approval-button" onClick={sendToApprove}>
+            Send For Approval
+          </button>
+          <button className="action-button lpo-download-button" onClick={handleDownloadPdf}>
+            Download as PDF
+          </button>
+          <button className="action-button lpo-edit-button" onClick={EditLPO}>
+            Edit
+          </button>
+          {/* <button className="action-button print-button" onClick={handlePrint}>
+            Print
+          </button> */}
         </div>
       </div>
 
-      {/* Second page - only if items > 12 */}
-      {lpoData.items.length > 12 && (
-        <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
-          <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
-            {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
+      {/* Original LPO Document */}
+      <LpoDocumentComponent
+        data={lpoData}
+        watermarkText={
+          signatureFlags.ceoSigned && signatureStates.seal.url ? '' :
+            amendmentData ? '' :
+              lpoData.isAmendment ? '' :
+                'DRAFT'
+        }
+        showOriginalLabel={amendmentData !== null}
+      />
+
+      {/* Amended LPO Document - Only show if amendment exists */}
+      {amendmentData && (
+        <>
+          <div style={{
+            pageBreakBefore: 'always',
+            height: '40px',
+            background: '#f0f0f0',
+            margin: '30px 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            color: '#d32f2f',
+            border: '2px dashed #d32f2f'
+          }}>
+            ===== AMENDED DOCUMENT FOLLOWS =====
           </div>
-
-          {/* Header */}
-          <div className="header">
-            <div className="logo-placeholder-l">
-              <img src={logoImage} alt="Company Logo" />
-            </div>
-            <div className="company-details-s company-details-l">
-              <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
-            </div>
-          </div>
-
-          <div className="header-divider"></div>
-
-          {/* Remaining items from 13 onwards */}
-          <table className="items-table-lpo">
-            {
-              lpoData.items.length > 20 ? (
-                <thead>
-                  <tr>
-                    <th>SN</th>
-                    <th>Item Description</th>
-                    <th>Qty</th>
-                    <th>Unit Price(QR)</th>
-                    <th>Total Price(QR)</th>
-                  </tr>
-                </thead>
-              ) : ''
-            }
-            <tbody>
-              {lpoData.items.slice(20, 48).map((item, index, array) => (
-                <tr className={`${index === array.length - 1 && lpoData.items.length >= 48 ? 'sign-border-td-b' : ''}`} key={item._id || item.id || index}>
-                  <td>{index + 21}</td>
-                  <td>{item.description}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td>{item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                </tr>
-              ))}
-              {lpoData.items.length > 20 && lpoData.items.length <= 48 && (
-                <tr>
-                  <td colSpan="4" className="total-label">
-                    {
-                      lpoData.totalDiscountAmount
-                        ? 'Total Amount After Discount (QR)'
-                        : 'Total Amount (QR)'
-                    }
-                  </td>
-                  <td>
-                    {
-                      lpoData.totalDiscountAmount
-                        ? (lpoData.totalDiscountAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                        : (lpoData.totalAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    }
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          {
-            lpoData.items.length > 20 && lpoData.items.length <= 48 && (
-              <table className="terms-table">
-                <tbody>
-                  <tr className={`${lpoData.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
-                    <td className="terms-header-large sign-border-td-r sign-border-td-b sign-border-td-l sign-border-td-t">
-                      <ul>
-                        {lpoData.termsAndConditions.map((term, index) => (
-                          <li key={index}>{term}</li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l`}>
-                      <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            )
-          }
-
-          {
-            lpoData.items.length < 42 && (
-              <>
-                {/* Signatures table */}
-                <table className="signatures-table">
-                  <tbody>
-                    <tr className='company-name-tr'>
-                      <td colSpan="4" className="company-footer sign-border-td-r">
-                        AL ANSARI TRANSPORT & ENTERPRISES W.L.L
-                      </td>
-                      <td className='sign-table'>
-                        Subcontractor OR<br />Service Provider
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
-                      <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
-                      <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
-                        Authorized Signatory<br />
-                        {lpoData.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
-                      </td>
-                      <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
-                      <td className='sign-table-date sign-border-td-t'>
-                        (Date & Sign with Stamp)
-                      </td>
-                    </tr>
-
-                    <tr className="signature-spaces-large">
-                      {/* PM */}
-                      {signatureFlags.pmSigned && (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          {signatureStates.pm.url ? (
-                            <img className='accounts-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                          ) : (
-                            <span className="account-no-signature">Not Signed</span>
-                          )}
-                        </td>
-                      )}
-                      {!signatureFlags.pmSigned && (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          <span className="account-no-signature">Not Signed</span>
-                        </td>
-                      )}
-
-                      {/* Manager */}
-                      {signatureFlags.managerSigned && (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          {signatureStates.manager.url ? (
-                            <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                          ) : (
-                            <span className="account-no-signature">Not Signed</span>
-                          )}
-                        </td>
-                      )}
-                      {!signatureFlags.managerSigned && (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          <span className="account-no-signature">Not Signed</span>
-                        </td>
-                      )}
-
-                      {/* Authorized + Seal */}
-                      {signatureFlags.ceoSigned ? (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          {signatureStates.authorized.url ? (
-                            <div className="signature-display">
-                              <img className='accounts-sign' src={signatureStates.authorized.url} alt="Authorized Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                              {signatureStates.seal.url && (
-                                <img className='company-seal' src={signatureStates.seal.url} alt="Company Seal" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                              )}
-                            </div>
-                          ) : (
-                            <span className="account-no-signature">Not Signed</span>
-                          )}
-                        </td>
-                      ) : (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          <span className="account-no-signature">Not Signed</span>
-                        </td>
-                      )}
-
-                      {/* Accounts */}
-                      {signatureFlags.accountsSigned && (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          {signatureStates.accounts.url ? (
-                            <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                          ) : (
-                            <span className="account-no-signature">Not Signed</span>
-                          )}
-                        </td>
-                      )}
-                      {!signatureFlags.accountsSigned && (
-                        <td className='sign-table lpo-signs sign-border-td-r'>
-                          <span className="account-no-signature">Not Signed</span>
-                        </td>
-                      )}
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.purchasingManager}</td>
-                      <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.operationsManager}</td>
-                      <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.authorizedSignatory}</td>
-                      <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.accountsDept}</td>
-                      <td className='date-no-border'></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </>
-            )
-          }
-
-          {/* Footer */}
-          <div className='footer'>
-            <img src={footer} alt="" />
-          </div>
-
-          <div className="document-timestamp">
-            This document was generated by the system on {new Date().toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            })}, at {new Date().toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true
-            })}.
-          </div>
-        </div>
+          <LpoDocumentComponent
+            data={amendmentData}
+            watermarkText=""
+            showOriginalLabel={false}
+          />
+        </>
       )}
 
-      {/* Third page - only if items > 43 */}
-      {lpoData.items.length > 48 && (
-        <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
-          <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
-            {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
-          </div>
-
-          {/* Header */}
-          <div className="header">
-            <div className="logo-placeholder-l">
-              <img src={logoImage} alt="Company Logo" />
-            </div>
-            <div className="company-details-s company-details-l">
-              <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
-            </div>
-          </div>
-
-          <div className="header-divider"></div>
-
-          {/* Remaining items from 13 onwards */}
-          <table className="items-table-lpo">
-            {
-              lpoData.items.length > 20 ? (
-                <thead>
-                  <tr>
-                    <th>SN</th>
-                    <th>Item Description</th>
-                    <th>Qty</th>
-                    <th>Unit Price(QR)</th>
-                    <th>Total Price(QR)</th>
-                  </tr>
-                </thead>
-              ) : ''
-            }
-            <tbody>
-              {lpoData.items.slice(49).map((item, index) => (
-                <tr key={item._id || item.id || index}>
-                  <td>{index + 49}</td>
-                  <td>{item.description}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.unitPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td>{item.totalPrice?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                </tr>
-              ))}
-              {lpoData.items.length > 48 && (
-                <tr>
-                  <td colSpan="4" className="total-label">
-                    {
-                      lpoData.totalDiscountAmount
-                        ? 'Total Amount After Discount (QR)'
-                        : 'Total Amount (QR)'
-                    }
-                  </td>
-                  <td>
-                    {
-                      lpoData.totalDiscountAmount
-                        ? (lpoData.totalDiscountAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                        : (lpoData.totalAmount || calculateTotal()).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    }
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          {
-            lpoData.items.length > 48 && (
-              <table className="terms-table">
-                <tbody>
-                  <tr className={`${lpoData.items.length < 8 ? 'terms-row-large-doc normal' : 'terms-row-large-doc more'}`}>
-                    <td className="terms-header-large sign-border-td-r sign-border-td-b sign-border-td-l sign-border-td-t">
-                      <ul>
-                        {lpoData.termsAndConditions.map((term, index) => (
-                          <li key={index}>{term}</li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className={`note-row sign-border-td-r sign-border-td-r sign-border-td-l ${lpoData.items.length > 20 && lpoData.items.length > 12 ? 'sign-border-td-b' : ''}`}>
-                      <strong>NOTE:</strong> The LPO copy should be submitted along with the invoice every month for the payment process.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            )
-          }
-
-          {/* Signatures table */}
-          <table className="signatures-table">
-            <tbody>
-              <tr className='company-name-tr'>
-                <td colSpan="4" className="company-footer sign-border-td-r">
-                  AL ANSARI TRANSPORT & ENTERPRISES W.L.L
-                </td>
-                <td className='sign-table'>
-                  Subcontractor OR<br />Service Provider
-                </td>
-              </tr>
-              <tr>
-                <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
-                <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
-                <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
-                  Authorized Signatory<br />
-                  {lpoData.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
-                </td>
-                <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
-                <td className='sign-table-date sign-border-td-t'>
-                  (Date & Sign with Stamp)
-                </td>
-              </tr>
-
-              <tr className="signature-spaces-large">
-                {/* PM */}
-                {signatureFlags.pmSigned && (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    {signatureStates.pm.url ? (
-                      <img className='accounts-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                    ) : (
-                      <span className="account-no-signature">Not Signed</span>
-                    )}
-                  </td>
-                )}
-                {!signatureFlags.pmSigned && (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    <span className="account-no-signature">Not Signed</span>
-                  </td>
-                )}
-
-                {/* Manager */}
-                {signatureFlags.managerSigned && (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    {signatureStates.manager.url ? (
-                      <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                    ) : (
-                      <span className="account-no-signature">Not Signed</span>
-                    )}
-                  </td>
-                )}
-                {!signatureFlags.managerSigned && (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    <span className="account-no-signature">Not Signed</span>
-                  </td>
-                )}
-
-                {/* Authorized + Seal */}
-                {signatureFlags.ceoSigned ? (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    {signatureStates.authorized.url ? (
-                      <div className="signature-display">
-                        <img className='accounts-sign' src={signatureStates.authorized.url} alt="Authorized Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                        {signatureStates.seal.url && (
-                          <img className='company-seal' src={signatureStates.seal.url} alt="Company Seal" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                        )}
-                      </div>
-                    ) : (
-                      <span className="account-no-signature">Not Signed</span>
-                    )}
-                  </td>
-                ) : (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    <span className="account-no-signature">Not Signed</span>
-                  </td>
-                )}
-
-                {/* Accounts */}
-                {signatureFlags.accountsSigned && (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    {signatureStates.accounts.url ? (
-                      <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                    ) : (
-                      <span className="account-no-signature">Not Signed</span>
-                    )}
-                  </td>
-                )}
-                {!signatureFlags.accountsSigned && (
-                  <td className='sign-table lpo-signs sign-border-td-r'>
-                    <span className="account-no-signature">Not Signed</span>
-                  </td>
-                )}
-                <td></td>
-              </tr>
-              <tr>
-                <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.purchasingManager}</td>
-                <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.operationsManager}</td>
-                <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.authorizedSignatory}</td>
-                <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{lpoData.signatures.accountsDept}</td>
-                <td className='date-no-border'></td>
-              </tr>
-            </tbody>
-          </table>
-
-          {/* Footer */}
-          <div className='footer'>
-            <img src={footer} alt="" />
-          </div>
-
-          <div className="document-timestamp">
-            This document was generated by the system on {new Date().toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            })}, at {new Date().toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true
-            })}.
-          </div>
-        </div>
-      )}
-
-      {/* Activation Key Modal */}
+      {/* Modals - Keep all your existing modals */}
       <DevModal
         isOpen={showActivationModal}
         onClose={() => setShowActivationModal(false)}
@@ -2378,7 +2155,6 @@ const LpoDoc = () => {
         preventClose={activationLoading}
       />
 
-      {/* Trust Browser Modal */}
       <DevModal
         isOpen={showTrustModal}
         onClose={() => { }}
@@ -2390,7 +2166,6 @@ const LpoDoc = () => {
         preventClose={true}
       />
 
-      {/* Not Trusted Modal */}
       <DevModal
         isOpen={showNotTrustedModal}
         onClose={() => setShowNotTrustedModal(false)}
@@ -2400,7 +2175,7 @@ const LpoDoc = () => {
         buttonText="Close"
         onButtonClick={() => setShowNotTrustedModal(false)}
       />
-    </div >
+    </div>
   );
 };
 

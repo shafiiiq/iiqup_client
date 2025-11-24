@@ -449,7 +449,7 @@ function App() {
 
   const createLPO = (lpoItem = null,) => {
     console.log(lpoItem);
-    
+
     const hideUntil = new Date();
     hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
 
@@ -1118,6 +1118,50 @@ function App() {
           />
 
           <Route
+            path="/lpo-form/edit/:refNo"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <Lpo edit={true} />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/lpo-form/edit/:refNo"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <Lpo edit={true} />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+           <Route
+            path="/lpo-form/amendment-edit/:amendment/:refNo"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <Lpo amendmentEdit={true} amendment={true}/>
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/lpo-form/amendment/:refNo"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <Lpo amendment={true} />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/lpo-form/:regNo/:complaintId"
             element={
               <ProtectedRoute>
@@ -1139,6 +1183,16 @@ function App() {
           />
 
           <Route path="/lpo-doc/:lpoRef/:complaintId"
+            element={
+              <ProtectedRoute>
+                <CEOGuard>
+                  <LpoDoc />
+                </CEOGuard>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"
             element={
               <ProtectedRoute>
                 <CEOGuard>

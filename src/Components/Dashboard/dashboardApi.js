@@ -377,3 +377,85 @@ export const fetchBrand = async (regNo) => {
     // Return the brand if found, otherwise return a fallback value
     return equipment ? equipment.brand : 'N/A';
 }
+
+
+/**
+ * Fetch last 5 days comparison data
+ */
+export const fetchLast5DaysComparison = async () => {
+  try {
+    const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-days-comparison`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch last 5 days comparison');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching last 5 days comparison:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch last 5 months comparison data
+ */
+export const fetchLast5MonthsComparison = async () => {
+  try {
+    const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-months-comparison`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch last 5 months comparison');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching last 5 months comparison:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch last 5 years comparison data
+ */
+export const fetchLast5YearsComparison = async () => {
+  try {
+    const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-years-comparison`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch last 5 years comparison');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching last 5 years comparison:', error);
+    throw error;
+  }
+};
+
+/**
+ * Prepare comparison chart data for visualization
+ */
+export const prepareComparisonChartData = (comparisonData, period) => {
+  if (!comparisonData || !comparisonData.comparison) {
+    return [];
+  }
+
+  return comparisonData.comparison.map(item => {
+    const label = period === 'last-5-days'
+      ? item.date
+      : period === 'last-5-months'
+        ? item.month
+        : item.year;
+
+    return {
+      label,
+      'Service History': item.collections['service-history'] || 0,
+      'Service Reports': item.collections['service-report'] || 0,
+      'Maintenance': item.collections['maintanance-history'] || 0,
+      'Tyre History': item.collections['tyre-history'] || 0,
+      'Battery History': item.collections['battery-history'] || 0,
+      'Equipment': item.collections['equipment'] || 0,
+      'Stocks': item.collections['stocks'] || 0,
+      'Toolkit': item.collections['toolkit'] || 0,
+      'Total': item.total
+    };
+  });
+};
