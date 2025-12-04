@@ -1091,21 +1091,36 @@ body {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 0.5rem;
 }
 
 .comparison-tab {
   padding: 0.5rem 1.5rem;
-  border: 2px solid #e2e8f0;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
+  width: calc(100%/3.05);
+  flex: 1;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
 }
 
 .comparison-tab:hover:not(:disabled) {
   border-color: #3b82f6;
-  color: #3b82f6;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .comparison-tab.active {

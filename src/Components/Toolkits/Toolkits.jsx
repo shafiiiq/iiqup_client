@@ -11,6 +11,11 @@ const Toolkits = () => {
   const predefinedTypes = ['Head Protection', 'Eye Protection', 'Hand Protection', 'Foot Protection', 'Body Protection', 'Fall Protection', 'Respiratory Protection'];
   const predefinedSizes = ['S', 'M', 'L', 'XL', 'XXL', 'One Size'];
 
+  const [variantSearchTerm, setVariantSearchTerm] = useState('');
+  const [variantFilterSize, setVariantFilterSize] = useState('all');
+  const [variantFilterColor, setVariantFilterColor] = useState('all');
+  const [variantFilterStatus, setVariantFilterStatus] = useState('all');
+
   const [toolkits, setToolkits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,6 +74,26 @@ const Toolkits = () => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
   const [showColorDropdown, setShowColorDropdown] = useState(false);
+
+  // Export filter states
+  const [showExportFilters, setShowExportFilters] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    toolkit: 'all',
+    size: 'all',
+    color: 'all',
+    status: 'all'
+  });
+
+  // Toolkit history states
+  const [showToolkitHistory, setShowToolkitHistory] = useState(false);
+  const [toolkitHistory, setToolkitHistory] = useState([]);
+  const [historyFilter, setHistoryFilter] = useState({
+    type: 'all', // 'all', 'range', 'last'
+    dateFrom: '',
+    dateTo: '',
+    lastN: 7,
+    lastUnit: 'days' // 'days', 'weeks', 'months', 'years'
+  });
 
   // Refs for dropdown components to handle clicks outside
   const nameDropdownRef = useRef(null);
@@ -188,6 +213,54 @@ const Toolkits = () => {
       personId: null, // Clear ID when manually typing
       reason: value ? `Handovered to ${value}` : 'Used'
     });
+  };
+
+  // Group variants by color and filter
+  const getFilteredAndGroupedVariants = (variants) => {
+    if (!variants || variants.length === 0) return {};
+
+    // First filter variants
+    let filtered = variants.filter(variant => {
+      const matchesSearch = variantSearchTerm === '' ||
+        variant.size.toLowerCase().includes(variantSearchTerm.toLowerCase()) ||
+        variant.color.toLowerCase().includes(variantSearchTerm.toLowerCase());
+
+      const matchesSize = variantFilterSize === 'all' || variant.size === variantFilterSize;
+      const matchesColor = variantFilterColor === 'all' || variant.color === variantFilterColor;
+
+      const status = calculateStatus(variant.stockCount, variant.minStockLevel);
+      const matchesStatus = variantFilterStatus === 'all' || status === variantFilterStatus;
+
+      return matchesSearch && matchesSize && matchesColor && matchesStatus;
+    });
+
+    // Then group by color
+    const grouped = {};
+    filtered.forEach(variant => {
+      if (!grouped[variant.color]) {
+        grouped[variant.color] = [];
+      }
+      grouped[variant.color].push(variant);
+    });
+
+    // Sort variants within each color group by size
+    Object.keys(grouped).forEach(color => {
+      grouped[color].sort((a, b) => {
+        const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'One Size'];
+        const aIndex = sizeOrder.indexOf(a.size);
+        const bIndex = sizeOrder.indexOf(b.size);
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        return a.size.localeCompare(b.size);
+      });
+    });
+
+    return grouped;
+  };
+
+  // Get unique sizes and colors for filter dropdowns
+  const getUniqueValues = (variants, key) => {
+    if (!variants || variants.length === 0) return [];
+    return [...new Set(variants.map(v => v[key]))].sort();
   };
 
   // Handle clicks outside dropdowns
@@ -630,7 +703,7 @@ const Toolkits = () => {
           reason: reduceStockData.reason || 'Stock reduced',
           updatedBy: 'User',
           person: reduceStockData.person,
-          personId: reduceStockData.personId ,
+          personId: reduceStockData.personId,
           assignedDate: reduceStockData.assignedDate
         }
       );
@@ -954,65 +1027,162 @@ const Toolkits = () => {
             </div>
 
             <div className="variants-section">
-              <h3>Variants</h3>
-              <table className="variants-table">
-                <thead>
-                  <tr>
-                    <th>Size</th>
-                    <th>Color</th>
-                    <th>Stock</th>
-                    <th>Min Level</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedToolkit.variants.map(variant => (
-                    <tr
-                      key={variant._id}
-                      className={selectedVariant && selectedVariant._id === variant._id ? 'selected' : ''}
-                      onClick={() => showVariantDetails(variant, selectedToolkit)}
+              <div className="variants-header-controls">
+                <h3>Variants</h3>
+
+                {/* Search and Filter Controls */}
+                <div className="variants-filters">
+                  <div className="filter-search">
+                    <input
+                      type="text"
+                      placeholder="Search size or color..."
+                      value={variantSearchTerm}
+                      onChange={(e) => setVariantSearchTerm(e.target.value)}
+                      className="variant-search-input"
+                    />
+                    {variantSearchTerm && (
+                      <button
+                        className="clear-search-btn"
+                        onClick={() => setVariantSearchTerm('')}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="filter-dropdowns">
+                    <select
+                      value={variantFilterSize}
+                      onChange={(e) => setVariantFilterSize(e.target.value)}
+                      className="filter-select"
                     >
-                      <td>{variant.size}</td>
-                      <td>
-                        <span className="color-indicator" style={{
-                          backgroundColor: variant.color?.toLowerCase() === 'clear' ? 'transparent' : variant.color?.toLowerCase(),
-                          border: variant.color.toLowerCase() === 'clear' ? '1px dashed #ccc' : 'none'
-                        }}></span>
-                        {variant.color}
-                      </td>
-                      <td>{variant.stockCount}</td>
-                      <td>{variant.minStockLevel}</td>
-                      <td>
-                        <span className={`status-badge ${calculateStatus(variant.stockCount, variant.minStockLevel)}`}>
-                          {calculateStatus(variant.stockCount, variant.minStockLevel) === 'available' ? 'In Stock' :
-                            calculateStatus(variant.stockCount, variant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
-                        </span>
-                      </td>
-                      <td className="variant-actions">
-                        <button
-                          className="action-btn edit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openUpdateVariantForm(variant, selectedToolkit);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="action-btn delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteVariant(selectedToolkit._id, variant._id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      <option value="all">All Sizes</option>
+                      {getUniqueValues(selectedToolkit.variants, 'size').map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={variantFilterColor}
+                      onChange={(e) => setVariantFilterColor(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="all">All Colors</option>
+                      {getUniqueValues(selectedToolkit.variants, 'color').map(color => (
+                        <option key={color} value={color}>{color}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={variantFilterStatus}
+                      onChange={(e) => setVariantFilterStatus(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="available">In Stock</option>
+                      <option value="low">Low Stock</option>
+                      <option value="out">Out of Stock</option>
+                    </select>
+
+                    {(variantSearchTerm || variantFilterSize !== 'all' || variantFilterColor !== 'all' || variantFilterStatus !== 'all') && (
+                      <button
+                        className="clear-filters-btn"
+                        onClick={() => {
+                          setVariantSearchTerm('');
+                          setVariantFilterSize('all');
+                          setVariantFilterColor('all');
+                          setVariantFilterStatus('all');
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Grouped Variants Display */}
+              <div className="variants-grouped-container">
+                {Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).length > 0 ? (
+                  Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).map(([color, variants]) => (
+                    <div key={color} className="color-group">
+                      <div className="color-group-header">
+                        <div className="color-group-title">
+                          <span
+                            className="color-indicator-large"
+                            style={{
+                              backgroundColor: color.toLowerCase() === 'clear' ? 'transparent' : color.toLowerCase(),
+                              border: color.toLowerCase() === 'clear' ? '2px dashed var(--border-color)' : '2px solid var(--border-color)'
+                            }}
+                          ></span>
+                          <span className="color-name">{color}</span>
+                          <span className="color-count">({variants.length} variant{variants.length > 1 ? 's' : ''})</span>
+                        </div>
+                        <div className="color-group-total">
+                          Total Stock: {variants.reduce((sum, v) => sum + v.stockCount, 0)}
+                        </div>
+                      </div>
+
+                      <div className="variants-table-container">
+                        <table className="variants-table">
+                          <thead>
+                            <tr>
+                              <th>Size</th>
+                              <th>Stock</th>
+                              <th>Min Level</th>
+                              <th>Status</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {variants.map(variant => (
+                              <tr
+                                key={variant._id}
+                                className={selectedVariant && selectedVariant._id === variant._id ? 'selected-row' : ''}
+                                onClick={() => showVariantDetails(variant, selectedToolkit)}
+                              >
+                                <td><strong>{variant.size}</strong></td>
+                                <td>{variant.stockCount}</td>
+                                <td>{variant.minStockLevel}</td>
+                                <td>
+                                  <span className={`status-badge ${calculateStatus(variant.stockCount, variant.minStockLevel)}`}>
+                                    {calculateStatus(variant.stockCount, variant.minStockLevel) === 'available' ? 'In Stock' :
+                                      calculateStatus(variant.stockCount, variant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
+                                  </span>
+                                </td>
+                                <td className="variant-actions">
+                                  <button
+                                    className="action-btn edit"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openUpdateVariantForm(variant, selectedToolkit);
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    className="action-btn delete"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteVariant(selectedToolkit._id, variant._id);
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-variants-found">
+                    <p>No variants found matching your filters.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="toolkit-actions safety-items-action">
