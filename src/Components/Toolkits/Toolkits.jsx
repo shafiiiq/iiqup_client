@@ -215,6 +215,94 @@ const Toolkits = () => {
     });
   };
 
+  // filtered history 
+  const fetchAllToolkitsHistory = async () => {
+    try {
+      // Fetch history from all toolkits
+      const historyPromises = toolkits.map(async (toolkit) => {
+        try {
+          const response = await apiRequest(`${END_POINT}/toolkits/toolkit-stock-history/${toolkit._id}`);
+          if (!response.ok) return [];
+          const result = await response.json();
+          console.log("yesssss", result);
+
+          // Process each variant's stock history
+          const variantHistories = [];
+          if (result.data.variants && Array.isArray(result.data.variants)) {
+            result.data.variants.forEach(variant => {
+              if (variant.stockHistory && Array.isArray(variant.stockHistory)) {
+                variant.stockHistory.forEach(h => {
+                  variantHistories.push({
+                    ...h,
+                    toolkitName: toolkit.name,
+                    toolkitId: toolkit._id,
+                    variantSize: variant.size,
+                    variantColor: variant.color
+                  });
+                });
+              }
+            });
+          }
+
+          return variantHistories;
+        } catch (err) {
+          console.error(`Error fetching history for ${toolkit.name}:`, err);
+          return [];
+        }
+      });
+
+      const allHistories = await Promise.all(historyPromises);
+      let combinedHistory = allHistories.flat();
+
+      // Sort by date (newest first)
+      combinedHistory.sort((a, b) => {
+        const dateA = new Date(a.date || a.assignedDate || a.timestamp);
+        const dateB = new Date(b.date || b.assignedDate || b.timestamp);
+        return dateB - dateA;
+      });
+
+      // Apply date filters
+      if (historyFilter.type === 'range' && historyFilter.dateFrom && historyFilter.dateTo) {
+        const fromDate = new Date(historyFilter.dateFrom);
+        const toDate = new Date(historyFilter.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+
+        combinedHistory = combinedHistory.filter(h => {
+          const histDate = new Date(h.date || h.assignedDate || h.timestamp);
+          return histDate >= fromDate && histDate <= toDate;
+        });
+      } else if (historyFilter.type === 'last') {
+        const now = new Date();
+        let cutoffDate = new Date();
+
+        switch (historyFilter.lastUnit) {
+          case 'days':
+            cutoffDate.setDate(now.getDate() - historyFilter.lastN);
+            break;
+          case 'weeks':
+            cutoffDate.setDate(now.getDate() - (historyFilter.lastN * 7));
+            break;
+          case 'months':
+            cutoffDate.setMonth(now.getMonth() - historyFilter.lastN);
+            break;
+          case 'years':
+            cutoffDate.setFullYear(now.getFullYear() - historyFilter.lastN);
+            break;
+        }
+
+        combinedHistory = combinedHistory.filter(h => {
+          const histDate = new Date(h.date || h.assignedDate || h.timestamp);
+          return histDate >= cutoffDate;
+        });
+      }
+
+      setToolkitHistory(combinedHistory);
+    } catch (err) {
+      console.error('Error fetching all toolkits history:', err);
+      setToolkitHistory([]);
+    }
+  };
+
   // Group variants by color and filter
   const getFilteredAndGroupedVariants = (variants) => {
     if (!variants || variants.length === 0) return {};
@@ -745,6 +833,13 @@ const Toolkits = () => {
     try {
       setExporting(true);
 
+      // Apply export filters
+      let dataToExport = toolkits;
+
+      if (exportFilters.toolkit !== 'all') {
+        dataToExport = dataToExport.filter(t => t._id === exportFilters.toolkit);
+      }
+
       // Create a new workbook and worksheet
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Safety Tools Inventory');
@@ -769,7 +864,7 @@ const Toolkits = () => {
 
       // Style the header row
       const headerRow = worksheet.getRow(1);
-      headerRow.height = 40; // Set row height to 40px
+      headerRow.height = 40;
       headerRow.eachCell((cell) => {
         cell.font = {
           bold: true,
@@ -795,10 +890,26 @@ const Toolkits = () => {
       });
 
       // Prepare and add data
-      let rowIndex = 2; // Start from row 2 (after header)
-      filteredToolkits.forEach((toolkit, toolkitIndex) => {
+      let rowIndex = 2;
+      dataToExport.forEach((toolkit, toolkitIndex) => {
         if (toolkit.variants && toolkit.variants.length > 0) {
-          toolkit.variants.forEach((variant, variantIndex) => {
+          let filteredVariants = toolkit.variants;
+
+          // Apply variant filters
+          if (exportFilters.size !== 'all') {
+            filteredVariants = filteredVariants.filter(v => v.size === exportFilters.size);
+          }
+          if (exportFilters.color !== 'all') {
+            filteredVariants = filteredVariants.filter(v => v.color === exportFilters.color);
+          }
+          if (exportFilters.status !== 'all') {
+            filteredVariants = filteredVariants.filter(v => {
+              const status = calculateStatus(v.stockCount, v.minStockLevel);
+              return status === exportFilters.status;
+            });
+          }
+
+          filteredVariants.forEach((variant, variantIndex) => {
             const status = calculateStatus(variant.stockCount, variant.minStockLevel);
             const statusText = status === 'available' ? 'In Stock' :
               status === 'low' ? 'Low Stock' : 'Out of Stock';
@@ -854,10 +965,9 @@ const Toolkits = () => {
       // Style data rows
       for (let i = 2; i <= worksheet.rowCount; i++) {
         const row = worksheet.getRow(i);
-        row.height = 40; // Set row height to 40px
+        row.height = 40;
 
         row.eachCell((cell, colNumber) => {
-          // Base styling for all data cells
           cell.font = { size: 12 };
           cell.alignment = {
             horizontal: 'center',
@@ -871,7 +981,6 @@ const Toolkits = () => {
             right: { style: 'thin' }
           };
 
-          // Alternate row background colors
           if (i % 2 === 0) {
             cell.fill = {
               type: 'pattern',
@@ -880,7 +989,6 @@ const Toolkits = () => {
             };
           }
 
-          // Status-based text coloring
           const cellValue = cell.value;
           if (typeof cellValue === 'string') {
             if (cellValue.includes('Out of Stock') || cellValue === 'No Variants') {
@@ -906,7 +1014,7 @@ const Toolkits = () => {
         });
       }
 
-      // Generate filename with current date
+      // Generate filename
       const now = new Date();
       const dateStr = now.getFullYear() + '-' +
         String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -915,21 +1023,17 @@ const Toolkits = () => {
         String(now.getMinutes()).padStart(2, '0');
       const filename = `Safety_Tools_Inventory_${dateStr}_${timeStr}.xlsx`;
 
-      // Small delay to show loading state
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Generate buffer and create blob
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
       link.click();
 
-      // Clean up
       window.URL.revokeObjectURL(url);
 
     } catch (error) {
@@ -937,6 +1041,57 @@ const Toolkits = () => {
       alert('Failed to export data to Excel. Please try again.');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const fetchToolkitHistory = async (toolkit) => {
+    try {
+      const response = await apiRequest(`${END_POINT}/toolkits/toolkit-history/${toolkit._id}`);
+      if (!response.ok) throw new Error('Failed to fetch toolkit history');
+      const result = await response.json();
+
+      let history = result.data.history || [];
+
+      // Apply date filters
+      if (historyFilter.type === 'range' && historyFilter.dateFrom && historyFilter.dateTo) {
+        const fromDate = new Date(historyFilter.dateFrom);
+        const toDate = new Date(historyFilter.dateTo);
+        toDate.setHours(23, 59, 59, 999); // Include full end date
+
+        history = history.filter(h => {
+          const histDate = new Date(h.date || h.assignedDate || h.timestamp);
+          return histDate >= fromDate && histDate <= toDate;
+        });
+      } else if (historyFilter.type === 'last') {
+        const now = new Date();
+        let cutoffDate = new Date();
+
+        switch (historyFilter.lastUnit) {
+          case 'days':
+            cutoffDate.setDate(now.getDate() - historyFilter.lastN);
+            break;
+          case 'weeks':
+            cutoffDate.setDate(now.getDate() - (historyFilter.lastN * 7));
+            break;
+          case 'months':
+            cutoffDate.setMonth(now.getMonth() - historyFilter.lastN);
+            break;
+          case 'years':
+            cutoffDate.setFullYear(now.getFullYear() - historyFilter.lastN);
+            break;
+        }
+
+        history = history.filter(h => {
+          const histDate = new Date(h.date || h.assignedDate || h.timestamp);
+          return histDate >= cutoffDate;
+        });
+      }
+
+      setToolkitHistory(history);
+      setShowToolkitHistory(true);
+    } catch (err) {
+      console.error('Error fetching toolkit history:', err);
+      setToolkitHistory([]);
     }
   };
 
@@ -951,10 +1106,102 @@ const Toolkits = () => {
         <button className="add-toolkit-btn" onClick={openAddForm}>
           Add Toolkit
         </button>
-        <button className="export-excel-btn" onClick={exportToExcel}>
-          Export to Excel
+        <button
+          className="export-filter-btn"
+          onClick={() => setShowExportFilters(!showExportFilters)}
+        >
+          {showExportFilters ? 'Hide Export Filters' : 'Export Filters'}
+        </button>
+        <button
+          className="history-filter-btn"
+          onClick={() => {
+            setShowToolkitHistory(true);
+            fetchAllToolkitsHistory();
+          }}
+        >
+          View History
+        </button>
+        <button
+          className={`export-excel-btn ${exporting ? 'loading' : ''}`}
+          onClick={exportToExcel}
+          disabled={exporting}
+        >
+          {exporting ? 'Exporting...' : 'Export to Excel'}
         </button>
       </div>
+
+      {/* Export Filters Panel */}
+      {showExportFilters && (
+        <div className="export-filters-panel">
+          <h3>Export Filters</h3>
+          <div className="export-filters-grid">
+            <div className="export-filter-group">
+              <label>Toolkit</label>
+              <select
+                value={exportFilters.toolkit}
+                onChange={(e) => setExportFilters({ ...exportFilters, toolkit: e.target.value })}
+                className="filter-select"
+              >
+                <option value="all">All Toolkits</option>
+                {toolkits.map(toolkit => (
+                  <option key={toolkit._id} value={toolkit._id}>{toolkit.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="export-filter-group">
+              <label>Size</label>
+              <select
+                value={exportFilters.size}
+                onChange={(e) => setExportFilters({ ...exportFilters, size: e.target.value })}
+                className="filter-select"
+              >
+                <option value="all">All Sizes</option>
+                {predefinedSizes.map(size => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="export-filter-group">
+              <label>Color</label>
+              <select
+                value={exportFilters.color}
+                onChange={(e) => setExportFilters({ ...exportFilters, color: e.target.value })}
+                className="filter-select"
+              >
+                <option value="all">All Colors</option>
+                {predefinedColors.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="export-filter-group">
+              <label>Status</label>
+              <select
+                value={exportFilters.status}
+                onChange={(e) => setExportFilters({ ...exportFilters, status: e.target.value })}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="available">In Stock</option>
+                <option value="low">Low Stock</option>
+                <option value="out">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="export-filter-actions">
+            <button
+              className="clear-export-filters-btn"
+              onClick={() => setExportFilters({ toolkit: 'all', size: 'all', color: 'all', status: 'all' })}
+            >
+              Clear All Filters
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading">Loading safety tools inventory...</div>
@@ -1303,8 +1550,8 @@ const Toolkits = () => {
                                 <tr key={index}>
                                   <td>{formatDate(history.assignedDate)}</td>
                                   <td>
-                                    <span className={`history-badge ${history.action}`}>
-                                      {history.action.charAt(0).toUpperCase() + history.action.slice(1)}
+                                    <span className={`history-badge ${history.action ? history.action : ''}`}>
+                                      {history.action?.charAt(0).toUpperCase() + history.action?.slice(1)}
                                     </span>
                                   </td>
                                   <td>{history.previousStock}</td>
@@ -1719,6 +1966,175 @@ const Toolkits = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Global Toolkit History Modal */}
+      {showToolkitHistory && (
+        <div className="form-modal-overlay">
+          <div className="form-modal history-modal">
+            <div className="form-header">
+              <h2>All Toolkits History</h2>
+              <button className="close-btn" onClick={() => setShowToolkitHistory(false)}>×</button>
+            </div>
+
+            <div className="history-filters">
+              <div className="history-filter-type">
+                <label>
+                  <input
+                    type="radio"
+                    value="all"
+                    checked={historyFilter.type === 'all'}
+                    onChange={(e) => {
+                      setHistoryFilter({ ...historyFilter, type: e.target.value });
+                      fetchAllToolkitsHistory();
+                    }}
+                  />
+                  All History
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    value="range"
+                    checked={historyFilter.type === 'range'}
+                    onChange={(e) => setHistoryFilter({ ...historyFilter, type: e.target.value })}
+                  />
+                  Date Range
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    value="last"
+                    checked={historyFilter.type === 'last'}
+                    onChange={(e) => setHistoryFilter({ ...historyFilter, type: e.target.value })}
+                  />
+                  Last N Period
+                </label>
+              </div>
+
+              {historyFilter.type === 'range' && (
+                <div className="history-date-range">
+                  <div className="form-group">
+                    <label>From Date</label>
+                    <input
+                      type="date"
+                      value={historyFilter.dateFrom}
+                      onChange={(e) => setHistoryFilter({ ...historyFilter, dateFrom: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>To Date</label>
+                    <input
+                      type="date"
+                      value={historyFilter.dateTo}
+                      onChange={(e) => setHistoryFilter({ ...historyFilter, dateTo: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    className="apply-filter-btn"
+                    onClick={() => fetchAllToolkitsHistory()}
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              )}
+
+              {historyFilter.type === 'last' && (
+                <div className="history-last-n">
+                  <div className="form-group">
+                    <label>Last</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={historyFilter.lastN}
+                      onChange={(e) => setHistoryFilter({ ...historyFilter, lastN: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Unit</label>
+                    <select
+                      value={historyFilter.lastUnit}
+                      onChange={(e) => setHistoryFilter({ ...historyFilter, lastUnit: e.target.value })}
+                    >
+                      <option value="days">Days</option>
+                      <option value="weeks">Weeks</option>
+                      <option value="months">Months</option>
+                      <option value="years">Years</option>
+                    </select>
+                  </div>
+                  <button
+                    className="apply-filter-btn"
+                    onClick={() => fetchAllToolkitsHistory()}
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              )}
+
+              <div className="history-summary">
+                <span className="history-count">
+                  Total Records: <strong>{toolkitHistory.length}</strong>
+                </span>
+                {historyFilter.type === 'range' && historyFilter.dateFrom && historyFilter.dateTo && (
+                  <span className="history-date-range-display">
+                    Showing: {new Date(historyFilter.dateFrom).toLocaleDateString()} - {new Date(historyFilter.dateTo).toLocaleDateString()}
+                  </span>
+                )}
+                {historyFilter.type === 'last' && (
+                  <span className="history-date-range-display">
+                    Showing: Last {historyFilter.lastN} {historyFilter.lastUnit}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="history-content">
+              <div className="history-table-container">
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Toolkit</th>
+                      <th>Variant</th>
+                      <th>Action</th>
+                      <th>Previous</th>
+                      <th>Change</th>
+                      <th>New</th>
+                      <th>Person</th>
+                      <th>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {toolkitHistory.length > 0 ? (
+                      toolkitHistory.map((history, index) => (
+                        <tr key={index}>
+                          <td>{formatDate(history.date || history.assignedDate || history.timestamp)}</td>
+                          <td><strong>{history.toolkitName}</strong></td>
+                          <td>{history.variantSize} - {history.variantColor}</td>
+                          <td>
+                            <span className={`history-badge ${history.action ? history.action : ''}`}>
+                              {history.action?.charAt(0).toUpperCase() + history.action?.slice(1)}
+                            </span>
+                          </td>
+                          <td>{history.previousStock}</td>
+                          <td className={history.changeAmount > 0 ? 'positive' : 'negative'}>
+                            {history.changeAmount > 0 ? '+' : ''}{history.changeAmount}
+                          </td>
+                          <td>{history.newStock}</td>
+                          <td>{history.person || '-'}</td>
+                          <td>{history.reason}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="9" className="no-history">No history available for selected filter</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}
