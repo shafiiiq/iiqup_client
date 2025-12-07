@@ -13,6 +13,7 @@ export const COLORS = {
   light: '#f8fafc',
   infoLight: '#ffbbefff',
   infoLighter: '#75e6afff',
+  infoDark: '#44ef5bff',
   chartColors: ['#1e3a8a', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 };
 

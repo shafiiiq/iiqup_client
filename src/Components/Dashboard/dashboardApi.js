@@ -32,7 +32,7 @@ export const fetchDashboardData = async () => {
         endpoints.map(url =>
             apiRequest(url, 'GET').then(res => res.json())
         )
-    );
+    );    
 
     const [dailyData, weeklyData, monthlyData, yearlyData] = responses;
 
@@ -138,7 +138,8 @@ export const generateRealTimeAnalytics = async (data) => {
             battery: data.daily?.batteryHistory?.length || 0,
             tyre: data.daily?.tyreHistory?.length || 0,
             stocks: data.daily?.stocks?.length || 0,
-            toolkit: data.daily?.toolkit?.length || 0
+            toolkit: data.daily?.toolkit?.length || 0,
+            complaints: data.daily?.complaints?.length || 0
         },
         {
             period: 'Weekly',
@@ -147,7 +148,8 @@ export const generateRealTimeAnalytics = async (data) => {
             battery: data.weekly?.batteryHistory?.length || 0,
             tyre: data.weekly?.tyreHistory?.length || 0,
             stocks: data.weekly?.stocks?.length || 0,
-            toolkit: data.weekly?.toolkit?.length || 0
+            toolkit: data.weekly?.toolkit?.length || 0,
+            complaints: data.weekly?.complaints?.length || 0
         },
         {
             period: 'Monthly',
@@ -156,7 +158,8 @@ export const generateRealTimeAnalytics = async (data) => {
             battery: data.monthly?.batteryHistory?.length || 0,
             tyre: data.monthly?.tyreHistory?.length || 0,
             stocks: data.monthly?.stocks?.length || 0,
-            toolkit: data.monthly?.toolkit?.length || 0
+            toolkit: data.monthly?.toolkit?.length || 0,
+            complaints: data.monthly?.complaints?.length || 0
         },
         {
             period: 'Yearly',
@@ -165,7 +168,8 @@ export const generateRealTimeAnalytics = async (data) => {
             battery: data.yearly?.batteryHistory?.length || 0,
             tyre: data.yearly?.tyreHistory?.length || 0,
             stocks: data.yearly?.stocks?.length || 0,
-            toolkit: data.yearly?.toolkit?.length || 0
+            toolkit: data.yearly?.toolkit?.length || 0,
+            complaints: data.yearly?.complaints?.length || 0
         }
     ];
 
@@ -267,6 +271,7 @@ export const getComprehensiveStats = (data) => {
         'Stock Items': data.stocks?.length || 0,
         'Toolkit Items': data.toolkit?.length || 0,
         'Equipment': data.equipment?.length || 0,
+        'Compliants': data.complaints?.length || 0,
     };
 
     const total = Object.values(collections).reduce((sum, count) => sum + count, 0);
@@ -279,7 +284,8 @@ export const getComprehensiveStats = (data) => {
             services: collections['Service History'],
             stocks: collections['Stock Items'],
             toolkit: collections['Toolkit Items'],
-            equipment: collections['Equipment']
+            equipment: collections['Equipment'],
+            complaints: collections['Compliants'],
         }
     };
 };
@@ -294,7 +300,8 @@ export const prepareAnalyticsData = (data) => {
         { key: 'tyreHistory', label: 'Tyre Changes', icon: 'circle', color: COLORS.info },
         { key: 'batteryHistory', label: 'Battery Changes', icon: 'battery', color: COLORS.success },
         { key: 'stocks', label: 'Stock Items', icon: 'package', color: COLORS.warning },
-        { key: 'toolkit', label: 'Toolkit Items', icon: 'hard-hat', color: COLORS.danger }
+        { key: 'toolkit', label: 'Toolkit Items', icon: 'hard-hat', color: COLORS.danger },
+        { key: 'complaints', label: 'Compliants', icon: 'hard-hat', color: COLORS.infoDark }
     ];
 
     return categories.map(category => ({
@@ -342,7 +349,8 @@ export const prepareBarChartData = (data) => {
         { key: 'tyreHistory', label: 'Tyre History' },
         { key: 'batteryHistory', label: 'Battery History' },
         { key: 'stocks', label: 'Stock Items' },
-        { key: 'toolkit', label: 'Toolkit Items' }
+        { key: 'toolkit', label: 'Toolkit Items' },
+        { key: 'complaints', label: 'Complaints' },
     ];
 
     return collections.map(collection => ({
@@ -455,6 +463,7 @@ export const prepareComparisonChartData = (comparisonData, period) => {
       'Equipment': item.collections['equipment'] || 0,
       'Stocks': item.collections['stocks'] || 0,
       'Toolkit': item.collections['toolkit'] || 0,
+      'Complaints': item.collections['complaints'] || 0,
       'Total': item.total
     };
   });

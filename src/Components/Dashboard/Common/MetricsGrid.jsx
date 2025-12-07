@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  Activity, Wrench, AlertTriangle, Truck, 
-  Package, Archive, ArrowUp, ArrowDown, BarChart3, 
+import {
+  Activity, Wrench, AlertTriangle, Truck,
+  Package, Archive, ArrowUp, ArrowDown, BarChart3,
   Car,
   Battery
 } from 'lucide-react';
 
-const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {  
+const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
   return (
     <div className="metrics-grid">
       <div className="metric-card primary">
@@ -18,6 +18,18 @@ const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
         <div className="metric-change positive">
           <ArrowUp size={14} />
           +12% from last period
+        </div>
+      </div>
+
+      <div className="metric-card accent">
+        <div className="metric-header">
+          <Archive className="metric-icon" />
+          <h3>Complaints Registed</h3>
+        </div>
+        <div className="metric-value">{currentStats.collections['Compliants']}</div>
+        <div className="metric-change positive">
+          <ArrowUp size={14} />
+          Active tracking
         </div>
       </div>
 
@@ -80,7 +92,7 @@ const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
           +2 new units
         </div>
       </div> */}
-      
+
       <div className="metric-card accent">
         <div className="metric-header">
           <Package className="metric-icon" />
@@ -104,8 +116,6 @@ const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
           Active tracking
         </div>
       </div>
-
-      
 
       {/* <div className="metric-card danger">
         <div className="metric-header">

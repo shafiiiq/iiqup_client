@@ -3,6 +3,7 @@ import './Toolkits.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import ExcelJS from 'exceljs';
+import Barcode from 'react-barcode';
 
 const Toolkits = () => {
   // Predefined tool names and colors
@@ -1273,6 +1274,21 @@ const Toolkits = () => {
               </span>
             </div>
 
+            {/* Barcode Section */}
+            <div className="barcode-section">
+              <h3>Toolkit Barcode</h3>
+              <div className="barcode-container">
+                <Barcode
+                  value={selectedToolkit._id}
+                  width={2}
+                  height={60}
+                  displayValue={true}
+                  fontSize={14}
+                />
+              </div>
+              <p className="barcode-info">Scan this code to view toolkit details</p>
+            </div>
+
             <div className="variants-section">
               <div className="variants-header-controls">
                 <h3>Variants</h3>
@@ -1441,6 +1457,13 @@ const Toolkits = () => {
                 <button className="action-btn add-variant" onClick={() => openAddVariantForm(selectedToolkit)}>
                   + Add Variant
                 </button>
+                <button
+                  className="action-btn print-barcode"
+                  onClick={() => window.print()}
+                  style={{ backgroundColor: '#17a2b8' }}
+                >
+                  Print Barcode
+                </button>
                 <button className="action-btn delete" onClick={() => deleteToolkit(selectedToolkit._id)}>
                   Delete Toolkit
                 </button>
@@ -1499,6 +1522,23 @@ const Toolkits = () => {
                   <div className="detail-item">
                     <span className="label">Last Updated:</span>
                     <span className="value">{formatDate(selectedVariant.lastUpdatedDate)}</span>
+                  </div>
+
+                  {/* Variant Barcode Section */}
+                  <div className="barcode-section variant-barcode">
+                    <h3>Variant Barcode</h3>
+                    <div className="barcode-container">
+                      <Barcode
+                        value={selectedVariant._id}
+                        width={1.8}
+                        height={50}
+                        displayValue={true}
+                        fontSize={12}
+                      />
+                    </div>
+                    <p className="barcode-info">
+                      {selectedVariant.size} - {selectedVariant.color}
+                    </p>
                   </div>
 
                   <div className="stock-progress">

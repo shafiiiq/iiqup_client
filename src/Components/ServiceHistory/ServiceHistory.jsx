@@ -107,11 +107,8 @@ const ServiceHistory = () => {
   };
 
   const fetchServiceReportforMajor = async (combinedData) => {
-    const dataWithRemarksAndLocation = [...combinedData];
-
-    // Create promises for fetching remarks and location for oil, normal, tyre, and battery services
-    const remarksPromises = dataWithRemarksAndLocation.map(async (item, index) => {
-      if (['maintenance'].includes(item.serviceType) && item.date) {
+    const promises = combinedData.map(async (item) => {
+      if (item.serviceType === 'maintenance' && item.date) {
         try {
           const formattedDate = formatDate(item.date);
           const response = await apiRequest(`${END_POINT}/service-report/${regNo}/${formattedDate}`);
@@ -119,50 +116,28 @@ const ServiceHistory = () => {
           if (response.ok) {
             const remarksData = await response.json();
             if (remarksData?.data?.[0]) {
-              const updatedItem = { ...dataWithRemarksAndLocation[index] };
-
-              // Add remarks for all service types
-              if (remarksData.data[0].remarks) {
-                updatedItem.remarks = remarksData.data[0].remarks;
-              }
-
-
-              if (remarksData.data[0].serviceHrs) {
-                updatedItem.serviceHrs = remarksData.data[0].serviceHrs;
-              }
-
-              if (remarksData.data[0].nextServiceHrs) {
-                updatedItem.nextServiceHrs = remarksData.data[0].nextServiceHrs;
-              }
-
-              if (remarksData.data[0].location) {
-                updatedItem.location = remarksData.data[0].location;
-              }
-
-              if (remarksData.data[0].remarks) {
-                updatedItem.majorRemarks = remarksData.data[0].remarks;
-              }
-
-              dataWithRemarksAndLocation[index] = updatedItem;
+              return {
+                ...item,
+                remarks: remarksData.data[0].remarks || item.remarks,
+                serviceHrs: remarksData.data[0].serviceHrs || item.serviceHrs,
+                nextServiceHrs: remarksData.data[0].nextServiceHrs || item.nextServiceHrs,
+                location: remarksData.data[0].location || item.location,
+                majorRemarks: remarksData.data[0].remarks || item.majorRemarks
+              };
             }
           }
         } catch (error) {
-          console.error(`Error fetching remarks and location for ${item.serviceType} service on ${item.date}:`, error);
+          console.error(`Error fetching maintenance data for ${item.date}:`, error);
         }
       }
+      return item;
     });
 
-    // Wait for all remarks and location data to be fetched
-    await Promise.all(remarksPromises);
-    return dataWithRemarksAndLocation;
+    return await Promise.all(promises);
   };
 
-  // Function to fetch remarks and location for oil services, and remarks for tyre and battery services
   const fetchRemarksAndLocationForServices = async (combinedData) => {
-    const dataWithRemarksAndLocation = [...combinedData];
-
-    // Create promises for fetching remarks and location for oil, normal, tyre, and battery services
-    const remarksPromises = dataWithRemarksAndLocation.map(async (item, index) => {
+    const promises = combinedData.map(async (item) => {
       if (['oil', 'normal', 'tyre', 'battery'].includes(item.serviceType) && item.date) {
         try {
           const formattedDate = formatDate(item.date);
@@ -171,30 +146,26 @@ const ServiceHistory = () => {
           if (response.ok) {
             const remarksData = await response.json();
             if (remarksData?.data?.[0]) {
-              const updatedItem = { ...dataWithRemarksAndLocation[index] };
+              const updated = {
+                ...item,
+                remarks: remarksData.data[0].remarks || item.remarks
+              };
 
-              // Add remarks for all service types
-              if (remarksData.data[0].remarks) {
-                updatedItem.remarks = remarksData.data[0].remarks;
-              }
-
-              // Add location for oil and normal services
               if ((item.serviceType === 'oil' || item.serviceType === 'normal') && remarksData.data[0].location) {
-                updatedItem.location = remarksData.data[0].location;
+                updated.location = remarksData.data[0].location;
               }
 
-              dataWithRemarksAndLocation[index] = updatedItem;
+              return updated;
             }
           }
         } catch (error) {
-          console.error(`Error fetching remarks and location for ${item.serviceType} service on ${item.date}:`, error);
+          console.error(`Error fetching data for ${item.serviceType} on ${item.date}:`, error);
         }
       }
+      return item;
     });
 
-    // Wait for all remarks and location data to be fetched
-    await Promise.all(remarksPromises);
-    return dataWithRemarksAndLocation;
+    return await Promise.all(promises);
   };
 
   // Fetch all service histories
@@ -251,10 +222,7 @@ const ServiceHistory = () => {
     const processData = async () => {
       let combinedData = [];
 
-      console.log(serviceHistory);
-
       if (activeTab === 'all') {
-        // Combine all service types with type identifier
         const serviceWithType = serviceHistory.map(item => ({
           ...item,
           serviceType: item.serviceType || 'oil',
@@ -325,23 +293,33 @@ const ServiceHistory = () => {
       // Apply date filter
       const dateFilteredData = equipmentData.filter(item => isDateInRange(item.date));
 
-      // Fetch remarks and location for oil, tyre, and battery services
-      const dataWithRemarksAndLocation = await fetchRemarksAndLocationForServices(dateFilteredData);
-      const dataOfMajorWork = await fetchServiceReportforMajor(dateFilteredData);      
+      // Fetch remarks for ALL items - use Promise.all to fetch both in parallel
+      const [regularData, majorData] = await Promise.all([
+        fetchRemarksAndLocationForServices(dateFilteredData),
+        fetchServiceReportforMajor(dateFilteredData)
+      ]);
 
-      // Sort by date (newest first)
-      dataWithRemarksAndLocation.sort((a, b) => new Date(b.date) - new Date(a.date));
-      dataOfMajorWork.sort((a, b) => new Date(b.date) - new Date(a.date));
+      console.log("regularData:", regularData);
+      console.log("majorData:", majorData);
 
-      // Apply search term filter
-      let results = dataWithRemarksAndLocation.filter(item => {
-        if (!searchTerm) return true;
-        return Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        );
+      // Merge the two results - for each item, pick the enhanced version
+      const mergedData = dateFilteredData.map(item => {
+        if (item.serviceType === 'maintenance') {
+          // For maintenance, find in majorData
+          const enhanced = majorData.find(d => d._id === item._id);
+          return enhanced || item;
+        } else {
+          // For oil/normal/tyre/battery, find in regularData
+          const enhanced = regularData.find(d => d._id === item._id);
+          return enhanced || item;
+        }
       });
 
-      results = dataOfMajorWork.filter(item => {
+      // Sort by date (newest first)
+      mergedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Apply search filter
+      const results = mergedData.filter(item => {
         if (!searchTerm) return true;
         return Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
@@ -349,9 +327,7 @@ const ServiceHistory = () => {
       });
 
       setFilteredData(results);
-
-      console.log("resultsssss:    ,,,,", results);
-      
+      console.log("Final results:", results);
     };
 
     processData();
@@ -1150,7 +1126,7 @@ const ServiceHistory = () => {
                           </div>
                         )}
                       </td>
-                      {(activeTab === 'oil' || activeTab === 'normal'  || activeTab === 'maintenance' || activeTab === 'all') && (
+                      {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') && (
                         <>
                           <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
                           <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>

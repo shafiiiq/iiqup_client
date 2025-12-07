@@ -4,6 +4,7 @@ import { END_POINT } from '../../constants';
 import Select from 'react-select';
 import { apiRequest } from '../../utils/0auth';
 import ExcelJS from 'exceljs';
+import Barcode from 'react-barcode';
 
 function StockManage() {
   const [stocks, setStocks] = useState([]);
@@ -1380,6 +1381,19 @@ function StockManage() {
                     {selectedStock.stockCount} / 20
                   </span>
                 </div>
+              </div>
+              <div className="stock-manage-barcode-section">
+                <h3>Toolkit Barcode</h3>
+                <div className="stock-barcode-container">
+                  <Barcode
+                    value={selectedStock._id}
+                    width={2}
+                    height={60}
+                    displayValue={true}
+                    fontSize={14}
+                  />
+                </div>
+                <p className="barcode-info">Scan this code to view toolkit details</p>
               </div>
             </div>
 

@@ -124,23 +124,24 @@ const Complaints = () => {
   const { complaintId, regNo } = useParams()
 
   // Real-time clock and date
-  // useEffect(() => {
-  //   const updateDateTime = () => {
-  //     const now = new Date();
-  //     const timeString = now.toLocaleTimeString('en-US', {
-  //       hour: '2-digit',
-  //       minute: '2-digit',
-  //       second: '2-digit',
-  //       hour12: true
-  //     });
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
 
-  //     setLastUpdated(`Last updated: ${timeString}`);
-  //   };
+      setLastUpdated(`Last updated: ${timeString}`);
+    };
 
-  //   updateDateTime();
-  //   // const interval = setInterval(updateDateTime, 4000);
-  //   // return () => clearInterval(interval);
-  // }, []);
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchComplaints = async (showRefresh = false) => {
     try {
       if (showRefresh) setRefreshing(true);
@@ -199,11 +200,11 @@ const Complaints = () => {
     fetchComplaints();
 
     // Auto-refresh every 10 seconds
-    // const refreshInterval = setInterval(() => {
-    //   fetchComplaints(true);
-    // }, 4000);
+    const refreshInterval = setInterval(() => {
+      fetchComplaints(true);
+    }, 3000);
 
-    // return () => clearInterval(refreshInterval);
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const handleRefresh = () => {

@@ -946,6 +946,210 @@ body.dark-theme {
   background: var(--ntf-border-light);
 }
 
+/* Smooth animation for new notifications */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(10px);
+  }
+}
+
+/* Apply animation to new notifications */
+.ntf-card.ntf-animate {
+  animation: slideInFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Smooth transition for existing cards moving down */
+.ntf-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pulse effect for unread notifications */
+.ntf-card.ntf-unread {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  50% {
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3), 0 4px 6px -2px rgba(99, 102, 241, 0.2);
+  }
+}
+
+/* Glow effect for new notifications */
+.ntf-card.ntf-animate.ntf-unread {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+}
+
+.ntf-grid {
+  display: grid;
+  gap: 1rem;
+  /* Add smooth transition for grid items */
+  position: relative;
+}
+
+/* Ensure smooth stacking */
+.ntf-grid .ntf-card {
+  position: relative;
+  z-index: 1;
+}
+
+.ntf-grid .ntf-card.ntf-animate {
+  z-index: 10;
+  /* Bring new notifications to front during animation */
+}
+
+.ntf-sound-enable-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  animation: pulse-attention 2s infinite;
+}
+
+.ntf-sound-enable-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+@keyframes pulse-attention {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+}
+
+.ntf-sound-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ntf-sound-toggle-btn.sound-on {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.ntf-sound-toggle-btn.sound-on:hover {
+  background: #059669;
+  border-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.ntf-sound-toggle-btn.sound-off {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.ntf-sound-toggle-btn.sound-off:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.ntf-sound-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ntf-test-sound-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ntf-test-sound-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.ntf-test-sound-btn:active {
+  transform: scale(0.95);
+}
+
+.ntf-sound-selector {
+  padding: 0.625rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #7e1c83;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.ntf-sound-selector:hover {
+  border-color: #6366f1;
+  background: #531257;
+}
+
+.ntf-sound-selector:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .ntf-header {

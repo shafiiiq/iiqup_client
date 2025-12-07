@@ -101,6 +101,17 @@ const Dashboard = () => {
     }
   }, [loading, activeTab, dashboardData]);
 
+  useEffect(() => {
+    handleRefresh();
+
+    // Auto-refresh every 10 seconds
+    const refreshInterval = setInterval(() => {
+      loadDashboardData(true);
+    }, 10000);
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
   // Real-time clock and date
   useEffect(() => {
     const updateDateTime = () => {
@@ -512,6 +523,7 @@ const Dashboard = () => {
                   <Bar dataKey="Equipment" fill={COLORS.info} stackId="a" />
                   <Bar dataKey="Stocks" fill={COLORS.warning} stackId="a" />
                   <Bar dataKey="Toolkit" fill={COLORS.danger} stackId="a" />
+                  <Bar dataKey="Complaints" fill={COLORS.infoDark} stackId="a" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -525,7 +537,7 @@ const Dashboard = () => {
           {/* Comparison Summary */}
           {!comparisonLoading && comparisonChartData.length > 0 && (
             <div className="comparison-summary">
-              <h4 style={{ marginBottom: '1rem', color: 'white'}}>Summary</h4>
+              <h4 style={{ marginBottom: '1rem', color: 'white' }}>Summary</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 {comparisonChartData.map((item, index) => (
                   <div key={index} style={{

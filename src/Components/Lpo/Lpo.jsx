@@ -73,10 +73,10 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
   const discountPopupRef = useRef();
 
   useEffect(() => {
-    if ((isEditMode || isAmendmentMode) && refNo) {
-      fetchLpoForEdit();
-    } if ((isAmendmentEditMode) && refNo) {
+    if (isAmendmentEditMode && refNo) {
       fetchLpoForAmendmentEdit();
+    } else if ((isEditMode || isAmendmentMode) && refNo) {
+      fetchLpoForEdit();
     } else {
       // Only fetch new LPO number when creating new
       fetchLatestLpoNumber();
