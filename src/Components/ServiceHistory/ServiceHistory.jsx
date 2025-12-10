@@ -1203,7 +1203,7 @@ const ServiceHistory = () => {
           </button>
           <button onClick={handleExportToPDF} className="action-btn pdf">
             Export to PDF
-          </button>s
+          </button>
           <button onClick={handleViewAllDocuments} className="action-btn view-all">
             {dateFilter === 'custom' && customStartDate && customEndDate
               ? 'View Date Range Data'
