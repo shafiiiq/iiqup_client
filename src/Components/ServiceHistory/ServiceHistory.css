@@ -14,7 +14,7 @@
     --hover-bg: #f0f5ff;
     --disabled-bg: #e9ecef;
     --disabled-text: #6c757d;
-    
+
     /* Service type colors - darker versions */
     --normal-service-color: #7d0d8b;
     --oil-service-color: #1e7e34;
@@ -40,7 +40,7 @@ body.dark-theme {
     --hover-bg: #2a2a2a;
     --disabled-bg: #333333;
     --disabled-text: #999999;
-    
+
     /* Service type colors - darker versions */
     --oil-service-color: #28a745;
     --maintenance-service-color: #ffc107;
@@ -86,11 +86,11 @@ body.dark-theme {
     transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
     background-color: #2196F3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     transform: translateX(26px);
 }
 
@@ -678,6 +678,14 @@ input:checked + .slider:before {
 
 .date-th {
     min-width: 6rem !important;
+}
+
+.action-btn.pdf {
+    background-color: #e74c3c;
+}
+
+.action-btn.pdf:hover {
+    background-color: #c0392b;
 }
 
 /* Additional responsive styles for missing elements */

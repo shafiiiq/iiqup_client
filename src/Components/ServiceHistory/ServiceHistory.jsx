@@ -207,13 +207,24 @@ const ServiceHistory = () => {
     fetchAllHistories();
 
     // Try to find equipment details
-    if (regNo) {
-      import('../../equipments').then(module => {
-        const equipment = module.default.find(eq => eq.regNo.toString().trim() === regNo.toString().trim());
-        setEquipmentData(equipment);
-      }).catch(err => {
+    const fetchEquipmentDetails = async () => {
+      try {
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+        const data = await response.json();
+
+        if (data.data) {
+          const equipment = data.data.find(eq =>
+            eq.regNo.toString().trim() === regNo.toString().trim()
+          );
+          setEquipmentData(equipment);
+        }
+      } catch (err) {
         console.error("Could not load equipment data:", err);
-      });
+      }
+    };
+
+    if (regNo) {
+      fetchEquipmentDetails();
     }
   }, [regNo]);
 
@@ -348,6 +359,144 @@ const ServiceHistory = () => {
       setShowCustomDateInputs(false);
       setCustomStartDate('');
       setCustomEndDate('');
+    }
+  };
+
+  const handleExportToPDF = async () => {
+    try {
+      // Create a new jsPDF instance
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('landscape', 'mm', 'a4');
+
+      const tabName = activeTab === 'all' ? 'All Services' :
+        activeTab === 'oil' ? 'Oil Service' :
+          activeTab === 'maintenance' ? 'Major Works' :
+            activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
+
+      // Add title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`, 148, 15, { align: 'center' });
+
+      // Add subtitle
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Date Range: ${getDateRangeText()}`, 148, 22, { align: 'center' });
+
+      // Add search term if applicable
+      let startY = 28;
+      if (searchTerm) {
+        doc.setFontSize(10);
+        doc.text(`Search Term: "${searchTerm}"`, 148, startY, { align: 'center' });
+        startY += 6;
+      }
+
+      // Add timestamp
+      doc.setFontSize(9);
+      doc.setTextColor(128, 128, 128);
+      doc.text(`Report Generated: ${new Date().toLocaleString()}`, 148, startY, { align: 'center' });
+      startY += 10;
+
+      // Define table headers based on active tab
+      const headers = [
+        'Date',
+        ...(activeTab === 'all' ? ['Service Type'] : []),
+        'Work Description',
+        ...((activeTab === 'oil' || activeTab === 'all') ? ['Serviced Hrs/Km', 'Next Service', 'Next Full Service'] : []),
+        ...((activeTab === 'tyre' || activeTab === 'all') ? ['Location', 'Tyre Model'] : []),
+        ...((activeTab === 'battery' || activeTab === 'all') ? ['Battery Model'] : []),
+        'Remarks'
+      ];
+
+      // Prepare table data
+      const tableData = filteredData.map((item) => {
+        const row = [
+          formatDate(item.date),
+          ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
+          getWorkDescription(item),
+          ...((activeTab === 'oil' || activeTab === 'all') ? [
+            item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
+            item.serviceType === 'oil' ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
+            item.serviceType === 'oil' && item.fullService ? item.serviceHrs + 3000 : '-'
+          ] : []),
+          ...((activeTab === 'tyre' || activeTab === 'all') ? [
+            item.location ? item.location : '-',
+            item.serviceType === 'tyre' ? item.tyreModel : '-'
+          ] : []),
+          ...((activeTab === 'battery' || activeTab === 'all') ? [
+            item.serviceType === 'battery' ? item.batteryModel : '-'
+          ] : []),
+          getRemarksText(item)
+        ];
+        return row;
+      });
+
+      // Define colors based on service type
+      const getRowColor = (item) => {
+        if (item.fullService || item.replaced) {
+          return [255, 211, 165]; // Orange for full service/replacement
+        }
+
+        switch (item.serviceType) {
+          case 'oil':
+            return [232, 245, 232]; // Light green
+          case 'maintenance':
+            return [255, 243, 205]; // Light yellow
+          case 'tyre':
+            return [209, 236, 241]; // Light blue
+          case 'battery':
+            return [248, 215, 218]; // Light red
+          default:
+            return [255, 255, 255]; // White
+        }
+      };
+
+      // Generate table using autoTable
+      doc.autoTable({
+        head: [headers],
+        body: tableData,
+        startY: startY,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: 'linebreak',
+          halign: 'center',
+          valign: 'middle'
+        },
+        headStyles: {
+          fillColor: [68, 114, 196],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 25 }, // Date
+          ...(activeTab === 'all' ? { 1: { cellWidth: 20 } } : {}), // Service Type
+          // Adjust other column widths based on content
+        },
+        didParseCell: function (data) {
+          // Color rows based on service type
+          if (data.row.index >= 0 && data.section === 'body') {
+            const item = filteredData[data.row.index];
+            if (item) {
+              const color = getRowColor(item);
+              data.cell.styles.fillColor = color;
+            }
+          }
+        },
+        margin: { top: 10, left: 10, right: 10 }
+      });
+
+      // Generate filename
+      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+      // Save the PDF
+      doc.save(fileName);
+
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      alert('Failed to export to PDF. Please try again.');
     }
   };
 
@@ -710,10 +859,10 @@ const ServiceHistory = () => {
   };
 
   const getRemarksText = (item) => {
-    if (item.serviceType === 'oil') {
+    if (item.serviceType === 'oil' || item.serviceType === 'normal') {
       return item.remarks || '';
     } else if (item.serviceType === 'maintenance') {
-      return item.workRemarks || '';
+      return item.majorRemarks || item.workRemarks || '';
     } else if (item.serviceType === 'tyre' || item.serviceType === 'battery') {
       return item.remarks || '';
     }
@@ -1052,6 +1201,9 @@ const ServiceHistory = () => {
           <button onClick={handleExportToExcel} className="action-btn excel">
             Export to Excel
           </button>
+          <button onClick={handleExportToPDF} className="action-btn pdf">
+            Export to PDF
+          </button>s
           <button onClick={handleViewAllDocuments} className="action-btn view-all">
             {dateFilter === 'custom' && customStartDate && customEndDate
               ? 'View Date Range Data'
