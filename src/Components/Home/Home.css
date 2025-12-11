@@ -3,6 +3,7 @@
 
 /* Theme Variables - Light (Default) */
 :root {
+  --black: black;
   --ansari-primary-blue: #0f3562;
   --ansari-secondary-blue: #1e63b0;
   --ansari-accent-orange: #ffcb6b;
@@ -16,6 +17,7 @@
   --ansari-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
   --ansari-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
   --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  --ansari-hero-overlay-1: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
   --ansari-sidebar-bg: linear-gradient(145deg, #0f3562, #020b16);
   --ansari-header-bg: linear-gradient(145deg, #0f3562, #1e63b0);
   --ansari-mobile-nav-bg: linear-gradient(145deg, #09192e, #041e3d);
@@ -46,7 +48,7 @@ body.dark-theme {
   --ansari-border: #333333;
   --ansari-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   --ansari-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.4);
-  --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8));
+  --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.068), rgba(0, 0, 0, 0.8));
   --ansari-sidebar-bg: linear-gradient(145deg, #1a1a1a, #0d1117);
   --ansari-header-bg: linear-gradient(145deg, #1a1a1a, #2c3e50);
   --ansari-mobile-nav-bg: linear-gradient(145deg, #1a1a1a, #0d1117);
@@ -145,6 +147,7 @@ ul {
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Header Styles */
@@ -253,8 +256,9 @@ ul {
 
 .ansari-user-actions {
   display: flex;
-  align-items: center;
+  align-items: end;
   gap: 12px;
+  flex-direction: column;
 }
 
 .ansari-user-name {
@@ -297,11 +301,13 @@ ul {
 .ansari-side-user-section {
   padding: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: auto;
   position: relative;
   z-index: 5;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: end;
 }
 
 .ansari-side-user-section .ansari-user-section {
@@ -314,7 +320,7 @@ ul {
   width: 45px;
   height: 45px;
   font-size: 18px;
-  margin: 0 auto;
+  margin-bottom: 10px;
 }
 
 .ansari-side-user-section .ansari-user-name {
@@ -438,12 +444,29 @@ ul {
   transition-delay: calc(0.1s * var(--index, 0));
 }
 
-.ansari-mobile-nav.ansari-nav-open li:nth-child(1) { --index: 1; }
-.ansari-mobile-nav.ansari-nav-open li:nth-child(2) { --index: 2; }
-.ansari-mobile-nav.ansari-nav-open li:nth-child(3) { --index: 3; }
-.ansari-mobile-nav.ansari-nav-open li:nth-child(4) { --index: 4; }
-.ansari-mobile-nav.ansari-nav-open li:nth-child(5) { --index: 5; }
-.ansari-mobile-nav.ansari-nav-open li:nth-child(6) { --index: 6; }
+.ansari-mobile-nav.ansari-nav-open li:nth-child(1) {
+  --index: 1;
+}
+
+.ansari-mobile-nav.ansari-nav-open li:nth-child(2) {
+  --index: 2;
+}
+
+.ansari-mobile-nav.ansari-nav-open li:nth-child(3) {
+  --index: 3;
+}
+
+.ansari-mobile-nav.ansari-nav-open li:nth-child(4) {
+  --index: 4;
+}
+
+.ansari-mobile-nav.ansari-nav-open li:nth-child(5) {
+  --index: 5;
+}
+
+.ansari-mobile-nav.ansari-nav-open li:nth-child(6) {
+  --index: 6;
+}
 
 .ansari-mobile-nav li a {
   width: 100%;
@@ -456,7 +479,7 @@ ul {
   color: white;
 }
 
-.ansari-mobile-nav li a:hover, 
+.ansari-mobile-nav li a:hover,
 .ansari-mobile-nav li.ansari-link-active a {
   border-left: 4px solid var(--ansari-accent-orange);
   padding-left: 1.4rem;
@@ -551,7 +574,7 @@ ul {
 
 /* Sidebar Styles */
 .ansari-side-panel {
-  width: 280px;
+  width: 380px;
   background: linear-gradient(145deg, #09213f, #020b16);
   color: #fff;
   display: flex;
@@ -612,9 +635,6 @@ ul {
   z-index: 5;
   margin: 15px;
   border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .ansari-main-logo {
@@ -631,20 +651,25 @@ ul {
 }
 
 .ansari-side-nav {
-  flex-grow: 1;
   padding-top: 20px;
   position: relative;
   z-index: 5;
 }
 
+.ansari-side-nav ul {
+  width: 100%;
+}
+
 .ansari-side-nav ul li {
-  padding: 12px 20px;
+  padding: 22px 20px;
   margin: 5px 15px;
   border-radius: 6px;
   transition: all 0.3s ease;
   font-weight: 500;
   position: relative;
   overflow: hidden;
+  text-align: end;
+  background-color: rgba(255, 255, 255, 0.048);
 }
 
 .ansari-side-nav ul li:hover {
@@ -698,7 +723,7 @@ ul {
 /* Hero Section */
 .ansari-hero-area {
   position: relative;
-  height: 320px;
+  height: 350px;
   overflow: hidden;
 }
 
@@ -716,6 +741,16 @@ ul {
   height: 100%;
   background: var(--ansari-hero-overlay);
   z-index: 1;
+}
+
+.ansari-hero-overlay-1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--ansari-hero-overlay-1);
+  z-index: -1;
 }
 
 .ansari-hero-text {
@@ -756,9 +791,10 @@ ul {
 /* Company Details */
 .ansari-company-info {
   padding: 30px;
-  background: var(--ansari-company-info-bg);
+  background: var(--black);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   transition: background-color 0.3s ease;
+  z-index: 99999999;
 }
 
 .ansari-comp-name {
@@ -768,7 +804,7 @@ ul {
   margin-bottom: 15px;
 }
 
-.ansari-company-info > div:not(.ansari-comp-name):not(.ansari-contact-block) {
+.ansari-company-info>div:not(.ansari-comp-name):not(.ansari-contact-block) {
   margin-bottom: 8px;
   color: var(--ansari-text-light);
 }
@@ -780,12 +816,14 @@ ul {
   flex-wrap: wrap;
 }
 
-.ansari-phone-info, .ansari-email-info {
+.ansari-phone-info,
+.ansari-email-info {
   display: flex;
   flex-direction: column;
 }
 
-.ansari-phone-info span, .ansari-email-info span {
+.ansari-phone-info span,
+.ansari-email-info span {
   margin: 5px 0;
   color: var(--ansari-text-light);
 }
@@ -935,9 +973,11 @@ ul {
   0% {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   }
+
   50% {
     filter: drop-shadow(0 4px 8px rgba(0, 123, 255, 0.2));
   }
+
   100% {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   }
@@ -947,9 +987,11 @@ ul {
   0% {
     transform: translateY(0) rotate(0deg);
   }
+
   50% {
     transform: translateY(20px) rotate(5deg);
   }
+
   100% {
     transform: translateY(-20px) rotate(-5deg);
   }
@@ -960,6 +1002,7 @@ ul {
     opacity: 0;
     transform: translateX(-50px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -970,6 +1013,7 @@ ul {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -979,6 +1023,7 @@ ul {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -997,64 +1042,73 @@ ul {
   content: "🌐";
 }
 
+.home-hero-logo {
+  position: absolute;
+  width: 20rem;
+  top: 0;
+  right: 0;
+  background: transparent;
+}
+
 /* Responsive Styles - Tablet */
 @media (max-width: 992px) {
   .ansari-content-wrapper {
     flex-direction: column;
   }
-  
+
   .ansari-info-section {
     margin: -30px 15px 30px;
     padding: 20px;
   }
-  
+
   .ansari-leadership-section {
     padding: 40px 20px;
     margin: 20px 15px;
   }
-  
+
   .ansari-hero-area {
     height: 300px;
   }
-  
+
   .ansari-hero-text h1 {
     font-size: 1.8rem;
   }
-  
+
   .ansari-contact-block {
     flex-direction: column;
   }
-  
-  .ansari-phone-info, .ansari-email-info {
+
+  .ansari-phone-info,
+  .ansari-email-info {
     margin-bottom: 10px;
   }
-  
+
   .ansari-user-section {
     padding: 6px 10px;
   }
-  
+
   .ansari-profile-icon {
     width: 35px;
     height: 35px;
     font-size: 14px;
     margin-right: 8px;
   }
-  
+
   .ansari-user-name {
     font-size: 13px;
     max-width: 100px;
   }
-  
+
   .ansari-logout-btn {
     width: 32px;
     height: 32px;
   }
-  
+
   .ansari-logout-btn svg {
     width: 16px;
     height: 16px;
   }
-  
+
   .ansari-leaders-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
@@ -1066,15 +1120,15 @@ ul {
   .ansari-top-nav {
     height: 6rem;
   }
-  
+
   .ansari-content-wrapper.ansari-mobile-mode {
     padding-top: 6rem;
   }
-  
+
   .ansari-nav-logo {
     height: 3.5rem;
   }
-  
+
   .ansari-logo-wrapper {
     background: transparent;
     border: none;
@@ -1084,71 +1138,71 @@ ul {
   .ansari-user-name {
     display: none;
   }
-  
+
   .ansari-hero-area {
     height: 250px;
   }
-  
+
   .ansari-hero-text h1 {
     font-size: 1.5rem;
   }
-  
+
   .ansari-info-section {
     padding: 15px;
     margin: -20px 10px 20px;
   }
-  
+
   .ansari-company-info {
     padding: 20px;
   }
-  
+
   .ansari-comp-name {
     font-size: 20px;
   }
-  
+
   .ansari-feature-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .ansari-leadership-section {
     padding: 30px 15px;
     margin: 15px 10px;
   }
-  
+
   .ansari-section-heading h2 {
     font-size: 26px;
   }
-  
+
   .ansari-leaders-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .ansari-leader-image {
     height: 220px;
   }
-  
+
   .ansari-user-section {
     padding: 4px 8px;
   }
-  
+
   .ansari-profile-icon {
     width: 30px;
     height: 30px;
     font-size: 12px;
     margin-right: 6px;
   }
-  
+
   .ansari-user-name {
     font-size: 12px;
     max-width: 80px;
   }
-  
+
   .ansari-logout-btn {
     width: 28px;
     height: 28px;
   }
-  
+
   .ansari-logout-btn svg {
     width: 14px;
     height: 14px;

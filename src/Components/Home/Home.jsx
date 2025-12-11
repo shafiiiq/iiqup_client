@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logoImage from '../../assets/images/al-ansari.png';
 import Jcb from '../../assets/images/jcb.png';
+import Excavator from '../../assets/images/excavator.jpg';
+import Heavy from '../../assets/images/heavy.jpg';
 import Chairman from '../../assets/images/chairman.jpg';
 import MD from '../../assets/images/md.jpg';
 import CEO from '../../assets/images/ceo.jpg';
@@ -229,9 +231,6 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                         <li className={activeLink === '/stock-manage' ? 'ansari-link-active' : ''}>
                             <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
                         </li>
-                        <li className={activeLink === '/lpo-list' ? 'ansari-link-active' : ''}>
-                            <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
-                        </li>
                         <li className={activeLink === '/toolkits' ? 'ansari-link-active' : ''}>
                             <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
                         </li>
@@ -240,6 +239,12 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                         </li>
                         <li className={activeLink === '#clients' ? 'active' : ''}>
                             <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
+                        </li>
+                        <li className={activeLink === '/lpo-list' ? 'ansari-link-active' : ''}>
+                            <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
+                        </li>
+                        <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
+                            <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>
                         </li>
                         <li className={activeLink === '/documents' ? 'active' : ''}>
                             <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
@@ -258,110 +263,19 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
             )}
 
             <div className={`ansari-content-wrapper ${!isDesktop ? 'ansari-mobile-mode' : ''}`}>
-                {isDesktop && (
-                    <aside className="ansari-side-panel">
-                        <div className="ansari-sidebar-bg">
-                            <div className="ansari-side-shape ansari-sshape-1"></div>
-                            <div className="ansari-side-shape ansari-sshape-2"></div>
-                            <div className="ansari-side-shape ansari-sshape-3"></div>
-                        </div>
-
-                        <div className="ansari-logo-holder">
-                            <img src={logoImage} alt="Company Logo" className="ansari-main-logo" />
-                        </div>
-
-                        <nav className="ansari-side-nav" ref={navRef}>
-                            <ul>
-                                <li className={activeLink === '/' ? 'ansari-nav-active' : ''}>
-                                    <Link to="/" onClick={() => handleNavClick('/')}>Home</Link>
-                                </li>
-                                <li className={activeLink === '/equipments' ? 'ansari-nav-active' : ''}>
-                                    <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
-                                </li>
-                                <li className={activeLink === '/stock-manage' ? 'ansari-nav-active' : ''}>
-                                    <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
-                                </li>
-                                <li className={activeLink === '/toolkits' ? 'ansari-nav-active' : ''}>
-                                    <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
-                                </li>
-                                <li className={activeLink === '/mechanics' ? 'ansari-nav-active' : ''}>
-                                    <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
-                                </li>
-                                <li className={activeLink === '/lpo-list' ? 'ansari-nav-active' : ''}>
-                                    <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
-                                </li>
-                                <li className={activeLink === '/documents' ? 'active' : ''}>
-                                    <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
-                                </li>
-                                {/* <li className={activeLink === '#clients' ? 'active' : ''}>
-                                    <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
-                                </li> */}
-                                <li className={activeLink === '/notification' ? 'ansari-nav-active' : ''}>
-                                    <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
-                                </li>
-                                <li className={activeLink === '/dashboard' ? 'ansari-nav-active' : ''}>
-                                    <Link to="/dashboard" onClick={() => handleNavClick('/dashboard')}>Dashboard</Link>
-                                </li>
-                            </ul>
-                        </nav>
-
-                        {user_logged_in && (
-                            <div className="ansari-side-user-section">
-                                <div className="ansari-profile-icon">
-                                    {getProfileInitial()}
-                                </div>
-                                <div className="ansari-user-actions">
-                                    <span className="ansari-user-name">{currentUser?.name}</span>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="ansari-logout-btn"
-                                        title="Logout"
-                                    >
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </aside>
-                )}
-
                 <main className={`ansari-main-content ${!isDesktop ? 'ansari-full-width' : ''}`}>
                     <div className="ansari-hero-area">
                         <div className="ansari-hero-overlay"></div>
-                        <img src={Jcb} alt="Hero Img" className="ansari-hero-img" />
+                        <img src={Excavator} alt="Hero Img" className="ansari-hero-img" />
                         <div className="ansari-hero-text">
                             <h1>Welcome to AI Ansari Transport & Enterprises</h1>
                             <p>Your Trusted Partner in Transport & Enterprises</p>
                         </div>
                     </div>
 
-                    <div className="ansari-info-section">
-                        <div className="ansari-company-info">
-                            <div className="ansari-comp-name">AI Ansari Transport & Enterprises W.L.L</div>
-                            <div>Building No .24, Street No .61, Area 92,
-                                Logistic Park-A,
-                            </div>
-                            <div>Birkat Al Awamer, Doha, Qatar,
-                                P.O Box 1265</div>
-                            <div className="ansari-contact-block">
-                                <div className="ansari-phone-info">
-                                    <span>Tel: +974 44505 700/800</span>
-                                    <span>Fax: +974 44505 900</span>
-                                </div>
-                                <div className="ansari-email-info">
-                                    <span>info@ansarigroup.co</span>
-                                    <span>www.ansarigroup.co</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Leadership Team Section */}
                     <div className="ansari-leadership-section">
+
                         <div className="ansari-section-heading">
                             <h2>Our Leadership Team</h2>
                             <p>The driving force behind our success</p>
@@ -381,6 +295,38 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                             ))}
                         </div>
                     </div>
+
+                    <div className="ansari-info-section"
+                        style={{
+                            backgroundImage: `url(${Jcb})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat'
+                        }}>
+                        <div className="ansari-hero-overlay-1"></div>
+                        <div className="ansari-company-info">
+                            <div className="ansari-comp-name">AI Ansari Transport & Enterprises W.L.L</div>
+                            <div>Building No .24, Street No .61, Area 92,
+                                Logistic Park-A,
+                            </div>
+                            <div>Birkat Al Awamer, Doha, Qatar,
+                                P.O Box 1265</div>
+                            <div className="ansari-logo-holder home-hero-logo">
+                                <img src={logoImage} alt="Company Logo" className="ansari-main-logo" />
+                            </div>
+                            <div className="ansari-contact-block">
+                                <div className="ansari-phone-info">
+                                    <span>Tel: +974 44505 700/800</span>
+                                    <span>Fax: +974 44505 900</span>
+                                </div>
+                                <div className="ansari-email-info">
+                                    <span>info@ansarigroup.co</span>
+                                    <span>www.ansarigroup.co</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="ansari-info-section">
                         <div className="ansari-section-heading">
                             <h2>Our Services</h2>
@@ -404,6 +350,79 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                         </div>
                     </div>
                 </main>
+
+                {isDesktop && (
+                    <aside className="ansari-side-panel">
+                        <div className="ansari-sidebar-bg">
+                            <div className="ansari-side-shape ansari-sshape-1"></div>
+                            <div className="ansari-side-shape ansari-sshape-2"></div>
+                            <div className="ansari-side-shape ansari-sshape-3"></div>
+                        </div>
+
+                        {user_logged_in && (
+                            <div className="ansari-side-user-section">
+                                <div className="ansari-profile-icon">
+                                    {getProfileInitial()}
+                                </div>
+                                <div className="ansari-user-actions">
+                                    <span className="ansari-user-name">{currentUser?.name}</span>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="ansari-logout-btn"
+                                        title="Logout"
+                                    >
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <nav className="ansari-side-nav" ref={navRef}>
+                            <ul>
+                                <li className={activeLink === '/' ? 'ansari-nav-active' : ''}>
+                                    <Link to="/" onClick={() => handleNavClick('/')}>Home</Link>
+                                </li>
+                                <li className={activeLink === '/equipments' ? 'ansari-nav-active' : ''}>
+                                    <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
+                                </li>
+                                <li className={activeLink === '/stock-manage' ? 'ansari-nav-active' : ''}>
+                                    <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
+                                </li>
+                                <li className={activeLink === '/toolkits' ? 'ansari-nav-active' : ''}>
+                                    <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
+                                </li>
+                                <li className={activeLink === '/mechanics' ? 'ansari-nav-active' : ''}>
+                                    <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
+                                </li>
+                                <li className={activeLink === '#clients' ? 'active' : ''}>
+                                    <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
+                                </li>
+                                <li className={activeLink === '/lpo-list' ? 'ansari-nav-active' : ''}>
+                                    <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
+                                </li>
+                                <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
+                                    <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>
+                                </li>
+                                <li className={activeLink === '/documents' ? 'active' : ''}>
+                                    <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
+                                </li>
+                                {/* <li className={activeLink === '#clients' ? 'active' : ''}>
+                                    <a href="/application-form" onClick={() => handleNavClick('/application-form')}>Leave/Loan Apply</a>
+                                </li> */}
+                                <li className={activeLink === '/notification' ? 'ansari-nav-active' : ''}>
+                                    <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
+                                </li>
+                                <li className={activeLink === '/dashboard' ? 'ansari-nav-active' : ''}>
+                                    <Link to="/dashboard" onClick={() => handleNavClick('/dashboard')}>Dashboard</Link>
+                                </li>
+                            </ul>
+                        </nav>
+                    </aside>
+                )}
             </div>
         </div>
     )

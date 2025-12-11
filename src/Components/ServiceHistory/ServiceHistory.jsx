@@ -413,14 +413,14 @@ const ServiceHistory = () => {
         const row = [
           formatDate(item.date),
           ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
-          getWorkDescription(item),
-          ...((activeTab === 'oil' || activeTab === 'all') ? [
-            item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-            item.serviceType === 'oil' ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-            item.serviceType === 'oil' && item.fullService ? item.serviceHrs + 3000 : '-'
+          getWorkDescriptionForPDF(item),
+          ...((activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') ? [
+            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
+            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
+            ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : [])
           ] : []),
           ...((activeTab === 'tyre' || activeTab === 'all') ? [
-            item.location ? item.location : '-',
+            item.serviceType === 'tyre' && item.location ? item.location : '-',
             item.serviceType === 'tyre' ? item.tyreModel : '-'
           ] : []),
           ...((activeTab === 'battery' || activeTab === 'all') ? [
@@ -488,8 +488,13 @@ const ServiceHistory = () => {
         margin: { top: 10, left: 10, right: 10 }
       });
 
-      // Generate filename
-      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      // Generate filename with date filter info
+      const dateFilterSuffix = dateFilter === 'all' ? '' :
+        dateFilter === 'lastXmonths' ? `_Last_${lastMonthsCount}_Months` :
+          dateFilter === 'thismonth' ? '_This_Month' :
+            dateFilter === 'custom' && customStartDate && customEndDate ? `_${customStartDate}_to_${customEndDate}` : '';
+
+      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`;
 
       // Save the PDF
       doc.save(fileName);
@@ -756,13 +761,13 @@ const ServiceHistory = () => {
           formatDate(item.date),
           ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
           getWorkDescription(item),
-          ...((activeTab === 'oil' || activeTab === 'all') ? [
-            item.serviceType === 'oil' ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-            item.serviceType === 'oil' ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-            item.serviceType === 'oil' && item.fullService ? item.serviceHrs + 3000 : '-'
+          ...((activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') ? [
+            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
+            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
+            ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : [])
           ] : []),
           ...((activeTab === 'tyre' || activeTab === 'all') ? [
-            item.location ? item.location : '-',
+            item.serviceType === 'tyre' && item.location ? item.location : '-',
             item.serviceType === 'tyre' ? item.tyreModel : '-'
           ] : []),
           ...((activeTab === 'battery' || activeTab === 'all') ? [
@@ -825,8 +830,13 @@ const ServiceHistory = () => {
         worksheet.mergeCells(`A4:${String.fromCharCode(64 + headers.length)}4`); // Timestamp
       }
 
-      // Generate filename
-      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      // Generate filename with date filter info
+      const dateFilterSuffix = dateFilter === 'all' ? '' :
+        dateFilter === 'lastXmonths' ? `_Last_${lastMonthsCount}_Months` :
+          dateFilter === 'thismonth' ? '_This_Month' :
+            dateFilter === 'custom' && customStartDate && customEndDate ? `_${customStartDate}_to_${customEndDate}` : '';
+
+      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
       // Generate buffer and create blob for download
       const buffer = await workbook.xlsx.writeBuffer();
@@ -854,6 +864,14 @@ const ServiceHistory = () => {
   const getWorkDescription = (item) => {
     if (item.serviceType === 'oil') {
       return `Filters: Fuel Filter: ${item.fuelFilter}, Water Sep: ${item.waterSeparator}\nAir Filter: ${item.airFilter}${item.acFilter ? `, A/C Filter: ${item.acFilter}` : ''}`;
+    }
+    return item.workRemarks || '-';
+  };
+
+  // Helper function for PDF-friendly work description (no newlines)
+  const getWorkDescriptionForPDF = (item) => {
+    if (item.serviceType === 'oil' || item.serviceType === 'normal') {
+      return `Filters: Fuel Filter: ${item.fuelFilter || '-'}, Water Sep: ${item.waterSeparator || '-'}, Air Filter: ${item.airFilter || '-'}${item.acFilter ? `, A/C Filter: ${item.acFilter}` : ''}`;
     }
     return item.workRemarks || '-';
   };

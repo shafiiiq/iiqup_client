@@ -102,17 +102,16 @@ const Notifications = ({ islivemodeON }) => {
     };
   }, []);
 
-  useEffect(() => {
-    // Initial load - show loading spinner
-    fetchAllNotifications(false);
+  // Auto-refresh every 10 seconds
+  // useEffect(() => {
+  //   fetchAllNotifications(false);
 
-    // Auto-refresh every 3 seconds - no loading spinner
-    const refreshInterval = setInterval(() => {
-      fetchAllNotifications(true); // Pass true for background refresh
-    }, 3000);
+  //   const refreshInterval = setInterval(() => {
+  //     fetchAllNotifications(true); 
+  //   }, 3000);
 
-    return () => clearInterval(refreshInterval);
-  }, []);
+  //   return () => clearInterval(refreshInterval);
+  // }, []);
 
   const initializeApp = async () => {
     try {

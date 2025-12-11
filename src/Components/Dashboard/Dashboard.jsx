@@ -101,16 +101,16 @@ const Dashboard = () => {
     }
   }, [loading, activeTab, dashboardData]);
 
-  useEffect(() => {
-    handleRefresh();
+  // Auto-refresh every 10 seconds
+  // useEffect(() => {
+  //   handleRefresh();
 
-    // Auto-refresh every 10 seconds
-    const refreshInterval = setInterval(() => {
-      loadDashboardData(true);
-    }, 10000);
+  //   const refreshInterval = setInterval(() => {
+  //     loadDashboardData(true);
+  //   }, 10000);
 
-    return () => clearInterval(refreshInterval);
-  }, []);
+  //   return () => clearInterval(refreshInterval);
+  // }, []);
 
   // Real-time clock and date
   useEffect(() => {

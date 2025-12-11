@@ -55,7 +55,7 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
 
   useEffect(() => {
     console.log(location.pathname);
-    
+
     setActiveLink(location.pathname);
   }, [location]);
 
@@ -138,9 +138,36 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   return (
     <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
       <div className="header-container">
-        <div className="logo-section">
-          <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
-        </div>
+
+        {/* user control section  */}
+        {user_logged_in && (
+          <div className="user-section">
+            <label className="theme-switch">
+              <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
+              <span className="slider round">
+                <span className="material-icons sun-icon">wb_sunny</span>
+                <span className="material-icons moon-icon">nightlight_round</span>
+              </span>
+            </label>
+            <div className="profile-icon">
+              {getProfileInitial()}
+            </div>
+            <div className="user-actions">
+              <span className="user-name">{currentUser?.name}</span>
+              <button
+                onClick={handleLogout}
+                className="logout-btn"
+                title="Logout"
+              >
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className={`hamburger-menu ${menuOpen ? 'active' : ''}`} onClick={toggleMenu}>
           <div className="hamburger-inner">
@@ -182,7 +209,7 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             <li className={activeLink === '/lpo-list' ? 'active' : ''}>
               <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
             </li>
-             <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
+            <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
               <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>
             </li>
             <li className={activeLink === '/documents' ? 'active' : ''}>
@@ -197,35 +224,11 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
           </ul>
         </nav>
 
+        {/* logo section  */}
+        <div className="logo-section">
+          <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
+        </div>
 
-        {user_logged_in && (
-          <div className="user-section">
-            <label className="theme-switch">
-              <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
-              <span className="slider round">
-                <span className="material-icons sun-icon">wb_sunny</span>
-                <span className="material-icons moon-icon">nightlight_round</span>
-              </span>
-            </label>
-            <div className="profile-icon">
-              {getProfileInitial()}
-            </div>
-            <div className="user-actions">
-              <span className="user-name">{currentUser?.name}</span>
-              <button
-                onClick={handleLogout}
-                className="logout-btn"
-                title="Logout"
-              >
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="header-background">
