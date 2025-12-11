@@ -36,7 +36,7 @@
 
 /* Dark Theme */
 body.dark-theme {
-  --ansari-primary-blue: #2980b9;
+  --ansari-primary-blue: #b6c8dd;
   --ansari-secondary-blue: #3498db;
   --ansari-accent-orange: #f39c12;
   --ansari-accent-orange-hover: #e67e22;
@@ -575,7 +575,7 @@ ul {
 /* Sidebar Styles */
 .ansari-side-panel {
   width: 380px;
-  background: linear-gradient(145deg, #09213f, #020b16);
+  background: var(--ansari-sidebar-bg);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -670,6 +670,7 @@ ul {
   overflow: hidden;
   text-align: end;
   background-color: rgba(255, 255, 255, 0.048);
+  cursor: pointer;
 }
 
 .ansari-side-nav ul li:hover {
