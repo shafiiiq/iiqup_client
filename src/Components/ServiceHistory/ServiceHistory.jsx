@@ -611,6 +611,8 @@ const ServiceHistory = () => {
       url = `${END_POINT}/service-history/delete-service-history/tyre/${deleteReport._id}`
     } else if (deleteReport.serviceType == 'battery') {
       url = `${END_POINT}/service-history/delete-service-history/battery/${deleteReport._id}`
+    } else if (deleteReport.serviceType == 'normal') {
+      url = `${END_POINT}/service-history/delete-service-history/oil/${deleteReport._id}`
     } else {
       url = `${END_POINT}/service-history/delete-service-history/maintanance/${deleteReport._id}`
     }
