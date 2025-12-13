@@ -19,6 +19,7 @@ function Equipments() {
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [showOutsideEquipmentModal, setShowOutsideEquipmentModal] = useState(false);
   const [notFoundSearchTerm, setNotFoundSearchTerm] = useState('');
+  const [hasAnimated, setHasAnimated] = useState(false);
   const [outsideEquipmentForm, setOutsideEquipmentForm] = useState({
     machine: '',
     regNo: '',
@@ -204,10 +205,7 @@ function Equipments() {
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
-
-      // Apply sorting to filtered results
-      const sortedResults = sortData(results, sortConfig.key, sortConfig.direction);
-      setFilteredData(sortedResults);
+      setFilteredData(results);
     }
   }, [searchTerm, equipments, sortConfig]);
 

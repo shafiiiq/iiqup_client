@@ -268,7 +268,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                         <div className="ansari-hero-overlay"></div>
                         <img src={Excavator} alt="Hero Img" className="ansari-hero-img" />
                         <div className="ansari-hero-text">
-                            <h1>Welcome to AI Ansari Transport & Enterprises</h1>
+                            <h1>Welcome to <br /> AI Ansari Transport & Enterprises</h1>
                             <p>Your Trusted Partner in Transport & Enterprises</p>
                         </div>
                     </div>
