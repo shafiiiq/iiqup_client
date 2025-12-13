@@ -103,15 +103,15 @@ const Notifications = ({ islivemodeON }) => {
   }, []);
 
   // Auto-refresh every 10 seconds
-  // useEffect(() => {
-  //   fetchAllNotifications(false);
+  useEffect(() => {
+    fetchAllNotifications(false);
 
-  //   const refreshInterval = setInterval(() => {
-  //     fetchAllNotifications(true); 
-  //   }, 3000);
+    const refreshInterval = setInterval(() => {
+      fetchAllNotifications(true); 
+    }, 3000);
 
-  //   return () => clearInterval(refreshInterval);
-  // }, []);
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   const initializeApp = async () => {
     try {
