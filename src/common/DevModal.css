@@ -158,7 +158,7 @@
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     max-width: 100%;
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
 }
 
 /* Footer with CTA button */
@@ -476,7 +476,7 @@
     letter-spacing: 2px;
     transition: all 200ms ease;
     backdrop-filter: blur(8px);
-    text-align: center; 
+    text-align: center;
 }
 
 .dm-input::placeholder {
@@ -559,17 +559,341 @@
     min-width: 850px;
 }
 
+/* Form modal styles */
+.dm-card-form {
+    height: auto;
+    max-height: 85vh;
+    min-width: 900px;
+    max-width: 850px;
+    padding: 32px 28px 24px;
+}
+
+.dm-card-form .dm-content {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    padding-top: 20px;
+}
+
+.dm-form-section {
+    width: 100%;
+    display: grid;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dm-form-message {
+    margin-bottom: 4px !important;
+    font-size: 0.9rem !important;
+    text-align: left;
+}
+
+.dm-form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    max-height: calc(85vh - 280px);
+    overflow-y: auto;
+    padding-right: 12px;
+    padding-left: 4px;
+    padding-bottom: 10rem;
+}
+
+.dm-form-field:has(.dm-form-textarea) {
+    grid-column: 1 / -1;
+}
+
+.dm-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dm-form-label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    text-align: left;
+}
+
+.dm-form-required {
+    color: #fca5a5;
+    margin-left: 4px;
+}
+
+.dm-form-input,
+.dm-form-select,
+.dm-form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.9rem;
+    transition: all 200ms ease;
+    backdrop-filter: blur(8px);
+    box-sizing: border-box;
+}
+
+.dm-form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231f2937' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.dm-form-input::placeholder,
+.dm-form-textarea::placeholder {
+    color: rgba(31, 41, 55, 0.5);
+}
+
+.dm-form-input:focus,
+.dm-form-select:focus,
+.dm-form-textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    background: white;
+}
+
+.dm-form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+    line-height: 1.5;
+}
+
+.dm-form-field-error {
+    color: #fee;
+    background: rgba(220, 38, 38, 0.25);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    text-align: left;
+}
+
+.dm-card-form .dm-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 28px;
+    right: 28px;
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+}
+
+
+.dm-form-fields::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dm-form-fields::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.dm-form-fields::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.dm-form-fields::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Unauthorized modal styles */
+.dm-card-unauthorized {
+    height: auto;
+    min-height: 400px;
+    max-height: 85vh;
+    min-width: 600px;
+    max-width: 700px;
+    padding: 32px 28px 24px;
+    overflow: hidden;
+}
+
+.dm-card-unauthorized .dm-content {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-height: calc(85vh - 180px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+.dm-card-unauthorized .dm-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dm-card-unauthorized .dm-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.dm-card-unauthorized .dm-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.dm-card-unauthorized .dm-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.dm-unauthorized-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.dm-unauthorized-icon {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.dm-unauthorized-reason {
+    background: rgba(0, 0, 0, 0.15);
+    padding: 12px 16px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    backdrop-filter: blur(8px);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.dm-unauthorized-reason strong {
+    font-weight: 600;
+}
+
+.dm-unauthorized-contact {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.dm-unauthorized-contact a {
+    color: white;
+    font-weight: 600;
+    text-decoration: underline;
+    transition: opacity 200ms ease;
+    word-break: break-all;
+}
+
+.dm-unauthorized-contact a:hover {
+    opacity: 0.8;
+}
+
+.dm-card-unauthorized .dm-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 28px;
+    right: 28px;
+    display: flex;
+    gap: 12px;
+}
+
+/* Mobile adjustments for new modals */
+@media (max-width: 768px) {
+    .dm-card-form {
+        min-width: 95vw;
+        max-height: 85vh;
+        padding: 28px 20px 20px;
+    }
+
+    .dm-form-fields {
+        grid-template-columns: 1fr;
+        max-height: calc(85vh - 240px);
+        gap: 12px;
+    }
+
+    .dm-form-input,
+    .dm-form-select,
+    .dm-form-textarea {
+        font-size: 0.85rem;
+        padding: 9px 11px;
+    }
+
+    .dm-form-label {
+        font-size: 0.8rem;
+    }
+
+    .dm-card-unauthorized {
+        min-width: 90vw;
+        max-width: 90vw;
+        max-height: 80vh;
+        padding: 28px 20px 20px;
+    }
+
+    .dm-card-unauthorized .dm-content {
+        max-height: calc(80vh - 160px);
+    }
+
+    .dm-unauthorized-icon svg {
+        width: 56px;
+        height: 56px;
+    }
+
+    .dm-unauthorized-reason,
+    .dm-unauthorized-contact {
+        font-size: 0.85rem;
+    }
+
+    .dm-card-unauthorized .dm-footer {
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+    }
+}
+
 @media (max-width: 900px) {
+    .dm-card-form {
+        min-width: 90vw;
+        max-width: 90vw;
+        max-height: 80vh;
+    }
+
+    .dm-form-fields {
+        max-height: calc(80vh - 260px);
+        padding-right: 8px;
+    }
+
+    .dm-card-form .dm-footer {
+        bottom: 20px;
+        left: 24px;
+        right: 24px;
+    }
+
     .dm-card-cells {
         min-width: 95vw;
     }
-    
+
     .dm-cell-input {
         width: 40px;
         height: 50px;
         font-size: 1.1rem;
     }
-    
+
     .dm-cell-input-container {
         gap: 6px;
     }
@@ -577,6 +901,7 @@
 
 /* Mobile adjustments for input modals */
 @media (max-width: 480px) {
+
     .dm-card-input,
     .dm-card-activation {
         min-height: 400px;
@@ -595,7 +920,69 @@
         font-size: 0.95rem;
     }
 
-    .dm-footer {
+    .dm-card-form {
+        padding: 24px 16px 16px;
+    }
+
+    .dm-card-form .dm-content {
+        padding-top: 16px;
+        padding-bottom: 70px;
+    }
+
+    .dm-form-fields {
+        grid-template-columns: 1fr;
+        max-height: calc(85vh - 220px);
+        gap: 10px;
+        padding-bottom: 8rem;
+    }
+
+    .dm-form-input,
+    .dm-form-select,
+    .dm-form-textarea {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+
+    .dm-card-form .dm-footer {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .dm-card-unauthorized {
+        min-width: 95vw;
+        padding: 24px 16px 16px;
+    }
+
+    .dm-card-unauthorized .dm-content {
+        max-height: calc(80vh - 140px);
+        padding-bottom: 70px;
+    }
+
+    .dm-unauthorized-section {
+        gap: 16px;
+    }
+
+    .dm-unauthorized-icon svg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .dm-unauthorized-reason {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+
+    .dm-unauthorized-contact {
+        font-size: 0.8rem;
+    }
+
+    .dm-card-unauthorized .dm-footer {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
         flex-direction: column;
         gap: 8px;
     }
@@ -615,3 +1002,42 @@
         animation: none;
     }
 }
+
+/* https://claude.ai/chat/c3352682-6e75-4c75-bb9e-629a8034121f
+find in dev email claud
+
+// Form Modal Example
+<DevModal
+  isOpen={showFormModal}
+  onClose={() => setShowFormModal(false)}
+  type="form"
+  title="Contact Us"
+  message="Fill out the form below and we'll get back to you soon."
+  formFields={[
+    { name: 'name', label: 'Full Name', type: 'text', placeholder: 'John Doe', required: true },
+    { name: 'email', label: 'Email', type: 'email', placeholder: 'john@example.com', required: true },
+    { name: 'subject', label: 'Subject', type: 'select', required: true, options: ['Support', 'Sales', 'Feedback'] },
+    { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Your message...', rows: 4 }
+  ]}
+  formValues={formData}
+  onFormChange={(field, value) => setFormData({...formData, [field]: value})}
+  buttonText="Submit"
+  onButtonClick={handleFormSubmit}
+  secondaryButtonText="Cancel"
+  onSecondaryClick={() => setShowFormModal(false)}
+/>
+
+// Unauthorized Modal Example
+<DevModal
+  isOpen={showUnauthorized}
+  onClose={() => setShowUnauthorized(false)}
+  type="unauthorized"
+  title="Access Denied"
+  message="You don't have permission to access this feature."
+  unauthorizedReason="Your account level doesn't include premium features."
+  contactEmail="support@yourcompany.com"
+  buttonText="Upgrade Account"
+  onButtonClick={handleUpgrade}
+  secondaryButtonText="Go Back"
+  onSecondaryClick={() => setShowUnauthorized(false)}
+/> */

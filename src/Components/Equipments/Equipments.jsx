@@ -21,6 +21,9 @@ function Equipments() {
   const [notFoundSearchTerm, setNotFoundSearchTerm] = useState('');
   const [hasAnimated, setHasAnimated] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState({});
+  const [editFormFields, setEditFormFields] = useState([]);
+  const [addFormFields, setAddFormFields] = useState([]);
+  const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(true);
   const [outsideEquipmentForm, setOutsideEquipmentForm] = useState({
     machine: '',
     regNo: '',
@@ -462,32 +465,71 @@ function Equipments() {
     if (!printWindow) return;
 
     const style = `
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1, p { text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-        th { background-color: #f2f2f2; }
-        .no-results { text-align: center; font-style: italic; }
-      </style>
-    `;
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; }
+      h1, p { text-align: center; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+      th { background-color: #f2f2f2; }
+      .no-results { text-align: center; font-style: italic; }
+    </style>
+  `;
+
+    // Generate table HTML from filteredData
+    const tableHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Machine</th>
+          <th>Reg No</th>
+          <th>Brand</th>
+          <th>Year</th>
+          <th>Company</th>
+          <th>Operator</th>
+          <th>Site</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filteredData && filteredData.length > 0
+        ? filteredData.map((item, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.machine || 'N/A'}</td>
+              <td>${item.regNo || 'N/A'}</td>
+              <td>${item.brand || 'N/A'}</td>
+              <td>${item.year || 'N/A'}</td>
+              <td>${item.company || 'N/A'}</td>
+              <td>${item.certificationBody && item.certificationBody.length > 0
+            ? item.certificationBody[item.certificationBody.length - 1]
+            : 'N/A'}</td>
+              <td>${item.site || 'N/A'}</td>
+              <td>${item.status || 'N/A'}</td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="9" class="no-results">No equipment data available</td></tr>'
+      }
+      </tbody>
+    </table>
+  `;
 
     const content = `
-      <html>
-        <head>
-          <title>Equipment Inventory</title>
-          ${style}
-        </head>
-        <body>
-          <h1>Equipment Inventory</h1>
-          ${searchTerm ? `<p>Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
-          ${tableRef.current?.outerHTML || ''}
-          <div style="margin-top: 10px; text-align: center;">
-            Showing ${filteredData?.length || 0} ${searchTerm ? 'matching entries' : 'entries'}
-          </div>
-        </body>
-      </html>
-    `;
+    <html>
+      <head>
+        <title>Equipment Inventory</title>
+        ${style}
+      </head>
+      <body>
+        <h1>Equipment Inventory</h1>
+        ${searchTerm ? `<p>Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
+        ${tableHTML}
+        <div style="margin-top: 10px; text-align: center;">
+          Showing ${filteredData?.length || 0} ${searchTerm ? 'matching entries' : 'entries'}
+        </div>
+      </body>
+    </html>
+  `;
 
     printWindow.document.open();
     printWindow.document.write(content);
@@ -1389,190 +1431,70 @@ function Equipments() {
         </div>
       )}
 
+      <DevModal
+        isOpen={showUnauthorizedModal}
+        onClose={() => setShowUnauthorizedModal(false)}
+        type="unauthorized"
+        title="Access Denied"
+        message="You don't have permission to perform this action."
+        unauthorizedReason="This feature requires administrator privileges."
+        contactEmail="support@yourcompany.com"
+        buttonText="Request Access"
+        onButtonClick={() => {
+          // Handle request access
+          console.log('Request access clicked');
+        }}
+        secondaryButtonText="Go Back"
+        onSecondaryClick={() => setShowUnauthorizedModal(false)}
+      />
+
       {/* Add Equipment Modal */}
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content add-equipment">
-            <div className="modal-header">
-              <h2>Add New Equipment</h2>
-              <button className="close-btn" onClick={closeAddModal}>×</button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleAddEquipmentSubmit} className="add-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="machine">Machine *</label>
-                    <input
-                      type="text"
-                      id="machine"
-                      name="machine"
-                      value={addEquipmentForm.machine}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="regNo">Registration No *</label>
-                    <input
-                      type="text"
-                      id="regNo"
-                      name="regNo"
-                      value={addEquipmentForm.regNo}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="coc">COC</label>
-                    <input
-                      type="text"
-                      id="coc"
-                      name="coc"
-                      value={addEquipmentForm.coc}
-                      onChange={handleAddEquipmentInputChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="brand">Brand *</label>
-                    <input
-                      type="text"
-                      id="brand"
-                      name="brand"
-                      value={addEquipmentForm.brand}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="year">Year *</label>
-                    <input
-                      type="number"
-                      id="year"
-                      name="year"
-                      value={addEquipmentForm.year}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="company">Company *</label>
-                    <select
-                      id="company"
-                      name="company"
-                      value={addEquipmentForm.company}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    >
-                      <option value="ATE">ATE</option>
-                      <option value="OUTSIDE">OUTSIDE</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="istimaraExpiry">Istimara Expiry</label>
-                    <input
-                      type="date"
-                      id="istimaraExpiry"
-                      name="istimaraExpiry"
-                      value={addEquipmentForm.istimaraExpiry}
-                      onChange={handleAddEquipmentInputChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="insuranceExpiry">Insurance Expiry</label>
-                    <input
-                      type="date"
-                      id="insuranceExpiry"
-                      name="insuranceExpiry"
-                      value={addEquipmentForm.insuranceExpiry}
-                      onChange={handleAddEquipmentInputChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="tpcExpiry">TPC Expiry</label>
-                    <input
-                      type="date"
-                      id="tpcExpiry"
-                      name="tpcExpiry"
-                      value={addEquipmentForm.tpcExpiry}
-                      onChange={handleAddEquipmentInputChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="status">Status *</label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={addEquipmentForm.status}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                      <option value="Maintenance">Maintenance</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="operator">Operator *</label>
-                    <input
-                      type="text"
-                      id="operator"
-                      name="operator"
-                      value={addEquipmentForm.operator}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="site">Site *</label>
-                    <input
-                      type="text"
-                      id="site"
-                      name="site"
-                      value={addEquipmentForm.site}
-                      onChange={handleAddEquipmentInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group checkbox-group">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="outside"
-                      checked={addEquipmentForm.outside}
-                      onChange={(e) => setAddEquipmentForm({
-                        ...addEquipmentForm,
-                        outside: e.target.checked
-                      })}
-                    />
-                    Mark as Outside Equipment
-                  </label>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button className="action-btn cancel" onClick={closeAddModal}>Cancel</button>
-              <button className="action-btn save" onClick={handleAddEquipmentSubmit}>Add Equipment</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DevModal
+        isOpen={showAddModal}
+        onClose={closeAddModal}
+        type="form"
+        title="Add New Equipment"
+        message="Fill in the details to add new equipment"
+        formFields={[
+          { name: 'machine', label: 'Machine', type: 'text', placeholder: 'Enter machine name', required: true },
+          { name: 'regNo', label: 'Registration No', type: 'text', placeholder: 'Enter reg number', required: true },
+          { name: 'coc', label: 'COC', type: 'text', placeholder: 'Enter COC' },
+          { name: 'brand', label: 'Brand', type: 'text', placeholder: 'Enter brand', required: true },
+          { name: 'year', label: 'Year', type: 'number', placeholder: 'Enter year', required: true },
+          {
+            name: 'company',
+            label: 'Company',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'ATE', label: 'ATE' },
+              { value: 'OUTSIDE', label: 'OUTSIDE' }
+            ]
+          },
+          { name: 'istimaraExpiry', label: 'Istimara Expiry', type: 'date' },
+          { name: 'insuranceExpiry', label: 'Insurance Expiry', type: 'date' },
+          { name: 'tpcExpiry', label: 'TPC Expiry', type: 'date' },
+          {
+            name: 'status',
+            label: 'Status',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'Active', label: 'Active' },
+              { value: 'Inactive', label: 'Inactive' },
+              { value: 'Maintenance', label: 'Maintenance' }
+            ]
+          },
+          { name: 'operator', label: 'Operator', type: 'text', placeholder: 'Enter operator name', required: true },
+          { name: 'site', label: 'Site', type: 'text', placeholder: 'Enter site', required: true }
+        ]}
+        formValues={addEquipmentForm}
+        onFormChange={(field, value) => setAddEquipmentForm({ ...addEquipmentForm, [field]: value })}
+        buttonText="Add Equipment"
+        onButtonClick={handleAddEquipmentSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeAddModal}
+      />
 
       {/* Delete Confirmation Modal */}
       <DevModal
@@ -1601,149 +1523,41 @@ function Equipments() {
       )}
 
       {/* Edit Equipment Modal */}
-      {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal-content edit">
-            <div className="modal-header">
-              <h2>Update Equipment</h2>
-              <button className="close-btn" onClick={closeEditModal}>×</button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleUpdateEquipment} className="edit-form">
-                <div className="form-group">
-                  <label htmlFor="machine">Machine:</label>
-                  <input
-                    type="text"
-                    id="machine"
-                    name="machine"
-                    value={editFormData.machine}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="regNo">Registration No:</label>
-                  <input
-                    type="text"
-                    id="regNo"
-                    name="regNo"
-                    value={editFormData.regNo}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="brand">Brand:</label>
-                  <input
-                    type="text"
-                    id="brand"
-                    name="brand"
-                    value={editFormData.brand}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="year">Year:</label>
-                  <input
-                    type="text"
-                    id="year"
-                    name="year"
-                    value={editFormData.year}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="company">Company:</label>
-                  <input
-                    type="text"
-                    id="company"
-                    name="company"
-                    value={editFormData.company}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="operator">Operator:</label>
-                  <input
-                    type="text"
-                    id="operator"
-                    name="operator"
-                    value={operatorSearchTerm || editFormData.operator} // Show search term or current operator
-                    onChange={(e) => {
-                      setOperatorSearchTerm(e.target.value); // Update search term as user types
-                      setEditFormData({
-                        ...editFormData,
-                        operator: e.target.value // Also update the form data
-                      });
-                    }}
-                    onFocus={() => {
-                      setOperatorSearchTerm(editFormData.operator || ''); // Initialize search with current value
-                      setShowOperatorDropdown(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowOperatorDropdown(false), 200)}
-                    placeholder="Search or enter operator name"
-                    required
-                  />
-
-                  {/* Dropdown should be positioned relative to the form group */}
-                  {showOperatorDropdown && filteredOperator.length > 0 && (
-                    <div className="search-dropdown">
-                      {filteredOperator.slice(0, 10).map((operator) => (
-                        <div
-                          key={operator._id}
-                          className="dropdown-item"
-                          onClick={() => handleOperatorSelect(operator)}
-                        >
-                          <div className="dropdown-item-main">{operator.name}</div>
-                        </div>
-                      ))}
-                      {filteredOperator.length > 10 && (
-                        <div className="dropdown-more">
-                          +{filteredOperator.length - 10} more results...
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor="site">Site:</label>
-                  <input
-                    type="text"
-                    id="site"
-                    name="site"
-                    value={editFormData.site}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="status">Status:</label>
-                  <select
-                    id="status"
-                    name="status"
-                    value={editFormData.status}
-                    onChange={handleEditInputChange}
-                    required
-                  >
-                    <option value="active">Active</option>
-                    <option value="idle">Idle</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="going">Going</option>
-                    <option value="loading">Loading</option>
-                  </select>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button className="action-btn cancel" onClick={closeEditModal}>Cancel</button>
-              <button className="action-btn save" onClick={handleUpdateEquipment}>Save Changes</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DevModal
+        isOpen={showEditModal}
+        onClose={closeEditModal}
+        type="form"
+        title="Update Equipment"
+        message="Edit the equipment details below"
+        formFields={[
+          { name: 'machine', label: 'Machine', type: 'text', placeholder: 'Enter machine name', required: true },
+          { name: 'regNo', label: 'Registration No', type: 'text', placeholder: 'Enter reg number', required: true },
+          { name: 'brand', label: 'Brand', type: 'text', placeholder: 'Enter brand', required: true },
+          { name: 'year', label: 'Year', type: 'text', placeholder: 'Enter year', required: true },
+          { name: 'company', label: 'Company', type: 'text', placeholder: 'Enter company', required: true },
+          { name: 'operator', label: 'Operator', type: 'text', placeholder: 'Enter operator name', required: true },
+          { name: 'site', label: 'Site', type: 'text', placeholder: 'Enter site', required: true },
+          {
+            name: 'status',
+            label: 'Status',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'active', label: 'Active' },
+              { value: 'idle', label: 'Idle' },
+              { value: 'maintenance', label: 'Maintenance' },
+              { value: 'going', label: 'Going' },
+              { value: 'loading', label: 'Loading' }
+            ]
+          }
+        ]}
+        formValues={editFormData}
+        onFormChange={(field, value) => setEditFormData({ ...editFormData, [field]: value })}
+        buttonText="Save Changes"
+        onButtonClick={handleUpdateEquipment}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeEditModal}
+      />
 
       {/* Add Outside Equipment Modal */}
       {showOutsideEquipmentModal && (

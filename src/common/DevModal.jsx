@@ -14,7 +14,6 @@ const DevModal = ({
   progress = 0,
   progressText = '',
   updatesList = [],
-  // NEW PROPS
   showInput = false,
   inputValue = '',
   onInputChange = () => { },
@@ -25,8 +24,13 @@ const DevModal = ({
   onSecondaryClick = null,
   deviceInfo = null,
   preventClose = false,
-  useCellInput = false, // NEW: Enable cell-based input
-  cellCount = 20, // NEW: Number of cells
+  useCellInput = false,
+  cellCount = 20,
+  formFields = [], // Array of field objects: { name, label, type, placeholder, required, value, error, options }
+  onFormChange = () => { }, // Callback with (fieldName, value)
+  formValues = {}, // Object with field values
+  unauthorizedReason = '', // Reason for unauthorized access
+  contactEmail = 'support@example.com', // Support contact email
 }) => {
   const [visible, setVisible] = React.useState(false);
   const modalRef = React.useRef(null);
@@ -254,6 +258,22 @@ const DevModal = ({
       ctaColor: '#923e17ff',
       svg: 'key'
     },
+    form: {
+      primary: '#2563eb',
+      secondary: '#1d4ed8',
+      accent: '#60a5fa',
+      textColor: '#ffffff',
+      ctaColor: '#1e40af',
+      svg: 'form'
+    },
+    unauthorized: {
+      primary: '#dc2626',
+      secondary: '#b91c1c',
+      accent: '#f87171',
+      textColor: '#ffffff',
+      ctaColor: '#991b1b',
+      svg: 'lock'
+    },
   }[type] || palette.success;
 
   const renderIcon = () => {
@@ -334,6 +354,27 @@ const DevModal = ({
             />
           </svg>
         );
+      case 'form':
+        return (
+          <svg {...iconProps}>
+            <path
+              fill="currentColor"
+              fillOpacity="0.15"
+              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"
+            />
+          </svg>
+        );
+      case 'lock':
+        return (
+          <svg {...iconProps}>
+            <path
+              fill="currentColor"
+              fillOpacity="0.15"
+              d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
+            />
+          </svg>
+        );
+
       default:
         return null;
     }
@@ -406,7 +447,7 @@ const DevModal = ({
               </div>
             )}
 
-            {type !== 'updates' && type !== 'progress' && !showInput && (
+            {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && !showInput && (
               <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
                 {message}
               </p>
@@ -493,6 +534,84 @@ const DevModal = ({
                   <p className="dm-message dm-progress-message" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     {message}
                   </p>
+                )}
+              </div>
+            )}
+
+            {type === 'form' && formFields.length > 0 && (
+              <div className="dm-form-section">
+                {message && (
+                  <p className="dm-message dm-form-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    {message}
+                  </p>
+                )}
+                <div className="dm-form-fields">
+                  {formFields.map((field, index) => (
+                    <div key={field.name || index} className="dm-form-field">
+                      <label className="dm-form-label">
+                        {field.label}
+                        {field.required && <span className="dm-form-required">*</span>}
+                      </label>
+
+                      {field.type === 'textarea' ? (
+                        <textarea
+                          className="dm-form-textarea"
+                          value={formValues[field.name] || ''}
+                          onChange={(e) => onFormChange(field.name, e.target.value)}
+                          placeholder={field.placeholder}
+                          rows={field.rows || 3}
+                        />
+                      ) : field.type === 'select' ? (
+                        <select
+                          className="dm-form-select"
+                          value={formValues[field.name] || ''}
+                          onChange={(e) => onFormChange(field.name, e.target.value)}
+                        >
+                          <option value="">{field.placeholder || 'Select...'}</option>
+                          {field.options?.map((opt, i) => (
+                            <option key={i} value={opt.value || opt}>
+                              {opt.label || opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type || 'text'}
+                          className="dm-form-input"
+                          value={formValues[field.name] || ''}
+                          onChange={(e) => onFormChange(field.name, e.target.value)}
+                          placeholder={field.placeholder}
+                        />
+                      )}
+
+                      {field.error && (
+                        <div className="dm-form-field-error">{field.error}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {type === 'unauthorized' && (
+              <div className="dm-unauthorized-section">
+                <div className="dm-unauthorized-icon">
+                  <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                  </svg>
+                </div>
+                <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  {message || 'You do not have permission to access this resource.'}
+                </p>
+                {unauthorizedReason && (
+                  <div className="dm-unauthorized-reason">
+                    <strong>Reason:</strong> {unauthorizedReason}
+                  </div>
+                )}
+                {contactEmail && (
+                  <div className="dm-unauthorized-contact">
+                    Need access? Contact <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                  </div>
                 )}
               </div>
             )}
