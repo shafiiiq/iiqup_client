@@ -20,6 +20,7 @@ function Equipments() {
   const [showOutsideEquipmentModal, setShowOutsideEquipmentModal] = useState(false);
   const [notFoundSearchTerm, setNotFoundSearchTerm] = useState('');
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState({});
   const [outsideEquipmentForm, setOutsideEquipmentForm] = useState({
     machine: '',
     regNo: '',
@@ -31,6 +32,7 @@ function Equipments() {
   const [sortConfig, setSortConfig] = useState({
     key: 'year',
     direction: 'desc' // desc for latest first, asc for oldest first
+
   });
   const [operatorSearchTerm, setOperatorSearchTerm] = useState('');
   const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
@@ -47,6 +49,23 @@ function Equipments() {
   const [completedWorks, setCompletedWorks] = useState([]);
   const [showCompletedWorkAlert, setShowCompletedWorkAlert] = useState(false);
 
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addEquipmentForm, setAddEquipmentForm] = useState({
+    machine: '',
+    regNo: '',
+    coc: '',
+    brand: '',
+    year: '',
+    istimaraExpiry: '',
+    insuranceExpiry: '',
+    tpcExpiry: '',
+    operator: '',
+    company: 'ATE',
+    outside: false,
+    status: 'Active',
+    site: ''
+  });
+
   useEffect(() => {
     const fetchMechanics = async () => {
       try {
@@ -60,6 +79,31 @@ function Equipments() {
     };
 
     fetchMechanics();
+  }, []);
+
+  useEffect(() => {
+    const intervals = {};
+
+    filteredData.forEach(item => {
+      if (item.equipmentImage && item.equipmentImage.length > 1) {
+        intervals[item.regNo] = setInterval(() => {
+          setActiveImageIndex(prev => ({
+            ...prev,
+            [item.regNo]: ((prev[item.regNo] || 0) + 1) % item.equipmentImage.length
+          }));
+        }, 3000);
+      }
+    });
+
+    return () => {
+      Object.values(intervals).forEach(clearInterval);
+    };
+  }, [filteredData]);
+
+  // Add this useEffect after your other useEffects (around line 200)
+  useEffect(() => {
+    // Clear expired cache entries on component mount
+    clearExpiredCache();
   }, []);
 
   useEffect(() => {
@@ -83,23 +127,128 @@ function Equipments() {
     setShowOperatorDropdown(false);
   };
 
-  // Add Equipment Modal State
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [addEquipmentForm, setAddEquipmentForm] = useState({
-    machine: '',
-    regNo: '',
-    coc: '',
-    brand: '',
-    year: '',
-    istimaraExpiry: '',
-    insuranceExpiry: '',
-    tpcExpiry: '',
-    operator: '',
-    company: 'ATE',
-    outside: false,
-    status: 'Active',
-    site: ''
-  });
+  // Helper function to get media URL from S3
+  const getMediaUrl = async (filePath) => {
+    if (!filePath) return '';
+
+    try {
+      const body = { key: filePath, isLong: true };
+      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+      const s3URL = await s3response.json();
+      return s3URL.dataUrl;
+    } catch (error) {
+      console.error('Error getting media URL:', error);
+      return '';
+    }
+  };
+
+  // Cache helper functions
+  const CACHE_KEY = 'equipment_images_cache';
+  const CACHE_EXPIRY_HOURS = 6; // Cache expires after 6 hours
+
+  const getCachedImageUrl = (filePath) => {
+    try {
+      const cache = localStorage.getItem(CACHE_KEY);
+      if (!cache) return null;
+
+      const cacheData = JSON.parse(cache);
+      const cachedItem = cacheData[filePath];
+
+      if (!cachedItem) return null;
+
+      // Check if cache is expired
+      const now = new Date().getTime();
+      const expiryTime = cachedItem.timestamp + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
+
+      if (now > expiryTime) {
+        // Cache expired, remove it
+        delete cacheData[filePath];
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        return null;
+      }
+
+      return cachedItem.url;
+    } catch (error) {
+      console.error('Error reading cache:', error);
+      return null;
+    }
+  };
+
+  const setCachedImageUrl = (filePath, url) => {
+    try {
+      const cache = localStorage.getItem(CACHE_KEY);
+      const cacheData = cache ? JSON.parse(cache) : {};
+
+      cacheData[filePath] = {
+        url: url,
+        timestamp: new Date().getTime()
+      };
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Error setting cache:', error);
+      // If localStorage is full, clear old cache
+      if (error.name === 'QuotaExceededError') {
+        localStorage.removeItem(CACHE_KEY);
+        console.log('Cache cleared due to quota exceeded');
+      }
+    }
+  };
+
+  const clearExpiredCache = () => {
+    try {
+      const cache = localStorage.getItem(CACHE_KEY);
+      if (!cache) return;
+
+      const cacheData = JSON.parse(cache);
+      const now = new Date().getTime();
+      let hasChanges = false;
+
+      Object.keys(cacheData).forEach(key => {
+        const expiryTime = cacheData[key].timestamp + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
+        if (now > expiryTime) {
+          delete cacheData[key];
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        console.log('Expired cache entries cleared');
+      }
+    } catch (error) {
+      console.error('Error clearing expired cache:', error);
+    }
+  };
+
+  // Enhanced getMediaUrl with caching
+  const getMediaUrlWithCache = async (filePath) => {
+    if (!filePath) return '';
+
+    // Check cache first
+    const cachedUrl = getCachedImageUrl(filePath);
+    if (cachedUrl) {
+      console.log('Using cached URL for:', filePath);
+      return cachedUrl;
+    }
+
+    // If not in cache, fetch from S3
+    try {
+      const body = { key: filePath, isLong: true };
+      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+      const s3URL = await s3response.json();
+      const url = s3URL.dataUrl;
+
+      // Cache the URL
+      setCachedImageUrl(filePath, url);
+      console.log('Cached new URL for:', filePath);
+
+      return url;
+    } catch (error) {
+      console.error('Error getting media URL:', error);
+      return '';
+    }
+  };
 
   const sortData = (data, key, direction) => {
     return [...data].sort((a, b) => {
@@ -171,11 +320,54 @@ function Equipments() {
     try {
       const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
       const data = await response.json();
-      setEquipments(data.data);
-      setFilteredData(data.data);
+
+      // Fetch images for each equipment from stocks API
+      const equipmentsWithImages = await Promise.all(
+        data.data.map(async (equipment) => {
+          try {
+            const imageResponse = await apiRequest(`${END_POINT}/stocks/equipment/${equipment.regNo}`, 'GET');
+            const imageData = await imageResponse.json();
+
+            // Get S3 URLs for each image with caching
+            const imagesWithUrls = await Promise.all(
+              (imageData.data?.images || []).map(async (img) => {
+                const s3Url = await getMediaUrlWithCache(img.path); // Using cached version
+                return {
+                  ...img,
+                  s3Url: s3Url || `${END_POINT}/${img.path}` // Fallback to direct URL
+                };
+              })
+            );
+
+            return {
+              ...equipment,
+              equipmentImage: imagesWithUrls
+            };
+          } catch (error) {
+            console.error(`Error fetching images for ${equipment.regNo}:`, error);
+            return {
+              ...equipment,
+              equipmentImage: []
+            };
+          }
+        })
+      );
+
+      setEquipments(equipmentsWithImages);
+      setFilteredData(equipmentsWithImages);
     } catch (error) {
       console.error('Error fetching equipment records:', error);
     }
+  };
+
+  const handleClearCache = () => {
+    localStorage.removeItem(CACHE_KEY);
+    setDeleteStatus({
+      message: 'Image cache cleared successfully. Reload the page to fetch fresh images.',
+      isError: false
+    });
+    setShowStatusModal(true);
+    console.log('Cache manually cleared');
   };
 
   const fetchCompletedWorks = async () => {
@@ -684,6 +876,12 @@ function Equipments() {
     });
   };
 
+  const handleViewDetails = (equipment) => {
+    setSidebarContent({ type: 'details', data: equipment });
+    setSidebarTitle(`Equipment Details - ${equipment.regNo}`);
+    setShowSidebar(true);
+  };
+
   const formatDateWithExpiry = (dateString) => {
     if (!dateString) return { formattedDate: '', isExpired: false };
 
@@ -712,6 +910,115 @@ function Equipments() {
   // Render sidebar content based on type
   const renderSidebarContent = () => {
     if (!sidebarContent) return null;
+
+    if (sidebarContent.type === 'details') {
+      const item = sidebarContent.data;
+      const istimaraInfo = formatDateWithExpiry(item.istimaraExpiry);
+
+      return (
+        <div className="details-section">
+          <h3>Basic Information</h3>
+          <div className="details-list">
+            <div className="detail-row">
+              <span className="detail-row-label">Machine</span>
+              <span className="detail-row-value">{item.machine}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Registration No</span>
+              <span className="detail-row-value">{item.regNo}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Brand</span>
+              <span className="detail-row-value">{item.brand}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Year</span>
+              <span className="detail-row-value">{item.year}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Company</span>
+              <span className="detail-row-value">{item.company}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Status</span>
+              <span className="detail-row-value">
+                <span className={`status-badge ${item.status?.toLowerCase()}`}>
+                  {item.status}
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <h3>Location & Assignment</h3>
+          <div className="details-list">
+            <div className="detail-row">
+              <span className="detail-row-label">Site</span>
+              <span className="detail-row-value">{item.site || 'N/A'}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Current Operator</span>
+              <span className="detail-row-value">
+                {item.certificationBody && item.certificationBody.length > 0
+                  ? item.certificationBody[item.certificationBody.length - 1]
+                  : 'N/A'}
+              </span>
+            </div>
+            {item.certificationBody && item.certificationBody.length > 1 && (
+              <div className="detail-row">
+                <span className="detail-row-label">All Operators</span>
+                <span className="detail-row-value">
+                  <button
+                    className="view-details-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSidebarContent({ type: 'operators', data: item.certificationBody });
+                      setSidebarTitle('All Operators');
+                    }}
+                    style={{ padding: '4px 12px', fontSize: '12px' }}
+                  >
+                    View All ({item.certificationBody.length})
+                  </button>
+                </span>
+              </div>
+            )}
+          </div>
+
+          <h3>Expiry Information</h3>
+          <div className="details-list">
+            <div className="detail-row">
+              <span className="detail-row-label">Istimara Expiry</span>
+              <span className="detail-row-value">
+                {istimaraInfo.formattedDate || 'N/A'}
+                {istimaraInfo.isExpired && (
+                  <span className="expired-label">expired</span>
+                )}
+              </span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">Insurance Expiry</span>
+              <span className="detail-row-value">{item.insuranceExpiry || 'N/A'}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row-label">TPC Expiry</span>
+              <span className="detail-row-value">{item.tpcExpiry || 'N/A'}</span>
+            </div>
+          </div>
+
+          <h3>Actions</h3>
+          <div className="details-list">
+            <div className="detail-row">
+              <button
+                className="view-details-btn"
+                onClick={(e) => handleViewAllFuels(e, item.regNo)}
+                style={{ width: '100%' }}
+              >
+                View Fuel Consumption
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     if (sidebarContent.type === 'operators') {
       return (
@@ -903,6 +1210,9 @@ function Equipments() {
           <button onClick={handlePrint} className="action-btn print">
             Print Table
           </button>
+          <button onClick={handleClearCache} className="action-btn" style={{ fontSize: '14px' }}>
+            Clear Cache
+          </button>
         </div>
       </div>
 
@@ -914,158 +1224,150 @@ function Equipments() {
         )}
       </div>
 
-      <div className="equipment-table-container">
-        <table className="equipment-table" ref={tableRef}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Machine</th>
-              <th>Reg No</th>
-              <th>Brand</th>
-              <th
-                onClick={handleYearSort}
-                className="sortable-header year-header"
-                title="Click to sort by year"
-              >
-                <div className="header-content">
-                  <span className="header-text">Year</span>
-                  {sortConfig.key === 'year' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'desc' ? '▼' : '▲'}
-                    </span>
-                  )}
-                  <span className="sort-hint">
-                    {sortConfig.key !== 'year' && '⇅'}
-                  </span>
-                </div>
-              </th>
-              <th>Company</th>
-              <th>Istimara Expiry</th>
-              <th>Insurance Expiry</th>
-              <th>TPC Expiry</th>
-              <th>Operator</th>
-              <th>Fuel Consumption</th>
-              <th>Site</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData && filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr
-                  key={item.id}
-                  onClick={() => handleRowClick(item.regNo)}
-                  className="equipment-row"
-                >
-                  <td>{item.id}</td>
-                  <td>{item.machine}</td>
-                  <td>{item.regNo}</td>
-                  <td>{item.brand}</td>
-                  <td>{item.year}</td>
-                  <td>{item.company}</td>
-                  <td>
-                    {(() => {
-                      const dateInfo = formatDateWithExpiry(item.istimaraExpiry);
-                      return (
-                        <span>
-                          {dateInfo.formattedDate}
-                          {dateInfo.isExpired && (
-                            <span className="expired-label">expired</span>
-                          )}
-                        </span>
-                      );
-                    })()}
-                  </td>
-                  <td>{item.insuranceExpiry}</td>
-                  <td>{item.tpcExpiry}</td>
-                  <td
-                    className="operator-cell"
-                    onMouseEnter={() => handleOperatorMouseEnter(item.id)}
-                    onMouseLeave={handleOperatorMouseLeave}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {item.certificationBody && item.certificationBody.length > 0
-                      ? item.certificationBody[item.certificationBody.length - 1]
-                      : ''}
-                    {item.certificationBody && item.certificationBody.length >= 1 && hoveredOperator === item.id && (
-                      <div className="view-all-overlay">
-                        <button
-                          className="view-all-button"
-                          onClick={(e) => handleViewAllOperators(e, item.certificationBody)}
-                        >
-                          View All
-                        </button>
+      <div className="equipment-grid">
+        {filteredData && filteredData.length > 0 ? (
+          filteredData.map((item) => {
+            const currentImageIndex = activeImageIndex[item.regNo] || 0;
+            const hasImages = item.equipmentImage && item.equipmentImage.length > 0;
+
+            return (
+              <div className="equipment-card" key={item.id}>
+                {/* Image Slider */}
+                <div className="card-image-slider">
+                  {hasImages ? (
+                    <>
+                      <div className="slider-images">
+                        {item.equipmentImage.map((img, index) => (
+                          <img
+                            key={index}
+                            src={img.s3Url || img.url}
+                            alt={img.label || `${item.machine} ${index + 1}`}
+                            className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
+                          />
+                        ))}
                       </div>
-                    )}
-                  </td>
-                  <td
-                    className="fuel-cell"
-                    onClick={(e) => e.stopPropagation()}
+                      {item.equipmentImage.length > 1 && (
+                        <div className="slider-dots">
+                          {item.equipmentImage.map((_, index) => (
+                            <div
+                              key={index}
+                              className={`slider-dot ${index === currentImageIndex ? 'active' : ''}`}
+                              onClick={() => setActiveImageIndex(prev => ({
+                                ...prev,
+                                [item.id]: index
+                              }))}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="no-image-placeholder">
+                      Upload images to view
+                    </div>
+                  )}
+                </div>
+
+                {/* Card Content */}
+                <div className="card-content">
+                  <div className="card-header">
+                    <div className="main-details">
+                      <div className="equipment-name-and-reg">
+                        <h3 className="card-title">{item.machine} - </h3>
+                        <div className="card-subtitle">{item.regNo}</div>
+                      </div>
+                      <div className="card-brand">{item.brand} • {item.year}</div>
+                    </div>
+                    <div>
+                      <span className={`status-badge ${item.status?.toLowerCase()}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="card-details-grid">
+                    <div className="detail-item">
+                      <span className="detail-label">Operator</span>
+                      <span className="detail-value">
+                        {item.certificationBody && item.certificationBody.length > 0
+                          ? item.certificationBody[item.certificationBody.length - 1]
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Site</span>
+                      <span className="detail-value">{item.site || 'N/A'}</span>
+                    </div>
+                  </div>
+                  <div className="card-footer">
+                    <div className="card-actions">
+                      <button
+                        className="icon-btn edit"
+                        onClick={(e) => handleEdit(e, item)}
+                        title="Edit"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button
+                        className="icon-btn delete"
+                        onClick={(e) => handleDeleteClick(e, item)}
+                        title="Delete"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    <button
+                      className="view-details-btn"
+                      onClick={() => handleRowClick(item.regNo)}
+                      style={{ width: '100%' }}
+                    >
+                      Service History
+                    </button>
+                    <button
+                      className="view-details-btn"
+                      onClick={() => handleViewDetails(item)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      More Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="no-results">
+            {equipments.length > 0 ? (
+              searchTerm ? (
+                <>
+                  No matching records found for <span className='not-found-outside-equip'>{searchTerm}</span>.
+                  <button
+                    className="action-btn outside"
+                    onClick={() => {
+                      setOutsideEquipmentForm({
+                        ...outsideEquipmentForm,
+                        regNo: searchTerm
+                      });
+                      setShowOutsideEquipmentModal(true);
+                    }}
                   >
-                    <button
-                      className="view-fuel-button"
-                      onClick={(e) => handleViewAllFuels(e, item.regNo)}
-                      title="View fuel consumption"
-                    >
-                      View Fuel Data
-                    </button>
-                  </td>
-                  <td>{item.site}</td>
-                  <td >
-                    <span className={`site ${item.status === 'active' ? 'site-active'
-                      : item.status === 'idle' ? 'site-idle'
-                        : item.status === 'maintenance' ? 'site-maintenance'
-                          : item.status === 'going' ? 'site-going'
-                            : item.status === 'loading' ? 'site-loading'
-                              : ''
-                      }`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="action-btn edit"
-                      onClick={(e) => handleEdit(e, item)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="action-btn delete"
-                      onClick={(e) => handleDeleteClick(e, item)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="14" className="no-results">
-                  {equipments.length > 0 ? (
-                    searchTerm ? (
-                      <>
-                        No matching records found for <span className='not-found-outside-equip'>{searchTerm}</span>.
-                        <button
-                          className="action-btn outside"
-                          onClick={() => {
-                            setOutsideEquipmentForm({
-                              ...outsideEquipmentForm,
-                              regNo: searchTerm
-                            });
-                            setShowOutsideEquipmentModal(true);
-                          }}
-                        >
-                          Add as Outside Equipment
-                        </button>
-                      </>
-                    ) : 'No matching records found'
-                  ) : 'Loading equipment data...'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    Add as Outside Equipment
+                  </button>
+                </>
+              ) : 'No matching records found'
+            ) : 'Loading equipment data...'}
+          </div>
+        )}
       </div>
 
       {/* Sidebar for View All content */}
@@ -1078,7 +1380,7 @@ function Equipments() {
             </div>
             <div className="sidebar-body">
               {isLoadingFuels ? (
-                <div className="loading-spinner">Loading...</div>
+                <div className="loading-spinner"></div>
               ) : (
                 renderSidebarContent()
               )}
