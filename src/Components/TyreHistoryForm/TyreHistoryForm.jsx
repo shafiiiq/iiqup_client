@@ -3,9 +3,14 @@ import '../TyreHistoryForm/TyreHistoryForm.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { useParams, useNavigate } from 'react-router';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const TyreHistoryForm = () => {
   const { regNo } = useParams()
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     tyreModel: '',
@@ -16,12 +21,28 @@ const TyreHistoryForm = () => {
     operator: '',
     runningHours: ''
   });
-
   const [equipments, setEquipments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [currentDateTime, setCurrentDateTime] = useState('');
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (regNo) {
+      const title = 'Add Tyre Service Record'
+      const subtitle = `${regNo}`
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [setHeaderTitle, regNo]);
 
   useEffect(() => {
     async function fetchEquipments() {
@@ -145,11 +166,6 @@ const TyreHistoryForm = () => {
 
   return (
     <div className="tyre-history-container">
-      <div className="tyre-header">
-        <h1 className="tyre-title">Add Tyre History Record</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
       {message.text && (
         <div className={`message ${message.type}`}>
           {message.text}
@@ -157,7 +173,7 @@ const TyreHistoryForm = () => {
       )}
 
       <div className="form-container">
-        <form onSubmit={handleSubmit} className="tyre-history-form">
+        <form className="tyre-history-form">
           <div className="form-group">
             <label htmlFor="date">Date</label>
             <input
@@ -262,20 +278,36 @@ const TyreHistoryForm = () => {
           </div>
 
           <div className="form-actions">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="action-btn reset"
-            >
-              Reset
-            </button>
-            <button
+            <Button
+              text="Reset"
+              onClick={() => handleReset}
+              colorScheme="amber-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
               type="submit"
-              className="action-btn submit"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Submitting...' : 'Submit'}
-            </button>
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            <Button
+              text={isLoading ? 'Submitting...' : 'Submit'}
+              onClick={handleSubmit}
+              colorScheme={!isLoading ? 'lime-600' : 'lime-800'}
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type={!isLoading ? 'disabled' : 'submit'}
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           </div>
         </form>
       </div>

@@ -1,30 +1,9 @@
-/* ServiceHistoryForm.css */
-:root {
-  --primary-color: #3498db;
-  --urgent-color: #e74c3c;
-  --medium-color: #f39c12;
-  --normal-color: #2ecc71;
-  --bg-color: #f5f7fa;
-  --card-bg: #ffffff;
-  --text-color: #333333;
-  --border-color: #e1e4e8;
-  --hover-bg: #f0f5ff;
-  --disabled-bg: #e9ecef;
-  --disabled-text: #6c757d;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 .service-history-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-color);
+  background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .service-header {
@@ -35,26 +14,26 @@
 }
 
 .service-header h1 {
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 34px;
   font-weight: 800;
 }
 
 .equipment-info {
   font-size: 24px;
-  color: var(--text-color);
+  color: var(--text-primary);
   font-weight: 600;
   margin-bottom: 20px;
   text-align: center;
 }
 
 .date-time {
-  background-color: var(--card-bg);
+  background-color: var(--bg-card);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .message {
@@ -80,7 +59,7 @@
 }
 
 .form-container {
-  background-color: var(--card-bg);
+  background: var(--gradient-primary-900);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 25px;
@@ -111,18 +90,9 @@ form {
   color: #64748b;
 }
 
-.form-group input,
-.form-group select {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
 .form-group input:focus,
 .form-group select:focus {
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
   outline: none;
 }
@@ -134,8 +104,6 @@ form {
 .full-service-group {
   grid-column: 1/3;
 }
-
-
 
 .form-actions {
   display: flex;
@@ -163,7 +131,7 @@ form {
 }
 
 .action-btn.submit {
-  background-color: var(--primary-color);
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -173,8 +141,8 @@ form {
 }
 
 .action-btn:disabled {
-  background-color: var(--disabled-bg);
-  color: var(--disabled-text);
+  background-color: var(--bg-disabled);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 

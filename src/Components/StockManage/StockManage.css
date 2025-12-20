@@ -1,121 +1,9 @@
-/* StockManage.css - Updated with Dark/Light Mode Toggle */
-/* Theme Variables - Light (Default) */
-:root {
-  --stock-primary: #3498db;
-  --stock-success: #2ecc71;
-  --stock-warning: #f39c12;
-  --stock-danger: #e74c3c;
-  --stock-bg: #f5f7fa;
-  --stock-card: #ffffff;
-  --stock-text: #333333;
-  --stock-border: #e1e4e8;
-  --stock-hover: #f0f5ff;
-  --stock-disabled: #e9ecef;
-  --stock-disabled-text: #6c757d;
-  --stock-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --stock-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --stock-table-header-bg: #f8fafc;
-  --stock-table-header-text: #64748b;
-  --stock-table-row-odd: #ffffff;
-  --stock-table-row-hover: #f0f5ff;
-  --stock-modal-bg: #ffffff;
-  --stock-modal-header-bg: #f8fafc;
-  --stock-scrollbar-track: #f1f1f1;
-  --stock-scrollbar-thumb: #3498db;
-  --stock-scrollbar-thumb-hover: #2980b9;
-}
-
-/* Dark Theme */
-body.dark-theme {
-  --stock-primary: #3498db;
-  --stock-success: #2ecc71;
-  --stock-warning: #f39c12;
-  --stock-danger: #e74c3c;
-  --stock-bg: #121212;
-  --stock-card: #1e1e1e;
-  --stock-text: #ffffff;
-  --stock-border: #333333;
-  --stock-hover: #2a2a2a;
-  --stock-disabled: #333333;
-  --stock-disabled-text: #999999;
-  --stock-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --stock-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --stock-table-header-bg: #2d2d2d;
-  --stock-table-header-text: #cccccc;
-  --stock-table-row-odd: #1a1a1a;
-  --stock-table-row-hover: #2a2a2a;
-  --stock-modal-bg: #1e1e1e;
-  --stock-modal-header-bg: #2d2d2d;
-  --stock-scrollbar-track: #2a2a2a;
-  --stock-scrollbar-thumb: #444444;
-  --stock-scrollbar-thumb-hover: #555555;
-}
-
-/* Theme Toggle Switch */
-.theme-switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  margin-left: 20px;
-}
-
-.theme-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked+.slider {
-  background-color: #2196F3;
-}
-
-input:checked+.slider:before {
-  transform: translateX(26px);
-}
-
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 .stock-manage-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--stock-bg);
+  background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--stock-text);
+  color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -128,20 +16,20 @@ input:checked+.slider:before {
 }
 
 .stock-manage-title {
-  color: var(--stock-text);
+  color: var(--text-primary);
   font-size: 2.125rem;
   font-weight: 800;
   margin: 0;
 }
 
 .stock-manage-datetime {
-  background-color: var(--stock-card);
-  color: var(--stock-text);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
-  box-shadow: var(--stock-shadow);
-  border: 1px solid var(--stock-border);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-actions {
@@ -149,7 +37,7 @@ input:checked+.slider:before {
 }
 
 .stock-manage-add-btn {
-  background-color: var(--stock-primary);
+  background-color: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -163,7 +51,7 @@ input:checked+.slider:before {
 .stock-manage-add-btn:hover {
   background-color: #2980b9;
   transform: translateY(-2px);
-  box-shadow: var(--stock-shadow-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .stock-manage-loading,
@@ -171,15 +59,15 @@ input:checked+.slider:before {
   text-align: center;
   padding: 40px;
   font-size: 18px;
-  background-color: var(--stock-card);
+  background-color: var(--bg-card);
   border-radius: 8px;
-  box-shadow: var(--stock-shadow);
-  color: var(--stock-text);
-  border: 1px solid var(--stock-border);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-error {
-  color: var(--stock-danger);
+  color: var(--color-error);
 }
 
 .stock-manage-message {
@@ -192,38 +80,36 @@ input:checked+.slider:before {
 
 .stock-manage-message.success {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--stock-success);
+  color: var(--color-success-700-900);
   border: 1px solid rgba(46, 204, 113, 0.2);
 }
 
 .stock-manage-message.error {
   background-color: rgba(231, 76, 60, 0.1);
-  color: var(--stock-danger);
+  color: var(--color-error);
   border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
 .stock-manage-table-container {
   overflow-x: auto;
-  background-color: var(--stock-card);
   border-radius: 8px;
-  box-shadow: var(--stock-shadow);
-  border: 1px solid var(--stock-border);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background-color: var(--stock-card);
 }
 
 .stock-manage-table th {
-  background-color: var(--stock-table-header-bg) !important;
+  background-color: var(--bg-secondary) !important;
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
-  color: var(--stock-table-header-text) !important;
-  border-bottom: 2px solid var(--stock-border);
+  color: var(--text-secondary) !important;
+  border-bottom: 2px solid var(--border-primary);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -231,12 +117,16 @@ input:checked+.slider:before {
 
 .stock-manage-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--stock-border) !important;
-  color: var(--stock-text) !important;
+  border-bottom: 1px solid var(--border-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 .stock-manage-table tbody tr:nth-child(odd) {
-  background-color: var(--stock-table-row-odd) !important;
+  background-color: var(--gradient-primary-500) !important;
+}
+
+.stock-manage-table tbody tr:nth-child(even) {
+  background: var(--gradient-primary-400) !important;
 }
 
 .stock-manage-table tbody tr {
@@ -244,7 +134,7 @@ input:checked+.slider:before {
 }
 
 .stock-manage-table tbody tr:hover {
-  background-color: var(--stock-table-row-hover) !important;
+  background-color: var(--bg-hover) !important;
 }
 
 .stock-manage-status-badge {
@@ -257,17 +147,17 @@ input:checked+.slider:before {
 
 .stock-manage-status-badge.available {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--stock-success);
+  color: var(--color-success-700-900);
 }
 
 .stock-manage-status-badge.low {
   background-color: rgba(243, 156, 18, 0.1);
-  color: var(--stock-warning);
+  color: var(--color-warning);
 }
 
 .stock-manage-status-badge.out {
   background-color: rgba(231, 76, 60, 0.1);
-  color: var(--stock-danger);
+  color: var(--color-error);
 }
 
 .stock-manage-action-buttons {
@@ -284,7 +174,7 @@ input:checked+.slider:before {
   cursor: pointer;
   font-size: 12px;
   transition: all 0.2s ease;
-  background-color: var(--stock-primary);
+  background-color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -294,7 +184,7 @@ input:checked+.slider:before {
 }
 
 .stock-manage-action-btn.details {
-  background-color: var(--stock-primary);
+  background-color: var(--color-primary);
 }
 
 .stock-manage-action-btn.details:hover {
@@ -302,7 +192,7 @@ input:checked+.slider:before {
 }
 
 .stock-manage-action-btn.edit {
-  background-color: var(--stock-warning);
+  background-color: var(--color-warning);
 }
 
 .stock-manage-action-btn.edit:hover {
@@ -310,7 +200,7 @@ input:checked+.slider:before {
 }
 
 .stock-manage-action-btn.delete {
-  background-color: var(--stock-danger);
+  background-color: var(--color-error);
 }
 
 .stock-manage-action-btn.delete:hover {
@@ -326,8 +216,8 @@ input:checked+.slider:before {
 }
 
 .stock-manage-action-btn.cancel {
-  background-color: var(--stock-disabled);
-  color: var(--stock-disabled-text);
+  background-color: var(--text-disabled);
+  color: var(--bg-disabled);
 }
 
 .stock-manage-action-btn.cancel:hover {
@@ -336,7 +226,7 @@ input:checked+.slider:before {
 }
 
 .stock-manage-action-btn.submit {
-  background-color: var(--stock-primary);
+  background-color: var(--color-primary);
 }
 
 .stock-manage-action-btn.submit:hover {
@@ -344,8 +234,8 @@ input:checked+.slider:before {
 }
 
 .stock-manage-action-btn:disabled {
-  background-color: var(--stock-disabled);
-  color: var(--stock-disabled-text);
+  background-color: var(--text-disabled);
+  color: var(--bg-disabled);
   cursor: not-allowed;
   transform: none;
 }
@@ -357,15 +247,15 @@ input:checked+.slider:before {
   right: 0;
   width: 800px;
   height: 100vh;
-  background-color: var(--stock-modal-bg);
-  color: var(--stock-text);
+  background-color: var(--bg-modal);
+  color: var(--text-primary);
   box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--stock-border);
+  border-left: 1px solid var(--border-primary);
 }
 
 .stock-manage-details-header {
@@ -374,16 +264,16 @@ input:checked+.slider:before {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid var(--stock-border);
+  border-bottom: 1px solid var(--border-primary);
   position: sticky;
   top: 0;
-  background-color: var(--stock-modal-bg);
+  background-color: var(--bg-modal);
   z-index: 10;
 }
 
 .stock-manage-details-header h2 {
   font-size: 20px;
-  color: var(--stock-text);
+  color: var(--text-primary);
 }
 
 .stock-manage-close-btn {
@@ -391,14 +281,14 @@ input:checked+.slider:before {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
   padding: 5px;
   border-radius: 50%;
   transition: all 0.2s ease;
 }
 
 .stock-manage-close-btn:hover {
-  color: var(--stock-danger);
+  color: var(--color-error);
   background-color: rgba(231, 76, 60, 0.1);
 }
 
@@ -416,13 +306,13 @@ input:checked+.slider:before {
 
 .stock-manage-label {
   font-weight: 600;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
   min-width: 150px;
   flex-shrink: 0;
 }
 
 .stock-manage-value {
-  color: var(--stock-text);
+  color: var(--text-primary);
 }
 
 /* Stock Progress */
@@ -434,16 +324,16 @@ input:checked+.slider:before {
 .stock-manage-stock-progress h3 {
   margin-bottom: 10px;
   font-size: 16px;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
 }
 
 .stock-manage-progress-container {
   height: 20px;
-  background-color: var(--stock-disabled);
+  background-color: var(--text-disabled);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 5px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-progress-bar {
@@ -460,15 +350,15 @@ input:checked+.slider:before {
 }
 
 .stock-manage-progress-bar.available {
-  background-color: var(--stock-success);
+  background-color: var(--color-success-700-900);
 }
 
 .stock-manage-progress-bar.low {
-  background-color: var(--stock-warning);
+  background-color: var(--color-warning);
 }
 
 .stock-manage-progress-bar.out {
-  background-color: var(--stock-danger);
+  background-color: var(--color-error);
 }
 
 .stock-manage-progress-text {
@@ -479,13 +369,13 @@ input:checked+.slider:before {
 .stock-manage-actions-section {
   margin-top: auto;
   padding-top: 20px;
-  border-top: 1px solid var(--stock-border);
+  border-top: 1px solid var(--border-primary);
 }
 
 .stock-manage-actions-section h3 {
   margin-bottom: 15px;
   font-size: 16px;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
 }
 
 .stock-manage-action-btn-group {
@@ -517,15 +407,15 @@ input:checked+.slider:before {
 
 .stock-manage-form-modal,
 .stock-form-modal {
-  background-color: var(--stock-modal-bg);
-  color: var(--stock-text);
+  background-color: var(--bg-modal);
+  color: var(--text-primary);
   border-radius: 12px;
   width: 800px;
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
   animation: modal-appear 0.3s ease-out;
 }
 
@@ -547,14 +437,14 @@ input:checked+.slider:before {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--stock-border);
-  background-color: var(--stock-modal-header-bg);
+  border-bottom: 1px solid var(--border-primary);
+  background-color: var(--bg-modal-header);
 }
 
 .stock-manage-form-header h2,
 .stock-form-header h2 {
   font-size: 20px;
-  color: var(--stock-text);
+  color: var(--text-primary);
   margin: 0;
   font-weight: 600;
 }
@@ -565,7 +455,7 @@ input:checked+.slider:before {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
   padding: 5px;
   border-radius: 50%;
   transition: all 0.2s ease;
@@ -573,7 +463,7 @@ input:checked+.slider:before {
 
 .stock-manage-form-close-btn:hover,
 .stock-form-close-btn:hover {
-  color: var(--stock-danger);
+  color: var(--color-error);
   background-color: rgba(231, 76, 60, 0.1);
 }
 
@@ -597,7 +487,7 @@ input:checked+.slider:before {
   display: block;
   font-weight: 600;
   font-size: 14px;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
@@ -609,12 +499,12 @@ input:checked+.slider:before {
 .stock-form-group textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.2s ease;
-  background-color: var(--stock-card);
-  color: var(--stock-text);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .stock-manage-form-group input:focus,
@@ -624,13 +514,13 @@ input:checked+.slider:before {
 .stock-form-group select:focus,
 .stock-form-group textarea:focus {
   outline: none;
-  border-color: var(--stock-primary);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .stock-manage-form-group input::placeholder,
 .stock-form-group input::placeholder {
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
 }
 
 .stock-manage-form-actions,
@@ -640,7 +530,7 @@ input:checked+.slider:before {
   gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid var(--stock-border);
+  border-top: 1px solid var(--border-primary);
 }
 
 /* Equipment selection styles */
@@ -651,17 +541,17 @@ input:checked+.slider:before {
 }
 
 .stock-equipment-item {
-  background-color: var(--stock-hover);
-  color: var(--stock-text);
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-equipment-more {
   font-size: 11px;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
   font-style: italic;
 }
 
@@ -669,9 +559,9 @@ input:checked+.slider:before {
 .stock-manage-equipment-section {
   margin: 15px 0;
   padding: 15px;
-  background-color: var(--stock-hover);
+  background-color: var(--bg-hover);
   border-radius: 8px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-equipment-details {
@@ -682,11 +572,11 @@ input:checked+.slider:before {
 }
 
 .equipment-detail-card {
-  background-color: var(--stock-card);
+  background-color: var(--bg-card);
   border-radius: 8px;
   padding: 12px;
-  box-shadow: var(--stock-shadow);
-  border: 1px solid var(--stock-border);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
 }
 
 .equipment-detail-row {
@@ -698,11 +588,11 @@ input:checked+.slider:before {
 
 .equipment-detail-label {
   font-weight: 600;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
 }
 
 .equipment-detail-value {
-  color: var(--stock-text);
+  color: var(--text-primary);
 }
 
 /* Equipment selector styles */
@@ -718,14 +608,14 @@ input:checked+.slider:before {
   gap: 8px;
   min-height: 40px;
   padding: 8px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
-  background-color: var(--stock-hover);
+  background-color: var(--bg-hover);
   margin-bottom: 8px;
 }
 
 .selected-equipment-tag {
-  background-color: var(--stock-primary);
+  background-color: var(--color-primary);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -753,9 +643,9 @@ input:checked+.slider:before {
 .equipment-search-input {
   flex: 1;
   padding-right: 30px;
-  background-color: var(--stock-card);
-  color: var(--stock-text);
-  border: 1px solid var(--stock-border);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
 }
 
 .select-equipment-btn {
@@ -766,16 +656,16 @@ input:checked+.slider:before {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
 }
 
 .equipment-dropdown {
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
   border-radius: 6px;
-  background-color: var(--stock-card);
-  box-shadow: var(--stock-shadow);
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .equipment-dropdown-item {
@@ -784,12 +674,12 @@ input:checked+.slider:before {
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  border-bottom: 1px solid var(--stock-border);
-  color: var(--stock-text);
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-primary);
 }
 
 .equipment-dropdown-item:hover {
-  background-color: var(--stock-hover);
+  background-color: var(--bg-hover);
 }
 
 .equipment-dropdown-item.selected {
@@ -803,13 +693,13 @@ input:checked+.slider:before {
 .no-equipments-found {
   padding: 15px;
   text-align: center;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
   font-style: italic;
 }
 
 .confirm-equipment-btn {
   padding: 8px 12px;
-  background-color: var(--stock-success);
+  background-color: var(--color-success-700-900);
   color: white;
   border: none;
   border-radius: 6px;
@@ -834,7 +724,7 @@ input:checked+.slider:before {
 }
 
 .stock-form-action-btn.cancel {
-  background-color: var(--stock-danger);
+  background-color: var(--color-error);
   color: white;
 }
 
@@ -843,7 +733,7 @@ input:checked+.slider:before {
 }
 
 .stock-form-action-btn.submit {
-  background-color: var(--stock-primary);
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -855,43 +745,43 @@ input:checked+.slider:before {
 .stock-manage-history-section {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid var(--stock-border);
+  border-top: 1px solid var(--border-primary);
 }
 
 .stock-manage-history-section h3 {
   margin-bottom: 15px;
   font-size: 16px;
-  color: var(--stock-table-header-text);
+  color: var(--text-secondary);
 }
 
 .stock-manage-history-table-container {
   margin-top: 15px;
   overflow-x: auto;
-  background-color: var(--stock-card);
+  background-color: var(--bg-card);
   border-radius: 8px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-history-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background-color: var(--stock-card);
+  background-color: var(--bg-card);
 }
 
 .stock-manage-history-table th {
-  background-color: var(--stock-table-header-bg);
+  background-color: var(--bg-secondary);
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
-  color: var(--stock-table-header-text);
-  border-bottom: 1px solid var(--stock-border);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .stock-manage-history-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--stock-border);
-  color: var(--stock-text);
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-primary);
 }
 
 .stock-manage-history-table tr:last-child td {
@@ -908,32 +798,32 @@ input:checked+.slider:before {
 
 .stock-manage-history-badge.add {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--stock-success);
+  color: var(--color-success-700-900);
 }
 
 .stock-manage-history-badge.deduct {
   background-color: rgba(231, 76, 60, 0.1);
-  color: var(--stock-danger);
+  color: var(--color-error);
 }
 
 .stock-manage-history-badge.adjustment {
   background-color: rgba(243, 156, 18, 0.1);
-  color: var(--stock-warning);
+  color: var(--color-warning);
 }
 
 .stock-manage-positive {
-  color: var(--stock-success);
+  color: var(--color-success-700-900);
   font-weight: 600;
 }
 
 .stock-manage-negative {
-  color: var(--stock-danger);
+  color: var(--color-error);
   font-weight: 600;
 }
 
 .stock-manage-no-history {
   text-align: center;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
   font-style: italic;
   padding: 20px;
 }
@@ -947,23 +837,23 @@ input:checked+.slider:before {
 
 .stock-search-input {
   padding: 8px 12px;
-  border: 1px solid var(--stock-border);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   flex-grow: 1;
   max-width: 300px;
-  background-color: var(--stock-card);
-  color: var(--stock-text);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
   transition: all 0.2s ease;
 }
 
 .stock-search-input:focus {
   outline: none;
-  border-color: var(--stock-primary);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
 .stock-search-input::placeholder {
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
 }
 
 .stock-print-btn {
@@ -995,17 +885,17 @@ input:checked+.slider:before {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--stock-scrollbar-track);
+  background: var(--scrollbar-track);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--stock-scrollbar-thumb);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--stock-scrollbar-thumb-hover);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Focus Styles for Accessibility */
@@ -1014,7 +904,7 @@ input:checked+.slider:before {
 .confirm-equipment-btn:focus,
 .stock-manage-close-btn:focus,
 .stock-form-close-btn:focus {
-  outline: 2px solid var(--stock-primary);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -1031,7 +921,7 @@ input:checked+.slider:before {
   left: 50%;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--stock-primary);
+  border: 2px solid var(--color-primary);
   border-top: 2px solid transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -1050,11 +940,11 @@ input:checked+.slider:before {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: var(--stock-card);
-  border: 1px solid var(--stock-border);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-top: none;
   border-radius: 0 0 6px 6px;
-  box-shadow: var(--stock-shadow);
+  box-shadow: var(--shadow-sm);
   max-height: 250px;
   overflow-y: auto;
   z-index: 1000;
@@ -1063,12 +953,12 @@ input:checked+.slider:before {
 .dropdown-item {
   padding: 12px 15px;
   cursor: pointer;
-  border-bottom: 1px solid var(--stock-border);
+  border-bottom: 1px solid var(--border-primary);
   transition: background-color 0.2s ease;
 }
 
 .dropdown-item:hover {
-  background-color: var(--stock-hover);
+  background-color: var(--bg-hover);
 }
 
 .dropdown-item:last-child {
@@ -1077,21 +967,21 @@ input:checked+.slider:before {
 
 .dropdown-item-main {
   font-weight: 500;
-  color: var(--stock-text);
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .dropdown-item-sub {
   font-size: 12px;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
 }
 
 .dropdown-more {
   padding: 8px 15px;
   font-size: 12px;
-  color: var(--stock-disabled-text);
+  color: var(--bg-disabled);
   font-style: italic;
-  background-color: var(--stock-hover);
+  background-color: var(--bg-hover);
   text-align: center;
 }
 
@@ -1252,21 +1142,6 @@ input:checked+.slider:before {
   .stock-form-header,
   .stock-form {
     padding: 15px;
-  }
-
-  .theme-switch {
-    margin-left: 10px;
-    width: 50px;
-    height: 28px;
-  }
-
-  .slider:before {
-    height: 20px;
-    width: 20px;
-  }
-
-  input:checked+.slider:before {
-    transform: translateX(22px);
   }
 
   .stock-search-container {

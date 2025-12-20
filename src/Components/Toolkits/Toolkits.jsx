@@ -4,8 +4,12 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
+import DevModal from '../../common/DevModal';
+import { useSearch } from '../../context/SearchContext';
+import Button from '../../common/Button/Button';
 
 const Toolkits = () => {
+  const { searchTerm, setSearchTerm } = useSearch();
   // Predefined tool names and colors
   const predefinedToolNames = ['Coveralls', 'Safety Shoes', 'Helmet', 'Safety Glasses', 'Safety Jacket', 'Hand Gloves'];
   const predefinedColors = ['White', 'Yellow', 'Grey', 'Blue', 'Navy Blue', 'Kaki', 'Black'];
@@ -1098,37 +1102,70 @@ const Toolkits = () => {
 
   return (
     <div className="toolkits-container">
-      <div className="toolkits-header">
-        <h1 className="toolkits-title">Safety Tools Inventory</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
       <div className="toolkits-actions">
-        <button className="add-toolkit-btn" onClick={openAddForm}>
-          Add Toolkit
-        </button>
-        <button
-          className="export-filter-btn"
+        <Button
+          text="Add Toolkit"
+          onClick={() => openAddForm}
+          colorScheme="violet-800"
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="38px"
+          type="submit"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text={showExportFilters ? 'Hide Export Filters' : 'Export Filters'}
           onClick={() => setShowExportFilters(!showExportFilters)}
-        >
-          {showExportFilters ? 'Hide Export Filters' : 'Export Filters'}
-        </button>
-        <button
-          className="history-filter-btn"
+          colorScheme="slate-600"
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="38px"
+          type="submit"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text="View History"
           onClick={() => {
             setShowToolkitHistory(true);
             fetchAllToolkitsHistory();
           }}
-        >
-          View History
-        </button>
-        <button
-          className={`export-excel-btn ${exporting ? 'loading' : ''}`}
-          onClick={exportToExcel}
-          disabled={exporting}
-        >
-          {exporting ? 'Exporting...' : 'Export to Excel'}
-        </button>
+          colorScheme="lime-800"
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="38px"
+          type="submit"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text={exporting ? 'Exporting...' : 'Export to Excel'}
+          onClick={() => exportToExcel}
+          colorScheme=""
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="38px"
+          type="submit"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
       </div>
 
       {/* Export Filters Panel */}
@@ -1235,9 +1272,21 @@ const Toolkits = () => {
                     </span>
                   </td>
                   <td className="action-buttons">
-                    <button className="action-btn details" onClick={() => showDetails(item)}>
-                      Details
-                    </button>
+                    <Button
+                      text="Details"
+                      onClick={() => showDetails(item)}
+                      colorScheme="orange-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </td>
                 </tr>
               ))}
@@ -1375,7 +1424,7 @@ const Toolkits = () => {
                             className="color-indicator-large"
                             style={{
                               backgroundColor: color.toLowerCase() === 'clear' ? 'transparent' : color.toLowerCase(),
-                              border: color.toLowerCase() === 'clear' ? '2px dashed var(--border-color)' : '2px solid var(--border-color)'
+                              border: color.toLowerCase() === 'clear' ? '2px dashed var(--border-primary)' : '2px solid var(--border-primary)'
                             }}
                           ></span>
                           <span className="color-name">{color}</span>
@@ -1619,396 +1668,182 @@ const Toolkits = () => {
         </div>
       )}
 
+      {/* Reduce Stock Modal using DevModal */}
+      <DevModal
+        isOpen={showReduceStockModal}
+        onClose={() => setShowReduceStockModal(false)}
+        type="form"
+        title="Reduce Stock"
+        message={`Reducing stock for: ${selectedVariant?.size} - ${selectedVariant?.color}`}
+        formFields={[
+          {
+            name: 'quantity',
+            label: 'Quantity',
+            type: 'number',
+            placeholder: '1',
+            required: true
+          },
+          {
+            name: 'assignedDate',
+            label: 'Assigned Date',
+            type: 'date',
+            required: true
+          },
+          {
+            name: 'person',
+            label: 'Assigned To',
+            type: 'text',
+            placeholder: 'Enter person name',
+            required: true
+          },
+          {
+            name: 'reason',
+            label: 'Reason',
+            type: 'text',
+            placeholder: 'Enter reason',
+            required: true
+          }
+        ]}
+        formValues={{
+          quantity: reduceStockData.quantity,
+          assignedDate: reduceStockData.assignedDate instanceof Date
+            ? reduceStockData.assignedDate.toISOString().split('T')[0]
+            : reduceStockData.assignedDate,
+          person: userSearchTerm,
+          reason: reduceStockData.reason
+        }}
+        onFormChange={(field, value) => {
+          if (field === 'person') {
+            setUserSearchTerm(value);
+            setReduceStockData({
+              ...reduceStockData,
+              person: value,
+              personId: null,
+              reason: value ? `Handovered to ${value}` : 'Used'
+            });
+          } else {
+            setReduceStockData({
+              ...reduceStockData,
+              [field]: field === 'quantity' ? parseInt(value) || 1 : value
+            });
+          }
+        }}
+        buttonText="Reduce Stock"
+        onButtonClick={(e) => {
+          if (e) e.preventDefault();
+          handleReduceStock();
+        }}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowReduceStockModal(false)}
+      />
 
+      {/* Form Modal for Add/Update Toolkit using DevModal */}
+      <DevModal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        type="form"
+        title={formMode === 'add' ? 'Add New Toolkit' : 'Update Toolkit'}
+        message="Enter the toolkit details below"
+        formFields={[
+          {
+            name: 'name',
+            label: 'Tool Name',
+            type: 'text',
+            placeholder: 'Search or enter tool name',
+            required: true
+          },
+          {
+            name: 'type',
+            label: 'Type',
+            type: 'select',
+            placeholder: 'Select type',
+            required: true,
+            options: predefinedTypes.map(t => ({ value: t, label: t }))
+          }
+        ]}
+        formValues={{
+          name: nameSearchTerm,
+          type: typeSearchTerm
+        }}
+        onFormChange={(field, value) => {
+          if (field === 'name') {
+            setNameSearchTerm(value);
+            setFormData({ ...formData, name: value });
+          } else if (field === 'type') {
+            setTypeSearchTerm(value);
+            setFormData({ ...formData, type: value });
+          }
+        }}
+        buttonText={formMode === 'add' ? 'Add Toolkit' : 'Update Toolkit'}
+        onButtonClick={handleFormSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowForm(false)}
+      />
 
-      {/* Reduce Stock Modal */}
-      {showReduceStockModal && (
-        <div className="form-modal-overlay">
-          <div className="form-modal">
-            <div className="form-header">
-              <h2>Reduce Stock</h2>
-              <button className="close-btn" onClick={() => setShowReduceStockModal(false)}>×</button>
-            </div>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleReduceStock();
-            }}>
-              <div className="form-group">
-                <label htmlFor="reduceQuantity">Quantity</label>
-                <input
-                  type="number"
-                  id="reduceQuantity"
-                  name="quantity"
-                  value={reduceStockData.quantity}
-                  onChange={(e) => setReduceStockData({
-                    ...reduceStockData,
-                    quantity: e.target.value
-                  })}
-                  min="1"
-                  max={selectedVariant?.stockCount}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="assignedDate">Assigned Date</label>
-                <input
-                  type="date"
-                  id="assignedDate"
-                  name="assignedDate"
-                  value={reduceStockData.assignedDate}
-                  onChange={(e) => setReduceStockData({
-                    ...reduceStockData,
-                    assignedDate: e.target.value
-                  })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="reducePerson">Assigned To</label>
-                <div className="custom-dropdown" ref={userDropdownRef}>
-                  <div className="dropdown-input-container">
-                    <input
-                      type="text"
-                      id="reducePerson"
-                      name="person"
-                      value={userSearchTerm}
-                      onChange={handleUserSearchChange}
-                      onFocus={() => {
-                        setUserSearchTerm(reduceStockData.person);
-                        setShowUserDropdown(true);
-                      }}
-                      placeholder="Search or enter person name"
-                      autoComplete="off"
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="dropdown-toggle"
-                      onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    >
-                      ▼
-                    </button>
-                  </div>
-                  {showUserDropdown && filteredUsers.length > 0 && (
-                    <div className="dropdown-menu">
-                      {filteredUsers.slice(0, 15).map((user) => (
-                        <div
-                          key={user._id}
-                          className="dropdown-item"
-                          onClick={() => handleUserSelect(user)}
-                        >
-                          <div className="dropdown-item-main">{user.name}</div>
-                          <div className="dropdown-item-sub">{user.type}</div>
-                        </div>
-                      ))}
-                      {filteredUsers.length > 15 && (
-                        <div className="dropdown-more">
-                          +{filteredUsers.length - 15} more results...
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="reduceReason">Reason</label>
-                <input
-                  type="text"
-                  id="reduceReason"
-                  name="reason"
-                  value={reduceStockData.reason}
-                  onChange={(e) => setReduceStockData({
-                    ...reduceStockData,
-                    reason: e.target.value
-                  })}
-                  required
-                />
-              </div>
-
-
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowReduceStockModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="submit-btn">
-                  Reduce Stock
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Form Modal for Add/Update Toolkit */}
-      {showForm && (
-        <div className="form-modal-overlay">
-          <div className="form-modal">
-            <div className="form-header">
-              <h2>{formMode === 'add' ? 'Add New Toolkit' : 'Update Toolkit'}</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
-            </div>
-            <form onSubmit={handleFormSubmit}>
-              {/* Custom Searchable Dropdown for Name */}
-              <div className="form-group">
-                <label htmlFor="name">Tool Name</label>
-                <div className="custom-dropdown" ref={nameDropdownRef}>
-                  <div className="dropdown-input-container">
-                    <input
-                      type="text"
-                      id="name"
-                      value={nameSearchTerm}
-                      onChange={handleNameSearchChange}
-                      onClick={toggleNameDropdown}
-                      placeholder="Search or enter tool name"
-                      autoComplete="off"
-                      required
-                    />
-                    <button type="button" className="dropdown-toggle" onClick={toggleNameDropdown}>
-                      ▼
-                    </button>
-                  </div>
-                  {showNameDropdown && (
-                    <div className="dropdown-menu">
-                      {filteredToolNames.length > 0 ? (
-                        filteredToolNames.map((name, index) => (
-                          <div
-                            key={index}
-                            className="dropdown-item"
-                            onClick={() => handleNameSelect(name)}
-                          >
-                            {name}
-                          </div>
-                        ))
-                      ) : nameSearchTerm.trim() !== '' ? (
-                        <div className="dropdown-item new-item" onClick={() => handleNameSelect(nameSearchTerm)}>
-                          Add "{nameSearchTerm}"
-                        </div>
-                      ) : (
-                        <div className="no-results">No tool names found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Custom Searchable Dropdown for Type */}
-              <div className="form-group">
-                <label htmlFor="type">Type</label>
-                <div className="custom-dropdown" ref={typeDropdownRef}>
-                  <div className="dropdown-input-container">
-                    <input
-                      type="text"
-                      id="type"
-                      value={typeSearchTerm}
-                      onChange={handleTypeSearchChange}
-                      onClick={toggleTypeDropdown}
-                      placeholder="Search or enter type"
-                      autoComplete="off"
-                      required
-                    />
-                    <button type="button" className="dropdown-toggle" onClick={toggleTypeDropdown}>
-                      ▼
-                    </button>
-                  </div>
-                  {showTypeDropdown && (
-                    <div className="dropdown-menu">
-                      {filteredTypes.length > 0 ? (
-                        filteredTypes.map((type, index) => (
-                          <div
-                            key={index}
-                            className="dropdown-item"
-                            onClick={() => handleTypeSelect(type)}
-                          >
-                            {type}
-                          </div>
-                        ))
-                      ) : typeSearchTerm.trim() !== '' ? (
-                        <div className="dropdown-item new-item" onClick={() => handleTypeSelect(typeSearchTerm)}>
-                          Add "{typeSearchTerm}"
-                        </div>
-                      ) : (
-                        <div className="no-results">No types found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="submit-btn">
-                  {formMode === 'add' ? 'Add Toolkit' : 'Update Toolkit'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Form Modal for Add/Update Variant */}
-      {showVariantForm && (
-        <div className="form-modal-overlay">
-          <div className="form-modal">
-            <div className="form-header">
-              <h2>{variantFormMode === 'add' ? 'Add New Variant' : 'Update Variant'}</h2>
-              <button className="close-btn" onClick={() => setShowVariantForm(false)}>×</button>
-            </div>
-            <form onSubmit={handleVariantFormSubmit}>
-              <div className="form-group">
-                <label>Toolkit: {selectedToolkit.name}</label>
-              </div>
-
-              {/* Custom Searchable Dropdown for Size */}
-              <div className="form-group">
-                <label htmlFor="size">Size</label>
-                <div className="custom-dropdown" ref={sizeDropdownRef}>
-                  <div className="dropdown-input-container">
-                    <input
-                      type="text"
-                      id="size"
-                      value={sizeSearchTerm}
-                      onChange={handleSizeSearchChange}
-                      onClick={toggleSizeDropdown}
-                      placeholder="Search or enter size"
-                      autoComplete="off"
-                      required
-                    />
-                    <button type="button" className="dropdown-toggle" onClick={toggleSizeDropdown}>
-                      ▼
-                    </button>
-                  </div>
-                  {showSizeDropdown && (
-                    <div className="dropdown-menu">
-                      {filteredSizes.length > 0 ? (
-                        filteredSizes.map((size, index) => (
-                          <div
-                            key={index}
-                            className="dropdown-item"
-                            onClick={() => handleSizeSelect(size)}
-                          >
-                            {size}
-                          </div>
-                        ))
-                      ) : sizeSearchTerm.trim() !== '' ? (
-                        <div className="dropdown-item new-item" onClick={() => handleSizeSelect(sizeSearchTerm)}>
-                          Add "{sizeSearchTerm}"
-                        </div>
-                      ) : (
-                        <div className="no-results">No sizes found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Custom Searchable Dropdown for Color */}
-              <div className="form-group">
-                <label htmlFor="color">Color</label>
-                <div className="custom-dropdown" ref={colorDropdownRef}>
-                  <div className="dropdown-input-container">
-                    <input
-                      type="text"
-                      id="color"
-                      value={colorSearchTerm}
-                      onChange={handleColorSearchChange}
-                      onClick={toggleColorDropdown}
-                      placeholder="Search or enter color"
-                      autoComplete="off"
-                      required
-                    />
-                    <button type="button" className="dropdown-toggle" onClick={toggleColorDropdown}>
-                      ▼
-                    </button>
-                  </div>
-                  {showColorDropdown && (
-                    <div className="dropdown-menu">
-                      {filteredColors.length > 0 ? (
-                        filteredColors.map((color, index) => (
-                          <div
-                            key={index}
-                            className="dropdown-item color-item"
-                            onClick={() => handleColorSelect(color)}
-                          >
-                            <span
-                              className="color-preview"
-                              style={{
-                                backgroundColor: color.toLowerCase() === 'clear' ? 'transparent' : color.toLowerCase(),
-                                border: color.toLowerCase() === 'clear' ? '1px dashed #ccc' : 'none'
-                              }}
-                            ></span>
-                            {color}
-                          </div>
-                        ))
-                      ) : colorSearchTerm.trim() !== '' ? (
-                        <div className="dropdown-item new-item" onClick={() => handleColorSelect(colorSearchTerm)}>
-                          Add "{colorSearchTerm}"
-                        </div>
-                      ) : (
-                        <div className="no-results">No colors found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group half">
-                  <label htmlFor="stockCount">Stock Count</label>
-                  <input
-                    type="number"
-                    id="stockCount"
-                    name="stockCount"
-                    value={variantFormData.stockCount}
-                    onChange={handleVariantInputChange}
-                    min="0"
-                    required
-                  />
-                </div>
-
-                <div className="form-group half">
-                  <label htmlFor="minStockLevel">Minimum Stock Level</label>
-                  <input
-                    type="number"
-                    id="minStockLevel"
-                    name="minStockLevel"
-                    value={variantFormData.minStockLevel}
-                    onChange={handleVariantInputChange}
-                    min="1"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="inuse">
-                  <input
-                    type="checkbox"
-                    id="inuse"
-                    name="inuse"
-                    checked={variantFormData.inuse}
-                    onChange={handleVariantInputChange}
-                  />
-                  Currently In Use
-                </label>
-              </div>
-
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowVariantForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="submit-btn">
-                  {variantFormMode === 'add' ? 'Add Variant' : 'Update Variant'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Form Modal for Add/Update Variant using DevModal */}
+      <DevModal
+        isOpen={showVariantForm}
+        onClose={() => setShowVariantForm(false)}
+        type="form"
+        title={variantFormMode === 'add' ? 'Add New Variant' : 'Update Variant'}
+        message={`Adding variant to: ${selectedToolkit?.name || ''}`}
+        formFields={[
+          {
+            name: 'size',
+            label: 'Size',
+            type: 'select',
+            placeholder: 'Select size',
+            required: true,
+            options: predefinedSizes.map(s => ({ value: s, label: s }))
+          },
+          {
+            name: 'color',
+            label: 'Color',
+            type: 'select',
+            placeholder: 'Select color',
+            required: true,
+            options: predefinedColors.map(c => ({ value: c, label: c }))
+          },
+          {
+            name: 'stockCount',
+            label: 'Stock Count',
+            type: 'number',
+            placeholder: '0',
+            required: true
+          },
+          {
+            name: 'minStockLevel',
+            label: 'Minimum Stock Level',
+            type: 'number',
+            placeholder: '5',
+            required: true
+          }
+        ]}
+        formValues={{
+          size: sizeSearchTerm,
+          color: colorSearchTerm,
+          stockCount: variantFormData.stockCount,
+          minStockLevel: variantFormData.minStockLevel
+        }}
+        onFormChange={(field, value) => {
+          if (field === 'size') {
+            setSizeSearchTerm(value);
+            setVariantFormData({ ...variantFormData, size: value });
+          } else if (field === 'color') {
+            setColorSearchTerm(value);
+            setVariantFormData({ ...variantFormData, color: value });
+          } else {
+            setVariantFormData({
+              ...variantFormData,
+              [field]: field === 'stockCount' || field === 'minStockLevel' ? parseInt(value) || 0 : value
+            });
+          }
+        }}
+        buttonText={variantFormMode === 'add' ? 'Add Variant' : 'Update Variant'}
+        onButtonClick={handleVariantFormSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowVariantForm(false)}
+      />
 
       {/* Global Toolkit History Modal */}
       {showToolkitHistory && (

@@ -2,8 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Operators.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import { useSearch } from '../../context/SearchContext';
+import Button from '../../common/Button/Button';
 
 const Operators = () => {
+  const { searchTerm, setSearchTerm } = useSearch();
+
   // Predefined options
   const nationalityOptions = ['INDIAN', 'NEPALI', 'BANGLADESHI', 'PAKISTANI', 'SRI LANKAN', 'OTHER'];
   const sponsorshipOptions = ['ATE', 'DIRECT', 'OTHER'];
@@ -18,7 +22,6 @@ const Operators = () => {
   const [darkMode, setDarkMode] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState('add');
-  const [searchTerm, setSearchTerm] = useState('');
   const [profilePicUrls, setProfilePicUrls] = useState({});
   const [fullScreenImage, setFullScreenImage] = useState(null);
 
@@ -645,25 +648,22 @@ const Operators = () => {
 
   return (
     <div className="operators-container">
-      <div className="operators-header">
-        <h1 className="operators-title">Operators Management</h1>
-        <div className="header-right">
-          <div className="date-time">{currentDateTime}</div>
-        </div>
-      </div>
-
       <div className="operators-actions">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search by name, Qatar ID, code, or nationality..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <button className="add-operator-btn" onClick={openAddForm}>
-          Add Operator
-        </button>
+        <Button
+          text="Add Operator"
+          onClick={() => openAddForm}
+          colorScheme="lime-700"
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="38px"
+          type="submit"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
       </div>
 
       {loading ? (
@@ -742,12 +742,21 @@ const Operators = () => {
                     </span>
                   </td>
                   <td className="action-buttons">
-                    <button
-                      className="action-btn details"
+                    <Button
+                      text="Details"
                       onClick={() => showDetails(operator)}
-                    >
-                      Details
-                    </button>
+                      colorScheme="orange-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </td>
                 </tr>
               ))}

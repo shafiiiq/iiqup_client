@@ -15,23 +15,23 @@ const NavigationButtons = () => {
 
   return (
     <div className="navigation-buttons">
-      <button 
-        className="nav-btn back-btn" 
+      <button
+        className="nav-btn back-btn"
         onClick={goBack}
         title="Go Back"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m15 18-6-6 6-6"/>
-        </svg>
+        <span class="material-symbols-rounded">
+          arrow_back_ios
+        </span>
       </button>
-      <button 
-        className="nav-btn forward-btn" 
+      <button
+        className="nav-btn forward-btn"
         onClick={goForward}
         title="Go Forward"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m9 18 6-6-6-6"/>
-        </svg>
+        <span class="material-symbols-rounded">
+          arrow_forward_ios
+        </span>
       </button>
     </div>
   );

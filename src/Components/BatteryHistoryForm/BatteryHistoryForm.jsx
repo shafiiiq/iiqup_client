@@ -3,9 +3,14 @@ import '../BatteryHistoryForm/BatteryHistoryForm.css';
 import { END_POINT } from '../../constants';
 import { useNavigate, useParams } from 'react-router';
 import { apiRequest } from '../../utils/0auth';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const BatteryHistoryForm = () => {
-  const {regNo} = useParams()
+  const { regNo } = useParams()
+  const navigate = useNavigate();
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     batteryModel: '',
@@ -15,45 +20,61 @@ const BatteryHistoryForm = () => {
     operator: '',
     runningHours: ''
   });
-
   const [equipments, setEquipments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [currentDateTime, setCurrentDateTime] = useState('');
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (regNo) {
+      const title = 'Add Battery Service Record'
+      const subtitle = `${regNo}`
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [setHeaderTitle, regNo]);
 
 
   useEffect(() => {
-      async function fetchEquipments() {
-        try {
-          const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-          const data = await response.json();
-          setEquipments(data.data);
-        } catch (error) {
-          console.error('Error fetching equipment records:', error);
-        }
+    async function fetchEquipments() {
+      try {
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+        const data = await response.json();
+        setEquipments(data.data);
+      } catch (error) {
+        console.error('Error fetching equipment records:', error);
       }
-  
-      fetchEquipments()
-    }, []);
+    }
+
+    fetchEquipments()
+  }, []);
 
   useEffect(() => {
-      if (equipments.length > 0 && formData.equipmentNo) {
-        const regNoValue = formData.equipmentNo.trim();
-        const foundEquipment = equipments.find(
-          (equipment) => equipment.regNo === regNoValue
-        );
-  
-        if (foundEquipment) {
-          setFormData(prevData => ({
-            ...prevData,
-            equipment: foundEquipment.machine || '',
-            operator: foundEquipment.certificationBody[foundEquipment.certificationBody.length - 1] || '',
-          }));
-        }
+    if (equipments.length > 0 && formData.equipmentNo) {
+      const regNoValue = formData.equipmentNo.trim();
+      const foundEquipment = equipments.find(
+        (equipment) => equipment.regNo === regNoValue
+      );
+
+      if (foundEquipment) {
+        setFormData(prevData => ({
+          ...prevData,
+          equipment: foundEquipment.machine || '',
+          operator: foundEquipment.certificationBody[foundEquipment.certificationBody.length - 1] || '',
+        }));
       }
-    }, [equipments, formData.equipmentNo]);
-  
+    }
+  }, [equipments, formData.equipmentNo]);
+
 
   // Get current date in DD-MM-YY format and time in AM/PM format
   useEffect(() => {
@@ -107,7 +128,7 @@ const BatteryHistoryForm = () => {
         throw new Error('Failed to submit form');
       }
 
-      
+
       const result = await response.json();
       setMessage({ text: 'Tyre history record added successfully!', type: 'success' });
       navigate(`/service-form/${formData.equipmentNo}/${formData.date}/${formData.location}`);
@@ -143,11 +164,6 @@ const BatteryHistoryForm = () => {
 
   return (
     <div className="tyre-history-container">
-      <div className="tyre-header">
-        <h1 className="tyre-title">Add Battery History Record</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
       {message.text && (
         <div className={`message ${message.type}`}>
           {message.text}
@@ -155,7 +171,7 @@ const BatteryHistoryForm = () => {
       )}
 
       <div className="form-container">
-        <form onSubmit={handleSubmit} className="tyre-history-form">
+        <form className="tyre-history-form">
           <div className="form-group">
             <label htmlFor="date">Date</label>
             <input
@@ -234,20 +250,36 @@ const BatteryHistoryForm = () => {
           </div>
 
           <div className="form-actions">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="action-btn reset"
-            >
-              Reset
-            </button>
-            <button
+            <Button
+              text="Reset"
+              onClick={() => handleReset}
+              colorScheme="amber-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
               type="submit"
-              className="action-btn submit"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Submitting...' : 'Submit'}
-            </button>
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            <Button
+              text={isLoading ? 'Submitting...' : 'Submit'}
+              onClick={handleSubmit}
+              colorScheme={!isLoading ? 'lime-600' : 'lime-800'}
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type={!isLoading ? 'disabled' : 'submit'}
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           </div>
         </form>
       </div>

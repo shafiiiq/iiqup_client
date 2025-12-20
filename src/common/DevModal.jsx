@@ -31,6 +31,11 @@ const DevModal = ({
   formValues = {}, // Object with field values
   unauthorizedReason = '', // Reason for unauthorized access
   contactEmail = 'support@example.com', // Support contact email
+  filterGroups = [], // Array: { name, label, type, options, multi }
+  onFilterChange = () => { }, // Callback: (filterName, value)
+  filterValues = {}, // Object with current filter values
+  onApplyFilters = () => { }, // When Apply is clicked
+  onResetFilters = () => { }, // When Reset is clicked
 }) => {
   const [visible, setVisible] = React.useState(false);
   const modalRef = React.useRef(null);
@@ -274,6 +279,14 @@ const DevModal = ({
       ctaColor: '#991b1b',
       svg: 'lock'
     },
+    filters: {
+      primary: '#2c2904be',
+      secondary: '#96955a7a',
+      accent: '#38c4ceff',
+      textColor: '#ffffffff',
+      ctaColor: '#12a1acff',
+      svg: 'filter'
+    },
   }[type] || palette.success;
 
   const renderIcon = () => {
@@ -374,7 +387,16 @@ const DevModal = ({
             />
           </svg>
         );
-
+      case 'filter':
+        return (
+          <svg {...iconProps}>
+            <path
+              fill="currentColor"
+              fillOpacity="0.15"
+              d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+            />
+          </svg>
+        );
       default:
         return null;
     }
@@ -396,258 +418,491 @@ const DevModal = ({
         onClick={handleOverlayClick}
         aria-hidden={!isOpen}
       >
-        <div
-          className={`dm-card dm-card-${type} ${visible ? 'dm-enter' : ''} ${showInput ? 'dm-card-input' : ''} ${useCellInput ? 'dm-card-cells' : ''}`}
-          role="dialog"
-          aria-modal="true"
-          aria-label={title || 'Notification'}
-          onClick={stop}
-          ref={modalRef}
-          tabIndex={-1}
-          style={{
-            background: `linear-gradient(135deg, ${palette.primary} 0%, ${palette.secondary} 100%)`,
-          }}
-        >
-          <div className="dm-shapes-overlay">
-            <div className="dm-shape dm-shape-1" style={{ background: `linear-gradient(45deg, ${palette.accent}40, ${palette.accent}20)` }}></div>
-            <div className="dm-shape dm-shape-2" style={{ background: `linear-gradient(-45deg, ${palette.accent}30, ${palette.accent}10)` }}></div>
-          </div>
+        <div className='dm-modal-wrapper'>
+          <div
+            className={`dm-card dm-card-${type} ${visible ? 'dm-enter' : ''} ${showInput ? 'dm-card-input' : ''} ${useCellInput ? 'dm-card-cells' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title || 'Notification'}
+            onClick={stop}
+            ref={modalRef}
+            tabIndex={-1}
+            style={{
+              background: `linear-gradient(135deg, ${palette.primary} 0%, ${palette.secondary} 100%)`,
+            }}
+          >
+            <div className="dm-shapes-overlay">
+              <div className="dm-shape dm-shape-1" style={{ background: `linear-gradient(45deg, ${palette.accent}40, ${palette.accent}20)` }}></div>
+              <div className="dm-shape dm-shape-2" style={{ background: `linear-gradient(-45deg, ${palette.accent}30, ${palette.accent}10)` }}></div>
+            </div>
 
-          <div className="dm-watermark" aria-hidden="true">
-            {renderIcon()}
-          </div>
+            <div className="dm-watermark" aria-hidden="true">
+              {renderIcon()}
+            </div>
 
-          {type !== 'progress' && !preventClose && (
-            <button className="dm-close" onClick={handleClose} aria-label="Close">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-              </svg>
-            </button>
-          )}
-
-          <div className="dm-content">
-            <h2 className="dm-title" style={{ color: palette.textColor }}>
-              {title}
-            </h2>
-
-            {deviceInfo && (
-              <div className="dm-device-info">
-                <div className="dm-device-item">
-                  <span className="dm-device-label">Device:</span>
-                  <span className="dm-device-value">{deviceInfo.browserInfo}</span>
-                </div>
-                <div className="dm-device-item">
-                  <span className="dm-device-label">Location:</span>
-                  <span className="dm-device-value">{deviceInfo.location}</span>
-                </div>
-                <div className="dm-device-item">
-                  <span className="dm-device-label">IP:</span>
-                  <span className="dm-device-value">{deviceInfo.ipAddress}</span>
-                </div>
-              </div>
+            {type !== 'progress' && !preventClose && (
+              <button className="dm-close" onClick={handleClose} aria-label="Close">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
             )}
 
-            {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && !showInput && (
-              <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                {message}
-              </p>
-            )}
+            <div className="dm-content">
+              <h2 className="dm-title" style={{ color: palette.textColor }}>
+                {title}
+              </h2>
 
-            {showInput && !useCellInput && (
-              <div className="dm-input-section">
-                {message && (
-                  <p className="dm-message dm-input-label" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                    {message}
-                  </p>
-                )}
-                <input
-                  type="text"
-                  className="dm-input"
-                  value={inputValue}
-                  onChange={(e) => onInputChange(e.target.value)}
-                  placeholder={inputPlaceholder}
-                  maxLength={inputMaxLength}
-                  autoFocus
-                />
-                {inputError && (
-                  <div className="dm-input-error">{inputError}</div>
-                )}
-              </div>
-            )}
-
-            {showInput && useCellInput && (
-              <div className="dm-input-section">
-                {message && (
-                  <p className="dm-message dm-input-label" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                    {message}
-                  </p>
-                )}
-                <div className="dm-cell-input-container">
-                  {Array.from({ length: cellCount }).map((_, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => (cellRefs.current[index] = el)}
-                      type="text"
-                      className="dm-cell-input"
-                      value={paddedValue[index] || ''}
-                      onChange={(e) => handleCellChange(index, e.target.value)}
-                      onKeyDown={(e) => handleCellKeyDown(index, e)}
-                      onPaste={index === 0 ? handleCellPaste : undefined}
-                      maxLength={1}
-                      autoFocus={index === 0}
-                    />
-                  ))}
-                </div>
-                {inputError && (
-                  <div className="dm-input-error">{inputError}</div>
-                )}
-              </div>
-            )}
-
-            {type === 'updates' && updatesList.length > 0 && (
-              <div className="dm-updates-list">
-                {updatesList.map((update, index) => (
-                  <div key={index} className="dm-update-item">
-                    <div className="dm-update-bullet"></div>
-                    <span className="dm-update-text">{update}</span>
+              {deviceInfo && (
+                <div className="dm-device-info">
+                  <div className="dm-device-item">
+                    <span className="dm-device-label">Device:</span>
+                    <span className="dm-device-value">{deviceInfo.browserInfo}</span>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {type === 'progress' && (
-              <div className="dm-progress-section">
-                <div className="dm-progress-bar">
-                  <div
-                    className="dm-progress-fill"
-                    style={{
-                      width: `${Math.min(100, Math.max(0, progress))}%`,
-                      background: `linear-gradient(90deg, ${palette.accent}, white)`
-                    }}
-                  ></div>
+                  <div className="dm-device-item">
+                    <span className="dm-device-label">Location:</span>
+                    <span className="dm-device-value">{deviceInfo.location}</span>
+                  </div>
+                  <div className="dm-device-item">
+                    <span className="dm-device-label">IP:</span>
+                    <span className="dm-device-value">{deviceInfo.ipAddress}</span>
+                  </div>
                 </div>
-                <div className="dm-progress-text">
-                  <span className="dm-progress-percentage">{Math.round(progress)}%</span>
-                  {progressText && <span className="dm-progress-label">{progressText}</span>}
+              )}
+
+              {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && type !== 'filters' && !showInput && (
+                <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  {message}
+                </p>
+              )}
+
+              {showInput && !useCellInput && (
+                <div className="dm-input-section">
+                  {message && (
+                    <p className="dm-message dm-input-label" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+                  <input
+                    type="text"
+                    className="dm-input"
+                    value={inputValue}
+                    onChange={(e) => onInputChange(e.target.value)}
+                    placeholder={inputPlaceholder}
+                    maxLength={inputMaxLength}
+                    autoFocus
+                  />
+                  {inputError && (
+                    <div className="dm-input-error">{inputError}</div>
+                  )}
                 </div>
-                {message && (
-                  <p className="dm-message dm-progress-message" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    {message}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
 
-            {type === 'form' && formFields.length > 0 && (
-              <div className="dm-form-section">
-                {message && (
-                  <p className="dm-message dm-form-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                    {message}
-                  </p>
-                )}
-                <div className="dm-form-fields">
-                  {formFields.map((field, index) => (
-                    <div key={field.name || index} className="dm-form-field">
-                      <label className="dm-form-label">
-                        {field.label}
-                        {field.required && <span className="dm-form-required">*</span>}
-                      </label>
+              {showInput && useCellInput && (
+                <div className="dm-input-section">
+                  {message && (
+                    <p className="dm-message dm-input-label" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+                  <div className="dm-cell-input-container">
+                    {Array.from({ length: cellCount }).map((_, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => (cellRefs.current[index] = el)}
+                        type="text"
+                        className="dm-cell-input"
+                        value={paddedValue[index] || ''}
+                        onChange={(e) => handleCellChange(index, e.target.value)}
+                        onKeyDown={(e) => handleCellKeyDown(index, e)}
+                        onPaste={index === 0 ? handleCellPaste : undefined}
+                        maxLength={1}
+                        autoFocus={index === 0}
+                      />
+                    ))}
+                  </div>
+                  {inputError && (
+                    <div className="dm-input-error">{inputError}</div>
+                  )}
+                </div>
+              )}
 
-                      {field.type === 'textarea' ? (
-                        <textarea
-                          className="dm-form-textarea"
-                          value={formValues[field.name] || ''}
-                          onChange={(e) => onFormChange(field.name, e.target.value)}
-                          placeholder={field.placeholder}
-                          rows={field.rows || 3}
-                        />
-                      ) : field.type === 'select' ? (
-                        <select
-                          className="dm-form-select"
-                          value={formValues[field.name] || ''}
-                          onChange={(e) => onFormChange(field.name, e.target.value)}
-                        >
-                          <option value="">{field.placeholder || 'Select...'}</option>
-                          {field.options?.map((opt, i) => (
-                            <option key={i} value={opt.value || opt}>
-                              {opt.label || opt}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={field.type || 'text'}
-                          className="dm-form-input"
-                          value={formValues[field.name] || ''}
-                          onChange={(e) => onFormChange(field.name, e.target.value)}
-                          placeholder={field.placeholder}
-                        />
-                      )}
-
-                      {field.error && (
-                        <div className="dm-form-field-error">{field.error}</div>
-                      )}
+              {type === 'updates' && updatesList.length > 0 && (
+                <div className="dm-updates-list">
+                  {updatesList.map((update, index) => (
+                    <div key={index} className="dm-update-item">
+                      <div className="dm-update-bullet"></div>
+                      <span className="dm-update-text">{update}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {type === 'unauthorized' && (
-              <div className="dm-unauthorized-section">
-                <div className="dm-unauthorized-icon">
-                  <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor">
-                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-                  </svg>
+              {type === 'progress' && (
+                <div className="dm-progress-section">
+                  <div className="dm-progress-bar">
+                    <div
+                      className="dm-progress-fill"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, progress))}%`,
+                        background: `linear-gradient(90deg, ${palette.accent}, white)`
+                      }}
+                    ></div>
+                  </div>
+                  <div className="dm-progress-text">
+                    <span className="dm-progress-percentage">{Math.round(progress)}%</span>
+                    {progressText && <span className="dm-progress-label">{progressText}</span>}
+                  </div>
+                  {message && (
+                    <p className="dm-message dm-progress-message" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                      {message}
+                    </p>
+                  )}
                 </div>
-                <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                  {message || 'You do not have permission to access this resource.'}
-                </p>
-                {unauthorizedReason && (
-                  <div className="dm-unauthorized-reason">
-                    <strong>Reason:</strong> {unauthorizedReason}
+              )}
+
+              {type === 'form' && formFields.length > 0 && (
+                <div className="dm-form-section">
+                  {message && (
+                    <p className="dm-message dm-form-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+                  <div className="dm-form-fields">
+                    {formFields.map((field, index) => (
+                      <div key={field.name || index} className="dm-form-field">
+                        <label className="dm-form-label">
+                          {field.label}
+                          {field.required && <span className="dm-form-required">*</span>}
+                        </label>
+
+                        {field.type === 'textarea' ? (
+                          <textarea
+                            className="dm-form-textarea"
+                            value={formValues[field.name] || ''}
+                            onChange={(e) => onFormChange(field.name, e.target.value)}
+                            placeholder={field.placeholder}
+                            rows={field.rows || 3}
+                          />
+                        ) : field.type === 'select' ? (
+                          <select
+                            className="dm-form-select"
+                            value={formValues[field.name] || ''}
+                            onChange={(e) => onFormChange(field.name, e.target.value)}
+                          >
+                            <option value="">{field.placeholder || 'Select...'}</option>
+                            {field.options?.map((opt, i) => (
+                              <option key={i} value={opt.value || opt}>
+                                {opt.label || opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type={field.type || 'text'}
+                            className="dm-form-input"
+                            value={formValues[field.name] || ''}
+                            onChange={(e) => onFormChange(field.name, e.target.value)}
+                            placeholder={field.placeholder}
+                          />
+                        )}
+
+                        {field.error && (
+                          <div className="dm-form-field-error">{field.error}</div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+                </div>
+              )}
+
+              {type === 'unauthorized' && (
+                <div className="dm-unauthorized-section">
+                  <div className="dm-unauthorized-icon">
+                    <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor">
+                      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                    </svg>
+                  </div>
+                  <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    {message || 'You do not have permission to access this resource.'}
+                  </p>
+                  {unauthorizedReason && (
+                    <div className="dm-unauthorized-reason">
+                      <strong>Reason:</strong> {unauthorizedReason}
+                    </div>
+                  )}
+                  {contactEmail && (
+                    <div className="dm-unauthorized-contact">
+                      Need access? Contact <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {type === 'filters' && filterGroups.length > 0 && (
+                <div className="dm-filters-section">
+                  {message && (
+                    <p className="dm-message dm-filters-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+                  <div className="dm-filters-groups">
+                    {filterGroups.map((group, index) => (
+                      <div key={group.name || index} className="dm-filter-group">
+                        <label className="dm-filter-label">{group.label}</label>
+
+                        {group.type === 'checkbox' && (
+                          <div className="dm-filter-checkboxes">
+                            {group.options?.map((option, i) => {
+                              const optValue = option.value || option;
+                              const optLabel = option.label || option;
+                              const isChecked = Array.isArray(filterValues[group.name])
+                                ? filterValues[group.name].includes(optValue)
+                                : false;
+
+                              return (
+                                <label key={i} className="dm-filter-checkbox-label">
+                                  <div className="dm-custom-checkbox">
+                                    <input
+                                      type="checkbox"
+                                      className="dm-filter-checkbox-input"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        const currentValues = filterValues[group.name] || [];
+                                        const newValues = e.target.checked
+                                          ? [...currentValues, optValue]
+                                          : currentValues.filter(v => v !== optValue);
+                                        onFilterChange(group.name, newValues);
+                                      }}
+                                    />
+                                    <span className="dm-checkbox-custom" style={{
+                                      borderColor: `${palette.accent}80`,
+                                      backgroundColor: isChecked ? palette.accent : 'rgba(255,255,255,0.1)'
+                                    }}>
+                                      {isChecked && (
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="white">
+                                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                        </svg>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <span className="dm-filter-checkbox-text">{optLabel}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {group.type === 'radio' && (
+                          <div className="dm-filter-radios">
+                            {group.options?.map((option, i) => {
+                              const optValue = option.value || option;
+                              const optLabel = option.label || option;
+                              const isChecked = filterValues[group.name] === optValue;
+
+                              return (
+                                <label key={i} className="dm-filter-radio-label">
+                                  <div className="dm-custom-radio">
+                                    <input
+                                      type="radio"
+                                      className="dm-filter-radio-input"
+                                      checked={isChecked}
+                                      onChange={() => onFilterChange(group.name, optValue)}
+                                    />
+                                    <span className="dm-radio-custom" style={{
+                                      borderColor: `${palette.accent}80`,
+                                      backgroundColor: isChecked ? palette.accent : 'rgba(255,255,255,0.1)'
+                                    }}>
+                                      {isChecked && (
+                                        <span className="dm-radio-dot" style={{
+                                          backgroundColor: 'white'
+                                        }}></span>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <span className="dm-filter-radio-text">{optLabel}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {group.type === 'select' && (
+                          <div className="dm-custom-select-wrapper">
+                            <div
+                              className="dm-filter-select-custom"
+                              onClick={() => {
+                                const dropdown = document.getElementById(`dropdown-${group.name}`);
+                                dropdown.classList.toggle('dm-select-dropdown-open');
+                              }}
+                              style={{
+                                borderColor: `${palette.accent}40`,
+                                color: 'var(--text-color)'
+                              }}
+                            >
+                              <span className="dm-select-selected-text">
+                                {filterValues[group.name]
+                                  ? (group.options?.find(opt => (opt.value || opt) === filterValues[group.name])?.label || filterValues[group.name])
+                                  : 'All'}
+                              </span>
+                              <div className="dm-select-arrow" style={{ color: palette.accent }}>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                  <path d="M7 10l5 5 5-5z" />
+                                </svg>
+                              </div>
+                            </div>
+
+                            <div
+                              id={`dropdown-${group.name}`}
+                              className="dm-select-dropdown"
+                              style={{
+                                borderColor: `${palette.accent}40`
+                              }}
+                            >
+                              <div
+                                className="dm-select-option"
+                                onClick={() => {
+                                  onFilterChange(group.name, '');
+                                  document.getElementById(`dropdown-${group.name}`).classList.remove('dm-select-dropdown-open');
+                                }}
+                              >
+                                All
+                              </div>
+                              {group.options?.map((opt, i) => {
+                                const optValue = opt.value || opt;
+                                const optLabel = opt.label || opt;
+                                return (
+                                  <div
+                                    key={i}
+                                    className="dm-select-option"
+                                    onClick={() => {
+                                      onFilterChange(group.name, optValue);
+                                      document.getElementById(`dropdown-${group.name}`).classList.remove('dm-select-dropdown-open');
+                                    }}
+                                  >
+                                    {optLabel}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {group.type === 'date' && (
+                          <div className="dm-custom-date-wrapper">
+                            <input
+                              type="date"
+                              className="dm-filter-date"
+                              value={filterValues[group.name] || ''}
+                              onChange={(e) => onFilterChange(group.name, e.target.value)}
+                              style={{
+                                borderColor: `${palette.accent}80`,
+                              }}
+                            />
+                            <div className="dm-date-icon" style={{ color: palette.accent }}>
+                              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5zm2 4h10v2H7v-2z" />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
+
+                        {group.type === 'range' && (
+                          <div className="dm-filter-range">
+                            <input
+                              type="number"
+                              className="dm-filter-range-input"
+                              placeholder="Min"
+                              value={filterValues[group.name]?.min || ''}
+                              onChange={(e) => onFilterChange(group.name, {
+                                ...filterValues[group.name],
+                                min: e.target.value
+                              })}
+                              style={{
+                                borderColor: `${palette.accent}40`
+                              }}
+                            />
+                            <span className="dm-filter-range-separator">-</span>
+                            <input
+                              type="number"
+                              className="dm-filter-range-input"
+                              placeholder="Max"
+                              value={filterValues[group.name]?.max || ''}
+                              onChange={(e) => onFilterChange(group.name, {
+                                ...filterValues[group.name],
+                                max: e.target.value
+                              })}
+                              style={{
+                                borderColor: `${palette.accent}40`
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {group.type === 'text' && (
+                          <input
+                            type="text"
+                            className="dm-filter-text"
+                            placeholder={group.placeholder || ''}
+                            value={filterValues[group.name] || ''}
+                            onChange={(e) => onFilterChange(group.name, e.target.value)}
+                            style={{
+                              borderColor: `${palette.accent}40`
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {(buttonText || secondaryButtonText) && type !== 'progress' && (
+              <div className="dm-footer">
+                {type === 'filters' && onResetFilters && (
+                  <button
+                    className="dm-cta dm-cta-secondary"
+                    onClick={onResetFilters}
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      color: 'white',
+                      backdropFilter: 'blur(8px)'
+                    }}
+                  >
+                    Reset
+                  </button>
                 )}
-                {contactEmail && (
-                  <div className="dm-unauthorized-contact">
-                    Need access? Contact <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-                  </div>
+                {secondaryButtonText && type !== 'filters' && (
+                  <button
+                    className="dm-cta dm-cta-secondary"
+                    onClick={handleSecondary}
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      color: 'white',
+                      backdropFilter: 'blur(8px)'
+                    }}
+                  >
+                    {secondaryButtonText}
+                  </button>
+                )}
+                {buttonText && (
+                  <button
+                    className="dm-cta"
+                    onClick={type === 'filters' ? onApplyFilters : handleCTA}
+                    disabled={showInput && !!inputError}
+                    style={{
+                      backgroundColor: (showInput && inputError) ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)',
+                      color: palette.ctaColor,
+                      cursor: (showInput && inputError) ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {buttonText}
+                  </button>
                 )}
               </div>
             )}
           </div>
-
-          {(buttonText || secondaryButtonText) && type !== 'progress' && (
-            <div className="dm-footer">
-              {secondaryButtonText && (
-                <button
-                  className="dm-cta dm-cta-secondary"
-                  onClick={handleSecondary}
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.15)',
-                    color: 'white',
-                    backdropFilter: 'blur(8px)'
-                  }}
-                >
-                  {secondaryButtonText}
-                </button>
-              )}
-              {buttonText && (
-                <button
-                  className="dm-cta"
-                  onClick={handleCTA}
-                  disabled={showInput && !!inputError}
-                  style={{
-                    backgroundColor: (showInput && inputError) ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)',
-                    color: palette.ctaColor,
-                    cursor: (showInput && inputError) ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {buttonText}
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </>

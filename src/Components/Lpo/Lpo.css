@@ -4,18 +4,6 @@
   margin: 0;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Times New Roman', serif;
-  color: black !important;
-  background-color: #f1f1f1 !important;
-}
-
 .page-container {
   font-family: 'Times New Roman', serif;
   max-width: 100%;

@@ -1,31 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 @page {
     size: A4;
     margin: 0;
-}
-
-/* Import Roboto font */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-/* Root variables for theming */
-:root {
-    --bcr-primary-color: #000000;
-    --bcr-background-light: #ffffff;
-    --bcr-background-dark: #1a202c;
-    --bcr-text-light: #000000;
-    --bcr-text-dark: #000000;
-    --bcr-border-light: #000000;
-    --bcr-border-dark: #000000;
-    --bcr-gray-100: #f3f4f6;
-    --bcr-gray-200: #e5e7eb;
-    --bcr-gray-600: #4b5563;
-    --bcr-gray-700: #ffffff;
-    --bcr-blue-700: #000000;
-}
-
-/* SCOPED: Apply black color ONLY to BCR components */
-.bcr-hero-wrapper,
-.bcr-hero-wrapper * {
-    color: #000000;
 }
 
 .bcr-hero-wrapper {
@@ -55,11 +31,6 @@
     margin-bottom: 2rem !important;
     overflow: hidden;
     border-collapse: collapse;
-}
-
-.bcr-main-wrapper,
-.bcr-main-wrapper * {
-    color: #000000;
 }
 
 .bcr-main-wrapper.dark {

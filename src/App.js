@@ -3,6 +3,9 @@ import { useState, createContext, useEffect } from 'react';
 import { AuthUtils, checkAutoLogin } from './utils/authUtils';
 import { apiRequest } from './utils/0auth';
 import { END_POINT } from './constants';
+import { SearchProvider } from './context/SearchContext';
+import { HeaderTitleProvider } from './context/HeaderTitleContext';
+import './App.css'
 
 // All your existing imports
 import Home from './Components/Home/Home';
@@ -42,7 +45,8 @@ import Operators from './Components/Operators/Operators';
 import DevModal from './common/DevModal';
 import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
 import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
-import BackchargeList from './Components/BackchargeList/BackchargeList';;
+import BackchargeList from './Components/BackchargeList/BackchargeList'; import Spacer from './Components/Spacer/Spacer';
+;
 
 // Create contexts
 export const ServiceReportContext = createContext();
@@ -486,10 +490,13 @@ function App() {
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
-        <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
-        <NavigationButtons />
+        <SearchProvider>
+          <HeaderTitleProvider>
+            <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
+            <Spacer vertical="4rem" horizontal="100%" />
+            <NavigationButtons />
 
-        {/* {isWorkAlert && newWork.length > 0 && (
+            {/* {isWorkAlert && newWork.length > 0 && (
           <DevModal
             isOpen={true}
             onClose={() => {
@@ -505,7 +512,7 @@ function App() {
           />
         )} */}
 
-        {/* {isLPOAlert && newLPO.length > 0 && (
+            {/* {isLPOAlert && newLPO.length > 0 && (
           <DevModal
             isOpen={true}
             onClose={() => {
@@ -521,7 +528,7 @@ function App() {
           />
         )} */}
 
-        {/* {isExplored && (
+            {/* {isExplored && (
           <DevModal
             isOpen={true}
             onClose={() => { }}
@@ -533,7 +540,7 @@ function App() {
           />
         )} */}
 
-        {/* {showDevModalHidden && (
+            {/* {showDevModalHidden && (
           <DevModal
             isOpen={true}
             onClose={() => { }}
@@ -545,781 +552,783 @@ function App() {
           />
         )} */}
 
-        <Routes>
-          {/* Public Routes */}
-          <Route
-            path="/login"
-            element={
-              userLoggedIn ? (
-                <CEORedirect />
-              ) : (
-                <Login setUserLoggedIn={setUserLoggedIn} />
-              )
-            }
-          />
+            <Routes>
+              {/* Public Routes */}
+              <Route
+                path="/login"
+                element={
+                  userLoggedIn ? (
+                    <CEORedirect />
+                  ) : (
+                    <Login setUserLoggedIn={setUserLoggedIn} />
+                  )
+                }
+              />
 
-          {/* CEO Only Route - Dashboard */}
-          {/* important to change here  */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute ceoOnly={false}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+              {/* CEO Only Route - Dashboard */}
+              {/* important to change here  */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute ceoOnly={false}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Regular Protected Routes (Non-CEO users) */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Home
-                    user_logged_in={userLoggedIn}
-                    currentUser={AuthUtils.getCurrentUser()}
-                    setUserLoggedIn={setUserLoggedIn}
-                  />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Regular Protected Routes (Non-CEO users) */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Home
+                        user_logged_in={userLoggedIn}
+                        currentUser={AuthUtils.getCurrentUser()}
+                        setUserLoggedIn={setUserLoggedIn}
+                      />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Service Document Routes */}
-          <Route
-            path="/service-doc"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-doc/:regNo/:date"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/maintenance-doc/:regNo/:date"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tyre-doc/:regNo/:date"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/battery-doc/:regNo/:date"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Service Document Routes */}
+              <Route
+                path="/service-doc"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-doc/:regNo/:date"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/maintenance-doc/:regNo/:date"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tyre-doc/:regNo/:date"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/battery-doc/:regNo/:date"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* service form navs */}
-          <Route
-            path="/service-form-nav/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <FormNavigation />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* service form navs */}
+              <Route
+                path="/service-form-nav/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <FormNavigation />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Service Form Routes */}
-          <Route
-            path="/service-form"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:normal"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-form/:regNo/:date/:location"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-form/:regNo/:date/:mechanics/:workRemarks"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-form/:regNo/:date/:location/:runningHours/:tyreForm"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-form/update/:id"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Service Form Routes */}
+              <Route
+                path="/service-form"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:normal"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-form/:regNo/:date/:location"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-form/:regNo/:date/:mechanics/:workRemarks"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-form/:regNo/:date/:location/:runningHours/:tyreForm"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-form/update/:id"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Equipment Routes */}
-          <Route
-            path="/equipments"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Equipments />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Equipment Routes */}
+              <Route
+                path="/equipments"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Equipments />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Service History Routes */}
-          <Route
-            path="/service-history"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceHistory />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-history/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceHistory />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/maintanance-history/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceHistory maintanance={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tyre-history/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <MechanicService tyre={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/battery-history/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <MechanicService />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Service History Routes */}
+              <Route
+                path="/service-history"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceHistory />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-history/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceHistory />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/maintanance-history/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceHistory maintanance={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tyre-history/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <MechanicService tyre={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/battery-history/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <MechanicService />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Service History Form Routes */}
-          <Route
-            path="/service-history-form/:normal/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceHistoryForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service-history-form/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceHistoryForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tyre-history-form/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <TyreHistoryForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/battery-history-form/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <BatteryHistoryForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/maintenance-history-form/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <MaintanceHistoryForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Service History Form Routes */}
+              <Route
+                path="/service-history-form/:normal/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceHistoryForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-history-form/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceHistoryForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tyre-history-form/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <TyreHistoryForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/battery-history-form/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <BatteryHistoryForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/maintenance-history-form/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <MaintanceHistoryForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* View All Documents Routes */}
-          <Route
-            path="/all/all-histories/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all/oil-service/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all/maintenance-service/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all/tyre-service/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all/battery-service/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all/date-range/:regNo/:startDate/:endDate"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all/last-months/:regNo/:monthsCount"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ServiceDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* View All Documents Routes */}
+              <Route
+                path="/all/all-histories/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all/oil-service/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all/maintenance-service/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all/tyre-service/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all/battery-service/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all/date-range/:regNo/:startDate/:endDate"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/all/last-months/:regNo/:monthsCount"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ServiceDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Notification Routes */}
-          <Route
-            path="/notification"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Notification />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Notification Routes */}
+              <Route
+                path="/notification"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Notification />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Stock Routes */}
-          <Route
-            path="/stocks"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <StocksNavigation />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stocks/equipment-part-stocks"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Stocks />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stocks/equipment-stocks"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <EquipBypass equipStocks={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/equipment-stocks-form/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <EquipmentStockForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/equipment-updates"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <EquipmentUpdate />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stock-manage"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <StockManage />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Stock Routes */}
+              <Route
+                path="/stocks"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <StocksNavigation />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/stocks/equipment-part-stocks"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Stocks />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/stocks/equipment-stocks"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <EquipBypass equipStocks={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/equipment-stocks-form/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <EquipmentStockForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/equipment-updates"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <EquipmentUpdate />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/stock-manage"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <StockManage />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Document Routes */}
-          <Route
-            path="/documents"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <EquipBypass documents={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/documents/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Documents />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Document Routes */}
+              <Route
+                path="/documents"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <EquipBypass documents={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/documents/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Documents />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/backcharge-form"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <BackchargeForm />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/backcharge-form"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <BackchargeForm />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/backcharge-list"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <BackchargeList />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/backcharge-list"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <BackchargeList />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/backcharge-doc/:refNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <BackchargeDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/backcharge-doc/:refNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <BackchargeDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/backcharge-doc"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <BackchargeDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/backcharge-doc"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <BackchargeDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* complaints route  */}
-          <Route
-            path="/complaints"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Complaints />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* complaints route  */}
+              <Route
+                path="/complaints"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Complaints />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/complaints/:complaintId/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Complaints />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/complaints/:complaintId/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Complaints />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Other Routes */}
-          <Route
-            path="/application-form"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Applications />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* Other Routes */}
+              <Route
+                path="/application-form"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Applications />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/application-hr"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <ApplicationsList />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/application-hr"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <ApplicationsList />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-form/for-stock"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo isStock={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/for-stock"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo isStock={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-form/for-all-equipments"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo isAllEquip={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/for-all-equipments"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo isAllEquip={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-form/edit/:refNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo edit={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/edit/:refNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo edit={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-form/edit/:refNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo edit={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/edit/:refNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo edit={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-           <Route
-            path="/lpo-form/amendment-edit/:amendment/:refNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo amendmentEdit={true} amendment={true}/>
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/amendment-edit/:amendment/:refNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo amendmentEdit={true} amendment={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-form/amendment/:refNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo amendment={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/amendment/:refNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo amendment={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-form/:regNo/:complaintId"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Lpo />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-form/:regNo/:complaintId"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Lpo />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route path="/lpo-doc/:lpoRef"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route path="/lpo-doc/:lpoRef"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route path="/lpo-doc/:lpoRef/:complaintId"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          
-          <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoDoc />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route path="/lpo-doc/:lpoRef/:complaintId"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-list"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <EquipBypass isLPO={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoDoc />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-list/of-all-equipments"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoList isForAllEquip={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-list"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <EquipBypass isLPO={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* remove this modal note it */}
-          <Route
-            path="/dev-modal"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <DevModal
-                    isOpen={true}
-                    onClose={() => { }}
-                    type="success"
-                    title="Success!"
-                    message="You have successfully login into the system"
-                    buttonText="Go to main screen"
-                    onButtonClick={() => navigate('/dashboard')}
-                  />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-list/of-all-equipments"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoList isForAllEquip={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-list/all-list"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoList isAll={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              {/* remove this modal note it */}
+              <Route
+                path="/dev-modal"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <DevModal
+                        isOpen={true}
+                        onClose={() => { }}
+                        type="success"
+                        title="Success!"
+                        message="You have successfully login into the system"
+                        buttonText="Go to main screen"
+                        onButtonClick={() => navigate('/dashboard')}
+                      />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-list/:regNo"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoList isEquip={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-list/all-list"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoList isAll={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/lpo-list/of-stocks"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <LpoList isStock={true} />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/lpo-list/:regNo"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoList isEquip={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/toolkits"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Toolkits />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/mechanics"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Mechanics />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/mechanics-forms"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <MechanicForms />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/operators"
-            element={
-              <ProtectedRoute>
-                <CEOGuard>
-                  <Operators />
-                </CEOGuard>
-              </ProtectedRoute>
-            }
-          />
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+              <Route
+                path="/lpo-list/of-stocks"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <LpoList isStock={true} />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/toolkits"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Toolkits />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mechanics"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Mechanics />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mechanics-forms"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <MechanicForms />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operators"
+                element={
+                  <ProtectedRoute>
+                    <CEOGuard>
+                      <Operators />
+                    </CEOGuard>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Fallback Route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </HeaderTitleProvider>
+        </SearchProvider>
       </ServiceReportContext.Provider>
     </AuthContext.Provider>
   );

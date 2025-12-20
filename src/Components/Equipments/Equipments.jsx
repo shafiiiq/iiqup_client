@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import DevModal from '../../common/DevModal';
+import { useSearch } from '../../context/SearchContext';
+import Button from '../../common/Button/Button';
 
 function Equipments() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchTerm, setSearchTerm } = useSearch();
   const [equipments, setEquipments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -24,6 +26,7 @@ function Equipments() {
   const [editFormFields, setEditFormFields] = useState([]);
   const [addFormFields, setAddFormFields] = useState([]);
   const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(true);
+  const [isLoadingEquipments, setIsLoadingEquipments] = useState(true);
   const [outsideEquipmentForm, setOutsideEquipmentForm] = useState({
     machine: '',
     regNo: '',
@@ -31,11 +34,6 @@ function Equipments() {
     operator: '',
     company: 'OUTSIDE',
     outside: true
-  });
-  const [sortConfig, setSortConfig] = useState({
-    key: 'year',
-    direction: 'desc' // desc for latest first, asc for oldest first
-
   });
   const [operatorSearchTerm, setOperatorSearchTerm] = useState('');
   const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
@@ -48,10 +46,10 @@ function Equipments() {
   const [isLoadingFuels, setIsLoadingFuels] = useState(false);
   const [showFuelProgressModal, setShowFuelProgressModal] = useState(false);
   const [fuelProgress, setFuelProgress] = useState(0);
-
+  const [showNoResultsModal, setShowNoResultsModal] = useState(false);
+  const [equipmentProgress, setEquipmentProgress] = useState(0);
   const [completedWorks, setCompletedWorks] = useState([]);
   const [showCompletedWorkAlert, setShowCompletedWorkAlert] = useState(false);
-
   const [showAddModal, setShowAddModal] = useState(false);
   const [addEquipmentForm, setAddEquipmentForm] = useState({
     machine: '',
@@ -67,6 +65,19 @@ function Equipments() {
     outside: false,
     status: 'Active',
     site: ''
+  });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editEquipment, setEditEquipment] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    machine: '',
+    regNo: '',
+    brand: '',
+    year: '',
+    company: '',
+    operator: '',
+    brand: '',
+    site: '',
+    status: ''
   });
 
   useEffect(() => {
@@ -147,7 +158,9 @@ function Equipments() {
 
   // Cache helper functions
   const CACHE_KEY = 'equipment_images_cache';
+  const EQUIPMENT_DATA_CACHE_KEY = 'equipment_data_cache';
   const CACHE_EXPIRY_HOURS = 6; // Cache expires after 6 hours
+
 
   const getCachedImageUrl = (filePath) => {
     try {
@@ -278,11 +291,6 @@ function Equipments() {
     });
   };
 
-  const handleYearSort = () => {
-    const newDirection = sortConfig.key === 'year' && sortConfig.direction === 'desc' ? 'asc' : 'desc';
-    setSortConfig({ key: 'year', direction: newDirection });
-  };
-
   const navigate = useNavigate();
   const tableRef = useRef(null);
 
@@ -320,27 +328,65 @@ function Equipments() {
   }, []);
 
   const fetchEquipments = async () => {
+    setIsLoadingEquipments(true);
+
+    const progressInterval = setInterval(() => {
+      setEquipmentProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 150);
+
     try {
       const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
       const data = await response.json();
 
-      // Fetch images for each equipment from stocks API
+      // Check if we have cached equipment data
+      const cachedEquipmentData = localStorage.getItem(EQUIPMENT_DATA_CACHE_KEY);
+      let equipmentImagesCache = {};
+
+      if (cachedEquipmentData) {
+        try {
+          const parsed = JSON.parse(cachedEquipmentData);
+          const now = new Date().getTime();
+          // Check if cache is still valid
+          if (parsed.timestamp && (now - parsed.timestamp < CACHE_EXPIRY_HOURS * 60 * 60 * 1000)) {
+            equipmentImagesCache = parsed.data;
+            console.log('Using cached equipment images data');
+          }
+        } catch (e) {
+          console.error('Error parsing cached equipment data:', e);
+        }
+      }
+
       const equipmentsWithImages = await Promise.all(
         data.data.map(async (equipment) => {
+          // Check if this equipment's images are in cache
+          if (equipmentImagesCache[equipment.regNo]) {
+            console.log(`Using cached images for ${equipment.regNo}`);
+            return {
+              ...equipment,
+              equipmentImage: equipmentImagesCache[equipment.regNo]
+            };
+          }
+
+          // If not in cache, fetch from API
           try {
             const imageResponse = await apiRequest(`${END_POINT}/stocks/equipment/${equipment.regNo}`, 'GET');
             const imageData = await imageResponse.json();
 
-            // Get S3 URLs for each image with caching
             const imagesWithUrls = await Promise.all(
               (imageData.data?.images || []).map(async (img) => {
-                const s3Url = await getMediaUrlWithCache(img.path); // Using cached version
+                const s3Url = await getMediaUrlWithCache(img.path);
                 return {
                   ...img,
-                  s3Url: s3Url || `${END_POINT}/${img.path}` // Fallback to direct URL
+                  s3Url: s3Url || `${END_POINT}/${img.path}`
                 };
               })
             );
+
+            // Cache this equipment's images
+            equipmentImagesCache[equipment.regNo] = imagesWithUrls;
 
             return {
               ...equipment,
@@ -356,15 +402,32 @@ function Equipments() {
         })
       );
 
+      // Save all equipment images to cache
+      localStorage.setItem(EQUIPMENT_DATA_CACHE_KEY, JSON.stringify({
+        data: equipmentImagesCache,
+        timestamp: new Date().getTime()
+      }));
+
+      setEquipmentProgress(100);
       setEquipments(equipmentsWithImages);
       setFilteredData(equipmentsWithImages);
+
+      setTimeout(() => {
+        setIsLoadingEquipments(false);
+        setEquipmentProgress(0);
+      }, 500);
     } catch (error) {
       console.error('Error fetching equipment records:', error);
+      setIsLoadingEquipments(false);
+      setEquipmentProgress(0);
+    } finally {
+      clearInterval(progressInterval);
     }
   };
 
   const handleClearCache = () => {
     localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(EQUIPMENT_DATA_CACHE_KEY);
     setDeleteStatus({
       message: 'Image cache cleared successfully. Reload the page to fetch fresh images.',
       isError: false
@@ -380,9 +443,6 @@ function Equipments() {
 
       // Filter complaints where workflowStatus is "completed"
       const completedWorksList = data.filter(item => item.workflowStatus === "completed");
-
-      console.log(data);
-
 
       setCompletedWorks(completedWorksList);
       setShowCompletedWorkAlert(completedWorksList.length > 0);
@@ -401,9 +461,15 @@ function Equipments() {
         );
       });
       setFilteredData(results);
-    }
-  }, [searchTerm, equipments, sortConfig]);
 
+      // Show modal if search term exists but no results found
+      if (searchTerm && results.length === 0) {
+        setShowNoResultsModal(true);
+      } else {
+        setShowNoResultsModal(false);
+      }
+    }
+  }, [searchTerm, equipments]);
 
   const handleNavigateToComplaint = (workItem) => {
     navigate(`/complaints/${workItem._id}/${workItem.regNo}`);
@@ -419,25 +485,6 @@ function Equipments() {
 
   const handleClearSearch = () => {
     setSearchTerm('');
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-
-    if (!searchTerm.trim()) return;
-
-    const foundEquipment = equipments.find(item =>
-      item.regNo.toLowerCase() === searchTerm.toLowerCase()
-    );
-
-    if (!foundEquipment && searchTerm.trim()) {
-      setNotFoundSearchTerm(searchTerm);
-      setOutsideEquipmentForm({
-        ...outsideEquipmentForm,
-        regNo: searchTerm
-      });
-      setShowOutsideEquipmentModal(true);
-    }
   };
 
   const formatDate = (dateString) => {
@@ -542,20 +589,6 @@ function Equipments() {
     };
   };
 
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editEquipment, setEditEquipment] = useState(null);
-  const [editFormData, setEditFormData] = useState({
-    machine: '',
-    regNo: '',
-    brand: '',
-    year: '',
-    company: '',
-    operator: '',
-    brand: '',
-    site: '',
-    status: ''
-  });
-
   const handleEdit = (e, equipment) => {
     e.stopPropagation();
     setEditEquipment(equipment);
@@ -635,7 +668,7 @@ function Equipments() {
   };
 
   const handleUpdateEquipment = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     if (!editEquipment) return;
 
@@ -774,7 +807,7 @@ function Equipments() {
   };
 
   const handleAddOutsideEquipment = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     const newOutsideEquipment = {
       ...outsideEquipmentForm,
@@ -841,7 +874,7 @@ function Equipments() {
   };
 
   const handleAddEquipmentSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     const newEquipment = {
       ...addEquipmentForm,
@@ -1222,39 +1255,75 @@ function Equipments() {
           </div>
         </div>
       )}
-      <div className="equipment-header">
+      {/* <div className="equipment-header">
         <h1 className='equip-title'>Equipment Inventory</h1>
         <div className="date-time">{currentDateTime}</div>
-      </div>
+      </div> */}
+
+      {/* <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search equipment..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="search-input"
+        />
+        {searchTerm && (
+          <button onClick={handleClearSearch} className="clear-button">
+            ×
+          </button>
+        )}
+      </div> */}
 
       <div className="controls-container">
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search equipment..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="search-input"
+        <div className="buttons-container">
+          <Button
+            text="Add Equipment"
+            onClick={() => handleAdd()}
+            colorScheme="amber-600"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
           />
-          {searchTerm && (
-            <button onClick={handleClearSearch} className="clear-button">
-              ×
-            </button>
-          )}
-          <button onClick={handleSearchSubmit} className="search-button">
-            Search
-          </button>
+          <Button
+            text="Print"
+            onClick={() => handlePrint()}
+            colorScheme="pink-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
         <div className="buttons-container">
-          <button onClick={handleAdd} className="action-btn add">
-            Add Equipment
-          </button>
-          <button onClick={handlePrint} className="action-btn print">
-            Print Table
-          </button>
-          <button onClick={handleClearCache} className="action-btn" style={{ fontSize: '14px' }}>
-            Clear Cache
-          </button>
+          <Button
+            text="Clear Cache"
+            onClick={() => handleClearCache()}
+            colorScheme="emerald-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 
@@ -1342,74 +1411,73 @@ function Equipments() {
                   </div>
                   <div className="card-footer">
                     <div className="card-actions">
-                      <button
-                        className="icon-btn edit"
+                      <Button
+                        iconCenter="edit_square"
                         onClick={(e) => handleEdit(e, item)}
-                        title="Edit"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                      </button>
-                      <button
-                        className="icon-btn delete"
+                        colorScheme="blue-800"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="45px"
+                        height="45px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
+                      <Button
+                        iconCenter="backspace"
                         onClick={(e) => handleDeleteClick(e, item)}
-                        title="Delete"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </button>
+                        colorScheme="red-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="45px"
+                        height="45px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
                     </div>
-                    <button
-                      className="view-details-btn"
+                    <Button
+                      text="Service History"
                       onClick={() => handleRowClick(item.regNo)}
-                      style={{ width: '100%' }}
-                    >
-                      Service History
-                    </button>
-                    <button
-                      className="view-details-btn"
+                      colorScheme="lime-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="View More"
                       onClick={() => handleViewDetails(item)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
-                      More Details
-                    </button>
+                      colorScheme="warning-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </div>
                 </div>
               </div>
             );
           })
-        ) : (
-          <div className="no-results">
-            {equipments.length > 0 ? (
-              searchTerm ? (
-                <>
-                  No matching records found for <span className='not-found-outside-equip'>{searchTerm}</span>.
-                  <button
-                    className="action-btn outside"
-                    onClick={() => {
-                      setOutsideEquipmentForm({
-                        ...outsideEquipmentForm,
-                        regNo: searchTerm
-                      });
-                      setShowOutsideEquipmentModal(true);
-                    }}
-                  >
-                    Add as Outside Equipment
-                  </button>
-                </>
-              ) : 'No matching records found'
-            ) : 'Loading equipment data...'}
-          </div>
-        )}
+        ) : null}
       </div>
 
       {/* Sidebar for View All content */}
@@ -1431,7 +1499,7 @@ function Equipments() {
         </div>
       )}
 
-      <DevModal
+      {/* <DevModal
         isOpen={showUnauthorizedModal}
         onClose={() => setShowUnauthorizedModal(false)}
         type="unauthorized"
@@ -1444,9 +1512,9 @@ function Equipments() {
           // Handle request access
           console.log('Request access clicked');
         }}
-        secondaryButtonText="Go Back"
+        secondaryButtonText="Back"
         onSecondaryClick={() => setShowUnauthorizedModal(false)}
-      />
+      /> */}
 
       {/* Add Equipment Modal */}
       <DevModal
@@ -1638,6 +1706,41 @@ function Equipments() {
         progressText="Processing..."
       />
 
+      {/* No Results Modal */}
+      <DevModal
+        isOpen={showNoResultsModal}
+        onClose={() => {
+          setShowNoResultsModal(false);
+          setSearchTerm(''); // Clear search when closing
+        }}
+        type="warning"
+        title="No Equipment Found"
+        message={`No matching records found for "${searchTerm}". Would you like to add this as an outside equipment?`}
+        buttonText="Add as Outside Equipment"
+        onButtonClick={() => {
+          setOutsideEquipmentForm({
+            ...outsideEquipmentForm,
+            regNo: searchTerm
+          });
+          setShowNoResultsModal(false);
+          setShowOutsideEquipmentModal(true);
+        }}
+        secondaryButtonText="Clear"
+        onSecondaryClick={() => {
+          setShowNoResultsModal(false);
+          setSearchTerm('');
+        }}
+      />
+      {/* Equipment Loading Progress Modal */}
+      {/* Equipment Loading Progress Modal */}
+      <DevModal
+        isOpen={isLoadingEquipments}
+        type="progress"
+        title="Loading Equipment Data"
+        message="Fetching equipment information, please wait..."
+        progress={equipmentProgress}
+        progressText="Loading..."
+      />
     </div>
   );
 }

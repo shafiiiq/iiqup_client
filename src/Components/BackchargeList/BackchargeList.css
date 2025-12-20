@@ -1,53 +1,3 @@
-/* Backcharge List Styles with Dark/Light Mode Support */
-:root {
-  --bcl-primary: #2563eb;
-  --bcl-secondary: #10b981;
-  --bcl-danger: #dc2626;
-  --bcl-warning: #f59e0b;
-  --bcl-bg: #f8fafc;
-  --bcl-card-bg: #ffffff;
-  --bcl-text: #1f2937;
-  --bcl-border: #e5e7eb;
-  --bcl-hover: #f1f5f9;
-  --bcl-disabled-bg: #f3f4f6;
-  --bcl-disabled-text: #6b7280;
-  --bcl-error: #b91c1c;
-  --bcl-success: #059669;
-  --bcl-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --bcl-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --bcl-table-header-bg: #f9fafb;
-  --bcl-table-header-text: #374151;
-  --bcl-modal-bg: #ffffff;
-  --bcl-modal-header-bg: #f9fafb;
-  --bcl-scrollbar-track: #f1f1f1;
-  --bcl-scrollbar-thumb: #c1c1c1;
-}
-
-/* Dark Theme */
-body.dark-theme {
-  --bcl-primary: #3b82f6;
-  --bcl-secondary: #10b981;
-  --bcl-danger: #ef4444;
-  --bcl-warning: #f59e0b;
-  --bcl-bg: #0f172a;
-  --bcl-card-bg: #1e293b;
-  --bcl-text: #f1f5f9;
-  --bcl-border: #334155;
-  --bcl-hover: #334155;
-  --bcl-disabled-bg: #374151;
-  --bcl-disabled-text: #9ca3af;
-  --bcl-error: #f87171;
-  --bcl-success: #34d399;
-  --bcl-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --bcl-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --bcl-table-header-bg: #374151;
-  --bcl-table-header-text: #d1d5db;
-  --bcl-modal-bg: #1e293b;
-  --bcl-modal-header-bg: #374151;
-  --bcl-scrollbar-track: #374151;
-  --bcl-scrollbar-thumb: #64748b;
-}
-
 /* Main Container */
 .bcl-main-container {
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -377,9 +327,6 @@ body.dark-theme {
   transition: background-color 0.2s ease;
 }
 
-.bcl-data-table tbody tr:hover {
-  background-color: var(--bcl-hover);
-}
 
 .bcl-table-row {
   cursor: pointer;

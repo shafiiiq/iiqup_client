@@ -1,25 +1,3 @@
-/* StocksNavigation.css */
-:root {
-  --inv-mgmt-primary-color: #3498db;
-  --inv-mgmt-equipment-color: #2980b9;
-  --inv-mgmt-spareparts-color: #d3a611;
-  --inv-mgmt-critical-color: #e74c3c;
-  --inv-mgmt-warning-color: #f39c12;
-  --inv-mgmt-success-color: #2ecc71;
-  --inv-mgmt-info-color: #3498db;
-  --inv-mgmt-bg-color: #f5f7fa;
-  --inv-mgmt-card-bg: #ffffff;
-  --inv-mgmt-text-color: #333333;
-  --inv-mgmt-border-color: #e1e4e8;
-  --inv-mgmt-hover-bg: #f0f5ff;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 .inv-mgmt-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--inv-mgmt-bg-color);

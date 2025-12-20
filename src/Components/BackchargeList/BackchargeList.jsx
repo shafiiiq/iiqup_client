@@ -3,9 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './BackchargeList.css';
 import { apiRequest } from '../../utils/0auth';
+import { useSearch } from '../../context/SearchContext';
 
 function BackchargeList() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchTerm, setSearchTerm } = useSearch();
   const [backcharges, setBackcharges] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -52,12 +53,12 @@ function BackchargeList() {
   const fetchBackcharges = async () => {
     try {
       const response = await apiRequest(`${END_POINT}/backcharge/get-backcharge-reports`, 'GET');
-      
+
       if (response.ok) {
-        const data = await response.json()        
+        const data = await response.json()
         setBackcharges(data.data);
         setFilteredData(data.data);
-        
+
         // Extract unique suppliers for filter dropdown
         const suppliers = [...new Set(data.data.map(item => item.supplierName))].sort();
         setUniqueSuppliers(suppliers);
@@ -88,7 +89,7 @@ function BackchargeList() {
             item.scopeOfWork?.combinedText || '',
             item.workshopComments?.combinedText || ''
           ];
-          
+
           return searchableFields.some(field =>
             String(field).toLowerCase().includes(searchTerm.toLowerCase())
           );

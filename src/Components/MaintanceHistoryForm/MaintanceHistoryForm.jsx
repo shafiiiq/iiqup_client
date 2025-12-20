@@ -3,10 +3,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../MaintanceHistoryForm/MaintanceHistoryForm.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const MaintanceHistoryForm = () => {
     const navigate = useNavigate();
     const { regNo } = useParams();
+    const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+
+    const [equipments, setEquipments] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [message, setMessage] = useState({ text: '', type: '' });
+    const [currentDateTime, setCurrentDateTime] = useState('');
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         equipment: '',
@@ -15,10 +23,24 @@ const MaintanceHistoryForm = () => {
         mechanics: ''
     });
 
-    const [equipments, setEquipments] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [message, setMessage] = useState({ text: '', type: '' });
-    const [currentDateTime, setCurrentDateTime] = useState('');
+    useEffect(() => {
+        if (regNo) {
+            const title = 'Add Major Service Record'
+            const subtitle = `${regNo}`
+            setHeaderTitle(title);
+            setHeaderSubtitle(subtitle);
+        } else {
+            setHeaderTitle(null);
+            setHeaderSubtitle(null);
+        }
+
+        // Cleanup - reset when component unmounts
+        return () => {
+            setHeaderTitle(null);
+            setHeaderSubtitle(null);
+        };
+    }, [setHeaderTitle, regNo]);
+
 
     // Get current date in DD-MM-YY format and time in AM/PM format
     useEffect(() => {
@@ -125,11 +147,6 @@ const MaintanceHistoryForm = () => {
 
     return (
         <div className="maintenance-history-container">
-            <div className="maintenance-header">
-                <h1 className="maintenance-title">Equipment Maintenance Form</h1>
-                <div className="date-time">{currentDateTime}</div>
-            </div>
-
             {message.text && (
                 <div className={`message ${message.type}`}>
                     {message.text}
@@ -137,7 +154,7 @@ const MaintanceHistoryForm = () => {
             )}
 
             <div className="form-container">
-                <form onSubmit={handleSubmit} className="maintenance-history-form">
+                <form className="maintenance-history-form">
                     <div className="form-group">
                         <label htmlFor="date">Date</label>
                         <input
@@ -203,20 +220,36 @@ const MaintanceHistoryForm = () => {
                     </div>
 
                     <div className="form-actions">
-                        <button
-                            type="button"
-                            onClick={handleReset}
-                            className="action-btn reset"
-                        >
-                            Reset
-                        </button>
-                        <button
+                        <Button
+                            text="Reset"
+                            onClick={() => handleReset}
+                            colorScheme="amber-800"
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            rounded="md"
+                            width="160px"
+                            height="38px"
                             type="submit"
-                            className="action-btn submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Submitting...' : 'Submit'}
-                        </button>
+                            textColor="white-200"
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                        />
+                        <Button
+                            text='Submit'
+                            onClick={handleSubmit}
+                            colorScheme='lime-600'
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            rounded="md"
+                            width="160px"
+                            height="38px"
+                            type='submit'
+                            textColor="white-200"
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                        />
                     </div>
                 </form>
             </div>

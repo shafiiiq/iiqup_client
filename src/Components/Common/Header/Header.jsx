@@ -2,19 +2,87 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logoImage from '../../../assets/images/al-ansari.png';
 import { LoginLogic } from '../../../utils/authUtils';
+import { useSearch } from '../../../context/SearchContext';
+import { useHeaderTitle } from '../../../context/HeaderTitleContext';
 import '../Header/Header.css';
 
 const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState('/');
-  const [indicatorStyle, setIndicatorStyle] = useState({});
+  const { searchTerm, setSearchTerm, clearSearch } = useSearch();
+  const { headerTitle, headerSubtitle } = useHeaderTitle();
+  const searchInputRef = useRef(null);
   const navRef = useRef(null);
   const activeItemRef = useRef(null);
   const indicatorRef = useRef(null);
+
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeLink, setActiveLink] = useState('/');
+  const [showNav, setShowNav] = useState(false);
+  const [indicatorStyle, setIndicatorStyle] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Navigation items with icons
+  const navItems = [
+    {
+      path: '/',
+      label: 'Home',
+      icon: <span class="material-symbols-rounded">home</span>
+    },
+    {
+      path: '/equipments',
+      label: 'Equipments',
+      icon: <span class="material-symbols-rounded">auto_towing</span>
+    },
+    {
+      path: '/stock-manage',
+      label: 'Stock',
+      icon: <span class="material-symbols-rounded">shopping_cart</span>
+    },
+    {
+      path: '/toolkits',
+      label: 'Toolkits',
+      icon: <span class="material-symbols-rounded">handyman</span>
+    },
+    {
+      path: '/mechanics',
+      label: 'Mechanics',
+      icon: <span class="material-symbols-rounded">smart_toy</span>
+    },
+    {
+      path: '/operators',
+      label: 'Operators',
+      icon: <span class="material-symbols-rounded">contacts_product</span>
+    },
+    {
+      path: '/lpo-list',
+      label: 'LPO',
+      icon: <span class="material-symbols-rounded">edit_document</span>
+    },
+    {
+      path: '/backcharge-list',
+      label: 'Backcharges',
+      icon: <span class="material-symbols-rounded">table_convert</span>
+    },
+    {
+      path: '/documents',
+      label: 'Documents',
+      icon: <span class="material-symbols-rounded">files</span>
+    },
+    {
+      path: '/notification',
+      label: 'Notifications',
+      icon: <span class="material-symbols-rounded">notification_audio</span>
+    },
+    {
+      path: '/dashboard',
+      label: 'Dashboard',
+      icon: <span class="material-symbols-rounded">browse</span>
+    }
+  ];
 
   // In your Header component
   useEffect(() => {
@@ -62,6 +130,21 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   useEffect(() => {
     updateIndicatorPosition();
   }, [activeLink]);
+
+  const handleSearchToggle = () => {
+    setSearchExpanded(!searchExpanded);
+    if (!searchExpanded) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 300);
+    }
+  };
+
+  const handleSearchBlur = () => {
+    if (!searchTerm) {
+      setSearchExpanded(false);
+    }
+  };
 
   const updateIndicatorPosition = () => {
     if (!navRef.current) return;
@@ -142,18 +225,20 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
         {/* user control section  */}
         {user_logged_in && (
           <div className="user-section">
-            <label className="theme-switch">
-              <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
-              <span className="slider round">
-                <span className="material-icons sun-icon">wb_sunny</span>
-                <span className="material-icons moon-icon">nightlight_round</span>
-              </span>
-            </label>
-            <div className="profile-icon">
-              {getProfileInitial()}
+            <div className="user-details">
+              <div className="profile-icon">
+                {getProfileInitial()}
+              </div>
+              <span className="user-name">{currentUser?.name}</span>
             </div>
             <div className="user-actions">
-              <span className="user-name">{currentUser?.name}</span>
+              <label className="theme-switch">
+                <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
+                <span className="slider round">
+                  <span className="material-icons sun-icon">wb_sunny</span>
+                  <span className="material-icons moon-icon">nightlight_round</span>
+                </span>
+              </label>
               <button
                 onClick={handleLogout}
                 className="logout-btn"
@@ -169,72 +254,83 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
           </div>
         )}
 
-        <div className={`hamburger-menu ${menuOpen ? 'active' : ''}`} onClick={toggleMenu}>
-          <div className="hamburger-inner">
-            <span className="line line-1"></span>
-            <span className="line line-2"></span>
-            <span className="line line-3"></span>
-          </div>
-        </div>
+        <nav
+          className={`header-nav ${searchExpanded ? 'shrink' : ''} ${headerTitle ? 'has-title' : ''}`}
+          ref={navRef}
+          onMouseEnter={() => setShowNav(true)}
+          onMouseLeave={() => setShowNav(false)}
+        >
+          {/* Title/Breadcrumb Display */}
+          {headerTitle && !showNav && (
+            <div className="header-breadcrumb">
+              <h1 className="breadcrumb-title">{headerTitle}</h1>
+              {headerSubtitle && (
+                <>
+                  <span className="breadcrumb-separator">
+                    <span class="material-symbols-rounded">
+                      arrow_forward_ios
+                    </span>
+                  </span>
+                  <h2 className="breadcrumb-subtitle">{headerSubtitle}</h2>
+                </>
+              )}
+            </div>
+          )}
 
-        <nav className={`header-nav ${menuOpen ? 'open' : ''}`} ref={navRef}>
-          <div className="mobile-nav-background">
-            <div className="animated-shape shape1"></div>
-            <div className="animated-shape shape2"></div>
-            <div className="animated-shape shape3"></div>
-            <div className="animated-shape shape4"></div>
-          </div>
-
-          <div className="nav-indicator" ref={indicatorRef} style={indicatorStyle}></div>
-
-          <ul>
-            <li className={activeLink === '/' ? 'active' : ''}>
-              <Link to="/">Home</Link>
-            </li>
-            <li className={activeLink === '/equipments' ? 'active' : ''}>
-              <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
-            </li>
-            <li className={activeLink === '/stock-manage' ? 'active' : ''}>
-              <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
-            </li>
-            <li className={activeLink === '/toolkits' ? 'active' : ''}>
-              <a href="/toolkits" onClick={() => handleNavClick('/toolkits')}>Tool kits</a>
-            </li>
-            <li className={activeLink === '/mechanics' ? 'active' : ''}>
-              <a href="/mechanics" onClick={() => handleNavClick('/mechanics')}>Mechanics</a>
-            </li>
-            <li className={activeLink === '/operators' ? 'active' : ''}>
-              <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
-            </li>
-            <li className={activeLink === '/lpo-list' ? 'active' : ''}>
-              <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
-            </li>
-            <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
-              <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>
-            </li>
-            <li className={activeLink === '/documents' ? 'active' : ''}>
-              <Link to="/documents" onClick={() => handleNavClick('/documents')}>Documents</Link>
-            </li>
-            <li className={activeLink === '/notification' ? 'active' : ''}>
-              <Link to="/notification" onClick={() => handleNavClick('/notification')}>Notifications</Link>
-            </li>
-            <li className={activeLink === '/dashboard' ? 'active' : ''}>
-              <Link to="/dashboard" onClick={() => handleNavClick('/dashboard')}>Dashboard</Link>
-            </li>
+          {/* Normal Navigation */}
+          <ul className={headerTitle && !showNav ? 'nav-hidden' : ''}>
+            {navItems.map((item, index) => (
+              <li key={item.path} className={activeLink === item.path ? 'active' : ''}>
+                <Link
+                  to={item.path}
+                  onClick={() => handleNavClick(item.path)}
+                  title={item.label}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-text">{item.label}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
+
+        <div className={`global-search ${searchExpanded ? 'expanded' : ''}`}>
+          <button
+            className="search-icon-btn"
+            onClick={handleSearchToggle}
+            aria-label="Search"
+          >
+            <span className="material-symbols-rounded">
+              search
+            </span>
+          </button>
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="search-input"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onBlur={handleSearchBlur}
+          />
+          {searchTerm && (  /* CHANGED from searchQuery */
+            <button
+              className="search-clear-btn"
+              onClick={() => {
+                clearSearch();  /* CHANGED */
+                setSearchExpanded(false);
+              }}
+            >
+              ×
+            </button>
+          )}
+        </div>
 
         {/* logo section  */}
         <div className="logo-section">
           <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
         </div>
 
-      </div>
-
-      <div className="header-background">
-        <div className="animated-shape shape1"></div>
-        <div className="animated-shape shape2"></div>
-        <div className="animated-shape shape3"></div>
       </div>
     </header>
   );

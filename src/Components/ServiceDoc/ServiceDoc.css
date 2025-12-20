@@ -1,15 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-
-* {
-  font-family: 'Poppins', sans-serif;
-}
-
-body {
-  background-color: #f5f5f5 !important;
-  margin: 0;
-  padding: 0;
-}
-
 .container {
   display: flex;
   justify-content: center;
@@ -63,6 +51,7 @@ body {
   /* min-height: 326mm; */
   margin: 0 auto;
   background-color: white;
+  color: var(--text-inverse);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   margin-bottom: 30px;
@@ -125,7 +114,6 @@ body {
   max-width: 220mm;
   margin: 1rem auto;
   align-items: center;
-  background-color: #f1f1f1 !important;
 }
 
 .print-button-wrapper button {
@@ -157,9 +145,6 @@ body {
 .document-count {
   flex: 2;
   text-align: center;
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
 }
 
 /* Report action buttons */
@@ -278,8 +263,16 @@ body {
 }
 
 .no-data-container h2 {
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 24px;
+  font-size: 30px;
+}
+
+.no-result-found-service-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .add-report-button {
@@ -302,7 +295,6 @@ td.tick {
 }
 
 .doc-wrapper {
-  background: #f1f1f1 !important;
   margin-top: -1.2rem;
 }
 
@@ -790,7 +782,6 @@ td.tick {
 
 /* Document Count Enhancement */
 .document-count {
-  background: #f1f1f1;
   padding: 15px;
   border-radius: 8px;
   margin: 10px 0;
@@ -798,7 +789,7 @@ td.tick {
 
 .document-count span {
   font-weight: 500;
-  color: #495057;
+  color: var(--text-color);
 }
 
 /* Print Button Wrapper Enhancement */
@@ -807,7 +798,6 @@ td.tick {
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -924,8 +914,16 @@ td.tick {
 
 .back-bug {
   margin-top: -1.5rem;
-  background-color: #f1f1f1 !important;
   width: 100vw !important;
+}
+
+.status-document-left {
+  position: absolute;
+  top: 50%;
+  left: 5rem;
+  font-size: 30px;
+  font-weight: 100;
+  z-index: -1;
 }
 
 /* Hide print button during print */

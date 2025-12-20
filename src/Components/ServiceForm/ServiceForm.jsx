@@ -3,12 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import './ServiceForm.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
   const { normal } = useParams();
-  console.log("first normal" , normal);
-  
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+
   const { regNo, date, serviceHrs, nextServiceHrs, oil, oilFilter, fuelFilter, airFilter, acFilter, waterSeparator, id, location, runningHours, tyreForm, mechanics, workRemarks } = useParams();
   const [equipments, setEquipments] = useState([]);
   const [currentDateTime, setCurrentDateTime] = useState('');
@@ -16,6 +18,26 @@ const ServiceForm = ({ initialData = {} }) => {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isUpdateMode, setIsUpdateMode] = useState(false);
+
+
+  // Set header title when component mounts or data changes
+  useEffect(() => {
+    if (regNo) {
+      const title = isUpdateMode ? 'Update Service Report' : 'Service Report Form'
+      const subtitle = `${regNo}`
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle('Service History');
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [regNo, isUpdateMode]);
 
   // Check if we're in update mode
   useEffect(() => {
@@ -120,7 +142,7 @@ const ServiceForm = ({ initialData = {} }) => {
     regNo: regNo || '',
     nextServiceHrs: location || mechanics ? 0 : nextServiceHrs || '',
     machine: initialData.machine || '',
-    mechanics:mechanics ||  initialData.mechanics || '',
+    mechanics: mechanics || initialData.mechanics || '',
     location: location ? location : initialData.location || '',
     date: date || new Date().toISOString().split('T')[0],
     operatorName: initialData.operatorName || '',
@@ -149,7 +171,7 @@ const ServiceForm = ({ initialData = {} }) => {
     { id: 7, description: 'Check Brake', status: location ? '' : '✓' },
     { id: 8, description: 'Check Tyre Air Pressure', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
     { id: 9, description: 'Check Oil Leak', status: location ? '' : '✓' },
-    { id: 10, description: 'Check Battery Condition', status: location && !tyreForm ? '✓'  : location && tyreForm ? '' : '✓' },
+    { id: 10, description: 'Check Battery Condition', status: location && !tyreForm ? '✓' : location && tyreForm ? '' : '✓' },
     { id: 11, description: 'Check Wiper & Water', status: location ? '' : '✓' },
     { id: 12, description: 'Check All Lights', status: location ? '' : '✓' },
     { id: 13, description: 'Check All Horns', status: location ? '' : '✓' },
@@ -236,7 +258,7 @@ const ServiceForm = ({ initialData = {} }) => {
       checklistItems
     };
 
-    if(normal) {
+    if (normal) {
       console.log("yes here also normal");
       completeData.serviceType = 'normal'
     }
@@ -312,19 +334,6 @@ const ServiceForm = ({ initialData = {} }) => {
 
   return (
     <div className="service-form-container">
-      <div className="service-header">
-        <h1 className="service-title">
-          {isUpdateMode ? 'Update Service Report' : 'Service Report Form'}
-        </h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
-      {formData.regNo && formData.machine && (
-        <div className="equipment-info">
-          {formData.machine} - {formData.regNo}
-        </div>
-      )}
-
       {message.text && (
         <div className={`message ${message.type}`}>
           {message.text}
@@ -332,7 +341,7 @@ const ServiceForm = ({ initialData = {} }) => {
       )}
 
       <div className="form-container">
-        <form onSubmit={handleSubmit} className="service-form">
+        <form  className="service-form">
           <div className="form-section">
             <h3 className="section-title">Service Information</h3>
             <div className="form-grid">
@@ -592,22 +601,38 @@ const ServiceForm = ({ initialData = {} }) => {
           </div>
 
           <div className="form-actions">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="action-btn action-btn-svc reset"
-            >
-              Reset
-            </button>
-            <button
+            <Button
+              text="Reset"
+              onClick={() => handleReset}
+              colorScheme="amber-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
               type="submit"
-              className="action-btn action-btn-svc submit"
-              disabled={isLoading}
-            >
-              {isLoading
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            <Button
+              text={isLoading
                 ? (isUpdateMode ? 'Updating...' : 'Submitting...')
                 : (isUpdateMode ? 'Update' : 'Submit')}
-            </button>
+              onClick={handleSubmit}
+              colorScheme={!isLoading ? 'lime-700' : 'lime-800'}
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type={!isLoading ? 'disabled' : 'submit'}
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           </div>
         </form>
       </div>

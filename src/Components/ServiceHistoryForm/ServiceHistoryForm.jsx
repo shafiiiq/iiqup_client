@@ -3,17 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './ServiceHistoryForm.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 function ServiceHistoryForm() {
   const { regNo } = useParams();
   const { normal } = useParams();
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const navigate = useNavigate();
+
   const [equipmentData, setEquipmentData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [currentDateTime, setCurrentDateTime] = useState('');
-
-  // Form data state
   const [formData, setFormData] = useState({
     regNo: regNo || '',
     date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
@@ -27,6 +29,24 @@ function ServiceHistoryForm() {
     nextServiceHrs: '',
     fullService: false
   });
+
+  useEffect(() => {
+    if (regNo) {
+      const title =  normal ? 'Add Nomal Service Record' : 'Add Oil Service Record'
+      const subtitle = `${regNo}`
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [setHeaderTitle, regNo, normal]);
 
   // Get current date in DD-MM-YY format and time in AM/PM format
   useEffect(() => {
@@ -230,17 +250,6 @@ function ServiceHistoryForm() {
 
   return (
     <div className="service-history-container">
-      <div className="service-header">
-        <h1 className="service-title">Add Service Record</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
-      {equipmentData && (
-        <div className="equipment-info">
-          {equipmentData.machine} - {regNo}
-        </div>
-      )}
-
       {message.text && (
         <div className={`message ${message.type}`}>
           {message.text}
@@ -248,7 +257,7 @@ function ServiceHistoryForm() {
       )}
 
       <div className="form-container">
-        <form onSubmit={handleSubmit} className="service-history-form">
+        <form className="service-history-form">
           <div className="form-group">
             <label htmlFor="date">Service Date</label>
             <input
@@ -378,20 +387,36 @@ function ServiceHistoryForm() {
           </div>
 
           <div className="form-actions">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="action-btn action-btn-svc reset"
-            >
-              Reset
-            </button>
-            <button
+            <Button
+              text="Reset"
+              onClick={() => handleReset}
+              colorScheme="amber-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
               type="submit"
-              className="action-btn action-btn-svc submit"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Submitting...' : 'Submit'}
-            </button>
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            <Button
+              text={isLoading ? 'Submitting...' : 'Submit'}
+              onClick={handleSubmit}
+              colorScheme={!isLoading ? 'lime-600' : 'lime-800'}
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type={!isLoading ? 'disabled' : 'submit'}
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           </div>
         </form>
       </div>

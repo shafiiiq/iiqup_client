@@ -8,6 +8,7 @@ import { END_POINT } from '../../constants';
 import '../ServiceDoc/ServiceDoc.css'
 import { apiRequest } from '../../utils/0auth';
 import DevModal from '../../common/DevModal';
+import Button from '../../common/Button/Button';
 
 const ServiceDoc = () => {
   const { regNo, date, serviceType, startDate, endDate, monthsCount } = useParams();
@@ -402,9 +403,21 @@ const ServiceDoc = () => {
     return (
       <div className="loading-container">
         <div className="no-print">
-          <button onClick={handleBackToHistory} className="back-button">
-            ← Back to Service History
-          </button>
+          <Button
+            text="Back to Service History"
+            onClick={handleBackToHistory}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
         <div>Loading report data...</div>
       </div>
@@ -417,14 +430,40 @@ const ServiceDoc = () => {
       return (
         <div className="no-data-container">
           <div className="no-print">
-            <button onClick={handleBackToHistory} className="back-button">
-              ← Back to Service History
-            </button>
+            <h2>No report data available for the selected criteria</h2>
+            <div className="no-result-found-service-nav">
+              <Button
+                text="Back to Service History"
+                onClick={handleBackToHistory}
+                colorScheme="violet-800"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+              <Button
+                text=" Add Report Data"
+                onClick={() => handleAddReport}
+                colorScheme="violet-800"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+            </div>
           </div>
-          <h2>No report data available for the selected criteria</h2>
-          <button className="add-report-button" onClick={handleAddReport}>
-            Add Report Data
-          </button>
         </div>
       );
     }
@@ -432,26 +471,8 @@ const ServiceDoc = () => {
     return (
       <>
         <div className="back-bug">
-          <div className="print-button-wrapper no-print wraped-print">
-            <button onClick={handleBackToHistory} className="back-button">
-              ← Back to Service History
-            </button>
-            <button
-              onClick={handlePrint}
-              className={!isDocumentSigned ? 'disabled-print-button' : ''}
-              style={{
-                cursor: !isDocumentSigned ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {!isDocumentSigned ? '🔒 Sign to Print All' : 'Print All Reports'}
-            </button>
-            <button onClick={signDocument}>Sign the Document</button>
-          </div>
-        </div>
-
-        <div className="back-bug">
           <div className="document-count">
-            <span>Showing {totalCount} document(s) for Equipment: {regNo}</span>
+            <span className='status-document-left'>Showing {totalCount} Document(S) for Equipment: {regNo}</span>
             {isDocumentSigned && (
               <div className="signature-status">
                 <span className="signed-indicator">✅ Document Signed</span>
@@ -461,23 +482,90 @@ const ServiceDoc = () => {
               </div>
             )}
           </div>
+          <div className="print-button-wrapper no-print wraped-print">
+            <Button
+              text="Back to Service History"
+              onClick={handleBackToHistory}
+              colorScheme="violet-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            <Button
+              text={!isDocumentSigned ? 'Sign to Print All' : 'Print All Reports'}
+              onClick={handlePrint}
+              colorScheme={!isDocumentSigned ? 'gray-900' : 'violet-800'}
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type={!isDocumentSigned ? 'disabled' : 'submit'}
+              textColor="white-200"
+              cursor={!isDocumentSigned ? 'not-allowed' : 'allowed'}
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            {/* note here back / back here  */}
+            <Button
+              text="Sign the Document"
+              onClick={signDocument}
+              colorScheme={!isDocumentSigned ? 'amber-600' : 'emerald-800'}
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+          </div>
         </div>
 
         {multipleReports.map((report, index) => (
           <div key={index} className="doc-wrapper" style={{ pageBreakAfter: index < multipleReports.length - 1 ? 'always' : 'auto' }}>
             <div className="report-actions no-print">
-              <button
-                className="edit-button"
+              <Button
+                text="Edit"
                 onClick={() => handleEditReport(report._id)}
-              >
-                Edit
-              </button>
-              <button
-                className="delete-button"
+                colorScheme="lime-800"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+              <Button
+                text="Delete"
                 onClick={() => handleDeleteReport(report._id)}
-              >
-                Delete
-              </button>
+                colorScheme="red-800"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
             </div>
 
             <div className="x-container">
@@ -629,15 +717,39 @@ const ServiceDoc = () => {
   if (!reportData) {
     return (
       <div className="no-data-container">
-        <div className="no-print">
-          <button onClick={handleBackToHistory} className="back-button">
-            ← Back to Service History
-          </button>
-        </div>
         <h2>No report data available for this equipment and date</h2>
-        <button className="add-report-button" onClick={handleAddReport}>
-          Add Report Data
-        </button>
+        <div className="no-result-found-service-nav">
+          <Button
+            text="Back to Service History"
+            onClick={handleBackToHistory}
+            colorScheme="amber-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="220px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Add Report Data"
+            onClick={() => handleAddReport}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+        </div>
       </div>
     );
   }
@@ -646,51 +758,89 @@ const ServiceDoc = () => {
     <>
       <div className="back-bug">
         <div className="print-button-wrapper no-print wraped-print">
-          <button onClick={handleBackToHistory} className="back-button">
-            ← Back to Service History
-          </button>
-          <button
+          <Button
+            text="Back to Service History"
+            onClick={handleBackToHistory}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text={!isDocumentSigned ? 'Sign to Print All' : 'Print All Reports'}
             onClick={handlePrint}
-            className={!isDocumentSigned ? 'disabled-print-button' : ''}
-            style={{
-              opacity: !isDocumentSigned ? 0.5 : 1,
-              cursor: !isDocumentSigned ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {!isDocumentSigned ? '🔒 Sign to Print' : 'Print Report'}
-          </button>
-          <button onClick={signDocument}>Sign the Document</button>
+            colorScheme={!isDocumentSigned ? 'gray-900' : 'violet-800'}
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type={!isDocumentSigned ? 'disabled' : 'submit'}
+            textColor="white-200"
+            cursor={!isDocumentSigned ? 'not-allowed' : 'allowed'}
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Sign the Document"
+            onClick={signDocument}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 
-      <div className="back-bug">
-        <div className="document-count">
-          <span>Showing {totalCount} document for Equipment: {regNo}</span>
-          {isDocumentSigned && (
-            <div className="signature-status">
-              <span className="signed-indicator">✅ Document Signed</span>
-              <span className="expiry-timer">
-                ⏰ Expires in: {formatTimeRemaining(timeRemaining)}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+
 
       <div className="back-bug pb-n">
         <div className="report-actions no-print single-report-actions">
-          <button
-            className="edit-button"
+          <Button
+            text="Edit"
             onClick={() => handleEditReport(reportData._id)}
-          >
-            Edit
-          </button>
-          <button
-            className="delete-button"
+            colorScheme="lime-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Delete"
             onClick={() => handleDeleteReport(reportData._id)}
-          >
-            Delete
-          </button>
+            colorScheme="red-700"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 

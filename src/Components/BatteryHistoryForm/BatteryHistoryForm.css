@@ -1,30 +1,9 @@
-/* TyreHistoryForm.css */
-:root {
-  --primary-color: #3498db;
-  --urgent-color: #e74c3c;
-  --medium-color: #f39c12;
-  --normal-color: #2ecc71;
-  --bg-color: #f5f7fa;
-  --card-bg: #ffffff;
-  --text-color: #333333;
-  --border-color: #e1e4e8;
-  --hover-bg: #f0f5ff;
-  --disabled-bg: #e9ecef;
-  --disabled-text: #6c757d;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 .tyre-history-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-color);
+  background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .tyre-header {
@@ -35,18 +14,18 @@
 }
 
 .tyre-header h1 {
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 34px;
   font-weight: 800;
 }
 
 .date-time {
-  background-color: var(--card-bg);
+  background-color: var(--bg-card);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .message {
@@ -71,13 +50,6 @@
   border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
-.form-container {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 25px;
-}
-
 .tyre-history-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -96,16 +68,8 @@
   color: #64748b;
 }
 
-.form-group input {
-  padding: 12px 15px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
 .form-group input:focus {
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
   outline: none;
 }
@@ -138,7 +102,7 @@
 }
 
 .action-btn.submit {
-  background-color: var(--primary-color);
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -148,8 +112,8 @@
 }
 
 .action-btn:disabled {
-  background-color: var(--disabled-bg);
-  color: var(--disabled-text);
+  background-color: var(--bg-disabled);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 

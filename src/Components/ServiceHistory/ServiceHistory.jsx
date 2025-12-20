@@ -7,41 +7,64 @@ import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import { apiRequest } from '../../utils/0auth';
 import DevModal from '../../common/DevModal';
+import { useSearch } from '../../context/SearchContext';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const ServiceHistory = () => {
   // Get the regNo from URL parameters and setup navigation
   const { regNo } = useParams();
   const navigate = useNavigate();
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const tableRef = useRef(null);
 
-  // State for active tab
   const [activeTab, setActiveTab] = useState('all');
-
-  // State for search functionality and data
-  const [searchTerm, setSearchTerm] = useState('');
+  const { searchTerm, setSearchTerm } = useSearch();
   const [filteredData, setFilteredData] = useState([]);
   const [equipmentData, setEquipmentData] = useState(null);
-
-  // Date filtering states
   const [dateFilter, setDateFilter] = useState('all'); // 'all', 'lastXmonths', 'thismonth', 'custom'
-  const [lastMonthsCount, setLastMonthsCount] = useState(6); // Default to 6 months
+  const [lastMonthsCount, setLastMonthsCount] = useState(6);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [showCustomDateInputs, setShowCustomDateInputs] = useState(false);
   const [deleteReport, setDeleteReport] = useState({});
-
-  // Separate state for each service type
   const [serviceHistory, setServiceHistory] = useState([]);
   const [maintenanceHistory, setMaintenanceHistory] = useState([]);
   const [tyreHistory, setTyreHistory] = useState([]);
   const [batteryHistory, setBatteryHistory] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
+  const [expandedRemarks, setExpandedRemarks] = useState({});
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [filters, setFilters] = useState({
+    dateFilter: 'all',
+    serviceTypes: [],
+    serviceHoursRange: { min: '', max: '' },
+    hasRemarks: '',
+    lastMonthsCount: 6,
+    customStartDate: '',
+    customEndDate: ''
+  });
 
-  // Create a ref for the table to print
-  const tableRef = useRef(null);
+  // Set header title when component mounts or data changes
+  useEffect(() => {
+    if (equipmentData) {
+      const subtitle = `${equipmentData.machine} - ${regNo} > ${dateFilter.toLocaleUpperCase()} TIME > ${activeTab.toLocaleUpperCase()} SERVICE`
+      setHeaderTitle('Service History');
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle('Service History');
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [equipmentData, regNo, activeTab, dateFilter]);
 
   // Get current date in DD-MM-YY format and time in AM/PM format
   useEffect(() => {
@@ -70,6 +93,44 @@ const ServiceHistory = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const toggleRemarkExpansion = (index) => {
+    setExpandedRemarks(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    // Update the main filter states from the modal filters
+    setDateFilter(filters.dateFilter);
+    setLastMonthsCount(filters.lastMonthsCount);
+    setCustomStartDate(filters.customStartDate);
+    setCustomEndDate(filters.customEndDate);
+    setShowCustomDateInputs(filters.dateFilter === 'custom');
+    setShowFiltersModal(false);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      dateFilter: 'all',
+      serviceTypes: [],
+      serviceHoursRange: { min: '', max: '' },
+      hasRemarks: '',
+      lastMonthsCount: 6,
+      customStartDate: '',
+      customEndDate: ''
+    });
+    setDateFilter('all');
+    setLastMonthsCount(6);
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setShowCustomDateInputs(false);
+  };
+
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
 
   // Function to format date from YYYY-MM-DD to DD-MM-YYYY
   const formatDate = (dateString) => {
@@ -229,6 +290,7 @@ const ServiceHistory = () => {
   }, [regNo]);
 
   // Filter and combine data based on active tab and date filter
+  // Filter and combine data based on active tab and date filter
   useEffect(() => {
     const processData = async () => {
       let combinedData = [];
@@ -302,25 +364,49 @@ const ServiceHistory = () => {
       );
 
       // Apply date filter
-      const dateFilteredData = equipmentData.filter(item => isDateInRange(item.date));
+      let dateFilteredData = equipmentData.filter(item => isDateInRange(item.date));
 
-      // Fetch remarks for ALL items - use Promise.all to fetch both in parallel
+      // Apply additional filters from modal
+      if (filters.serviceTypes.length > 0) {
+        dateFilteredData = dateFilteredData.filter(item =>
+          filters.serviceTypes.includes(item.serviceType)
+        );
+      }
+
+      if (filters.serviceHoursRange.min || filters.serviceHoursRange.max) {
+        dateFilteredData = dateFilteredData.filter(item => {
+          if (!item.serviceHrs && !item.runningHours) return true;
+          const hours = item.serviceHrs || item.runningHours || 0;
+          const min = filters.serviceHoursRange.min ? parseInt(filters.serviceHoursRange.min) : 0;
+          const max = filters.serviceHoursRange.max ? parseInt(filters.serviceHoursRange.max) : Infinity;
+          return hours >= min && hours <= max;
+        });
+      }
+
+      if (filters.hasRemarks) {
+        if (filters.hasRemarks === 'yes') {
+          dateFilteredData = dateFilteredData.filter(item =>
+            item.remarks || item.majorRemarks || item.workRemarks
+          );
+        } else if (filters.hasRemarks === 'no') {
+          dateFilteredData = dateFilteredData.filter(item =>
+            !item.remarks && !item.majorRemarks && !item.workRemarks
+          );
+        }
+      }
+
+      // Fetch remarks for ALL items
       const [regularData, majorData] = await Promise.all([
         fetchRemarksAndLocationForServices(dateFilteredData),
         fetchServiceReportforMajor(dateFilteredData)
       ]);
 
-      console.log("regularData:", regularData);
-      console.log("majorData:", majorData);
-
-      // Merge the two results - for each item, pick the enhanced version
+      // Merge the two results
       const mergedData = dateFilteredData.map(item => {
         if (item.serviceType === 'maintenance') {
-          // For maintenance, find in majorData
           const enhanced = majorData.find(d => d._id === item._id);
           return enhanced || item;
         } else {
-          // For oil/normal/tyre/battery, find in regularData
           const enhanced = regularData.find(d => d._id === item._id);
           return enhanced || item;
         }
@@ -338,11 +424,10 @@ const ServiceHistory = () => {
       });
 
       setFilteredData(results);
-      console.log("Final results:", results);
     };
 
     processData();
-  }, [serviceHistory, maintenanceHistory, tyreHistory, batteryHistory, regNo, searchTerm, activeTab, dateFilter, lastMonthsCount, customStartDate, customEndDate]);
+  }, [serviceHistory, maintenanceHistory, tyreHistory, batteryHistory, regNo, searchTerm, activeTab, dateFilter, lastMonthsCount, customStartDate, customEndDate, filters]);
 
   // Handle tab change
   const handleTabChange = (tab) => {
@@ -1074,158 +1159,96 @@ const ServiceHistory = () => {
         onSecondaryClick={() => setShowDeleteModal(false)}
       />
 
-      <div className="service-header">
-        <h1 className="service-title">Service History</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
-      <div className="equipment-info">
-        {equipmentData ? (
-          <h2>{equipmentData.machine} - {regNo}</h2>
-        ) : (
-          <h2>Equipment: {regNo}</h2>
-        )}
-      </div>
-
-      {/* Date Filter Section */}
-      <div className="date-filter-section">
-        <div className="date-filter-buttons">
-          <button
-            className={`date-filter-btn ${dateFilter === 'all' ? 'active' : ''}`}
-            onClick={() => handleDateFilterChange('all')}
-          >
-            All Time
-          </button>
-
-          <button
-            className={`date-filter-btn ${dateFilter === 'thismonth' ? 'active' : ''}`}
-            onClick={() => handleDateFilterChange('thismonth')}
-          >
-            This Month
-          </button>
-
-          <div className="last-months-filter">
-            <button
-              className={`date-filter-btn ${dateFilter === 'lastXmonths' ? 'active' : ''}`}
-              onClick={() => handleDateFilterChange('lastXmonths')}
-            >
-              Last
-            </button>
-            <select
-              value={lastMonthsCount}
-              onChange={(e) => setLastMonthsCount(parseInt(e.target.value))}
-              className="months-dropdown"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
-                <option key={num} value={num}>{num} Month{num !== 1 ? 's' : ''}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            className={`date-filter-btn ${dateFilter === 'custom' ? 'active' : ''}`}
-            onClick={() => handleDateFilterChange('custom')}
-          >
-            Custom Range
-          </button>
-        </div>
-
-        {showCustomDateInputs && (
-          <div className="custom-date-inputs">
-            <div className="date-input-group">
-              <label>From:</label>
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="date-input"
-              />
-            </div>
-            <div className="date-input-group">
-              <label>To:</label>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="date-input"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="date-range-display">
-          <strong>Showing data for: {getDateRangeText()}</strong>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button
-          className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => handleTabChange('all')}
-        >
-          All ({recordCounts.all})
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'normal' ? 'active' : ''}`}
-          onClick={() => handleTabChange('normal')}
-        >
-          Normal Service ({recordCounts.normal})
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'oil' ? 'active' : ''}`}
-          onClick={() => handleTabChange('oil')}
-        >
-          Oil Service ({recordCounts.oil})
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'battery' ? 'active' : ''}`}
-          onClick={() => handleTabChange('battery')}
-        >
-          Battery Service ({recordCounts.battery})
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'tyre' ? 'active' : ''}`}
-          onClick={() => handleTabChange('tyre')}
-        >
-          Tyre Service ({recordCounts.tyre})
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`}
-          onClick={() => handleTabChange('maintenance')}
-        >
-          Major Works ({recordCounts.maintenance})
-        </button>
-      </div>
+      {/* Filters Modal */}
+      <DevModal
+        isOpen={showFiltersModal}
+        onClose={() => setShowFiltersModal(false)}
+        type="filters"
+        title="Service History Filters"
+        message="Customize your view with advanced filtering options"
+        filterGroups={[
+          {
+            name: 'dateFilter',
+            label: 'Date Range',
+            type: 'select',
+            options: [
+              { value: 'all', label: 'All Time' },
+              { value: 'thismonth', label: 'This Month' },
+              { value: 'lastXmonths', label: 'Last X Months' },
+              { value: 'custom', label: 'Custom Range' }
+            ]
+          },
+          ...(filters.dateFilter === 'lastXmonths' ? [{
+            name: 'lastMonthsCount',
+            label: 'Number of Months',
+            type: 'select',
+            options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => ({ value: n, label: `${n} Month${n > 1 ? 's' : ''}` }))
+          }] : []),
+          ...(filters.dateFilter === 'custom' ? [
+            {
+              name: 'customStartDate',
+              label: 'Start Date',
+              type: 'date'
+            },
+            {
+              name: 'customEndDate',
+              label: 'End Date',
+              type: 'date'
+            }
+          ] : []),
+          {
+            name: 'serviceTypes',
+            label: 'Service Types',
+            type: 'checkbox',
+            options: [
+              { value: 'oil', label: 'Oil Service' },
+              { value: 'normal', label: 'Normal Service' },
+              { value: 'maintenance', label: 'Major Works' },
+              { value: 'tyre', label: 'Tyre Service' },
+              { value: 'battery', label: 'Battery Service' }
+            ]
+          },
+          {
+            name: 'serviceHoursRange',
+            label: 'Service Hours Range',
+            type: 'range'
+          },
+          {
+            name: 'hasRemarks',
+            label: 'Has Remarks',
+            type: 'select',
+            options: [
+              { value: 'yes', label: 'Yes' },
+              { value: 'no', label: 'No' }
+            ]
+          }
+        ]}
+        filterValues={filters}
+        onFilterChange={handleFilterChange}
+        onApplyFilters={handleApplyFilters}
+        onResetFilters={handleResetFilters}
+        buttonText="Apply Filters"
+      />
 
       <div className="controls-bar">
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search service history..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="search-input"
+        <div className="action-buttons left">
+          <Button
+            text="Filters"
+            onClick={() => setShowFiltersModal(true)}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
           />
-          {searchTerm && (
-            <button onClick={handleClearSearch} className="clear-btn">×</button>
-          )}
-        </div>
-        <div className="action-buttons">
-          <button onClick={handleAddService} className="action-btn add">
-            Add {activeTab === 'oil' ? 'Oil Service' :
-              activeTab === 'maintenance' ? 'Major Work' :
-                activeTab === 'tyre' ? 'Tyre Service' :
-                  activeTab === 'battery' ? 'Battery Service' : 'Service'}
-          </button>
-          <button onClick={handleExportToExcel} className="action-btn excel">
-            Export to Excel
-          </button>
-          <button onClick={handleExportToPDF} className="action-btn pdf">
-            Export to PDF
-          </button>
-          <button onClick={handleViewAllDocuments} className="action-btn view-all">
-            {dateFilter === 'custom' && customStartDate && customEndDate
+          <Button
+            text={dateFilter === 'custom' && customStartDate && customEndDate
               ? 'View Date Range Data'
               : dateFilter === 'lastXmonths'
                 ? `View Last ${lastMonthsCount} Months Data`
@@ -1235,10 +1258,90 @@ const ServiceHistory = () => {
                     activeTab === 'oil' ? 'Oil Service' :
                       activeTab === 'maintenance' ? 'Major Works' :
                         activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service'}`}
-          </button>
-          <button onClick={handlePrint} className="action-btn print">
-            Print
-          </button>
+            onClick={handleViewAllDocuments}
+            colorScheme="lime-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+        </div>
+        <div className="action-buttons right">
+          <Button
+            text={
+              activeTab === 'oil'
+                ? 'Add Oil Service'
+                : activeTab === 'maintenance'
+                  ? ' Add Major Work'
+                  : activeTab === 'tyre'
+                    ? 'Add Tyre Service'
+                    : activeTab === 'battery'
+                      ? 'Add Battery Service'
+                      : 'Add Service'
+            }
+            onClick={() => handleAddService(true)}
+            colorScheme="info-800"
+            variant="gradient"
+            font="md"
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Export to Excel"
+            onClick={() => handleExportToExcel}
+            colorScheme="primary-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Print"
+            onClick={() => handlePrint}
+            colorScheme="success-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Export to PDF"
+            onClick={() => handleExportToPDF}
+            colorScheme="fuchsia-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 
@@ -1318,37 +1421,95 @@ const ServiceHistory = () => {
                           <td>{item.serviceType === 'battery' ? item.batteryModel : '-'}</td>
                         </>
                       )}
-                      <td style={{ textAlign: 'left' }}>
-                        {(item.serviceType === 'oil' || item.serviceType === 'normal') && (
-                          <div>
-                            {item.remarks && <div>{item.remarks}</div>}
+                      <td style={{ textAlign: 'left' }} className="remarks-cell">
+                        {(item.serviceType === 'oil' || item.serviceType === 'normal') && item.remarks && (
+                          <div className="remarks-content">
+                            <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
+                              {item.remarks}
+                            </div>
+                            {item.remarks.length > 100 && (
+                              <button
+                                className="view-more-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRemarkExpansion(index);
+                                }}
+                              >
+                                {expandedRemarks[index] ? 'View Less' : 'View More'}
+                              </button>
+                            )}
                           </div>
                         )}
-                        {item.serviceType === 'maintenance' && (
-                          <div>
-                            {item.majorRemarks && <div>{item.majorRemarks}</div>}
+                        {item.serviceType === 'maintenance' && (item.majorRemarks || item.workRemarks) && (
+                          <div className="remarks-content">
+                            <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
+                              {item.majorRemarks || item.workRemarks}
+                            </div>
+                            {(item.majorRemarks?.length > 100 || item.workRemarks?.length > 100) && (
+                              <button
+                                className="view-more-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRemarkExpansion(index);
+                                }}
+                              >
+                                {expandedRemarks[index] ? 'View Less' : 'View More'}
+                              </button>
+                            )}
                           </div>
                         )}
-                        {item.serviceType === 'tyre' && (
-                          <div>
-                            {item.remarks && <div>{item.remarks}</div>}
-                          </div>
-                        )}
-                        {item.serviceType === 'battery' && (
-                          <div>
-                            {item.remarks && <div>{item.remarks}</div>}
+                        {(item.serviceType === 'tyre' || item.serviceType === 'battery') && item.remarks && (
+                          <div className="remarks-content">
+                            <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
+                              {item.remarks}
+                            </div>
+                            {item.remarks.length > 100 && (
+                              <button
+                                className="view-more-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRemarkExpansion(index);
+                                }}
+                              >
+                                {expandedRemarks[index] ? 'View Less' : 'View More'}
+                              </button>
+                            )}
                           </div>
                         )}
                       </td>
                       <td className="document-column">
-                        <button className="action-btn details" onClick={() => handleRowClick(formatDate(item.date), item.serviceType)}>
-                          View Document
-                        </button>
+                        <Button
+                          text=" View Document"
+                          onClick={() => handleRowClick(formatDate(item.date), item.serviceType)}
+                          colorScheme="sky-800"
+                          variant="gradient"
+                          font="md"
+                          animation=""
+                          rounded="md"
+                          width="160px"
+                          height="38px"
+                          type="submit"
+                          textColor="white-200"
+                          shadowPosition="to-bottom"
+                          shadowColor="white-600"
+                        />
                       </td>
                       <td className="document-column">
-                        <button className="action-btn delete-h" onClick={() => handleDeleteReport(item)}>
-                          Delete
-                        </button>
+                        <Button
+                          text=" Delete"
+                          onClick={() => handleDeleteReport(item)}
+                          colorScheme="red-700"
+                          variant="gradient"
+                          font="md"
+                          animation=""
+                          rounded="md"
+                          width="160px"
+                          height="38px"
+                          type="submit"
+                          textColor="white-200"
+                          shadowPosition="to-bottom"
+                          shadowColor="white-600"
+                        />
                       </td>
                     </tr>
                   );

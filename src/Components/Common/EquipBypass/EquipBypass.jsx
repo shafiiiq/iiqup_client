@@ -3,9 +3,11 @@ import './EquipBypass.css';
 import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../../constants';
 import { apiRequest } from '../../../utils/0auth';
+import { useSearch } from '../../../context/SearchContext';
+import Button from '../../../common/Button/Button';
 
 function EquipBypass({ equipStocks, documents, isLPO }) {
-    const [searchTerm, setSearchTerm] = useState('');
+    const { searchTerm, setSearchTerm } = useSearch();
     const [equipments, setEquipments] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [currentDateTime, setCurrentDateTime] = useState('');
@@ -121,7 +123,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
     };
 
-    const handleAddLpo = (type) => {
+    const handleLpo = (type) => {
         if (type == 'for-stock') {
             navigate(`/lpo-form/for-stock`);
         } else if (type == 'for-all-equipments') {
@@ -145,11 +147,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
     return (
         <div className="equipment-container">
-            <div className="equipment-header">
-                <h1 className='equip-title'>Select the equipment</h1>
-                <div className="date-time">{currentDateTime}</div>
-            </div>
-
             {/* Pending LPO Alert - Show only when isLPO is true */}
             {isLPO && showPendingAlert && pendingLpos.length > 0 && (
                 <div className="pending-lpo-alert">
@@ -201,48 +198,87 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                     </div>
                 </div>
             )}
-
-            <div className="controls-container">
-                <div className="search-container">
-                    <input
-                        type="text"
-                        placeholder="Search equipment..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="search-input"
-                    />
-                    {searchTerm && (
-                        <button onClick={handleClearSearch} className="clear-button">
-                            ×
-                        </button>
-                    )}
-                    <button onClick={handleSearchSubmit} className="search-button">
-                        Search
-                    </button>
-                </div>
-            </div>
-
             {
                 isLPO ?
                     <div className='lpo-cat-btn'>
                         <div className="add-lpos">
-                            <button onClick={() => handleAddLpo('for-all-equipments')} className="action-btn add">
-                                Add LPO For All Equipments
-                            </button>
-                            <button onClick={() => handleAddLpo('for-stock')} className="action-btn add">
-                                Add LPO For Stock
-                            </button>
+                            <Button
+                                text="Create > For All"
+                                onClick={() => handleLpo('for-all-equipments')}
+                                colorScheme="orange-800"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                rounded="md"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                            />
+                            <Button
+                                text="Create > For Stock"
+                                onClick={() => handleLpo('for-stock')}
+                                colorScheme="orange-800"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                rounded="md"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                            />
                         </div>
                         <div className="view-lpos">
-                            <button onClick={() => handleAddLpo('view-for-all-equipments')} className="action-btn">
-                                View LPO Of All Equipment
-                            </button>
-                            <button onClick={() => handleAddLpo('view-for-stock')} className="action-btn">
-                                View LPO Of Stocks
-                            </button>
-                            <button onClick={() => handleAddLpo('view-all-lpo')} className="action-btn">
-                                View All LPO
-                            </button>
+                            <Button
+                                text="View > Of All"
+                                onClick={() => handleLpo('view-for-all-equipments')}
+                                colorScheme="orange-800"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                rounded="md"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                            />
+                            <Button
+                                text="View > Of Stock"
+                                onClick={() => handleLpo('view-for-stock')}
+                                colorScheme="orange-800"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                rounded="md"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                            />
+                            <Button
+                                text="View > Of All"
+                                onClick={() => handleLpo('view-all-lpo')}
+                                colorScheme="orange-800"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                rounded="md"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                            />
                         </div>
                     </div>
                     : ''

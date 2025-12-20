@@ -200,7 +200,7 @@
     max-width: 100%;
 }
 
-.search-input {
+/* .search-input {
     width: 100%;
     padding: 10px 35px 10px 10px;
     border: 1px solid #ddd;
@@ -213,7 +213,7 @@
     outline: none;
     border-color: var(--regular-color);
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
+} */
 
 .clear-button {
     position: absolute;
@@ -258,29 +258,8 @@
     width: 100%;
 }
 
-.equipment-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-}
-
-.equipment-table th,
-.equipment-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-}
-
 .equipment-table td:first-child {
     cursor: pointer;
-}
-
-.equipment-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    padding: 12px 8px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
 }
 
 .date-th {
@@ -289,10 +268,6 @@
 
 .next-f-th {
     width: 12rem;
-}
-
-.equipment-table tr:hover {
-    background-color: #f1f1f1;
 }
 
 .no-results {
@@ -328,71 +303,6 @@
     font-size: 14px;
     transition: background-color 0.3s;
     font-weight: 600;
-}
-
-/* Print styles */
-@media print {
-    body {
-        background-color: white;
-        font-size: 12pt;
-    }
-
-    .container {
-        width: 100%;
-        max-width: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .controls-container,
-    .search-container {
-        display: none !important;
-    }
-
-    .equipment-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .equipment-table th {
-        background-color: #f2f2f2 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    .equipment-table tr:nth-child(even) {
-        background-color: #f9f9f9 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    /* Ensure full service rows maintain their color when printing */
-    .full-service-row {
-        background-color: #ffd3a5 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    .title {
-        margin-bottom: 10px;
-    }
-
-    .table-info {
-        margin-top: 10px;
-    }
-
-    /* Page break control for printing */
-    .equipment-table tr {
-        page-break-inside: avoid;
-    }
-
-    .equipment-table thead {
-        display: table-header-group;
-    }
-
-    .equipment-table tbody {
-        display: table-row-group;
-    }
 }
 
 /* Responsive adjustments */
@@ -451,39 +361,6 @@
 
 .table-container {
     overflow-x: auto;
-}
-
-.equipment-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.equipment-table th,
-.equipment-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-}
-
-.equipment-table th {
-    background-color: #f2f2f2;
-    position: sticky;
-    top: 0;
-}
-
-.equipment-table tr:nth-child(even) {
-    /* here collided */
-    background-color: var(--bg-color);
-}
-
-.equipment-table tr:hover {
-    background-color: #f0f0f0;
-}
-
-.no-results {
-    font-style: italic;
-    color: #888;
 }
 
 @media (max-width: 768px) {

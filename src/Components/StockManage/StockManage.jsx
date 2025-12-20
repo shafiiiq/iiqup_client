@@ -5,8 +5,13 @@ import Select from 'react-select';
 import { apiRequest } from '../../utils/0auth';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
+import DevModal from '../../common/DevModal';
+import { useSearch } from '../../context/SearchContext';
+import Button from '../../common/Button/Button';
 
 function StockManage() {
+  const { searchTerm, setSearchTerm } = useSearch();
+
   const [stocks, setStocks] = useState([]);
   const [equipments, setEquipments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +22,6 @@ function StockManage() {
   const [showStockHistory, setShowStockHistory] = useState(false);
   const [formMode, setFormMode] = useState('add');
   const [message, setMessage] = useState({ text: '', type: '' });
-  const [searchTerm, setSearchTerm] = useState('');
   const [equipmentOptions, setEquipmentOptions] = useState([]);
   const [selectedEquipments, setSelectedEquipments] = useState([]);
   const [showReduceForm, setShowReduceForm] = useState(false);
@@ -411,7 +415,6 @@ function StockManage() {
   };
 
   const handleFormSubmit = async (e) => {
-    e.preventDefault();
     try {
       const submitData = {
         ...formData,
@@ -1197,44 +1200,53 @@ function StockManage() {
 
   return (
     <div className="stock-manage-container no-conflict-stocks">
-      <div className="stock-manage-header">
-        <h1 className="stock-manage-title">Stock Management</h1>
-        <div className="stock-manage-datetime">{currentDateTime}</div>
-      </div>
-
       <div className="stock-manage-actions">
         <div className="toolkits-actions">
-          <button className="stock-manage-add-btn" onClick={openAddForm}>
-            Add Stock
-          </button>
-          <button className="export-excel-btn" onClick={exportToExcel}>
-            Export to Excel
-          </button>
-        </div>
-        <div className="stock-search-container">
-          <div className="stock-search-input-container">
-            <input
-              type="text"
-              placeholder="Search stocks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="stock-search-input"
-            />
-            {searchTerm && (
-              <button
-                className="stock-search-clear"
-                onClick={() => setSearchTerm('')}
-              >
-                ×
-              </button>
-            )}
-          </div>
-          <button
-            className="stock-print-btn"
-            onClick={handlePrint}
-          >
-            Print
-          </button>
+          <Button
+            text="Add Stock"
+            onClick={() => openAddForm}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Export to Excel"
+            onClick={() => exportToExcel}
+            colorScheme="slate-600"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Print"
+            onClick={() => handlePrint}
+            colorScheme=""
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 
@@ -1302,9 +1314,21 @@ function StockManage() {
                     </span>
                   </td>
                   <td className="stock-manage-action-buttons no-print">
-                    <button className="stock-manage-action-btn details" onClick={() => showDetails(item)}>
-                      Details
-                    </button>
+                    <Button
+                      text="Details"
+                      onClick={() => showDetails(item)}
+                      colorScheme="orange-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </td>
                 </tr>
               ))}
@@ -1488,371 +1512,190 @@ function StockManage() {
         </div>
       )}
 
-      {showAddForm && selectedStock && (
-        <div className="stock-form-modal-overlay no-print">
-          <div className="stock-form-modal">
-            <div className="stock-form-header">
-              <h2>Add Stock: {selectedStock.product}</h2>
-              <button className="stock-form-close-btn" onClick={() => setShowAddForm(false)}>×</button>
-            </div>
-            <form onSubmit={handleAddStock} className="stock-form">
-              <div className="stock-form-group">
-                <label htmlFor="reduce-stockCount">Quantity to Add</label>
-                <input
-                  type="number"
-                  id="add-stockCount"
-                  name="stockCount"
-                  value={addFormData.stockCount}
-                  onChange={(e) => setAddFormData({ ...addFormData, stockCount: e.target.value })}
-                  placeholder="Enter quantity to Add"
-                  min="1"
-                  required
-                />
-                <small>Current stock: {selectedStock.stockCount}</small>
-              </div>
+      {/* Add Stock Modal using DevModal */}
+      <DevModal
+        isOpen={showAddForm && selectedStock}
+        onClose={() => setShowAddForm(false)}
+        type="form"
+        title={`Add Stock: ${selectedStock?.product || ''}`}
+        message={`Current stock: ${selectedStock?.stockCount || 0}`}
+        formFields={[
+          {
+            name: 'stockCount',
+            label: 'Quantity to Add',
+            type: 'number',
+            placeholder: 'Enter quantity to add',
+            required: true
+          },
+          {
+            name: 'reason',
+            label: 'Reason',
+            type: 'text',
+            placeholder: 'Enter reason',
+            required: true
+          },
+          {
+            name: 'date',
+            label: 'Date',
+            type: 'date',
+            required: true
+          }
+        ]}
+        formValues={addFormData}
+        onFormChange={(field, value) => {
+          setAddFormData({
+            ...addFormData,
+            [field]: field === 'stockCount' ? parseInt(value) || 0 : value
+          });
+        }}
+        buttonText="Confirm Add"
+        onButtonClick={handleAddStock}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowAddForm(false)}
+      />
 
-              <div className="stock-form-group">
-                <label htmlFor="reason">Reason</label>
-                <input
-                  type="text"
-                  id="reason"
-                  name="reason"
-                  value={addFormData.reason}
-                  onChange={(e) => setAddFormData({ ...addFormData, reason: e.target.value })}
-                  placeholder="Enter reason"
-                  required
-                />
-              </div>
+      {/* Reduce Stock Modal using DevModal */}
+      <DevModal
+        isOpen={showReduceForm && selectedStock}
+        onClose={() => setShowReduceForm(false)}
+        type="form"
+        title={`Reduce Stock: ${selectedStock?.product || ''}`}
+        message={`Current stock: ${selectedStock?.stockCount || 0}`}
+        formFields={[
+          {
+            name: 'stockCount',
+            label: 'Quantity to Reduce',
+            type: 'number',
+            placeholder: 'Enter quantity to reduce',
+            required: true
+          },
+          {
+            name: 'equipmentName',
+            label: 'Equipment Name',
+            type: 'text',
+            placeholder: 'Search or enter equipment name',
+            required: true
+          },
+          {
+            name: 'equipmentNumber',
+            label: 'Equipment Number',
+            type: 'text',
+            placeholder: 'Auto-filled or enter manually',
+            required: true
+          },
+          {
+            name: 'mechanicName',
+            label: 'Mechanic Name',
+            type: 'text',
+            placeholder: 'Search or enter mechanic name',
+            required: true
+          },
+          {
+            name: 'date',
+            label: 'Date',
+            type: 'date',
+            required: true
+          }
+        ]}
+        formValues={reduceFormData}
+        onFormChange={(field, value) => {
+          if (field === 'stockCount') {
+            setReduceFormData({
+              ...reduceFormData,
+              stockCount: parseInt(value) || 0
+            });
+          } else if (field === 'equipmentName') {
+            setEquipmentSearchTerm(value);
+            setReduceFormData({
+              ...reduceFormData,
+              equipmentName: value,
+              equipmentNumber: ''
+            });
+          } else if (field === 'mechanicName') {
+            setMechanicSearchTerm(value);
+            setReduceFormData({
+              ...reduceFormData,
+              mechanicName: value
+            });
+          } else {
+            setReduceFormData({
+              ...reduceFormData,
+              [field]: value
+            });
+          }
+        }}
+        buttonText="Confirm Reduction"
+        onButtonClick={handleReduceStock}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowReduceForm(false)}
+      />
 
-              <div className="stock-form-group">
-                <label htmlFor="reduce-date">Date</label>
-                <input
-                  type="date"
-                  id="reduce-date"
-                  name="date"
-                  value={addFormData.date}
-                  onChange={(e) => setAddFormData({ ...addFormData, date: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="stock-form-actions">
-                <button
-                  type="button"
-                  className="stock-form-action-btn cancel"
-                  onClick={() => setShowAddForm(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="stock-form-action-btn submit"
-                >
-                  Confirm Add
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Reduce Stock Form Modal */}
-      {showReduceForm && selectedStock && (
-        <div className="stock-form-modal-overlay no-print">
-          <div className="stock-form-modal">
-            <div className="stock-form-header">
-              <h2>Reduce Stock: {selectedStock.product}</h2>
-              <button className="stock-form-close-btn" onClick={() => setShowReduceForm(false)}>×</button>
-            </div>
-            <form onSubmit={handleReduceStock} className="stock-form">
-              <div className="stock-form-group">
-                <label htmlFor="reduce-stockCount">Quantity to Reduce</label>
-                <input
-                  type="number"
-                  id="reduce-stockCount"
-                  name="stockCount"
-                  value={reduceFormData.stockCount}
-                  onChange={(e) => setReduceFormData({ ...reduceFormData, stockCount: e.target.value })}
-                  placeholder="Enter quantity to reduce"
-                  min="1"
-                  max={selectedStock.stockCount}
-                  required
-                />
-                <small>Current stock: {selectedStock.stockCount}</small>
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="equipmentName">Equipment Name</label>
-                <div className="dropdown-container">
-                  <input
-                    type="text"
-                    id="equipmentName"
-                    name="equipmentName"
-                    value={reduceFormData.equipmentName}
-                    onChange={handleEquipmentNameChange}
-                    onFocus={() => {
-                      setEquipmentSearchTerm(reduceFormData.equipmentName);
-                      setShowEquipmentDropdown(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowEquipmentDropdown(false), 200)}
-                    placeholder="Search or enter equipment name"
-                    required
-                  />
-                  {showEquipmentDropdown && filteredEquipments.length > 0 && (
-                    <div className="search-dropdown">
-                      {filteredEquipments.slice(0, 10).map((equipment) => (
-                        <div
-                          key={equipment._id}
-                          className="dropdown-item"
-                          onClick={() => handleEquipmentSelect(equipment)}
-                        >
-                          <div className="dropdown-item-main">{equipment.machine}</div>
-                          <div className="dropdown-item-sub">Reg No: {equipment.regNo}</div>
-                        </div>
-                      ))}
-                      {filteredEquipments.length > 10 && (
-                        <div className="dropdown-more">
-                          +{filteredEquipments.length - 10} more results...
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="equipmentNumber">Equipment Number</label>
-                <input
-                  type="text"
-                  id="equipmentNumber"
-                  name="equipmentNumber"
-                  value={reduceFormData.equipmentNumber}
-                  onChange={(e) => setReduceFormData({ ...reduceFormData, equipmentNumber: e.target.value })}
-                  placeholder="Auto-filled or enter manually"
-                  required
-                />
-                <small style={{ color: 'var(--stock-disabled-text)', fontSize: '12px' }}>
-                  Auto-filled when selecting from equipment dropdown
-                </small>
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="mechanicName">Mechanic Name</label>
-                <div className="dropdown-container">
-                  <input
-                    type="text"
-                    id="mechanicName"
-                    name="mechanicName"
-                    value={reduceFormData.mechanicName}
-                    onChange={handleMechanicNameChange}
-                    onFocus={() => {
-                      setMechanicSearchTerm(reduceFormData.mechanicName);
-                      setShowMechanicDropdown(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowMechanicDropdown(false), 200)}
-                    placeholder="Search or enter mechanic name"
-                    required
-                  />
-                  {showMechanicDropdown && filteredMechanics.length > 0 && (
-                    <div className="search-dropdown">
-                      {filteredMechanics.slice(0, 10).map((mechanic) => (
-                        <div
-                          key={mechanic._id}
-                          className="dropdown-item"
-                          onClick={() => handleMechanicSelect(mechanic)}
-                        >
-                          <div className="dropdown-item-main">{mechanic.name}</div>
-                        </div>
-                      ))}
-                      {filteredMechanics.length > 10 && (
-                        <div className="dropdown-more">
-                          +{filteredMechanics.length - 10} more results...
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="reduce-date">Date</label>
-                <input
-                  type="date"
-                  id="reduce-date"
-                  name="date"
-                  value={reduceFormData.date}
-                  onChange={(e) => setReduceFormData({ ...reduceFormData, date: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="stock-form-actions">
-                <button
-                  type="button"
-                  className="stock-form-action-btn cancel"
-                  onClick={() => setShowReduceForm(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="stock-form-action-btn submit"
-                >
-                  Confirm Reduction
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Form Modal for Add/Update Stock */}
-      {showForm && (
-        <div className="stock-form-modal-overlay no-print">
-          <div className="stock-form-modal">
-            <div className="stock-form-header">
-              <h2>{formMode === 'add' ? 'Add New Stock' : 'Update Stock'}</h2>
-              <button className="stock-form-close-btn" onClick={() => setShowForm(false)}>×</button>
-            </div>
-            <form onSubmit={handleFormSubmit} className="stock-form">
-              <div className="stock-form-group">
-                <label htmlFor="type">Type</label>
-                <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="stock">For Stock</option>
-                  <option value="equipment">For Equipment</option>
-                  <option value="all">For All Machines</option>
-                </select>
-              </div>
-
-              {formData.type === 'equipment' && (
-                <div className="stock-form-group">
-                  <label>Select Equipment(s)</label>
-                  <div className="stock-equipment-selector">
-                    <div className="selected-equipments">
-                      {selectedEquipments.map((equip, index) => (
-                        <span key={index} className="selected-equipment-tag">
-                          {equip}
-                          <button
-                            type="button"
-                            className="remove-equipment-btn"
-                            onClick={() => setSelectedEquipments(prev => prev.filter(e => e !== equip))}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-
-                    <Select
-                      options={equipmentOptions}
-                      isMulti
-                      value={selectedEquipments.map(equip => ({
-                        value: equip,
-                        label: equip
-                      }))}
-                      onChange={(selected) => {
-                        setSelectedEquipments(selected ? selected.map(item => item.value) : []);
-                      }}
-                      placeholder="Search equipment..."
-                      className="equipment-select"
-                      noOptionsMessage={() => "No matching equipment found"}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="stock-form-group">
-                <label htmlFor="product">Product</label>
-                <input
-                  type="text"
-                  id="product"
-                  name="product"
-                  value={formData.product}
-                  onChange={handleInputChange}
-                  placeholder="Enter product name"
-                  required
-                />
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="serialNumber">Serial Number</label>
-                <input
-                  type="text"
-                  id="serialNumber"
-                  name="serialNumber"
-                  value={formData.serialNumber}
-                  onChange={handleInputChange}
-                  placeholder="Enter serial number"
-                  required
-                />
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="date">Date</label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="rate">Rate</label>
-                <input
-                  type="number"
-                  id="rate"
-                  name="rate"
-                  value={formData.rate}
-                  onChange={handleInputChange}
-                  placeholder="Enter rate"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-
-              <div className="stock-form-group">
-                <label htmlFor="stockCount">Stock Count</label>
-                <input
-                  type="number"
-                  id="stockCount"
-                  name="stockCount"
-                  value={formData.stockCount}
-                  onChange={handleInputChange}
-                  placeholder="Enter stock count"
-                  min="0"
-                  required
-                />
-              </div>
-
-              <div className="stock-form-actions">
-                <button
-                  type="button"
-                  className="stock-form-action-btn cancel"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="stock-form-action-btn submit"
-                >
-                  {formMode === 'add' ? 'Add Stock' : 'Update Stock'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Add/Update Stock Modal using DevModal */}
+      <DevModal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        type="form"
+        title={formMode === 'add' ? 'Add New Stock' : 'Update Stock'}
+        message="Fill in the stock details below"
+        formFields={[
+          {
+            name: 'type',
+            label: 'Type',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'stock', label: 'For Stock' },
+              { value: 'equipment', label: 'For Equipment' },
+              { value: 'all', label: 'For All Machines' }
+            ]
+          },
+          {
+            name: 'product',
+            label: 'Product',
+            type: 'text',
+            placeholder: 'Enter product name',
+            required: true
+          },
+          {
+            name: 'serialNumber',
+            label: 'Serial Number',
+            type: 'text',
+            placeholder: 'Enter serial number',
+            required: true
+          },
+          {
+            name: 'date',
+            label: 'Date',
+            type: 'date',
+            required: true
+          },
+          {
+            name: 'rate',
+            label: 'Rate',
+            type: 'number',
+            placeholder: 'Enter rate',
+            required: true
+          },
+          {
+            name: 'stockCount',
+            label: 'Stock Count',
+            type: 'number',
+            placeholder: 'Enter stock count',
+            required: true
+          }
+        ]}
+        formValues={formData}
+        onFormChange={(field, value) => {
+          setFormData({
+            ...formData,
+            [field]: (field === 'rate' || field === 'stockCount') ? parseFloat(value) || 0 : value
+          });
+        }}
+        buttonText={formMode === 'add' ? 'Add Stock' : 'Update Stock'}
+        onButtonClick={(e) => handleFormSubmit(e)}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowForm(false)}
+      />
     </div>
   );
 }

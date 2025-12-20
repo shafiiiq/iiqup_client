@@ -13,17 +13,11 @@
   --disabled-text: #6c757d;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 .maintenance-history-container {
-  background-color: var(--bg-color);
+  background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .maintenance-header {
@@ -34,24 +28,24 @@
 }
 
 .maintenance-header h1 {
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 34px;
   font-weight: 800;
 }
 
 .maintenance-title {
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 34px;
   font-weight: 800;
 }
 
 .date-time {
-  background-color: var(--card-bg);
+  background-color: var(--bg-card);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
 }
 
 .message {
@@ -76,13 +70,6 @@
   border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
-.form-container {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 25px;
-}
-
 .maintenance-history-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -105,30 +92,9 @@
   color: #64748b;
 }
 
-.form-group input,
-.form-group textarea {
-  padding: 12px 15px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-  outline: none;
-}
-
 .form-group input::placeholder,
 .form-group textarea::placeholder {
   color: #a0aec0;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 120px;
 }
 
 .form-actions {
@@ -155,7 +121,7 @@
 }
 
 .action-btn.submit {
-  background-color: var(--primary-color);
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -165,17 +131,17 @@
 }
 
 .action-btn:disabled {
-  background-color: var(--disabled-bg);
-  color: var(--disabled-text);
+  background-color: var(--bg-disabled);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 
 /* Legacy support for existing class names */
 .maintenance-form-container {
-  background-color: var(--bg-color);
+  background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .form-header {
@@ -186,7 +152,7 @@
 }
 
 .form-header h2 {
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 34px;
   font-weight: 800;
 }
@@ -222,7 +188,7 @@
 
 .input-field {
   padding: 12px 15px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -230,7 +196,7 @@
 }
 
 .input-field:focus {
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
   outline: none;
 }
@@ -269,7 +235,7 @@
 }
 
 .submit-btn {
-  background-color: var(--primary-color);
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -279,8 +245,8 @@
 }
 
 .submit-btn:disabled {
-  background-color: var(--disabled-bg);
-  color: var(--disabled-text);
+  background-color: var(--bg-disabled);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 
