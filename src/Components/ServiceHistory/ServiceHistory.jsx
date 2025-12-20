@@ -1299,7 +1299,7 @@ const ServiceHistory = () => {
           />
           <Button
             text="Export to Excel"
-            onClick={() => handleExportToExcel}
+            onClick={handleExportToExcel}
             colorScheme="primary-800"
             variant="gradient"
             font="md"
@@ -1314,7 +1314,7 @@ const ServiceHistory = () => {
           />
           <Button
             text="Print"
-            onClick={() => handlePrint}
+            onClick={handlePrint}
             colorScheme="success-800"
             variant="gradient"
             font="md"
@@ -1329,7 +1329,7 @@ const ServiceHistory = () => {
           />
           <Button
             text="Export to PDF"
-            onClick={() => handleExportToPDF}
+            onClick={handleExportToPDF}
             colorScheme="fuchsia-800"
             variant="gradient"
             font="md"

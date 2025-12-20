@@ -23,6 +23,7 @@ function StockManage() {
   const [formMode, setFormMode] = useState('add');
   const [message, setMessage] = useState({ text: '', type: '' });
   const [equipmentOptions, setEquipmentOptions] = useState([]);
+  const [equipmentCategoryOptions, setEquipmentCategoryOptions] = useState([]);
   const [selectedEquipments, setSelectedEquipments] = useState([]);
   const [showReduceForm, setShowReduceForm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -154,18 +155,27 @@ function StockManage() {
 
         setEquipments(Array.isArray(result.data) ? result.data : []);
 
+        // Create options for INDIVIDUAL equipment (for "For Specific Equipment")
+        const individualOptions = result.data.map(equip => ({
+          value: `${equip.machine} - ${equip.regNo}`,
+          label: `${equip.machine} - ${equip.regNo}`,
+          equipment: equip
+        }));
+
+        // Create options for CATEGORIES (for "For Equipment")
         const uniqueCombinations = new Set();
         result.data.forEach(equip => {
           const combo = `${equip.machine} - ${equip.brand}`;
           uniqueCombinations.add(combo);
         });
 
-        const options = Array.from(uniqueCombinations).map(combo => ({
+        const categoryOptions = Array.from(uniqueCombinations).map(combo => ({
           value: combo,
           label: combo
         }));
 
-        setEquipmentOptions(options);
+        setEquipmentOptions(individualOptions);
+        setEquipmentCategoryOptions(categoryOptions);
       } catch (err) {
         console.error('Error fetching equipments:', err);
       }
@@ -1645,10 +1655,177 @@ function StockManage() {
             required: true,
             options: [
               { value: 'stock', label: 'For Stock' },
+              { value: 'specific-equipment', label: 'For Specific Equipment' },
               { value: 'equipment', label: 'For Equipment' },
               { value: 'all', label: 'For All Machines' }
             ]
           },
+          // Equipment selector for "For Specific Equipment"
+          ...(formData.type === 'specific-equipment' ? [{
+            name: 'equipmentSelector',
+            label: 'Select Specific Equipment(s)',
+            type: 'custom',
+            required: true,
+            customRender: () => (
+              <div style={{ marginBottom: '15px' }}>
+                <div className="selected-equipments" style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {selectedEquipments.map((equip, index) => (
+                    <span key={index} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      backgroundColor: '#e0e7ff',
+                      color: '#4338ca',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '500'
+                    }}>
+                      {equip}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEquipments(prev => prev.filter(e => e !== equip))}
+                        style={{
+                          marginLeft: '8px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#4338ca',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '16px',
+                          lineHeight: '1',
+                          padding: '0'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <Select
+                  options={equipmentOptions}
+                  isMulti
+                  value={equipmentOptions.filter(opt =>
+                    selectedEquipments.includes(opt.value)
+                  )}
+                  onChange={(selected) => {
+                    setSelectedEquipments(selected ? selected.map(item => item.value) : []);
+                  }}
+                  placeholder="Search by equipment name or registration number..."
+                  noOptionsMessage={() => "No matching equipment found"}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: '42px',
+                      borderColor: '#d1d5db',
+                      '&:hover': {
+                        borderColor: '#9ca3af'
+                      }
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      backgroundColor: '#e0e7ff'
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
+                      color: '#4338ca',
+                      fontWeight: '500'
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: '#4338ca',
+                      '&:hover': {
+                        backgroundColor: '#c7d2fe',
+                        color: '#3730a3'
+                      }
+                    })
+                  }}
+                />
+              </div>
+            )
+          }] : []),
+          // Equipment category selector for "For Equipment"
+          ...(formData.type === 'equipment' ? [{
+            name: 'equipmentCategorySelector',
+            label: 'Select Equipment Categories',
+            type: 'custom',
+            required: true,
+            customRender: () => (
+              <div style={{ marginBottom: '15px' }}>
+                <div className="selected-equipments" style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {selectedEquipments.map((equip, index) => (
+                    <span key={index} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      backgroundColor: '#fef3c7',
+                      color: '#92400e',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '500'
+                    }}>
+                      {equip}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEquipments(prev => prev.filter(e => e !== equip))}
+                        style={{
+                          marginLeft: '8px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#92400e',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '16px',
+                          lineHeight: '1',
+                          padding: '0'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <Select
+                  options={equipmentCategoryOptions}
+                  isMulti
+                  value={equipmentCategoryOptions.filter(opt =>
+                    selectedEquipments.includes(opt.value)
+                  )}
+                  onChange={(selected) => {
+                    setSelectedEquipments(selected ? selected.map(item => item.value) : []);
+                  }}
+                  placeholder="Search by equipment type and brand..."
+                  noOptionsMessage={() => "No matching categories found"}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: '42px',
+                      borderColor: '#d1d5db',
+                      '&:hover': {
+                        borderColor: '#9ca3af'
+                      }
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      backgroundColor: '#fef3c7'
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
+                      color: '#92400e',
+                      fontWeight: '500'
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: '#92400e',
+                      '&:hover': {
+                        backgroundColor: '#fde68a',
+                        color: '#78350f'
+                      }
+                    })
+                  }}
+                />
+              </div>
+            )
+          }] : []),
           {
             name: 'product',
             label: 'Product',
