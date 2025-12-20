@@ -727,7 +727,6 @@
 
 .no-results {
   padding: 8px 12px;
-  color: var(--text-disabled);
   font-style: italic;
 }
 

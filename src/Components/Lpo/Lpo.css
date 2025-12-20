@@ -7,7 +7,6 @@
 .page-container {
   font-family: 'Times New Roman', serif;
   max-width: 100%;
-  background-color: #f1f1f1 !important;
   height: 100% !important;
   min-height: 130vh;
 }
@@ -80,6 +79,7 @@
   position: relative !important;
   margin-bottom: 2rem !important;
   font-family: 'Times New Roman', serif !important;
+  color: var(--text-inverse);
 }
 
 /* Header styling */
@@ -115,14 +115,6 @@
   margin-right: 0 !important;
 }
 
-.amendment-badge {
-  background-color: #ff9800;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-left: 10px;
-}
 
 .header-divider {
   border-top: 2px solid #000;

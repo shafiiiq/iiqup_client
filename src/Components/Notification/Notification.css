@@ -656,7 +656,6 @@
   justify-content: center;
   padding: 80px 40px;
   text-align: center;
-  background: var(--ntf-surface);
   border-radius: 16px;
   border: 2px dashed var(--ntf-border);
 }

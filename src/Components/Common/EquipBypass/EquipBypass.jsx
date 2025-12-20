@@ -205,7 +205,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                             <Button
                                 text="Create > For All"
                                 onClick={() => handleLpo('for-all-equipments')}
-                                colorScheme="orange-800"
+                                colorScheme="lime-800"
                                 variant="gradient"
                                 font="md"
                                 animation=""
@@ -220,7 +220,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                             <Button
                                 text="Create > For Stock"
                                 onClick={() => handleLpo('for-stock')}
-                                colorScheme="orange-800"
+                                colorScheme="lime-800"
                                 variant="gradient"
                                 font="md"
                                 animation=""
@@ -235,14 +235,14 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                         </div>
                         <div className="view-lpos">
                             <Button
-                                text="View > Of All"
+                                text="View > Of All Equipments"
                                 onClick={() => handleLpo('view-for-all-equipments')}
                                 colorScheme="orange-800"
                                 variant="gradient"
                                 font="md"
                                 animation=""
                                 rounded="md"
-                                width="160px"
+                                width="220px"
                                 height="38px"
                                 type="submit"
                                 textColor="white-200"

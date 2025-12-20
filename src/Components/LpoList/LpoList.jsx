@@ -3,8 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './LpoList.css';
 import { apiRequest } from '../../utils/0auth';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import DevModal from '../../common/DevModal';
+import Button from '../../common/Button/Button';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const navigate = useNavigate();
+  const tableRef = useRef(null);
+  const { regNo } = useParams()
+
   const [searchTerm, setSearchTerm] = useState('');
   const [lpos, setLpos] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -14,10 +22,41 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [filters, setFilters] = useState({
+    dateFilter: 'all',
+    vendors: [],
+    equipmentTypes: [],
+    amountRange: { min: '', max: '' },
+    lastMonthsCount: 6,
+    customStartDate: '',
+    customEndDate: ''
+  });
 
-  const navigate = useNavigate();
-  const tableRef = useRef(null);
-  const { regNo } = useParams()
+  useEffect(() => {
+    if (isAll) {
+      setHeaderTitle('LPO List');
+      setHeaderSubtitle('Of All');
+    } else if (isEquip) {
+      setHeaderTitle('LPO List');
+      setHeaderSubtitle('Of Equipment');
+    } else if (isStock) {
+      setHeaderTitle('LPO List');
+      setHeaderSubtitle('Of Stock');
+    } else if (isForAllEquip) {
+      setHeaderTitle('LPO List');
+      setHeaderSubtitle('Of All Equipments');
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [isAll, isEquip, isStock, isForAllEquip]);
+
 
   // Get current date and time
   useEffect(() => {
@@ -71,15 +110,8 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   };
 
   useEffect(() => {
-    if (lpos && lpos.length > 0) {
-      const results = lpos.filter(item => {
-        return Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      });
-      setFilteredData(results);
-    }
-  }, [searchTerm, lpos]);
+    applyAllFilters();
+  }, [lpos, searchTerm, filters]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -262,21 +294,103 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     return date.toLocaleDateString('en-GB');
   };
 
-  // Dynamic title based on props
-  const getTitle = () => {
-    if (isEquip) return `LPO Management - Equipment (${regNo})`;
-    if (isStock) return 'LPO Management - Stock';
-    if (isForAllEquip) return 'LPO Management - All Equipments';
-    return 'LPO Management - All LPOs';
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleApplyFilters = () => {
+    // Update the main filter states from the modal filters
+    setDateRange({
+      startDate: filters.customStartDate,
+      endDate: filters.customEndDate
+    });
+    setShowFiltersModal(false);
+
+    // Apply filters to data
+    applyAllFilters();
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      dateFilter: 'all',
+      vendors: [],
+      equipmentTypes: [],
+      amountRange: { min: '', max: '' },
+      lastMonthsCount: 6,
+      customStartDate: '',
+      customEndDate: ''
+    });
+    setDateRange({ startDate: '', endDate: '' });
+    setFilteredData(lpos);
+  };
+
+  const applyAllFilters = () => {
+    let filtered = [...lpos];
+
+    // Apply date filter
+    if (filters.dateFilter === 'custom' && filters.customStartDate && filters.customEndDate) {
+      filtered = filtered.filter(lpo => {
+        const lpoDate = new Date(lpo.date);
+        const startDate = new Date(filters.customStartDate);
+        const endDate = new Date(filters.customEndDate);
+        return lpoDate >= startDate && lpoDate <= endDate;
+      });
+    } else if (filters.dateFilter === 'lastXmonths') {
+      const monthsAgo = new Date();
+      monthsAgo.setMonth(monthsAgo.getMonth() - filters.lastMonthsCount);
+      filtered = filtered.filter(lpo => new Date(lpo.date) >= monthsAgo);
+    } else if (filters.dateFilter === 'thismonth') {
+      const now = new Date();
+      filtered = filtered.filter(lpo => {
+        const lpoDate = new Date(lpo.date);
+        return lpoDate.getMonth() === now.getMonth() &&
+          lpoDate.getFullYear() === now.getFullYear();
+      });
+    }
+
+    // Apply vendor filter
+    if (filters.vendors.length > 0) {
+      filtered = filtered.filter(lpo =>
+        filters.vendors.includes(lpo.company?.vendor)
+      );
+    }
+
+    // Apply equipment filter
+    if (filters.equipmentTypes.length > 0) {
+      filtered = filtered.filter(lpo =>
+        filters.equipmentTypes.includes(lpo.equipment)
+      );
+    }
+
+    // Apply amount range filter
+    if (filters.amountRange.min || filters.amountRange.max) {
+      filtered = filtered.filter(lpo => {
+        const amount = lpo.totalAmount;
+        const min = filters.amountRange.min ? parseFloat(filters.amountRange.min) : 0;
+        const max = filters.amountRange.max ? parseFloat(filters.amountRange.max) : Infinity;
+        return amount >= min && amount <= max;
+      });
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(lpo => {
+        return Object.values(lpo).some(value => {
+          if (typeof value === 'object' && value !== null) {
+            return Object.values(value).some(v =>
+              String(v).toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          }
+          return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+        });
+      });
+    }
+
+    setFilteredData(filtered);
   };
 
   return (
     <div className="lpo-container">
-      <div className="lpo-header">
-        <h1 className='lpo-title'>{getTitle()}</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div>
-
       <div className="controls-container">
         <div className="search-container">
           <input
@@ -293,44 +407,56 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           )}
         </div>
         <div className="buttons-container">
+          <Button
+            text="Filters"
+            onClick={() => setShowFiltersModal(true)}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
           {
             isAll || isStock || isForAllEquip
               ? ''
-              : <button onClick={handleAddLpo} className="action-btn add">
-                Add LPO
-              </button>
+              : <Button
+                text="Add LPO"
+                onClick={handleAddLpo}
+                colorScheme="lime-800"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
           }
-          <button onClick={handlePrint} className="action-btn print">
-            Print Table
-          </button>
-        </div>
-      </div>
-
-      <div className="date-filter-container">
-        <div className="date-filter-group">
-          <label>From:</label>
-          <input
-            type="date"
-            name="startDate"
-            value={dateRange.startDate}
-            onChange={handleDateRangeChange}
+          <Button
+            text="Print"
+            onClick={handlePrint}
+            colorScheme="amber-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
           />
         </div>
-        <div className="date-filter-group">
-          <label>To:</label>
-          <input
-            type="date"
-            name="endDate"
-            value={dateRange.endDate}
-            onChange={handleDateRangeChange}
-          />
-        </div>
-        <button onClick={handleFilterByDate} className="action-btn filter">
-          Filter
-        </button>
-        <button onClick={resetDateFilter} className="action-btn reset">
-          Reset
-        </button>
       </div>
 
       <div className="table-info">
@@ -367,24 +493,51 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   <td>{lpo.equipment}</td>
                   <td>SAR {lpo.totalAmount.toFixed(2)}</td>
                   <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="action-btn view"
+                    <Button
+                      text="View"
                       onClick={(e) => handleViewLpo(e, lpo)}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="action-btn delete"
+                      colorScheme="amber-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="Delete"
                       onClick={(e) => handleDeleteClick(e, lpo)}
-                    >
-                      Delete
-                    </button>
-                    <button
-                      className="action-btn amendment"
+                      colorScheme="error-700"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="Amendment"
                       onClick={(e) => handleAmendment(e, lpo)}
-                    >
-                      Amendment
-                    </button>
+                      colorScheme="yellow-500"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="black-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </td>
                 </tr>
               ))
@@ -436,6 +589,85 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           </div>
         </div>
       )}
+
+      {/* Filters Modal */}
+      <DevModal
+        isOpen={showFiltersModal}
+        onClose={() => setShowFiltersModal(false)}
+        type="filters"
+        title="LPO Filters"
+        message="Customize your view with advanced filtering options"
+        filterGroups={[
+          {
+            name: 'dateFilter',
+            label: 'Date Range',
+            type: 'select',
+            options: [
+              { value: 'all', label: 'All Time' },
+              { value: 'thismonth', label: 'This Month' },
+              { value: 'lastXmonths', label: 'Last X Months' },
+              { value: 'custom', label: 'Custom Range' }
+            ]
+          },
+          ...(filters.dateFilter === 'lastXmonths' ? [{
+            name: 'lastMonthsCount',
+            label: 'Number of Months',
+            type: 'select',
+            options: [
+              { value: 1, label: '1 Month' },
+              { value: 2, label: '2 Months' },
+              { value: 3, label: '3 Months' },
+              { value: 4, label: '4 Months' },
+              { value: 5, label: '5 Months' },
+              { value: 6, label: '6 Months' },
+              { value: 7, label: '7 Months' },
+              { value: 8, label: '8 Months' },
+              { value: 9, label: '9 Months' },
+              { value: 10, label: '10 Months' },
+              { value: 11, label: '11 Months' },
+              { value: 12, label: '12 Months' }
+            ]
+          }] : []),
+          ...(filters.dateFilter === 'custom' ? [
+            {
+              name: 'customStartDate',
+              label: 'Start Date',
+              type: 'date'
+            },
+            {
+              name: 'customEndDate',
+              label: 'End Date',
+              type: 'date'
+            }
+          ] : []),
+          {
+            name: 'vendors',
+            label: 'Vendors',
+            type: 'checkbox',
+            options: [...new Set(lpos.map(lpo => lpo.company?.vendor).filter(Boolean))].map(v =>
+              ({ value: v, label: v })
+            )
+          },
+          {
+            name: 'equipmentTypes',
+            label: 'Equipment Types',
+            type: 'checkbox',
+            options: [...new Set(lpos.map(lpo => lpo.equipment).filter(Boolean))].map(e =>
+              ({ value: e, label: e })
+            )
+          },
+          {
+            name: 'amountRange',
+            label: 'Amount Range (SAR)',
+            type: 'range'
+          }
+        ]}
+        filterValues={filters}
+        onFilterChange={handleFilterChange}
+        onApplyFilters={handleApplyFilters}
+        onResetFilters={handleResetFilters}
+        buttonText="Apply Filters"
+      />
     </div>
   );
 }

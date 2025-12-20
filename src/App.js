@@ -17,7 +17,6 @@ import ServiceHistoryForm from './Components/ServiceHistoryForm/ServiceHistoryFo
 import Notification from './Components/Notification/Notification';
 import MechanicService from './Components/MechanicService/MechanicService';
 import TyreHistoryForm from './Components/TyreHistoryForm/TyreHistoryForm';
-import Stocks from './Components/Stocks/Stocks';
 import StocksNavigation from './Components/StocksNavigation/StocksNavigation';
 import MaintanceHistoryForm from './Components/MaintanceHistoryForm/MaintanceHistoryForm';
 import EquipmentStockForm from './Components/EquipmentStockForm/EquipmentStockForm';
@@ -935,16 +934,6 @@ function App() {
                   <ProtectedRoute>
                     <CEOGuard>
                       <StocksNavigation />
-                    </CEOGuard>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/stocks/equipment-part-stocks"
-                element={
-                  <ProtectedRoute>
-                    <CEOGuard>
-                      <Stocks />
                     </CEOGuard>
                   </ProtectedRoute>
                 }

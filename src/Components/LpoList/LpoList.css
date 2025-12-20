@@ -69,7 +69,6 @@
 /* Main Container */
 .lpo-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
   color: var(--text-primary);
@@ -337,7 +336,6 @@
 /* LPO Table Container */
 .lpo-table-container {
   overflow-x: auto;
-  background-color: var(--bg-card);
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-primary);
@@ -348,7 +346,6 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background-color: var(--bg-card);
 }
 
 .lpo-table th {
@@ -371,8 +368,13 @@
 }
 
 .lpo-table tr:nth-child(odd) {
-  background-color: var(--bg-card) !important;
+  background-color: var(--gradient-primary-500) !important;
 }
+
+.lpo-table tr:nth-child(even) {
+  background: var(--gradient-primary-400) !important;
+}
+
 
 .lpo-table tbody tr {
   transition: background-color 0.2s ease;
@@ -387,7 +389,6 @@
   padding: 40px 20px;
   font-style: italic;
   color: var(--text-disabled);
-  background-color: var(--bg-hover);
 }
 
 .actions-cell {

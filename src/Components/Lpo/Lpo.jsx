@@ -8,16 +8,24 @@ import footer from '../../assets/images/footer.png';
 import { END_POINT } from '../../constants';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiRequest } from '../../utils/0auth';
+import Button from '../../common/Button/Button';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
 
 const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
+  const navigate = useNavigate();
   const { regNo, complaintId, refNo } = useParams();
+  const componentRef = useRef();
+  const equipmentRef = useRef();
+  const companyRef = useRef();
+  const attnRef = useRef();
+  const discountPopupRef = useRef();
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+
   const isForStock = isStock;
   const isForAllEquipm = isAllEquip;
   const isEditMode = edit && refNo;
   const isAmendmentEditMode = amendment && amendmentEdit && refNo;
   const isAmendmentMode = amendment && refNo;
-
-  const navigate = useNavigate();
 
   const [lpoCounter, setLpoCounter] = useState(1);
   const [workingHrsMode, setWorkingHrsMode] = useState('WORKING HRS');
@@ -36,10 +44,10 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
   const [showDiscountPopup, setShowDiscountPopup] = useState(false);
   const [discountInput, setDiscountInput] = useState('');
   const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
+  const [currentEquipmentInput, setCurrentEquipmentInput] = useState('');
   const [paymentTerms, setPaymentTerms] = useState([
     'Payment will be made within 90 days from the day of submission of invoice'
   ]);
-
   const [lpoData, setLpoData] = useState({
     vendor: '',
     equipments: [],
@@ -64,13 +72,31 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
     discount: 0
   });
 
-  const [currentEquipmentInput, setCurrentEquipmentInput] = useState('');
+  // Set header title when component mounts or data changes
+  useEffect(() => {
+    if (saveStatus) {
+      // Show save status in header
+      const title = saveStatus.includes('Error') ? 'Error' : saveStatus.includes('Please') ? 'Warning': 'Success';
+      setHeaderTitle(title);
+      setHeaderSubtitle(saveStatus);
+    } else if (lpoCounter) {
+      // Show LPO creation/edit info
+      const title = `${isAmendmentMode ? 'Amending' : isEditMode ? 'Editing' : 'Creating'} LPO: ${lpoData.lpoRef}`;
+      const subtitle = `LPO Number: ${lpoCounter}`;
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
 
-  const componentRef = useRef();
-  const equipmentRef = useRef();
-  const companyRef = useRef();
-  const attnRef = useRef();
-  const discountPopupRef = useRef();
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [lpoCounter, saveStatus, lpoData.lpoRef, isAmendmentMode, isEditMode]);
+
 
   useEffect(() => {
     if (isAmendmentEditMode && refNo) {
@@ -684,19 +710,9 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
   return (
     <div className="page-container">
       <div className="controls">
-        <p>Current LPO Number: {lpoCounter}</p>
-        <p>
-          {isAmendmentMode ? 'Amending' : isEditMode ? 'Editing' : 'Creating'} LPO: {lpoData.lpoRef}
-          {isAmendmentMode && <span className="amendment-badge"> (Amendment)</span>}
-        </p>
-        {saveStatus && (
-          <p className={`save-status ${saveStatus.includes('Error') ? 'error' : 'success'}`}>
-            {saveStatus}
-          </p>
-        )}
         <div className="button-group">
-          <button className="action-button download-button" onClick={handleSave} disabled={isLoading}>
-            {isLoading ? (
+          <Button
+            text={isLoading ? (
               isAmendmentMode ? 'Processing Amendment...' :
                 isEditMode ? 'Updating...' :
                   'Saving...'
@@ -705,7 +721,20 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
                 isEditMode ? 'Update LPO' :
                   'Save LPO'
             )}
-          </button>
+            onClick={handleSave}
+            colorScheme={isLoading ? 'lime-900' : 'lime-800'}
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type={isLoading ? 'disabled' : 'submit'}
+            textColor="white-200"
+            cursor={isLoading ? 'not-allowed' : 'allowed'}
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 

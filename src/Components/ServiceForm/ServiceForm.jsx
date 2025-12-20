@@ -603,7 +603,7 @@ const ServiceForm = ({ initialData = {} }) => {
           <div className="form-actions">
             <Button
               text="Reset"
-              onClick={() => handleReset}
+              onClick={handleReset}
               colorScheme="amber-800"
               variant="gradient"
               font="md"

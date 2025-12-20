@@ -37,36 +37,11 @@
   font-size: 16px;
 }
 
-/* download  */
-.lpo-download-button {
-  margin-right: 31rem;
-  background-color: #7f569e;
-  color: white;
+.managerial-actions {
+  display: flex;
+  gap: 1.5rem;
 }
 
-.lpo-download-button:hover {
-  background-color: #614577;
-}
-
-/* edit  */
-.lpo-edit-button {
-  background-color: #d3c43e;
-  color: rgb(0, 0, 0);
-}
-
-.lpo-edit-button:hover {
-  background-color: #b1a538;
-}
-
-/* approval  */
-.lpo-approval-button {
-  background-color: #26a52c;
-  color: rgb(255, 255, 255);
-}
-
-.lpo-approval-button:hover {
-  background-color: #228a27;
-}
 
 /* LPO Document Styling */
 .lpo-document {
@@ -82,6 +57,7 @@
   position: relative !important;
   max-height: 297mm !important;
   margin-bottom: 2rem !important;
+  color: var(--text-inverse);
 }
 
 .draft-watermark {

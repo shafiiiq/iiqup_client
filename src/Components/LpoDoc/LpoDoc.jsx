@@ -10,16 +10,17 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { getDeviceFingerprint, getLocationInfo } from '../../utils/deviceFingerprint';
 import DevModal from '../../common/DevModal';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const LpoDoc = () => {
   const navigate = useNavigate()
+  const componentRef = useRef();
   const params = useParams();
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const refNo = params.lpoRef;
   const complaintId = params.complaintId;
   const amendment = params.amendment;
-
-  console.log("amendment", amendment);
-
 
   const [lpoCounter, setLpoCounter] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -60,14 +61,12 @@ const LpoDoc = () => {
     isTrusted: false,
     checked: false
   });
-
   const [signatureFlags, setSignatureFlags] = useState({
     pmSigned: false,
     accountsSigned: false,
     managerSigned: false,
     ceoSigned: false
   });
-
   const [signatureStates, setSignatureStates] = useState({
     accounts: { url: '', loading: false },
     pm: { url: '', loading: false },
@@ -75,13 +74,10 @@ const LpoDoc = () => {
     authorized: { url: '', loading: false },
     seal: { url: '', loading: false }
   });
-
   const [activationModal, setActivationModal] = useState({
     show: false,
     step: 1 // 1: activation key, 2: confirmation
   });
-
-  // Timer states for each signature
   const [timers, setTimers] = useState({
     accounts: 0,
     pm: 0,
@@ -90,16 +86,34 @@ const LpoDoc = () => {
     seal: 0
   });
 
-  const componentRef = useRef();
-
   const [activationKey, setActivationKey] = useState('');
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [activationError, setActivationError] = useState('');
   const [activationLoading, setActivationLoading] = useState(false);
-
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showTrustModal, setShowTrustModal] = useState(false);
   const [showNotTrustedModal, setShowNotTrustedModal] = useState(false);
+
+  // Set header title when component mounts or data changes
+  useEffect(() => {
+    if (lpoCounter) {
+      const title = globalActivation.isTrusted
+        ? `E-Signs Activated`
+        : `Please Activate the Sign`;
+      const subtitle = `LPO Document: ${lpoData.lpoRef}`;
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [lpoCounter, lpoData.lpoRef, globalActivation.isTrusted]);
 
 
   // Add useEffect for device info on mount
@@ -2060,41 +2074,93 @@ const LpoDoc = () => {
           {!globalActivation.checked ? (
             <div className="status-badge checking">🔄 Checking Status...</div>
           ) : !globalActivation.isActivated ? (
-            <button
-              onClick={handleLoadAllSignatures}
-              className="action-button activation-btn not-activated"
-            >
-              Not Activated - Click to Activate
-            </button>
+            <Button
+                text="Activate E-Signs"
+                onClick={handleLoadAllSignatures}
+                colorScheme="red-700"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
           ) : !globalActivation.isTrusted ? (
             <div className="status-badge not-trusted">
-              <button
+              <Button
+                text="Device Not Trusted - Contact Admin"
                 onClick={handleLoadAllSignatures}
-                className="action-button activation-btn not-activated"
-              >Device Not Trusted - Contact Admin
-              </button>
+                colorScheme="red-700"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
             </div>
           ) : (
-            <div className="status-badge activated"> Activated & Trusted</div>
+            null
           )}
         </div>
 
-        <p>Current LPO Number: {lpoCounter}</p>
-        <p>LPO Reference: {lpoData.lpoRef}</p>
 
         <div className="button-group">
-          <button className="action-button lpo-approval-button" onClick={sendToApprove}>
-            Send For Approval
-          </button>
-          <button className="action-button lpo-download-button" onClick={handleDownloadPdf}>
-            Download as PDF
-          </button>
-          <button className="action-button lpo-edit-button" onClick={EditLPO}>
-            Edit
-          </button>
-          {/* <button className="action-button print-button" onClick={handlePrint}>
-            Print
-          </button> */}
+          <div className="managerial-actions">
+            <Button
+              text="Send For Approval"
+              onClick={sendToApprove}
+              colorScheme="lime-700"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+            <Button
+              text="Download as PDF"
+              onClick={handleDownloadPdf}
+              colorScheme="violet-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="160px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+          </div>
+          <Button
+            text="Edit"
+            onClick={EditLPO}
+            colorScheme="sky-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 

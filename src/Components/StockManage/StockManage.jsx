@@ -1204,7 +1204,7 @@ function StockManage() {
         <div className="toolkits-actions">
           <Button
             text="Add Stock"
-            onClick={() => openAddForm}
+            onClick={openAddForm}
             colorScheme="violet-800"
             variant="gradient"
             font="md"
@@ -1219,7 +1219,7 @@ function StockManage() {
           />
           <Button
             text="Export to Excel"
-            onClick={() => exportToExcel}
+            onClick={exportToExcel}
             colorScheme="slate-600"
             variant="gradient"
             font="md"
@@ -1234,7 +1234,7 @@ function StockManage() {
           />
           <Button
             text="Print"
-            onClick={() => handlePrint}
+            onClick={handlePrint}
             colorScheme=""
             variant="gradient"
             font="md"
