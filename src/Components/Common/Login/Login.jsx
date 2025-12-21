@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import { AuthUtils, LoginLogic } from '../../../utils/authUtils';
 import { END_POINT } from '../../../constants';
+import Button from '../../../common/Button/Button';
 
 const Login = ({ setUserLoggedIn }) => {
   const navigate = useNavigate();
@@ -21,34 +22,6 @@ const Login = ({ setUserLoggedIn }) => {
   const [remainingTime, setRemainingTime] = useState(0);
   const [canResend, setCanResend] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
-  // Base URL for API calls
-  const API_BASE_URL = END_POINT;
-
-  // Get current date and time
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString} | ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   // OTP countdown timer
   useEffect(() => {
@@ -115,7 +88,7 @@ const Login = ({ setUserLoggedIn }) => {
 
   const requestOTP = async (emailToSend) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/otp/request`, {
+      const response = await fetch(`${END_POINT}/otp/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,14 +120,14 @@ const Login = ({ setUserLoggedIn }) => {
       }
 
       // API call to update authMail
-      const response = await fetch(`${API_BASE_URL}/users/update-auth-mail`, {
+      const response = await fetch(`${END_POINT}/users/update-auth-mail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          userId: userData._id, 
-          authMail 
+        body: JSON.stringify({
+          userId: userData._id,
+          authMail
         }),
       });
 
@@ -230,15 +203,10 @@ const Login = ({ setUserLoggedIn }) => {
   const renderLoginForm = () => (
     <div className="auth-login-form-container">
       <div className="auth-login-header-content">
-        <div className="auth-login-icon-container">
-          <div className="auth-icon-glow"></div>
-        </div>
-        <h1 className="auth-login-title">Welcome Back</h1>
         <p className="auth-login-subtitle">Access your secure workspace</p>
-        <div className="auth-subtitle-accent"></div>
       </div>
 
-      <form onSubmit={handleLogin} className="auth-login-form">
+      <form className="auth-login-form">
         <div className="auth-form-group">
           <label htmlFor="email">Email Address</label>
           <div className="auth-input-container">
@@ -309,30 +277,30 @@ const Login = ({ setUserLoggedIn }) => {
           </label>
         </div>
 
-        <button type="submit" className="auth-btn auth-btn-primary" disabled={loading}>
-          {loading ? (
-            <div className="auth-btn-loading">
-              <div className="auth-spinner"></div>
-              <span>Authenticating...</span>
-            </div>
-          ) : (
-            <div className="auth-btn-content">
-              <span>Sign In</span>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 12H19" stroke="currentColor" strokeWidth="2" />
-                <path d="M12 5L19 12L12 19" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
-          )}
-        </button>
-
+        <Button
+          text={loading ? "Authenticating..." : "Sign In"}
+          onClick={handleLogin}
+          colorScheme="lime-800"
+          variant="gradient"
+          font="xl"
+          animation=""
+          rounded="full"
+          width="530px"
+          height="70px"
+          type="submit"
+          iconRight="arrow_right"
+          ico
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
         <div className="auth-form-footer">
           <button type="button" className="auth-link-btn">
             Forgot Password?
           </button>
         </div>
-      </form>
-    </div>
+      </form >
+    </div >
   );
 
   const renderAuthMailForm = () => (
@@ -346,7 +314,6 @@ const Login = ({ setUserLoggedIn }) => {
           />
           <div className="auth-icon-glow auth-success"></div>
         </div>
-        <h1 className="auth-login-title">Security Setup</h1>
         <p className="auth-login-subtitle">Set up your authentication email for enhanced security</p>
         <div className="auth-subtitle-accent"></div>
       </div>
@@ -401,7 +368,6 @@ const Login = ({ setUserLoggedIn }) => {
         <div className="auth-login-icon-container">
           <div className="auth-icon-glow auth-otp"></div>
         </div>
-        <h1 className="auth-login-title">Email Verification</h1>
         <p className="auth-login-subtitle">
           Enter the 6-digit code sent to <strong>{userData?.authMail || authMail}</strong>
         </p>
@@ -495,22 +461,45 @@ const Login = ({ setUserLoggedIn }) => {
 
   return (
     <div className="auth-premium-login-container">
-      <div className="auth-background-overlay"></div>
-      <div className="auth-background-image"></div>
+      <div className="auth-left-section">
+        <div className="auth-left-content">
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+          <div className="auth-left-bar"></div>
+        </div>
 
-      <div className="auth-login-card">
-        {error && (
-          <div className="auth-error-alert">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-              <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2" />
-              <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
+        <h1 className="auth-animated-title">
+          {(step === 'login' ? 'WELCOME BACK' :
+            step === 'updateAuthMail' ? 'SECURITY SETUP' :
+              'EMAIL VERIFICATION').split('').map((char, i) => (
+                <span key={i}>{char}</span>
+              ))}
+        </h1>
+      </div>
 
-        {renderForm()}
+      <div className="auth-right-section">
+        <div className="auth-login-card">
+          {error && (
+            <div className="auth-error-alert">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2" />
+                <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {renderForm()}
+        </div>
       </div>
     </div>
   );

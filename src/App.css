@@ -10,10 +10,10 @@
   --header-color-primary-200: #f0f2ff;
   --header-color-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
   --header-color-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
-  --header-color-primary-500: #f0f2ff;
-  --header-color-primary-600: #f0f2ff;
-  --header-color-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794ca6 100%);
-  --header-color-primary-800: #f0f2ff;
+  --header-color-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
+  --header-color-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
+  --header-color-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
+  --header-color-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);;
   --header-color-primary-900: #f0f2ff;
 
   --header-bg-primary-50: #f0f2ff;
