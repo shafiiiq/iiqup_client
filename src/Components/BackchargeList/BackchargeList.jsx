@@ -305,11 +305,6 @@ function BackchargeList() {
 
   return (
     <div className="bcl-main-container">
-      <div className="bcl-header-section">
-        <h1 className='bcl-page-title'>Backcharge Reports Management</h1>
-        <div className="bcl-datetime-display">{currentDateTime}</div>
-      </div>
-
       <div className="bcl-controls-wrapper">
         <div className="bcl-search-wrapper">
           <input

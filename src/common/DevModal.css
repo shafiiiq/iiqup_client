@@ -1298,6 +1298,46 @@
     background: white;
 }
 
+/* Searchable Multi-Select Dropdown */
+.dm-searchable-dropdown {
+    position: absolute;
+    z-index: 1000;
+    width: calc(50% - 16px);
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dm-searchable-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dm-searchable-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.dm-searchable-dropdown::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.dm-searchable-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.dm-selected-items {
+    margin-bottom: 10px;
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 32px;
+}
+
 /* Mobile adjustments */
 @media (max-width: 900px) {
     .dm-card-filters {
@@ -1551,42 +1591,3 @@
         animation: none;
     }
 }
-
-/* https://claude.ai/chat/c3352682-6e75-4c75-bb9e-629a8034121f
-find in dev email claud
-
-// Form Modal Example
-<DevModal
-  isOpen={showFormModal}
-  onClose={() => setShowFormModal(false)}
-  type="form"
-  title="Contact Us"
-  message="Fill out the form below and we'll get back to you soon."
-  formFields={[
-    { name: 'name', label: 'Full Name', type: 'text', placeholder: 'John Doe', required: true },
-    { name: 'email', label: 'Email', type: 'email', placeholder: 'john@example.com', required: true },
-    { name: 'subject', label: 'Subject', type: 'select', required: true, options: ['Support', 'Sales', 'Feedback'] },
-    { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Your message...', rows: 4 }
-  ]}
-  formValues={formData}
-  onFormChange={(field, value) => setFormData({...formData, [field]: value})}
-  buttonText="Submit"
-  onButtonClick={handleFormSubmit}
-  secondaryButtonText="Cancel"
-  onSecondaryClick={() => setShowFormModal(false)}
-/>
-
-// Unauthorized Modal Example
-<DevModal
-  isOpen={showUnauthorized}
-  onClose={() => setShowUnauthorized(false)}
-  type="unauthorized"
-  title="Access Denied"
-  message="You don't have permission to access this feature."
-  unauthorizedReason="Your account level doesn't include premium features."
-  contactEmail="support@yourcompany.com"
-  buttonText="Upgrade Account"
-  onButtonClick={handleUpgrade}
-  secondaryButtonText="Go Back"
-  onSecondaryClick={() => setShowUnauthorized(false)}
-/> */

@@ -31,6 +31,7 @@ function StockManage() {
   const [equipmentSearchTerm, setEquipmentSearchTerm] = useState('');
   const [mechanicSearchTerm, setMechanicSearchTerm] = useState('');
   const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false);
+  const [filteredEquipmentOptions, setFilteredEquipmentOptions] = useState([]);
   const [showMechanicDropdown, setShowMechanicDropdown] = useState(false);
   const [filteredEquipments, setFilteredEquipments] = useState([]);
   const [filteredMechanics, setFilteredMechanics] = useState([]);
@@ -77,18 +78,18 @@ function StockManage() {
     fetchMechanics();
   }, []);
 
-  // Filter equipments based on search term
+  // Filter equipment options based on search term
   useEffect(() => {
     if (equipmentSearchTerm.trim() === '') {
-      setFilteredEquipments(equipments);
+      setFilteredEquipmentOptions(formData.type === 'specific-equipment' ? equipmentOptions : equipmentCategoryOptions);
     } else {
-      const filtered = equipments.filter(equipment =>
-        equipment.machine.toLowerCase().includes(equipmentSearchTerm.toLowerCase()) ||
-        equipment.regNo.toLowerCase().includes(equipmentSearchTerm.toLowerCase())
+      const optionsToFilter = formData.type === 'specific-equipment' ? equipmentOptions : equipmentCategoryOptions;
+      const filtered = optionsToFilter.filter(opt =>
+        opt.label.toLowerCase().includes(equipmentSearchTerm.toLowerCase())
       );
-      setFilteredEquipments(filtered);
+      setFilteredEquipmentOptions(filtered);
     }
-  }, [equipmentSearchTerm, equipments]);
+  }, [equipmentSearchTerm, equipmentOptions, equipmentCategoryOptions, formData.type]);
 
   // Filter mechanics based on search term
   useEffect(() => {
@@ -101,6 +102,21 @@ function StockManage() {
       setFilteredMechanics(filtered);
     }
   }, [mechanicSearchTerm, mechanics]);
+
+  // Helper function to handle equipment selection
+  const handleEquipmentSelection = (item) => {
+    const currentValues = formData.equipments || [];
+    if (!currentValues.includes(item.value)) {
+      const newEquipments = [...currentValues, item.value];
+      setFormData({
+        ...formData,
+        equipments: newEquipments
+      });
+      setSelectedEquipments(newEquipments); // Sync with selectedEquipments
+    }
+    setEquipmentSearchTerm('');
+    setShowEquipmentDropdown(false);
+  };
 
   // Handle equipment selection
   const handleEquipmentSelect = (equipment) => {
@@ -397,6 +413,8 @@ function StockManage() {
       stockCount: ''
     });
     setSelectedEquipments([]);
+    setEquipmentSearchTerm('');
+    setShowEquipmentDropdown(false);
     setShowForm(true);
   };
 
@@ -428,7 +446,7 @@ function StockManage() {
     try {
       const submitData = {
         ...formData,
-        equipments: selectedEquipments
+        equipments: formData.equipments || []
       };
 
       let url, method;
@@ -1434,37 +1452,86 @@ function StockManage() {
             <div className="stock-manage-actions-section">
               <h3>Actions</h3>
               <div className="stock-manage-action-btn-group">
-                <button className="stock-manage-action-btn edit" onClick={() => openUpdateForm(selectedStock)}>
-                  Edit Stock
-                </button>
-                <button
-                  className="stock-manage-action-btn reduce"
+                <Button
+                  text="Edit Stock"
+                  onClick={() => openUpdateForm(selectedStock)}
+                  colorScheme="blue-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="md"
+                  width="160px"
+                  height="38px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Add Stock"
                   onClick={() => setShowAddForm(true)}
-                  style={{ backgroundColor: '#1221f3b2' }}
-                >
-                  Add Stock
-                </button>
-                <button
-                  className="stock-manage-action-btn reduce"
+                  colorScheme="success-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="md"
+                  width="160px"
+                  height="38px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Reduce Stock"
                   onClick={() => setShowReduceForm(true)}
-                  style={{ backgroundColor: '#8417a5ff' }}
-                >
-                  Reduce Stock
-                </button>
-                <button className="stock-manage-action-btn delete" onClick={() => deleteStock(selectedStock._id)}>
-                  Delete Stock
-                </button>
+                  colorScheme="amber-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="md"
+                  width="160px"
+                  height="38px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Delete Stock"
+                  onClick={() => deleteStock(selectedStock._id)}
+                  colorScheme="red-700"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="md"
+                  width="160px"
+                  height="38px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
               </div>
             </div>
 
             <div className="stock-manage-history-section">
               <h3>Stock Movement History</h3>
-              <button
-                className="stock-manage-action-btn history"
-                onClick={() => setShowStockHistory(!showStockHistory)}
-              >
-                {showStockHistory ? 'Hide History' : 'Show History'}
-              </button>
+              <Button
+                text={showStockHistory ? 'Hide History' : 'Show History'}
+                onClick={() =>  setShowStockHistory(!showStockHistory)}
+                colorScheme={showStockHistory ? 'indigo-900' : 'lime-700'}
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="38px"
+                type="submit"
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
 
               {showStockHistory && (
                 <div className="stock-manage-history-table-container">
@@ -1553,10 +1620,19 @@ function StockManage() {
         ]}
         formValues={addFormData}
         onFormChange={(field, value) => {
-          setAddFormData({
-            ...addFormData,
-            [field]: field === 'stockCount' ? parseInt(value) || 0 : value
-          });
+          if (field === 'equipments') {
+            // Handle equipment array updates
+            setFormData({
+              ...formData,
+              equipments: value
+            });
+            setSelectedEquipments(value);
+          } else {
+            setFormData({
+              ...formData,
+              [field]: (field === 'rate' || field === 'stockCount') ? parseFloat(value) || 0 : value
+            });
+          }
         }}
         buttonText="Confirm Add"
         onButtonClick={handleAddStock}
@@ -1660,171 +1736,60 @@ function StockManage() {
               { value: 'all', label: 'For All Machines' }
             ]
           },
-          // Equipment selector for "For Specific Equipment"
+          // For Specific Equipment - Searchable Multi-Select
           ...(formData.type === 'specific-equipment' ? [{
-            name: 'equipmentSelector',
+            name: 'equipments',
             label: 'Select Specific Equipment(s)',
-            type: 'custom',
+            type: 'searchable-multi-select',
             required: true,
-            customRender: () => (
-              <div style={{ marginBottom: '15px' }}>
-                <div className="selected-equipments" style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {selectedEquipments.map((equip, index) => (
-                    <span key={index} style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      backgroundColor: '#e0e7ff',
-                      color: '#4338ca',
-                      padding: '6px 10px',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: '500'
-                    }}>
-                      {equip}
-                      <button
-                        type="button"
-                        onClick={() => setSelectedEquipments(prev => prev.filter(e => e !== equip))}
-                        style={{
-                          marginLeft: '8px',
-                          background: 'none',
-                          border: 'none',
-                          color: '#4338ca',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '16px',
-                          lineHeight: '1',
-                          padding: '0'
-                        }}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <Select
-                  options={equipmentOptions}
-                  isMulti
-                  value={equipmentOptions.filter(opt =>
-                    selectedEquipments.includes(opt.value)
-                  )}
-                  onChange={(selected) => {
-                    setSelectedEquipments(selected ? selected.map(item => item.value) : []);
-                  }}
-                  placeholder="Search by equipment name or registration number..."
-                  noOptionsMessage={() => "No matching equipment found"}
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: '42px',
-                      borderColor: '#d1d5db',
-                      '&:hover': {
-                        borderColor: '#9ca3af'
-                      }
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      backgroundColor: '#e0e7ff'
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: '#4338ca',
-                      fontWeight: '500'
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: '#4338ca',
-                      '&:hover': {
-                        backgroundColor: '#c7d2fe',
-                        color: '#3730a3'
-                      }
-                    })
-                  }}
-                />
-              </div>
-            )
+            placeholder: 'Search by equipment name or registration number...',
+            showDropdown: showEquipmentDropdown,
+            dropdownItems: filteredEquipmentOptions.map(opt => ({
+              value: opt.value,
+              label: opt.label.split(' - ')[0],
+              subtitle: `Reg No: ${opt.label.split(' - ')[1] || 'N/A'}`
+            })),
+            onSearchFocus: () => {
+              setShowEquipmentDropdown(true);
+              setEquipmentSearchTerm('');
+            },
+            onSearch: (value) => {
+              setEquipmentSearchTerm(value);
+              setShowEquipmentDropdown(value.length > 0);
+            },
+            onSearchBlur: () => {
+              setShowEquipmentDropdown(false);
+            },
+            onItemSelect: (item) => {
+              handleEquipmentSelection(item);
+            }
           }] : []),
-          // Equipment category selector for "For Equipment"
+          // For Equipment Category - Searchable Multi-Select  
           ...(formData.type === 'equipment' ? [{
-            name: 'equipmentCategorySelector',
+            name: 'equipments',
             label: 'Select Equipment Categories',
-            type: 'custom',
+            type: 'searchable-multi-select',
             required: true,
-            customRender: () => (
-              <div style={{ marginBottom: '15px' }}>
-                <div className="selected-equipments" style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {selectedEquipments.map((equip, index) => (
-                    <span key={index} style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      backgroundColor: '#fef3c7',
-                      color: '#92400e',
-                      padding: '6px 10px',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: '500'
-                    }}>
-                      {equip}
-                      <button
-                        type="button"
-                        onClick={() => setSelectedEquipments(prev => prev.filter(e => e !== equip))}
-                        style={{
-                          marginLeft: '8px',
-                          background: 'none',
-                          border: 'none',
-                          color: '#92400e',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '16px',
-                          lineHeight: '1',
-                          padding: '0'
-                        }}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <Select
-                  options={equipmentCategoryOptions}
-                  isMulti
-                  value={equipmentCategoryOptions.filter(opt =>
-                    selectedEquipments.includes(opt.value)
-                  )}
-                  onChange={(selected) => {
-                    setSelectedEquipments(selected ? selected.map(item => item.value) : []);
-                  }}
-                  placeholder="Search by equipment type and brand..."
-                  noOptionsMessage={() => "No matching categories found"}
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: '42px',
-                      borderColor: '#d1d5db',
-                      '&:hover': {
-                        borderColor: '#9ca3af'
-                      }
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      backgroundColor: '#fef3c7'
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: '#92400e',
-                      fontWeight: '500'
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: '#92400e',
-                      '&:hover': {
-                        backgroundColor: '#fde68a',
-                        color: '#78350f'
-                      }
-                    })
-                  }}
-                />
-              </div>
-            )
+            placeholder: 'Search by equipment type and brand...',
+            showDropdown: showEquipmentDropdown,
+            dropdownItems: filteredEquipmentOptions.map(opt => ({
+              value: opt.value,
+              label: opt.label
+            })),
+            onSearchFocus: () => {
+              setShowEquipmentDropdown(true);
+              setEquipmentSearchTerm('');
+            },
+            onSearch: (value) => {
+              setEquipmentSearchTerm(value);
+              setShowEquipmentDropdown(value.length > 0);
+            },
+            onSearchBlur: () => {
+              setShowEquipmentDropdown(false);
+            },
+            onItemSelect: (item) => {
+              handleEquipmentSelection(item);
+            }
           }] : []),
           {
             name: 'product',

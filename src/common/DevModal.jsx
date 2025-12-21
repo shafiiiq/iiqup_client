@@ -597,6 +597,112 @@ const DevModal = ({
                               </option>
                             ))}
                           </select>
+                        ) : field.type === 'searchable-multi-select' ? (
+                          <div style={{ marginBottom: '15px' }}>
+                            <div className="dm-selected-items" style={{
+                              marginBottom: '10px',
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: '6px'
+                            }}>
+                              {(formValues[field.name] || []).map((item, index) => (
+                                <span key={index} style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  backgroundColor: '#e0e7ff',
+                                  color: '#4338ca',
+                                  padding: '6px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '13px',
+                                  fontWeight: '500'
+                                }}>
+                                  {item}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newValues = (formValues[field.name] || []).filter((_, i) => i !== index);
+                                      onFormChange(field.name, newValues);
+                                    }}
+                                    style={{
+                                      marginLeft: '8px',
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#4338ca',
+                                      cursor: 'pointer',
+                                      fontWeight: 'bold',
+                                      fontSize: '16px',
+                                      lineHeight: '1',
+                                      padding: '0'
+                                    }}
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                            <input
+                              type="text"
+                              className="dm-form-input"
+                              placeholder={field.placeholder || 'Search...'}
+                              onFocus={(e) => {
+                                field.onSearchFocus && field.onSearchFocus();
+                              }}
+                              onChange={(e) => {
+                                field.onSearch && field.onSearch(e.target.value);
+                              }}
+                              onBlur={() => {
+                                setTimeout(() => {
+                                  field.onSearchBlur && field.onSearchBlur();
+                                }, 200);
+                              }}
+                            />
+                            {field.showDropdown && field.dropdownItems && field.dropdownItems.length > 0 && (
+                              <div className="dm-searchable-dropdown" style={{
+                                position: 'absolute',
+                                zIndex: 1000,
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                backgroundColor: 'white',
+                                border: '2px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '8px',
+                                marginTop: '4px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                              }}>
+                                {field.dropdownItems.slice(0, 10).map((item, i) => (
+                                  <div
+                                    key={i}
+                                    onClick={() => field.onItemSelect && field.onItemSelect(item)}
+                                    style={{
+                                      padding: '10px 12px',
+                                      cursor: 'pointer',
+                                      borderBottom: '1px solid #f0f0f0',
+                                      color: '#1f2937',
+                                      transition: 'background 150ms ease'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                  >
+                                    <div style={{ fontWeight: '500' }}>{item.label}</div>
+                                    {item.subtitle && (
+                                      <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+                                        {item.subtitle}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                                {field.dropdownItems.length > 10 && (
+                                  <div style={{
+                                    padding: '8px 12px',
+                                    color: '#6b7280',
+                                    fontSize: '12px',
+                                    textAlign: 'center'
+                                  }}>
+                                    +{field.dropdownItems.length - 10} more results...
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <input
                             type={field.type || 'text'}
