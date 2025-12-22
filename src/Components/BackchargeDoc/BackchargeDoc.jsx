@@ -7,11 +7,15 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { apiRequest } from '../../utils/0auth';
 import { END_POINT } from '../../constants';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 const BackchargeDoc = () => {
     const { refNo } = useParams();
     const navigate = useNavigate();
     const componentRef = useRef();
+    const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+
     const [imagesLoaded, setImagesLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [saveStatus, setSaveStatus] = useState('');
@@ -19,8 +23,6 @@ const BackchargeDoc = () => {
     const [documentExists, setDocumentExists] = useState(false);
     const [documentId, setDocumentId] = useState(null);
     const [grantTotal, setGrantTotal] = useState(0);
-
-    // State for form data
     const [formData, setFormData] = useState({
         reportNo: '',
         equipmentType: '',
@@ -45,6 +47,24 @@ const BackchargeDoc = () => {
             total: ''
         }))
     });
+
+    useEffect(() => {
+        if (refNo) {
+            const title = `Ref No: ${refNo}`
+            const subtitle = `Backcharge Of: ${formData.supplierName}`;
+            setHeaderTitle(title);
+            setHeaderSubtitle(subtitle);
+        } else {
+            setHeaderTitle(null);
+            setHeaderSubtitle(null);
+        }
+
+        // Cleanup - reset when component unmounts
+        return () => {
+            setHeaderTitle(null);
+            setHeaderSubtitle(null);
+        };
+    }, [refNo, formData.supplierName]);
 
     useEffect(() => {
         const total = formData.tableRows.reduce((sum, row) => {
@@ -1084,10 +1104,6 @@ const BackchargeDoc = () => {
     return (
         <div className="bcr-hero-wrapper">
             <div className="bcr-controls">
-                <p>Ref No: {refNo}</p>
-                <p>Report No: {formData.reportNo}</p>
-                <p>Equipment Type: {formData.equipmentType}</p>
-
                 {saveStatus && (
                     <div className={`bcr-save-status ${saveStatus === 'success' ? 'success' : 'error'}`}>
                         {saveStatus === 'success' ? '✓ Updated successfully!' : '✗ Update failed!'}
@@ -1097,18 +1113,55 @@ const BackchargeDoc = () => {
                 <div className="bcr-button-group">
                     {!isEditing ? (
                         <>
-                            <button className="bcr-action-button bcr-edit-button" onClick={handleEdit}>
-                                Edit Document
-                            </button>
-                            <button className="bcr-action-button bcr-download-button" onClick={handleDownloadPdf}>
-                                Download as PDF
-                            </button>
-                            <button className="bcr-action-button bcr-print-button" onClick={handlePrint}>
-                                Print
-                            </button>
-                            <button className="bcr-action-button bcr-back-button" onClick={() => navigate('/backcharge-list')}>
-                                Back to List
-                            </button>
+                            <div className='bcr-btn-left'>
+                                <Button
+                                    text="Edit"
+                                    onClick={handleEdit}
+                                    colorScheme="lime-700"
+                                    variant="gradient"
+                                    font="md"
+                                    animation=""
+                                    rounded="md"
+                                    width="160px"
+                                    height="38px"
+                                    type="submit"
+                                    textColor="white-200"
+                                    shadowPosition="to-bottom"
+                                    shadowColor="white-600"
+                                />
+                                <Button
+                                    text="Download as PDF"
+                                    onClick={handleDownloadPdf}
+                                    colorScheme="violet-700"
+                                    variant="gradient"
+                                    font="md"
+                                    animation=""
+                                    rounded="md"
+                                    width="160px"
+                                    height="38px"
+                                    type="submit"
+                                    textColor="white-200"
+                                    shadowPosition="to-bottom"
+                                    shadowColor="white-600"
+                                />
+                            </div>
+                            <div className='bcr-btn-right'>
+                                <Button
+                                    text="Print"
+                                    onClick={handlePrint}
+                                    colorScheme="amber-700"
+                                    variant="gradient"
+                                    font="md"
+                                    animation=""
+                                    rounded="md"
+                                    width="160px"
+                                    height="38px"
+                                    type="submit"
+                                    textColor="white-200"
+                                    shadowPosition="to-bottom"
+                                    shadowColor="white-600"
+                                />
+                            </div>
                         </>
                     ) : (
                         <>

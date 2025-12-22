@@ -4,6 +4,7 @@ import './Login.css';
 import { AuthUtils, LoginLogic } from '../../../utils/authUtils';
 import { END_POINT } from '../../../constants';
 import Button from '../../../common/Button/Button';
+import logoImage from '../../../assets/images/al-ansari.png';
 
 const Login = ({ setUserLoggedIn }) => {
   const navigate = useNavigate();
@@ -280,16 +281,15 @@ const Login = ({ setUserLoggedIn }) => {
         <Button
           text={loading ? "Authenticating..." : "Sign In"}
           onClick={handleLogin}
-          colorScheme="lime-800"
+          colorScheme={loading ? 'amber-700' : 'lime-700'}
           variant="gradient"
           font="xl"
           animation=""
           rounded="full"
-          width="530px"
+          width="380px"
           height="70px"
           type="submit"
-          iconRight="arrow_right"
-          ico
+          iconRight="arrow_forward_ios"
           textColor="white-200"
           shadowPosition="to-bottom"
           shadowColor="white-600"
@@ -306,14 +306,6 @@ const Login = ({ setUserLoggedIn }) => {
   const renderAuthMailForm = () => (
     <div className="auth-login-form-container">
       <div className="auth-login-header-content">
-        <div className="auth-login-icon-container">
-          <img
-            src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center"
-            alt="Setup"
-            className="auth-login-icon-image auth-setup"
-          />
-          <div className="auth-icon-glow auth-success"></div>
-        </div>
         <p className="auth-login-subtitle">Set up your authentication email for enhanced security</p>
         <div className="auth-subtitle-accent"></div>
       </div>
@@ -339,25 +331,39 @@ const Login = ({ setUserLoggedIn }) => {
           </div>
         </div>
 
-        <button type="submit" className="auth-btn auth-btn-primary" disabled={loading}>
-          {loading ? (
-            <div className="auth-btn-loading">
-              <div className="auth-spinner"></div>
-              <span>Setting up...</span>
-            </div>
-          ) : (
-            'Set Authentication Email'
-          )}
-        </button>
-
-        <button
-          type="button"
-          className="auth-btn auth-btn-secondary"
+        <Button
+          text={loading ? 'Setting up...' : 'Set Authentication Email'}
           onClick={() => setStep('login')}
-          disabled={loading}
-        >
-          Back to Login
-        </button>
+          colorScheme={loading ? 'amber-700' : 'lime-800'}
+          variant="gradient"
+          font="xl"
+          animation=""
+          rounded="full"
+          width="380px"
+          height="70px"
+          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
+          iconRight="arrow_forward_ios"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+
+        <Button
+          text="Back to Login"
+          onClick={() => setStep('login')}
+          colorScheme={loading ? 'amber-700' : 'purple-800'}
+          variant="gradient"
+          font="xl"
+          animation=""
+          rounded="full"
+          width="300px"
+          height="60px"
+          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
+          iconRight="arrow_forward_ios"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
       </form>
     </div>
   );
@@ -374,7 +380,7 @@ const Login = ({ setUserLoggedIn }) => {
         <div className="auth-subtitle-accent"></div>
       </div>
 
-      <form onSubmit={handleOTPVerification} className="auth-login-form">
+      <form className="auth-login-form">
         <div className="auth-form-group">
           <label htmlFor="otp">Verification Code</label>
           <div className="auth-input-container">
@@ -398,16 +404,23 @@ const Login = ({ setUserLoggedIn }) => {
           </div>
         </div>
 
-        <button type="submit" className="auth-btn auth-btn-primary" disabled={loading || otp.length < 6}>
-          {loading ? (
-            <div className="auth-btn-loading">
-              <div className="auth-spinner"></div>
-              <span>Verifying...</span>
-            </div>
-          ) : (
-            'Verify & Continue'
-          )}
-        </button>
+        <Button
+          text={loading ? "Verifying..." : "Verify & Continue"}
+          onClick={handleOTPVerification}
+          colorScheme={loading ? 'amber-700' : 'lime-700'}
+          variant="gradient"
+          font="xl"
+          animation=""
+          rounded="full"
+          width="690px"
+          height="70px"
+          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
+          cursor={loading || otp.length < 6 ? 'not-allowed' : 'allowed'}
+          iconRight="arrow_forward_ios"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
 
         <div className="auth-resend-container">
           {remainingTime > 0 ? (
@@ -434,14 +447,22 @@ const Login = ({ setUserLoggedIn }) => {
           )}
         </div>
 
-        <button
-          type="button"
-          className="auth-btn auth-btn-secondary"
+        <Button
+          text="Back to Login"
           onClick={() => setStep('login')}
-          disabled={loading}
-        >
-          Back to Login
-        </button>
+          colorScheme={loading ? 'amber-700' : 'purple-800'}
+          variant="gradient"
+          font="xl"
+          animation=""
+          rounded="full"
+          width="300px"
+          height="60px"
+          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
+          iconRight="arrow_forward_ios"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
       </form>
     </div>
   );
@@ -483,6 +504,9 @@ const Login = ({ setUserLoggedIn }) => {
                 <span key={i}>{char}</span>
               ))}
         </h1>
+        <div className="login-logo-section">
+          <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
+        </div>
       </div>
 
       <div className="auth-right-section">

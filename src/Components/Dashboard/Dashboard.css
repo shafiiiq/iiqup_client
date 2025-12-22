@@ -1,6 +1,5 @@
 /* Animated Background */
 .dashboard-container {
-  background: var(--gradient-primary);
   position: relative;
   min-height: 100;
   padding: 2rem 1rem;
@@ -23,9 +22,9 @@
 .dsh-auto-wraper-live {
   width: 100%;
   height: 100%;
-  background: var(--gradient-glass);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-focus);
+  background: var(--gradient-glass-300);
+  box-shadow: var(--shadow-inner-5xl);
   border-radius: 24px;
   position: relative;
   overflow: hidden;
@@ -62,37 +61,15 @@
 
 /* Header Styles */
 .dashboard-header {
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-200);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
   border-radius: 24px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-inner-xl);
   position: relative;
   overflow: hidden;
   max-width: 58%;
-}
-
-.dashboard-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 2px;
-  background: var(--gradient-primary);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-
-  100% {
-    left: 100%;
-  }
 }
 
 .header-content {
@@ -107,8 +84,7 @@
   color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 800;
-  /* background: linear-gradient(135deg, #ffffff, #e2e8f0, #3b82f6); */
-  background: var(--gradient-title);
+  background: var(--gradient-primary-1100);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -191,12 +167,11 @@
 .status-item {
   flex: 1;
   min-width: 300px;
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-100);
   color: var(--text-secondary);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
   border-radius: 20px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-outer-xxl);
   padding: 1.5rem;
   display: flex;
   align-items: center;
@@ -217,21 +192,9 @@
   overflow: hidden;
 }
 
-.status-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
 .status-item:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-inner-lg);
 }
 
 .status-item:hover::before {
@@ -292,7 +255,7 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-400);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-primary);
   border-radius: 16px;
@@ -322,9 +285,8 @@
 }
 
 .dashboard-tab.active {
-  background: var(--gradient-primary);
   color: var(--text-on-primary);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-inner-xl);
 }
 
 /* Metrics Grid */
@@ -336,41 +298,19 @@
 }
 
 .metric-card {
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-300);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
   border-radius: 20px;
+  box-shadow: var(--shadow-outer-xl);
   padding: 2rem;
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
-.metric-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
-}
-
-.metric-card.success::before {
-  background: var(--gradient-success);
-}
-
-.metric-card.warning::before {
-  background: var(--gradient-warning);
-}
-
-.metric-card.info::before {
-  background: var(--gradient-info);
-}
-
 .metric-card:hover {
   transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-inner-xl);
 }
 
 .metric-header {
@@ -435,7 +375,7 @@
 }
 
 .chart-card {
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-500);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-primary);
   border-radius: 24px;

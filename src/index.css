@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Geom:ital,wght@0,300..900;1,300..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Geom:ital,wght@0,300..900;1,300..900&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&display=swap');
 
 * {
   margin: 0;
@@ -18,16 +20,16 @@ body {
 
 .material-symbols-outlined {
   font-variation-settings:
-  'FILL' 0,
-  'wght' 100,
-  'GRAD' -25,
-  'opsz' 24
+    'FILL' 0,
+    'wght' 100,
+    'GRAD' -25,
+    'opsz' 24
 }
 
 .material-symbols-rounded {
   font-variation-settings:
-  'FILL' 0,
-  'wght' 100,
-  'GRAD' -25,
-  'opsz' 24
+    'FILL' 0,
+    'wght' 100,
+    'GRAD' -25,
+    'opsz' 24
 }

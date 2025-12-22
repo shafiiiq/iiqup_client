@@ -6,11 +6,14 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { apiRequest } from '../../utils/0auth';
 import { END_POINT } from '../../constants';
+import Button from '../../common/Button/Button';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
 
 const BackchargeForm = () => {
     const scopeLine1Ref = useRef(null);
     const workLine1Ref = useRef(null);
     const componentRef = useRef();
+    const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
     const [imagesLoaded, setImagesLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [saveStatus, setSaveStatus] = useState('');
@@ -50,6 +53,24 @@ const BackchargeForm = () => {
             total: ''
         }))
     });
+
+    useEffect(() => {
+        if (formData.refNo) {
+            const title = `Ref No: ${formData.refNo}`
+            const subtitle = `Backcharge For: ${formData.supplierName}`;
+            setHeaderTitle(title);
+            setHeaderSubtitle(subtitle);
+        } else {
+            setHeaderTitle(null);
+            setHeaderSubtitle(null);
+        }
+
+        // Cleanup - reset when component unmounts
+        return () => {
+            setHeaderTitle(null);
+            setHeaderSubtitle(null);
+        };
+    }, [formData.refNo, formData.supplierName]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -1298,9 +1319,6 @@ const BackchargeForm = () => {
         <div className="bcr-hero-wrapper">
             {/* handle print and donwload html  */}
             <div className="bcr-controls">
-                <p>Report No: {formData.reportNo}</p>
-                <p>Equipment Type: {formData.equipmentType}</p>
-
                 {/* Save Status Display */}
                 {saveStatus && (
                     <div className={`bcr-save-status ${saveStatus === 'success' ? 'success' : 'error'}`}>
@@ -1309,19 +1327,21 @@ const BackchargeForm = () => {
                 )}
 
                 <div className="bcr-button-group">
-                    <button
-                        className="bcr-action-button bcr-save-button"
+                    <Button
+                        text={isLoading ? 'Saving...' : 'Save Report'}
                         onClick={saveBackchargeData}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'Saving...' : 'Save Report'}
-                    </button>
-                    <button className="bcr-action-button bcr-download-button" onClick={handleDownloadPdf}>
-                        Download as PDF
-                    </button>
-                    <button className="bcr-action-button bcr-print-button" onClick={handlePrint}>
-                        Print
-                    </button>
+                        colorScheme="lime-700"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type={isLoading ? 'didabled' : 'submit'}
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                    />
                 </div>
             </div>
             {/* handle print and download html ends */}

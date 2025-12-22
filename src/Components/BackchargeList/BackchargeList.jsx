@@ -4,6 +4,7 @@ import { END_POINT } from '../../constants';
 import './BackchargeList.css';
 import { apiRequest } from '../../utils/0auth';
 import { useSearch } from '../../context/SearchContext';
+import Button from '../../common/Button/Button';
 
 function BackchargeList() {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -248,8 +249,7 @@ function BackchargeList() {
     setDeleteStatus({ message: '', isError: false });
   };
 
-  const handleViewBackcharge = (e, backcharge) => {
-    e.stopPropagation();
+  const handleViewBackcharge = (backcharge) => {
     navigate(`/backcharge-doc/${encodeURIComponent(backcharge.refNo)}`);
   };
 
@@ -306,27 +306,37 @@ function BackchargeList() {
   return (
     <div className="bcl-main-container">
       <div className="bcl-controls-wrapper">
-        <div className="bcl-search-wrapper">
-          <input
-            type="text"
-            placeholder="Search backcharge reports..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="bcl-search-field"
-          />
-          {searchTerm && (
-            <button onClick={handleClearSearch} className="bcl-clear-btn">
-              ×
-            </button>
-          )}
-        </div>
         <div className="bcl-actions-wrapper">
-          <button onClick={handleAddBackcharge} className="bcl-btn bcl-btn-add">
-            Add Backcharge
-          </button>
-          <button onClick={handlePrint} className="bcl-btn bcl-btn-print">
-            Print Table
-          </button>
+          <Button
+            text="Add Backcharge"
+            onClick={handleAddBackcharge}
+            colorScheme="lime-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
+            text="Print Backcharge"
+            onClick={handlePrint}
+            colorScheme="violet-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 
@@ -428,18 +438,36 @@ function BackchargeList() {
                   <td className="bcl-currency-cell">{formatCurrency(backcharge.costSummary?.totalCost)}</td>
                   <td className="bcl-currency-cell">{formatCurrency(backcharge.costSummary?.approvedDeduction)}</td>
                   <td className="bcl-actions-cell" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="bcl-btn bcl-btn-view"
-                      onClick={(e) => handleViewBackcharge(e, backcharge)}
-                    >
-                      View
-                    </button>
-                    <button
-                      className="bcl-btn bcl-btn-delete"
-                      onClick={(e) => handleDeleteClick(e, backcharge)}
-                    >
-                      Delete
-                    </button>
+                    <Button
+                      text="View Doc"
+                      onClick={() => handleViewBackcharge(backcharge)}
+                      colorScheme="blue-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="Delete"
+                      onClick={() => handleDeleteClick(backcharge)}
+                      colorScheme="red-800"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      rounded="md"
+                      width="160px"
+                      height="38px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </td>
                 </tr>
               ))

@@ -7,14 +7,14 @@
   /* ========== PRIMARY BRAND COLORS (Full Scale) ========== */
   --header-color-primary-50: #f9e7c7;
   --header-color-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
-  --header-color-primary-200: #f0f2ff;
+  --header-color-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
   --header-color-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
   --header-color-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
   --header-color-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
   --header-color-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
   --header-color-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
-  --header-color-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);;
-  --header-color-primary-900: #f0f2ff;
+  --header-color-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
+  --header-color-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
   --header-bg-primary-50: #f0f2ff;
   --header-bg-primary-100: #f0f2ff;
@@ -188,6 +188,40 @@
   --bg-primary-alpha-80: rgba(255, 255, 255, 0.8);
   --bg-primary-alpha-90: rgba(255, 255, 255, 0.9);
 
+  --text-color: #ffffff;
+  --text-color-50: #eeeeee;
+  --text-color-100: #dddddd;
+  --text-color-200: #cccccc;
+  --text-color-300: #bbbbbb;
+  --text-color-400: #aaaaaa;
+  --text-color-500: #999999;
+  --text-color-600: #888888;
+  --text-color-700: #777777;
+  --text-color-800: #666666;
+  --text-color-900: #555555;
+  --text-color-1000: #444444;
+  --text-color-1100: #333333;
+  --text-color-1200: #222222;
+  --text-color-1300: #111111;
+  --text-color-1400: #000000;
+
+  --text-inverse-1400: #ffffff;
+  --text-inverse-1300: #eeeeee;
+  --text-inverse-1200: #dddddd;
+  --text-inverse-1100: #cccccc;
+  --text-inverse-1000: #bbbbbb;
+  --text-inverse-900: #aaaaaa;
+  --text-inverse-800: #999999;
+  --text-inverse-700: #888888;
+  --text-inverse-500: #777777;
+  --text-inverse-500: #666666;
+  --text-inverse-400: #555555;
+  --text-inverse-300: #444444;
+  --text-inverse-200: #333333;
+  --text-inverse-100: #222222;
+  --text-inverse-50: #111111;
+  --text-inverse: #000000;
+
   /* ========== TEXT COLORS ========== */
   --text-primary: #1f2937;
   --text-secondary: #4b5563;
@@ -195,7 +229,6 @@
   --text-quaternary: #9ca3af;
   --text-disabled: #9ca3af;
   --text-muted: #6b7280;
-  --text-inverse: #000000;
   --text-on-primary: #ffffff;
   --text-on-success: #ffffff;
   --text-on-warning: #ffffff;
@@ -208,6 +241,21 @@
   /* Text with opacity */
   --text-primary-alpha-80: rgba(31, 41, 55, 0.8);
   --text-primary-alpha-60: rgba(31, 41, 55, 0.6);
+
+  --border-primary-solid-1: 1px solid #eaecca;
+  --border-primary-solid-2: 2px solid #eaecca;
+  --border-primary-solid-3: 3px solid #eaecca;
+  --border-primary-solid-4: 4px solid #eaecca;
+
+  --border-secondary-solid-1: 1px solid #bec09b;
+  --border-secondary-solid-2: 2px solid #bec09b;
+  --border-secondary-solid-3: 3px solid #bec09b;
+  --border-secondary-solid-4: 4px solid #bec09b;
+
+  --border-terotiary-solid-1: 1px solid #999b6f;
+  --border-secondary-solid-2: 2px solid #999b6f;
+  --border-secondary-solid-3: 3px solid #999b6f;
+  --border-secondary-solid-4: 4px solid #999b6f;
 
   /* ========== BORDER COLORS ========== */
   --border-primary: #fbff0836;
@@ -228,7 +276,67 @@
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.15);
   --shadow-3xl: 0 35px 60px rgba(0, 0, 0, 0.2);
-  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+
+  /* Outer shadows only - Primary (Lime/Yellow) */
+  --shadow-outer-sm: inset 0 1px 2px #ffffff30,
+    0 1px 2px #00000030,
+    0 2px 4px #00000015;
+  --shadow-outer-md: inset 0 1px 2px #ffffff50,
+    0 2px 4px #00000030,
+    0 4px 8px #00000015;
+  --shadow-outer-lg: inset 0 1px 2px #ffffff70,
+    0 4px 6px #00000030,
+    0 6px 10px #00000015;
+  --shadow-outer-xl: inset 0 1px 2px #ffffff90,
+    0 6px 8px #00000030,
+    0 8px 12px #00000015;
+  --shadow-outer-xxl: inset 0 1px 2px #ffffffB0,
+    0 8px 10px #00000030,
+    0 10px 14px #00000015;
+  --shadow-outer-xxl: inset 0 1px 2px #ffffffD0,
+    0 10px 12px #00000030,
+    0 12px 16px #00000015;
+
+  /* Outer shadows only - White/Gray */
+  --shadow-outer-primary-sm: inset 0 1px 2px #7c804a,
+    0 1px 2px #3b3409,
+    0 2px 4px #2c2707;
+  --shadow-outer-primary-md: inset 0 1px 2px #959958,
+    0 2px 4px #3b3409,
+    0 4px 8px #2c2707;
+  --shadow-outer-primary-lg: inset 0 1px 2px rgb(180, 185, 107) 0 4px 6px #3b3409,
+    0 6px 10px #2c2707;
+  --shadow-outer-primary-xl: inset 0 1px 2px rgb(203, 209, 122) 0 6px 8px #3b3409,
+    0 8px 12px #2c2707;
+  --shadow-outer-primary-xxl: inset 0 1px 2px rgb(225, 231, 135),
+    0 8px 10px #3b3409,
+    0 10px 14px #2c2707;
+  --shadow-inner-outer-primary-xxl: inset 0 1px 2px rgb(241, 248, 148),
+    0 10px 12px #3b3409,
+    0 12px 16px #2c2707;
+
+  /* Inner shadows only - White/Gray (All sides equal) */
+  --shadow-inner-sm: inset 0 0 4px #00000030;
+  --shadow-inner-md: inset 0 0 8px #00000040;
+  --shadow-inner-lg: inset 0 0 12px #00000050;
+  --shadow-inner-xl: inset 0 0 16px #00000070;
+  --shadow-inner-xxl: inset 0 0 20px #00000080;
+  --shadow-inner-xxxl: inset 0 0 24px #00000090;
+  --shadow-inner-4xl: inset 0 0 28px #00000090;
+  --shadow-inner-5xl: inset 0 0 32px #00000090;
+  --shadow-inner-6xl: inset 0 0 36px #00000090;
+  --shadow-inner-7xl: inset 0 0 40px #00000090;
+
+  /* Inner shadows only - Primary (Lime/Yellow) (All sides equal) */
+  --shadow-inner-primary-sm: inset 0 0 4px #7c804a;
+  --shadow-inner-primary-md: inset 0 0 8px #959958;
+  --shadow-inner-primary-lg: inset 0 0 12px rgb(180, 185, 107);
+  --shadow-inner-primary-xl: inset 0 0 16px rgb(203, 209, 122);
+  --shadow-inner-primary-xxl: inset 0 0 20px rgb(225, 231, 135);
+  --shadow-inner-primary-xxxl: inset 0 0 24px rgb(241, 248, 148);
+  --shadow-inner-primary-4xl: inset 0 0 28px rgb(241, 248, 148);
+  --shadow-inner-primary-5xl: inset 0 0 32px rgba(241, 248, 148, 0.658);
+  --shadow-inner-primary-6xl: inset 0 0 36px rgba(241, 248, 148, 0.438);
 
   /* Colored Shadows */
   --shadow-focus: 0 0 0 3px rgba(46, 64, 204, 0.2);
@@ -249,7 +357,7 @@
   /* ========== DEV GRADIENTS ========== */
   --gradient-dev-filter-100: linear-gradient(280deg, #2c2904be 0%, #232c04be 100%);
   --gradient-dev-filter-200: linear-gradient(280deg, #cfd1612d 0%, #232c04be 100%);
-  
+
 
   /* Primary Gradients (All Variations) */
   --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f6f1ff 100%);
@@ -263,7 +371,14 @@
   --gradient-primary-700: linear-gradient(359deg, #1b1102 0%, #000000 100%);
   --gradient-primary-800: linear-gradient(295deg, #3b3409 0%, #7c804a 100%);
   --gradient-primary-900: linear-gradient(295deg, #000000 0%, #3b392a 100%);
-  --gradient-primary-1000: linear-gradient(295deg, #3c3f18 0%, #fffb00 100%);;
+  --gradient-primary-1000: linear-gradient(295deg, #3c3f18 0%, #fffb00 100%);
+  --gradient-primary-1100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+
+  --gradient-glass-100: linear-gradient(295deg, #f3fc926b 0%, #fffc3825 100%);
+  --gradient-glass-200: linear-gradient(295deg, #eef87a6c 0%, #fcfbc1bb 100%);
+  --gradient-glass-300: linear-gradient(295deg, #eef87a31 0%, #eef87a31 100%);
+  --gradient-glass-400: linear-gradient(23deg, #f8ffa78f 0%, #f0ff4656 100%);
+  --gradient-glass-500: linear-gradient(123deg, #f4f8ca8f 0%, #f0ff4656 100%);
 
   --gradient-primary-hover: linear-gradient(135deg, #2333a8 0%, #2e40cc 100%);
   --gradient-primary-vertical: linear-gradient(180deg, #2e40cc 0%, #4a5fd8 100%);

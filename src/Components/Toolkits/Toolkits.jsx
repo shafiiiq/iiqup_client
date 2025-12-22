@@ -1303,19 +1303,19 @@ const Toolkits = () => {
             <button className="close-btn" onClick={() => setSelectedToolkit(null)}>×</button>
           </div>
           <div className="details-content">
-            <div className="detail-item">
+            <div className="detail-item detail-item-side-container">
               <span className="label">Tool Name:</span>
               <span className="value">{selectedToolkit.name}</span>
             </div>
-            <div className="detail-item">
+            <div className="detail-item detail-item-side-container">
               <span className="label">Type:</span>
               <span className="value">{selectedToolkit.type}</span>
             </div>
-            <div className="detail-item">
+            <div className="detail-item detail-item-side-container">
               <span className="label">Total Stock:</span>
               <span className="value">{selectedToolkit.totalStock}</span>
             </div>
-            <div className="detail-item">
+            <div className="detail-item detail-item-side-container">
               <span className="label">Overall Status:</span>
               <span className={`value status-badge ${selectedToolkit.overallStatus}`}>
                 {selectedToolkit.overallStatus === 'available' ? 'In Stock' :
@@ -1463,24 +1463,36 @@ const Toolkits = () => {
                                   </span>
                                 </td>
                                 <td className="variant-actions">
-                                  <button
-                                    className="action-btn edit"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openUpdateVariantForm(variant, selectedToolkit);
-                                    }}
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    className="action-btn delete"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteVariant(selectedToolkit._id, variant._id);
-                                    }}
-                                  >
-                                    Delete
-                                  </button>
+                                  <Button
+                                    text="Edit"
+                                    onClick={() => openUpdateVariantForm(variant, selectedToolkit)}
+                                    colorScheme="violet-800"
+                                    variant="gradient"
+                                    font="md"
+                                    animation=""
+                                    rounded="sm"
+                                    width="100px"
+                                    height="32px"
+                                    type="submit"
+                                    textColor="white-200"
+                                    shadowPosition="to-bottom"
+                                    shadowColor="white-600"
+                                  />
+                                  <Button
+                                    text="Delete"
+                                    onClick={() => deleteVariant(selectedToolkit._id, variant._id)}
+                                    colorScheme="red-800"
+                                    variant="gradient"
+                                    font="md"
+                                    animation=""
+                                    rounded="sm"
+                                    width="100px"
+                                    height="32px"
+                                    type="submit"
+                                    textColor="white-200"
+                                    shadowPosition="to-bottom"
+                                    shadowColor="white-600"
+                                  />
                                 </td>
                               </tr>
                             ))}
@@ -1500,22 +1512,66 @@ const Toolkits = () => {
             <div className="toolkit-actions safety-items-action">
               <h3>Actions</h3>
               <div className="action-btn-group">
-                <button className="action-btn edit" onClick={() => openUpdateForm(selectedToolkit)}>
-                  Edit Toolkit
-                </button>
-                <button className="action-btn add-variant" onClick={() => openAddVariantForm(selectedToolkit)}>
-                  + Add Variant
-                </button>
-                <button
-                  className="action-btn print-barcode"
+                <Button
+                  text="Edit Toolkit"
+                  onClick={() => openUpdateForm(selectedToolkit)}
+                  colorScheme="violet-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="sm"
+                  width="160px"
+                  height="40px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Add Variant"
+                  onClick={() => openAddVariantForm(selectedToolkit)}
+                  colorScheme="amber-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="sm"
+                  width="160px"
+                  height="40px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Print Barcode"
                   onClick={() => window.print()}
-                  style={{ backgroundColor: '#17a2b8' }}
-                >
-                  Print Barcode
-                </button>
-                <button className="action-btn delete" onClick={() => deleteToolkit(selectedToolkit._id)}>
-                  Delete Toolkit
-                </button>
+                  colorScheme="lime-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="sm"
+                  width="160px"
+                  height="40px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Delete Toolkit"
+                  onClick={() => deleteToolkit(selectedToolkit._id)}
+                  colorScheme="red-800"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="sm"
+                  width="160px"
+                  height="40px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
               </div>
             </div>
 
@@ -1527,15 +1583,15 @@ const Toolkits = () => {
                   <button className="close-btn" onClick={() => setSelectedVariant(null)}>×</button>
                 </div>
                 <div className="details-content">
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Tool Name:</span>
                     <span className="value">{selectedToolkit.name}</span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Size:</span>
                     <span className="value">{selectedVariant.size}</span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Color:</span>
                     <span className="value">
                       <span className="color-indicator" style={{
@@ -1545,30 +1601,30 @@ const Toolkits = () => {
                       {selectedVariant.color}
                     </span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Current Stock:</span>
                     <span className="value">{selectedVariant.stockCount}</span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Minimum Level:</span>
                     <span className="value">{selectedVariant.minStockLevel}</span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Status:</span>
                     <span className={`value status-badge ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}>
                       {calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'available' ? 'In Stock' :
                         calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
                     </span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">In Use:</span>
                     <span className="value">{selectedVariant.inuse ? 'Yes' : 'No'}</span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">First Added:</span>
                     <span className="value">{formatDate(selectedVariant.firstAddedDate)}</span>
                   </div>
-                  <div className="detail-item">
+                  <div className="detail-item detail-item-side-container">
                     <span className="label">Last Updated:</span>
                     <span className="value">{formatDate(selectedVariant.lastUpdatedDate)}</span>
                   </div>

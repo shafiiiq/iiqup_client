@@ -167,12 +167,11 @@
 
 .operators-table th,
 .toolkits-table th {
-  background-color: var(--bg-secondary);
+  background: var(--gradient-primary-900);
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-primary);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -181,9 +180,9 @@
 .operators-table td,
 .toolkits-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--border-primary);
   color: var(--text-primary);
   vertical-align: middle;
+  background: var(--gradient-primary-900);
 }
 
 .operators-table tbody tr:nth-child(odd) {
@@ -353,19 +352,6 @@
   border-left: 1px solid var(--border-primary);
 }
 
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--border-primary);
-  position: sticky;
-  top: 0;
-  background-color: var(--bg-modal);
-  z-index: 10;
-}
-
 .details-header h2 {
   font-size: 20px;
   color: var(--text-primary);
@@ -390,7 +376,6 @@
 .details-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 .operator-profile-section {
@@ -806,18 +791,8 @@
   background-color: var(--bg-card);
 }
 
-.variants-table th {
-  background-color: var(--bg-secondary);
-  text-align: left;
-  padding: 12px 15px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-primary);
-}
-
 .variants-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--border-primary);
   vertical-align: middle;
   color: var(--text-primary);
 }

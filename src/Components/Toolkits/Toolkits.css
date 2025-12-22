@@ -242,7 +242,7 @@
   right: 0;
   width: 800px;
   height: 100vh;
-  background-color: var(--bg-modal);
+  background: var(--gradient-primary-900);
   color: var(--text-primary);
   box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -260,10 +260,8 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid var(--border-primary);
   position: sticky;
   top: 0;
-  background-color: var(--bg-modal);
   z-index: 10;
 }
 
@@ -291,13 +289,18 @@
 .details-content {
   display: flex;
   flex-direction: column;
-  gap: 0 !important;
+  gap: 20px !important;
 }
 
 .detail-item {
   display: flex;
   gap: 10px;
-  margin-bottom: 12px;
+}
+
+.detail-item-side-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .detail-item .label {
@@ -342,19 +345,19 @@
 }
 
 .variants-table th {
-  background-color: var(--bg-secondary);
+  background: var(--gradient-primary-900);
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-primary);
 }
 
 .variants-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--border-primary);
+  border-top: 1px solid var(--border-primary);
   vertical-align: middle;
   color: var(--text-primary);
+  background: var(--gradient-primary-900);
 }
 
 .variants-table tr:last-child td {
@@ -596,7 +599,7 @@
   background-color: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: 6px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-outer-xxl);
   z-index: 100;
   margin-top: 4px;
   animation: fadeIn 0.2s ease-out;
@@ -1110,18 +1113,23 @@ input[type="number"]::-webkit-inner-spin-button {
 .variant-search-input {
   width: 100%;
   padding: 10px 40px 10px 12px;
-  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 14px;
-  background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
   transition: border-color 0.2s;
+  background: var(--gradient-primary-100);
+  box-shadow: var(--shadow-inner-primary-6xl);
+}
+
+.variant-search-input::placeholder {
+  color: var(--text-color-200)
 }
 
 .variant-search-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border: var(--border-secondary-solid-2);
+  box-shadow: none;
 }
 
 .clear-search-btn {
@@ -1155,11 +1163,12 @@ input[type="number"]::-webkit-inner-spin-button {
   flex: 1;
   min-width: 120px;
   padding: 8px 12px;
-  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 14px;
-  background-color: var(--bg-card);
-  color: var(--text-primary);
+  background: var(--gradient-primary-100);
+  box-shadow: var(--shadow-inner-primary-6xl);
+  color: var(--text-color);
+  background-color: var(--text-inverse);
   cursor: pointer;
   transition: border-color 0.2s;
 }
@@ -1207,8 +1216,7 @@ input[type="number"]::-webkit-inner-spin-button {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-primary);
+  background: var(--gradient-primary-200);
 }
 
 .color-group-title {
@@ -1476,15 +1484,15 @@ input[type="number"]::-webkit-inner-spin-button {
 .barcode-section {
   margin-top: 25px;
   padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: var(--gradient-primary-800);
+  color: var(--text-color);
   border-radius: 12px;
-  border: 2px dashed #dee2e6;
   text-align: center;
 }
 
 .barcode-section h3 {
   margin-bottom: 15px;
-  color: #2c3e50;
+  color: var(--text-color);
   font-size: 16px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1510,7 +1518,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .barcode-info {
   margin: 0;
   font-size: 13px;
-  color: #6c757d;
+  color: var(--text-color-200);
   font-style: italic;
 }
 

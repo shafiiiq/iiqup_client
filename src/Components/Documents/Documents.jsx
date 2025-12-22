@@ -5,9 +5,13 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import jsPDF from 'jspdf';
 import DevModal from '../../common/DevModal';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 function DocumentDetails() {
   const { regNo } = useParams();
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+
   const [activeTab, setActiveTab] = useState('add');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -21,23 +25,15 @@ function DocumentDetails() {
   const [currentCategory, setCurrentCategory] = useState(null);
   const [currentDocType, setCurrentDocType] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-
-  // New state for managing old document visibility
   const [expandedDocTypes, setExpandedDocTypes] = useState({});
-
-  // New states for dynamic document types
   const [documentTypes, setDocumentTypes] = useState([]);
   const [filteredDocTypes, setFilteredDocTypes] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [docTypeInput, setDocTypeInput] = useState('');
-
-  // Progress Modal States
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState(''); // 'uploading', 'success', 'error'
   const [uploadError, setUploadError] = useState('');
-
-  // Form data state
   const [formData, setFormData] = useState({
     documentType: '',
     description: '',
@@ -46,6 +42,25 @@ function DocumentDetails() {
     expiry: new Date().toISOString().split('T')[0],
     date: new Date().toISOString().split('T')[0]
   });
+
+  // Set header title when component mounts or data changes
+  useEffect(() => {
+    if (equipmentData) {
+      const title = activeTab === 'add' ? 'Uplodad Document' : 'View Document'
+      const subtitle = `${equipmentData.machine} - ${regNo}`
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [equipmentData, regNo, activeTab]);
 
   // Static fallback document types (in case API fails)
   const fallbackDocumentTypes = [
@@ -751,31 +766,38 @@ function DocumentDetails() {
 
   return (
     <div className="doc-details-container">
-      <div className="doc-details-header">
-        <h1 className="doc-details-title">Document Details</h1>
-        <div className="doc-details-datetime">{currentDateTime}</div>
-      </div>
-
-      {equipmentData && (
-        <div className="doc-details-equipment-info">
-          {equipmentData.machine} - {regNo}
-        </div>
-      )}
-
       {/* Tab Navigation */}
       <div className="doc-details-tabs">
-        <button
-          className={`doc-details-tab ${activeTab === 'add' ? 'active' : ''}`}
+        <Button
+          text="Add Document"
           onClick={() => setActiveTab('add')}
-        >
-          Add Document
-        </button>
-        <button
-          className={`doc-details-tab ${activeTab === 'view' ? 'active' : ''}`}
+          colorScheme={activeTab === 'add' ? 'amber-300' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'add' ? 'black-300' : 'white-900'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text="View Documents"
           onClick={() => setActiveTab('view')}
-        >
-          View Documents
-        </button>
+          colorScheme={activeTab === 'view' ? 'amber-400' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'view' ? 'black-300' : 'white-900'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
       </div>
 
       {message.text && (
@@ -797,7 +819,7 @@ function DocumentDetails() {
       {/* Add Document Tab */}
       {activeTab === 'add' && (
         <div className="doc-details-form-container">
-          <form onSubmit={handleSubmit} className="doc-details-form">
+          <form className="doc-details-form">
             <div className="doc-details-form-group">
               <label htmlFor="category">Category</label>
               <select
@@ -828,12 +850,6 @@ function DocumentDetails() {
                   onBlur={handleDocTypeInputBlur}
                   placeholder="Type to search or add new document type..."
                   required
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
                 />
 
                 {showDropdown && filteredDocTypes.length > 0 && (
@@ -967,20 +983,36 @@ function DocumentDetails() {
             )}
 
             <div className="doc-details-form-actions">
-              <button
-                type="button"
+              <Button
+                text="Reset"
                 onClick={handleReset}
-                className="doc-details-action-btn reset"
-              >
-                Reset
-              </button>
-              <button
+                colorScheme="red-800"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="50%"
+                height="48px"
                 type="submit"
-                className="doc-details-action-btn submit"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Uploading...' : 'Upload Document'}
-              </button>
+                textColor="white-900"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+              <Button
+                text={isLoading ? 'Uploading...' : 'Upload Document'}
+                onClick={handleSubmit}
+                colorScheme={isLoading ? 'lime-900' : 'lime-600'}
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="50%"
+                height="48px"
+                type={isLoading ? 'disabled' : 'submit'}
+                textColor={activeTab === 'view' ? 'black-300' : 'white-900'}
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
             </div>
           </form>
         </div>

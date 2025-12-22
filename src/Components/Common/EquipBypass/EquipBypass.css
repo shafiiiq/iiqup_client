@@ -20,15 +20,14 @@
   border: 1px solid var(--border-primary);
 }
 
-
-.equipment-table tbody tr:nth-child(odd) {
-  background-color: var(--gradient-primary-500) !important;
-}
-
-.equipment-table tbody tr:nth-child(even) {
-  background: var(--gradient-primary-400) !important;
-}
-
 .equipment-table {
     border: none;
+}
+
+.equipment-table tbody td {
+  background: var(--gradient-primary-900) !important;
+}
+
+.equipment-table th, .maintenance-table th {
+  background: var(--gradient-primary-900) !important;
 }

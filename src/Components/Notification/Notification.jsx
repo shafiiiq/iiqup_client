@@ -756,24 +756,14 @@ const Notifications = ({ islivemodeON }) => {
         </div>
       )}
 
-      <div className="ntf-header">
+      {/* <div className="ntf-header">
         <div className="ntf-header-content">
-          <h1 className="ntf-title">
-            Live Updates
-            {unreadCount > 0 && (
-              <span className="ntf-unread-count">{unreadCount} new</span>
-            )}
-          </h1>
           <div className="ntf-connection-status">
             <div className={`ntf-status-dot ${isConnected ? 'ntf-connected' : 'ntf-disconnected'}`}></div>
             <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
           </div>
         </div>
-        {/* <div className="ntf-date-time">
-          <span className="ntf-date">{currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-          <span className="ntf-time">{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-        </div> */}
-      </div>
+      </div> */}
 
       {
         islivemodeON ? null : (

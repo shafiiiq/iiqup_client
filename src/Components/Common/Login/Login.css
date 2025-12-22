@@ -29,6 +29,7 @@
 }
 
 .auth-animated-title span {
+  font-family: "Geom", sans-serif;
   display: inline-block;
   transform-origin: bottom;
   background: var(--header-color-primary-400);
@@ -82,13 +83,14 @@
 
 .auth-left-bar {
   width: 100px;
-  background: var(--header-color-primary-500);
+  background: var(--header-color-primary-300);
   border-radius: 99px;
   animation: wave-flow 3s ease-in-out infinite;
+  box-shadow: var(--shadow-outer-xxl);
 }
 
 .auth-left-bar:hover {
-  box-shadow: 0 10px 30px rgba(132, 204, 22, 0.4);
+  box-shadow: var(--shadow-outer-primary-xxl);
 }
 
 /* Initial heights - INCREASED RATIO */
@@ -173,11 +175,24 @@
   align-items: center;
   justify-content: center;
   background: var(--header-color-primary-800);
+  box-shadow: var(--shadow-inner-primary-6xl);
+  border-radius: var(--radius-4xl);
+  margin: 20rem 3rem 20rem 10rem;
+  position: relative;
+}
+
+.login-logo-section img {
+  width: 40rem;
+  height: 15rem;
+  position: absolute;
+  top: 1rem;
+  left: 100%;
+  transform: translateX(-100%);
 }
 
 .auth-login-card {
   width: 100%;
-  max-width: 600px;
+  max-width: 750px;
   background: transparent;
   backdrop-filter: none;
   border-radius: 0;
@@ -231,7 +246,8 @@
 
 .auth-login-subtitle {
   color: var(--text-color);
-  font-size: 26px;
+  font-size: 36px;
+  font-family: "Geom", sans-serif;
   font-weight: 400;
   line-height: 1.6;
   margin-bottom: 16px;
@@ -266,9 +282,11 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  align-items: center;
 }
 
 .auth-form-group {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -292,7 +310,7 @@
   position: absolute;
   left: 20px;
   z-index: 2;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-color);
   transition: all 0.3s ease;
 }
 
@@ -311,13 +329,13 @@
 .auth-login-form input[type="text"] {
   width: 100%;
   padding: 20px 24px 20px 56px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--header-color-primary-200);
   border-radius: 99px;
-  color: #ffffff;
-  font-size: 16px;
+  color: var(--text-color);
+  font-size: 20px;
   font-weight: 400;
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-outer-xxl);
   backdrop-filter: blur(10px);
 }
 
@@ -325,15 +343,14 @@
 .auth-login-form input[type="password"]:focus,
 .auth-login-form input[type="text"]:focus {
   outline: none;
-  border-color: var(--color-primary-100);
-  ;
+  border: 1px solid var(--color-primary-100);
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
   transform: translateY(-2px);
 }
 
 .auth-login-form input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-primary);
 }
 
 .auth-otp-input {

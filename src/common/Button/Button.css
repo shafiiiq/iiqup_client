@@ -322,6 +322,7 @@
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
   will-change: transform, box-shadow;
+  box-shadow: var(--shadow-outer-xxl);
 }
 
 .dev-button:focus-visible {

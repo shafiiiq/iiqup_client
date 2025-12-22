@@ -211,7 +211,7 @@
   background-color: var(--bcl-danger);
   color: white;
   padding: 6px 12px;
-  font-size:15px;
+  font-size: 15px;
   min-width: 60px;
 }
 
@@ -299,7 +299,7 @@
 }
 
 .bcl-data-table th {
-  background-color: var(--bcl-table-header-bg) !important;
+  background: var(--gradient-primary-900);
   text-align: left;
   padding: 14px 12px;
   font-weight: 600;
@@ -314,7 +314,7 @@
 
 .bcl-data-table td {
   padding: 12px;
-  border-bottom: 1px solid var(--bcl-border) !important;
+  background: var(--gradient-primary-900);
   vertical-align: middle;
   color: var(--bcl-text) !important;
 }
@@ -394,6 +394,7 @@
     opacity: 0;
     transform: translateY(-30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -507,12 +508,12 @@
   .bcl-data-table {
     font-size: 12px;
   }
-  
+
   .bcl-data-table th,
   .bcl-data-table td {
     padding: 10px 8px;
   }
-  
+
   .bcl-text-cell {
     max-width: 120px;
   }
@@ -522,70 +523,70 @@
   .bcl-main-container {
     padding: 16px;
   }
-  
+
   .bcl-header-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
-  
+
   .bcl-page-title {
     font-size: 1.75rem;
   }
-  
+
   .bcl-controls-wrapper {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .bcl-search-wrapper {
     max-width: 100%;
   }
-  
+
   .bcl-filters-container {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .bcl-filter-group {
     width: 100%;
   }
-  
+
   .bcl-filter-select,
   .bcl-date-input {
     min-width: auto;
     width: 100%;
   }
-  
+
   .bcl-actions-wrapper {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .bcl-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .bcl-data-table {
     font-size: 11px;
   }
-  
+
   .bcl-data-table th,
   .bcl-data-table td {
     padding: 8px 6px;
   }
-  
+
   .bcl-text-cell {
     max-width: 100px;
   }
-  
+
   .bcl-actions-cell {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .bcl-btn-view,
   .bcl-btn-delete {
     font-size: 10px;
@@ -597,24 +598,24 @@
   .bcl-page-title {
     font-size: 1.5rem;
   }
-  
+
   .bcl-modal-container {
     width: 95%;
     margin: 10px;
   }
-  
+
   .bcl-modal-header,
   .bcl-modal-body,
   .bcl-modal-footer {
     padding: 16px 20px;
   }
-  
+
   .bcl-data-table th,
   .bcl-data-table td {
     padding: 6px 4px;
     font-size: 10px;
   }
-  
+
   .bcl-text-cell {
     max-width: 80px;
   }
@@ -622,18 +623,19 @@
 
 /* Print Styles */
 @media print {
+
   .bcl-controls-wrapper,
   .bcl-filters-container,
   .bcl-actions-cell,
   .bcl-modal-backdrop {
     display: none !important;
   }
-  
+
   .bcl-main-container {
     background: white;
     color: black;
   }
-  
+
   .bcl-data-table th,
   .bcl-data-table td {
     border: 1px solid #000 !important;

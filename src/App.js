@@ -115,7 +115,6 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
     location.pathname.startsWith('/all') ||
     location.pathname.startsWith('/battery-doc') ||
     location.pathname.startsWith('/tyre-doc') ||
-    location.pathname.startsWith('/backcharge-doc') ||
     isCEO;
 
   const currentUser = AuthUtils.getCurrentUser();
@@ -217,6 +216,15 @@ function App() {
       setisLPOAlert(false);
     }
   };
+
+  // Spacer Wrapper to hide on login and home
+  function SpacerWrapper() {
+    const location = useLocation();
+
+    const hideSpacer = location.pathname === '/login' || location.pathname === '/';
+
+    return !hideSpacer && <Spacer vertical="4rem" horizontal="100%" />;
+  }
 
   const handleWorkModalButtonClick = () => {
     if (currentModalIndex < newWork.length - 1) {
@@ -492,7 +500,7 @@ function App() {
         <SearchProvider>
           <HeaderTitleProvider>
             <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
-            <Spacer vertical="4rem" horizontal="100%" />
+            <SpacerWrapper />
             <NavigationButtons />
 
             {/* {isWorkAlert && newWork.length > 0 && (
