@@ -83,13 +83,6 @@ form {
   width: 100%;
 }
 
-.form-group label {
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #64748b;
-}
-
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--color-primary);

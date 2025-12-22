@@ -23,9 +23,9 @@
   width: 100%;
   height: 100%;
   backdrop-filter: blur(20px);
-  background: var(--gradient-glass-300);
-  box-shadow: var(--shadow-inner-5xl);
-  border-radius: 24px;
+  background: var(--gradient-primary-800);
+  box-shadow: var(--shadow-outer-xl);
+  border-radius: var(--radius-4xl);
   position: relative;
   overflow: hidden;
 }
@@ -45,10 +45,8 @@
 
 .dsh-auto-roller-controller {
   height: 100%;
-  /* Ensure it has a defined height */
   overflow-y: auto;
-  /* Add this */
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
 }
 
 .dashboard-content {
@@ -63,10 +61,10 @@
 .dashboard-header {
   background: var(--gradient-glass-200);
   backdrop-filter: blur(20px);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: var(--shadow-inner-xl);
+  box-shadow: var(--shadow-inner-6xl);
   position: relative;
   overflow: hidden;
   max-width: 58%;
@@ -82,19 +80,17 @@
 
 .dashboard-title {
   color: var(--text-primary);
-  font-size: 2.5rem;
-  font-weight: 800;
-  background: var(--gradient-primary-1100);
+  font-size: 45px;
+  font-weight: 600;
+  background: var(--text-gradiant-inverse);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .dashboard-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  margin-top: 0.5rem;
+  color: var(--text-inverse-300);
+  font-size: 26px;
 }
 
 .header-actions {
@@ -103,18 +99,8 @@
   gap: 1rem;
 }
 
-.datetime-display {
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-primary);
+.datetime-display span{
+  font-variant: var(--text-primary);
 }
 
 .refresh-button {
@@ -167,11 +153,11 @@
 .status-item {
   flex: 1;
   min-width: 300px;
-  background: var(--gradient-glass-100);
+  background: var(--gradient-glass-800);
   color: var(--text-secondary);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: var(--shadow-outer-xxl);
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-outer-md);
   padding: 1.5rem;
   display: flex;
   align-items: center;
@@ -183,7 +169,7 @@
 
 .complaints-item {
   width: 100%;
-  border-radius: 20px;
+  border-radius: var(--radius-4xl);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -205,7 +191,7 @@
   width: 48px;
   height: 48px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-4xl);
   background: var(--gradient-primary);
   color: var(--text-primary);
   flex-shrink: 0;
@@ -257,10 +243,10 @@
   margin-bottom: 2rem;
   background: var(--gradient-glass-400);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 16px;
+  border-radius: var(--radius-4xl);
   padding: 0.5rem;
   max-width: 58%;
+  box-shadow: var(--shadow-outer-xxl);
 }
 
 .dashboard-tab {
@@ -268,7 +254,7 @@
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-4xl);
   color: var(--text-secondary);
   font-weight: 600;
   cursor: pointer;
@@ -300,7 +286,7 @@
 .metric-card {
   background: var(--gradient-glass-300);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
+  border-radius: var(--radius-4xl);
   box-shadow: var(--shadow-outer-xl);
   padding: 2rem;
   position: relative;
@@ -324,7 +310,7 @@
   width: 40px;
   height: 40px;
   padding: 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-4xl);
   background: rgba(59, 130, 246, 0.2);
   color: var(--color-primary-light);
 }
@@ -375,12 +361,12 @@
 }
 
 .chart-card {
-  background: var(--gradient-glass-500);
+  background: var(--gradient-glass-100);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 2rem;
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-outer-xxl);
 }
 
 .chart-card:hover {
@@ -398,15 +384,15 @@
 }
 
 .chart-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
 .chart-header p {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+  color: var(--text-color-200);
+  font-size: 18px;
 }
 
 .chart-container {
@@ -435,12 +421,12 @@
 
 /* Activity Timeline */
 .activity-card {
-  background: var(--gradient-glass-dark);
+  background: var(--gradient-glass-600);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 2rem;
   margin-bottom: 2rem;
+  box-shadow: var(--shadow-inner-5xl);
 }
 
 .activity-header {
@@ -448,20 +434,20 @@
 }
 
 .activity-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
 .activity-header p {
-  color: var(--text-secondary);
+  color: var(--text-color-200);
+  font-size: 18px;
 }
 
 .activity-timeline {
   position: relative;
   max-height: 54rem;
-  /* overflow-y: scroll; */
   overflow-x: hidden;
 }
 
@@ -472,7 +458,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: var(--gradient-primary-vertical);
+  background: var(--text-inverse);
 }
 
 .timeline-item {
@@ -486,22 +472,21 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--gradient-primary);
+  background: var(--gradient-primary-100);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
   z-index: 2;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
 }
 
 .timeline-content {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: var(--gradient-glass-600);
+  border-radius: var(--radius-4xl);
   padding: 1.5rem;
+  box-shadow: var(--shadow-inner-md);
   transition: all 0.3s ease;
 }
 
@@ -518,14 +503,15 @@
 }
 
 .timeline-type {
-  font-weight: 600;
-  color: var(--color-primary-light);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-color);
   text-transform: capitalize;
 }
 
 .timeline-datetime {
-  font-size: 0.85rem;
-  color: var(--text-tertiary);
+  font-size: 18px;
+  color: var(--text-inverse-100);
 }
 
 .timeline-description {
@@ -535,10 +521,10 @@
 
 /* Data Table */
 .data-table-card {
-  background: var(--gradient-glass);
+  background: var(--gradient-primary-800);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-outer-xxl);
   padding: 2rem;
   margin-bottom: 2rem;
   overflow: hidden;
@@ -549,9 +535,9 @@
 }
 
 .table-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
@@ -587,7 +573,7 @@
 .tag {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
+  border-radius: var(--radius-4xl);
   font-size: 0.8rem;
   font-weight: 600;
   margin: 0.125rem;
@@ -607,7 +593,7 @@
 
 .service-type {
   padding: 0.5rem 1rem;
-  border-radius: 20px;
+  border-radius: var(--radius-4xl);
   font-weight: 600;
   font-size: 0.85rem;
 }
@@ -636,12 +622,12 @@
 
 /* Health Dashboard */
 .health-dashboard {
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-100);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 2rem;
   margin-bottom: 2rem;
+  box-shadow: var(--shadow-outer-xl);
 }
 
 .health-header {
@@ -664,7 +650,7 @@
 .health-card {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  border-radius: var(--radius-4xl);
   padding: 1.5rem;
   transition: all 0.3s ease;
 }
@@ -731,23 +717,13 @@
 
 /* Summary Card */
 .summary-card {
-  background: var(--gradient-glass);
+  background: var(--gradient-glass-400);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 2rem;
   position: relative;
   overflow: hidden;
-}
-
-.summary-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
+  box-shadow: var(--shadow-inner-5xl);
 }
 
 .summary-header {
@@ -778,14 +754,14 @@
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: var(--gradient-primary-200);
+  border-radius: var(--radius-4xl);
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-outer-xl);
 }
 
 .insight-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--gradient-primary-300);
   transform: translateY(-3px);
 }
 
@@ -880,10 +856,10 @@
 }
 
 .dashboard-equipment-card {
-  background: var(--gradient-glass-dark);
+  background: var(--gradient-primary-500);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-outer-xxl);
   padding: 2rem;
   margin-bottom: 2rem;
   transition: all 0.3s ease;
@@ -899,16 +875,16 @@
 
 /* Recent Maintenance Tasks Card */
 .dashboard-maintenance-card {
-  background: var(--gradient-glass);
+  background: var(--gradient-primary-400);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 2rem;
   margin-bottom: 2rem;
   transition: all 0.3s ease;
   width: 50%;
   max-height: 57rem;
   overflow-y: scroll;
+  box-shadow: var(--shadow-outer-xxl);
 }
 
 .dashboard-maintenance-card:hover {
@@ -957,14 +933,6 @@
   text-overflow: ellipsis;
 }
 
-/* Table Header Styles */
-.table-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
 .table-header p {
   color: var(--text-secondary);
   font-size: 0.95rem;
@@ -990,15 +958,20 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  background: var(--gradient-glass-dark);
+  background: var(--gradient-glass-100);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-primary);
-  border-radius: 16px;
+  border-radius: var(--radius-4xl);
   padding: 0.5rem;
+  box-shadow: var(--shadow-outer-xxl);
+}
+
+.dashboard-container text {
+  fill: var(--text-color);
 }
 
 .comparison-tab {
   padding: 0.5rem 1.5rem;
+  font-size: 20px;
   font-weight: 500;
   transition: all 0.3s ease;
   width: calc(100%/3.05);
@@ -1006,9 +979,8 @@
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
-  border-radius: 12px;
-  color: var(--text-secondary);
-  font-weight: 600;
+  border-radius: var(--radius-4xl);
+  color: var(--text-inverse);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1017,15 +989,13 @@
 }
 
 .comparison-tab:hover:not(:disabled) {
-  border-color: #3b82f6;
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-inverse-500);
+  background: var(--gradient-glass-600);
 }
 
 .comparison-tab.active {
-  background: #3b82f6;
-  color: var(--text-primary);
-  border-color: #3b82f6;
+  box-shadow: var(--shadow-outer-sm);
+  background: var(--gradient-glass-600);
 }
 
 .comparison-tab:disabled {
@@ -1038,10 +1008,26 @@
   margin-top: 1.5rem;
   padding: 1.5rem;
   padding-block: 2rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  border-radius: '8px'
+}
+
+.comparison-summary .comparison-item .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.comparison-summary .comparison-item {
+  background: var(--gradient-primary-800);
+  padding: 1.5rem;
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-outer-xl);
+  color: var(--text-color);
+}
+
+.comparison-summary .comparison-item .summary-total-highlight {
+  color: var(--text-inverse);
+  font-size: 30px;
+  font-weight: 500;
 }
 
 .break-it {

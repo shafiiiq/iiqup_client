@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, RefreshCw } from 'lucide-react';
+import Button from '../../common/Button/Button';
 
 const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleRefresh }) => {
   const notificationSoundRef = useRef(null);
@@ -34,6 +35,15 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
   const [selectedSound, setSelectedSound] = useState(() => {
     return localStorage.getItem('notificationSound') || 'bell';
   });
+
+  const enableSound = () => {
+    const newSoundState = !soundEnabled;
+    setSoundEnabled(newSoundState);
+    localStorage.setItem('notificationSoundEnabled', newSoundState.toString());
+    if (newSoundState) {
+      setTimeout(() => playNotificationSound(), 100);
+    }
+  }
 
   // Fallback sound generator using Web Audio API
   const playFallbackSound = () => {
@@ -130,7 +140,7 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
 
   return (
     <div className="dashboard-header">
-      <audio 
+      <audio
         ref={notificationSoundRef}
         src={soundOptions[selectedSound].url}
         preload="auto"
@@ -141,37 +151,24 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
       </div>
       <div className="header-actions">
         <div className="datetime-display">
-          <Calendar className="datetime-icon" />
           <span>{currentDateTime}</span>
         </div>
-        <button
-          onClick={() => {
-            const newSoundState = !soundEnabled;
-            setSoundEnabled(newSoundState);
-            localStorage.setItem('notificationSoundEnabled', newSoundState.toString());
-            console.log('🔊 Sound preference saved to localStorage:', newSoundState);
-
-            // Play test sound when enabling
-            if (newSoundState) {
-              setTimeout(() => playNotificationSound(), 100);
-            }
-          }}
-          className={`ntf-sound-toggle-btn ${soundEnabled ? 'sound-on' : 'sound-off'}`}
-          title={soundEnabled ? 'Disable notification sound' : 'Enable notification sound'}
-        >
-          <span className="ntf-sound-icon">
-            {soundEnabled ? (
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z" />
-              </svg>
-            )}
-          </span>
-          {soundEnabled ? 'Sound On' : 'Sound Off'}
-        </button>
+        <Button
+          text={soundEnabled ? 'Sound On' : 'Sound Off'}
+          onClick={enableSound}
+          colorScheme={!soundEnabled ? 'amber-300' : 'amber-700'}
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="46px"
+          type="submit"
+          textColor={!soundEnabled ? 'black-300' : 'white-800'}
+          iconRight={!soundEnabled ? 'notification_audio_off' : 'notification_audio'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
         <select
           value={selectedSound}
           onChange={(e) => {
@@ -181,8 +178,6 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
             if (notificationSoundRef.current) {
               notificationSoundRef.current.src = soundOptions[newSound].url;
             }
-            console.log('🎵 Changed sound to:', soundOptions[newSound].name);
-            // Play preview
             setTimeout(() => playNotificationSound(), 100);
           }}
           className="ntf-sound-selector"

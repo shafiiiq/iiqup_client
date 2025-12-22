@@ -213,7 +213,7 @@
   --text-inverse-900: #aaaaaa;
   --text-inverse-800: #999999;
   --text-inverse-700: #888888;
-  --text-inverse-500: #777777;
+  --text-inverse-600: #777777;
   --text-inverse-500: #666666;
   --text-inverse-400: #555555;
   --text-inverse-300: #444444;
@@ -358,6 +358,21 @@
   --gradient-dev-filter-100: linear-gradient(280deg, #2c2904be 0%, #232c04be 100%);
   --gradient-dev-filter-200: linear-gradient(280deg, #cfd1612d 0%, #232c04be 100%);
 
+  --text-gradiant-color: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-color-100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-color-200: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-color-300: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-color-400: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-color-500: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-color-600: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+
+  --text-gradiant-inverse: linear-gradient(90deg, #141413 0%, #272905 100%);
+  --text-gradiant-inverse-100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-inverse-200: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-inverse-300: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-inverse-400: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-inverse-500: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --text-gradiant-inverse-600: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
 
   /* Primary Gradients (All Variations) */
   --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f6f1ff 100%);
@@ -379,6 +394,9 @@
   --gradient-glass-300: linear-gradient(295deg, #eef87a31 0%, #eef87a31 100%);
   --gradient-glass-400: linear-gradient(23deg, #f8ffa78f 0%, #f0ff4656 100%);
   --gradient-glass-500: linear-gradient(123deg, #f4f8ca8f 0%, #f0ff4656 100%);
+  --gradient-glass-600: linear-gradient(123deg, #a1a38b46 0%, #dde0b570 100%);
+  --gradient-glass-700: linear-gradient(123deg, #c0c49638 0%, #eef1c277 100%);
+  --gradient-glass-800: linear-gradient(295deg, #eaf0a33d 0%, #fffc504d 100%);
 
   --gradient-primary-hover: linear-gradient(135deg, #2333a8 0%, #2e40cc 100%);
   --gradient-primary-vertical: linear-gradient(180deg, #2e40cc 0%, #4a5fd8 100%);

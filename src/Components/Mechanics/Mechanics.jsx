@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Mechanics.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
+import Button from '../../common/Button/Button';
 
 const Mechanics = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -215,16 +216,6 @@ const Mechanics = () => {
 
   return (
     <div className="mechanics-container">
-      {/* Header */}
-      <div className="mechanics-header">
-        <div className="header-left">
-          <h1>Mechanics Management</h1>
-        </div>
-        <div className="header-right">
-          <div className="date-time">{currentDateTime}</div>
-        </div>
-      </div>
-
       <div className="mechanics-layout">
         {/* Left Sidebar - Mechanics List */}
         <div className="mechanics-sidebar">
@@ -312,13 +303,69 @@ const Mechanics = () => {
                 <div className="profile-actions">
                   {isEditing ? (
                     <div className="edit-actions">
-                      <button onClick={handleSaveEdit} className="save-btn">Save</button>
-                      <button onClick={handleCancelEdit} className="cancel-btn">Cancel</button>
+                      <Button
+                        text="Save"
+                        onClick={handleSaveEdit}
+                        colorScheme="lime-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
+                      <Button
+                        text="Cancel"
+                        onClick={handleCancelEdit}
+                        colorScheme="amber-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
                     </div>
                   ) : (
                     <div className="profile-buttons">
-                      <button onClick={handleEdit} className="edit-btn">Edit</button>
-                      <button onClick={handleDelete} className="delete-btn">Delete</button>
+                      <Button
+                        text="Edit"
+                        onClick={handleEdit}
+                        colorScheme="blue-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
+                      <Button
+                        text="Delete"
+                        onClick={handleDelete}
+                        colorScheme="red-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
                     </div>
                   )}
                 </div>
@@ -388,7 +435,6 @@ const Mechanics = () => {
                       <div className="activity-list">
                         {selectedMechanic.attendance?.slice(-5).map((record, index) => (
                           <div key={index} className="activity-item">
-                            <div className="activity-icon">📍</div>
                             <div className="activity-content">
                               <p>Checked in at {formatTime(record.in)}</p>
                               <span className="activity-date">

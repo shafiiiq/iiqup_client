@@ -1,8 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useState, createContext, useEffect } from 'react';
 import { AuthUtils, checkAutoLogin } from './utils/authUtils';
-import { apiRequest } from './utils/0auth';
-import { END_POINT } from './constants';
 import { SearchProvider } from './context/SearchContext';
 import { HeaderTitleProvider } from './context/HeaderTitleContext';
 import './App.css'
@@ -203,20 +201,6 @@ function App() {
 
   const navigate = useNavigate();
 
-  // Helper function to handle button click
-  const handleModalButtonClick = () => {
-    if (currentModalIndex < newLPO.length - 1) {
-      // Not the last item, show next
-      setCurrentModalIndex(currentModalIndex + 1);
-    } else {
-      // Last item, create LPO
-      createLPO(newLPO[currentModalIndex]);
-      // Reset modal index and close modal
-      setCurrentModalIndex(0);
-      setisLPOAlert(false);
-    }
-  };
-
   // Spacer Wrapper to hide on login and home
   function SpacerWrapper() {
     const location = useLocation();
@@ -226,108 +210,6 @@ function App() {
     return !hideSpacer && <Spacer vertical="4rem" horizontal="100%" />;
   }
 
-  const handleWorkModalButtonClick = () => {
-    if (currentModalIndex < newWork.length - 1) {
-      // Not the last item, show next
-      setCurrentModalIndex(currentModalIndex + 1);
-    } else {
-      // Last item, call storeNewWork function (not as constructor)
-      storeNewWork(newWork[currentModalIndex]);
-      // Reset modal index and close modal
-      setCurrentModalIndex(0);
-      setisWorkAlert(false);
-    }
-  };;
-
-  // Helper function to get button text
-  const getButtonText = () => {
-    if (newLPO.length <= 1) {
-      return "Check the video and Store";
-    }
-    return currentModalIndex < newLPO.length - 1 ? "Show Next" : "Check the video and Store";
-  };
-
-  const getAlertOfLPO = async () => {
-    try {
-      // Check if LPO was recently created
-      const createdLPO = sessionStorage.getItem('createdLPO');
-      if (createdLPO) {
-        const hideUntilTime = parseInt(createdLPO);
-        const now = new Date().getTime();
-
-        if (now < hideUntilTime) {
-          // Still within the "don't show" period
-          return;
-        } else {
-          // Time has expired, remove the storage item
-          sessionStorage.removeItem('createdLPO');
-        }
-      }
-
-      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
-      const data = await response.json();
-
-      // Filter items where workflowStatus is "sent_to_workshop"
-      const lpoItems = data.filter(item => item.workflowStatus === "sent_to_workshop");
-
-      // Update the newLPO state with filtered data
-      setNewLPO(lpoItems);
-
-      // Set alert to true if there are any items with "sent_to_workshop" status
-      setisLPOAlert(lpoItems.length > 0);
-
-    } catch (error) {
-      console.error('Error fetching LPO data:', error);
-      // Optionally reset states on error
-      setNewLPO([]);
-      setisLPOAlert(false);
-    }
-  };
-
-  const getAlertWork = async () => {
-    try {
-      // Check if LPO was recently created
-      const workNotified = sessionStorage.getItem('workNotified');
-      if (workNotified) {
-        const hideUntilTime = parseInt(workNotified);
-        const now = new Date().getTime();
-
-        if (now < hideUntilTime) {
-          // Still within the "don't show" period
-          return;
-        } else {
-          // Time has expired, remove the storage item
-          sessionStorage.removeItem('workNotified');
-        }
-      }
-
-      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
-      const data = await response.json();
-
-      // Filter items where workflowStatus is "sent_to_workshop"
-      const newWorks = data.filter(item => item.workflowStatus === "completed");
-
-      // Update the newLPO state with filtered data
-      setNewWork(newWorks);
-
-      // Set alert to true if there are any items with "sent_to_workshop" status
-      setisWorkAlert(newWorks.length > 0);
-
-    } catch (error) {
-      console.error('Error fetching Works data:', error);
-      // Optionally reset states on error
-      setNewWork([]);
-      setisWorkAlert(false);
-    }
-  };
-
-  // alert watching for lpo 
-  useEffect(() => {
-    return () => {
-      getAlertOfLPO()
-      getAlertWork()
-    };
-  }, []);
 
   useEffect(() => {
     const hiddenUntil = sessionStorage.getItem('devModalHidden');

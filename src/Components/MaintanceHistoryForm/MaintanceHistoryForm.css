@@ -85,13 +85,6 @@
   grid-column: span 2;
 }
 
-.form-group label {
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #64748b;
-}
-
 .form-group input::placeholder,
 .form-group textarea::placeholder {
   color: #a0aec0;

@@ -138,11 +138,8 @@
   text-align: center;
   padding: 40px;
   font-size: 18px;
-  background-color: var(--bg-card);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   color: var(--text-primary);
-  border: 1px solid var(--border-primary);
 }
 
 .error-message {
@@ -215,7 +212,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary);
+  background: var(--gradient-primary-600);
   color: white;
   font-weight: 600;
   font-size: 14px;
@@ -244,7 +241,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary);
+  background: var(--gradient-primary-300);
   color: white;
   font-weight: 700;
   font-size: 24px;
@@ -340,29 +337,28 @@
   right: 0;
   width: 800px;
   height: 100vh;
-  background-color: var(--bg-modal);
+  background: var(--gradient-primary-900);
   color: var(--text-primary);
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-outer-xxl);
   z-index: 1000;
   overflow-y: auto;
   transition: transform 0.3s;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border-primary);
 }
 
 .details-header h2 {
-  font-size: 20px;
+  font-size: 30px !important;
   color: var(--text-primary);
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 54px;
   cursor: pointer;
-  color: var(--text-disabled);
+  color: var(--text-color);
   padding: 5px;
   border-radius: 50%;
   transition: all 0.2s ease;
@@ -384,9 +380,9 @@
   gap: 20px;
   margin-bottom: 24px;
   padding: 20px;
-  background-color: var(--bg-secondary);
-  border-radius: 8px;
-  border: 1px solid var(--border-primary);
+  background: var(--gradient-glass-600);
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-inner-xxl);
 }
 
 .profile-info h3 {
@@ -401,10 +397,10 @@
 }
 
 .detail-group {
-  background-color: var(--bg-secondary);
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid var(--border-primary);
+  background: var(--gradient-glass-600);
+  border-radius: var(--radius-4xl);
 }
 
 .detail-group h4 {
@@ -413,7 +409,7 @@
   font-size: 18px;
   font-weight: 600;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--text-color-400);
 }
 
 .operator-detail-item {
@@ -485,25 +481,26 @@
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
   padding: 20px;
 }
 
 .form-modal {
-  background-color: var(--bg-modal);
+  background: var(--gradient-glass-600);
   color: var(--text-primary);
-  border-radius: 12px;
-  width: 600px;
+  border-radius: var(--radius-4xl);
+  width: 1000px;
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-primary);
   animation: modal-appear 0.3s ease-out;
 }
 
-.form-modal.large {
-  width: 900px;
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: var(--gradient-glass-700) !important;
 }
 
 @keyframes modal-appear {
@@ -523,16 +520,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-primary);
-  background-color: var(--bg-modal-header);
   border-radius: 12px 12px 0 0;
 }
 
 .form-header h2 {
-  font-size: 20px;
+  font-size: 30px;
   color: var(--text-primary);
   margin: 0;
-  font-weight: 600;
+  font-weight: 300;
 }
 
 .form-content {
@@ -543,7 +538,7 @@
 .form-section {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--text-color-400);
 }
 
 .form-section:last-child {
@@ -553,8 +548,9 @@
 .form-section h3 {
   margin: 0 0 16px 0;
   color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 25px;
+  text-align: center;
+  font-weight: 300;
 }
 
 .form-row {
@@ -576,7 +572,8 @@
   display: block;
   margin-bottom: 6px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-color-200);
+  font-size: 18px;
 }
 
 /* Profile Upload Styles */
@@ -608,7 +605,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary);
+  background: var(--gradient-primary-600);
   color: white;
   font-weight: 700;
   font-size: 32px;
@@ -652,13 +649,11 @@
 .dropdown-input-container input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--border-primary);
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.2s;
   padding-right: 35px;
-  background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .dropdown-input-container input:focus {
@@ -821,26 +816,6 @@
   margin-right: 8px;
   vertical-align: middle;
   border: 1px solid var(--border-primary);
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
 }
 
 /* Animation Keyframes */

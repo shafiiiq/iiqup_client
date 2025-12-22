@@ -3,16 +3,9 @@ import io from 'socket.io-client';
 import { END_POINT } from '../../constants';
 import './Notification.css';
 import { apiRequest } from '../../utils/0auth';
+import Button from '../../common/Button/Button';
 
 const Notifications = ({ islivemodeON }) => {
-  // Quick filter options
-  const quickFilters = [
-    { id: 'all', label: 'All', type: 'all', color: '#6366f1' },
-    { id: 'normal', label: 'Normal', type: 'normal', color: '#10b981' },
-    { id: 'special', label: 'Special', type: 'special', color: '#f59e0b' },
-    { id: 'high', label: 'High Priority', type: 'high', color: '#ef4444' },
-  ];
-
   const soundOptions = {
     bell: {
       name: 'Bell 🔔',
@@ -565,6 +558,15 @@ const Notifications = ({ islivemodeON }) => {
     setUnreadCount(0);
   };
 
+  const enableSound = () => {
+    const newSoundState = !soundEnabled;
+    setSoundEnabled(newSoundState);
+    localStorage.setItem('notificationSoundEnabled', newSoundState.toString());
+    if (newSoundState) {
+      setTimeout(() => playNotificationSound(), 100);
+    }
+  }
+
   const getNotificationStats = () => {
     return {
       total: notifications.length,
@@ -768,85 +770,55 @@ const Notifications = ({ islivemodeON }) => {
       {
         islivemodeON ? null : (
           <div className="ntf-actions">
-            {soundEnabled && (
-              <button
-                className="ntf-sound-enable-btn"
-                title="Notification sounds are enabled"
-                style={{ cursor: 'default' }}
-              >
-                Sound Enabled
-              </button>
-            )}
-            <div className="ntf-filter-buttons">
-              {quickFilters.map((filter) => (
-                <button
-                  key={filter.id}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`ntf-filter-btn ${selectedFilter === filter.id ? 'ntf-active' : ''}`}
-                  style={{
-                    '--ntf-filter-color': filter.color,
-                  }}
-                >
-                  {filter.label}
-                  {selectedFilter === filter.id && (
-                    <span className="ntf-filter-indicator"></span>
-                  )}
-                </button>
-              ))}
-            </div>
             <div className="ntf-action-buttons">
-              <button
+              <Button
+                text={refreshing ? 'Refreshing...' : 'Refresh'}
                 onClick={onRefresh}
-                className="ntf-refresh-btn"
-                disabled={refreshing}
-              >
-                <span className="ntf-refresh-icon">
-                  <svg viewBox="0 0 24 24" width="18" height="18">
-                    <path fill="currentColor" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
-                  </svg>
-                </span>
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
-              <button
+                colorScheme="violet-600"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="130px"
+                height="46px"
+                type={refreshing ? 'disabled' : 'submit'}
+                textColor="white-400"
+                iconRight="refresh"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+              <Button
+                text="Mark all as read"
                 onClick={markAllAsRead}
-                className="ntf-mark-read-btn"
-                disabled={unreadCount === 0}
-              >
-                <span className="ntf-mark-read-icon">
-                  <svg viewBox="0 0 24 24" width="18" height="18">
-                    <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
-                  </svg>
-                </span>
-                Mark all as read
-              </button>
-              <button
-                onClick={() => {
-                  const newSoundState = !soundEnabled;
-                  setSoundEnabled(newSoundState);
-                  localStorage.setItem('notificationSoundEnabled', newSoundState.toString());
-                  console.log('🔊 Sound preference saved to localStorage:', newSoundState);
-
-                  // Play test sound when enabling
-                  if (newSoundState) {
-                    setTimeout(() => playNotificationSound(), 100);
-                  }
-                }}
-                className={`ntf-sound-toggle-btn ${soundEnabled ? 'sound-on' : 'sound-off'}`}
-                title={soundEnabled ? 'Disable notification sound' : 'Enable notification sound'}
-              >
-                <span className="ntf-sound-icon">
-                  {soundEnabled ? (
-                    <svg viewBox="0 0 24 24" width="18" height="18">
-                      <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" width="18" height="18">
-                      <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z" />
-                    </svg>
-                  )}
-                </span>
-                {soundEnabled ? 'Sound On' : 'Sound Off'}
-              </button>
+                colorScheme="lime-700"
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="200px"
+                height="46px"
+                type={unreadCount === 0 ? 'disabled' : 'submit'}
+                textColor="white-400"
+                iconRight="check"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+              <Button
+                text={soundEnabled ? 'Sound On' : 'Sound Off'}
+                onClick={enableSound}
+                colorScheme={!soundEnabled ? 'amber-300' : 'amber-700'}
+                variant="gradient"
+                font="md"
+                animation=""
+                rounded="md"
+                width="160px"
+                height="46px"
+                type="submit"
+                textColor={!soundEnabled ? 'black-300' : 'white-800'}
+                iconRight={!soundEnabled ? 'notification_audio_off' : 'notification_audio'}
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
               <select
                 value={selectedSound}
                 onChange={(e) => {
@@ -923,7 +895,7 @@ const Notifications = ({ islivemodeON }) => {
         )
       }
 
-      <div className={`ntf-grid ${islivemodeON ? 'live-dsh-pad' : 'pad-40'}`}>
+      <div className={`ntf-grid ${islivemodeON ? 'live-dsh-pad' : 'ntf-pad'}`}>
         {filteredNotifications.length > 0 ? (
           filteredNotifications.slice().reverse().map((notification, index) => {
             const notificationId = notification._id || `${notification.type}_${index}`;
@@ -932,7 +904,7 @@ const Notifications = ({ islivemodeON }) => {
             return (
               <div
                 key={notificationId}
-                className={`ntf-card ${notification.type === 'special' ? 'ntf-special' : ''} ${isUnread ? 'ntf-unread' : ''} ${notification.animate ? 'ntf-animate' : ''}`}
+                className={`ntf-card ${notification.type === 'special' ? 'ntf-special' : ''} ${isUnread ? 'ntf-unread' : ''} ${notification.animate ? 'ntf-animate' : ''} ${islivemodeON? '' : 'ntf-card-color'}`}
                 onClick={() => {
                   setSelectedNotification(notification);
                   setShowDetailsPanel(true);

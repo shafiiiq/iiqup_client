@@ -537,21 +537,15 @@ const Dashboard = () => {
           {/* Comparison Summary */}
           {!comparisonLoading && comparisonChartData.length > 0 && (
             <div className="comparison-summary">
-              <h4 style={{ marginBottom: '1rem', color: 'white' }}>Summary</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <h4>Summary</h4>
+              <div className='summary-grid'>
                 {comparisonChartData.map((item, index) => (
-                  <div key={index} style={{
-                    padding: '0.75rem',
-                    backgroundColor: 'rgba(255, 255, 255, 0.09)',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: 'white'
-                  }}>
-                    <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{item.label}</div>
-                    <div style={{ fontSize: '1.5rem', color: COLORS.primaryLighter, fontWeight: '700' }}>
+                  <div key={index} className='comparison-item'>
+                    <div>{item.label}</div>
+                    <div className='summary-total-highlight'>
                       {item.Total}
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: '#d4e6ffff' }}>Total Activities</div>
+                    <div>Total Activities</div>
                   </div>
                 ))}
               </div>

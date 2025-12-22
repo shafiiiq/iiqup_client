@@ -10,7 +10,12 @@ import Button from '../../common/Button/Button';
 
 const Toolkits = () => {
   const { searchTerm, setSearchTerm } = useSearch();
-  // Predefined tool names and colors
+  const userDropdownRef = useRef(null);
+  const nameDropdownRef = useRef(null);
+  const typeDropdownRef = useRef(null);
+  const sizeDropdownRef = useRef(null);
+  const colorDropdownRef = useRef(null);
+
   const predefinedToolNames = ['Coveralls', 'Safety Shoes', 'Helmet', 'Safety Glasses', 'Safety Jacket', 'Hand Gloves'];
   const predefinedColors = ['White', 'Yellow', 'Grey', 'Blue', 'Navy Blue', 'Kaki', 'Black'];
   const predefinedTypes = ['Head Protection', 'Eye Protection', 'Hand Protection', 'Foot Protection', 'Body Protection', 'Fall Protection', 'Respiratory Protection'];
@@ -20,7 +25,6 @@ const Toolkits = () => {
   const [variantFilterSize, setVariantFilterSize] = useState('all');
   const [variantFilterColor, setVariantFilterColor] = useState('all');
   const [variantFilterStatus, setVariantFilterStatus] = useState('all');
-
   const [toolkits, setToolkits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,41 +59,31 @@ const Toolkits = () => {
     personId: null,
     assignedDate: new Date()
   });
-
-  // States for user data and dropdown
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [filters, setFilters] = useState({
+    dateFilter: 'all',
+    toolkits: [],
+    sizes: [],
+    colors: [],
+    statuses: [],
+    lastMonthsCount: 6,
+    customStartDate: '',
+    customEndDate: ''
+  });
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
-  // Ref for user dropdown
-  const userDropdownRef = useRef(null);
-
   const filteredToolkits = toolkits;
-
-  // Search states for dropdowns
   const [nameSearchTerm, setNameSearchTerm] = useState('');
   const [typeSearchTerm, setTypeSearchTerm] = useState('');
   const [sizeSearchTerm, setSizeSearchTerm] = useState('');
   const [colorSearchTerm, setColorSearchTerm] = useState('');
-
-  // States for dropdown visibility
   const [showNameDropdown, setShowNameDropdown] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
   const [showColorDropdown, setShowColorDropdown] = useState(false);
-
-  // Export filter states
-  const [showExportFilters, setShowExportFilters] = useState(false);
-  const [exportFilters, setExportFilters] = useState({
-    toolkit: 'all',
-    size: 'all',
-    color: 'all',
-    status: 'all'
-  });
-
-  // Toolkit history states
   const [showToolkitHistory, setShowToolkitHistory] = useState(false);
   const [toolkitHistory, setToolkitHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState({
@@ -100,25 +94,15 @@ const Toolkits = () => {
     lastUnit: 'days' // 'days', 'weeks', 'months', 'years'
   });
 
-  // Refs for dropdown components to handle clicks outside
-  const nameDropdownRef = useRef(null);
-  const typeDropdownRef = useRef(null);
-  const sizeDropdownRef = useRef(null);
-  const colorDropdownRef = useRef(null);
-
-  // Filtered lists based on search term
   const filteredToolNames = predefinedToolNames.filter(name =>
     name.toLowerCase().includes(nameSearchTerm.toLowerCase())
   );
-
   const filteredTypes = predefinedTypes.filter(type =>
     type.toLowerCase().includes(typeSearchTerm.toLowerCase())
   );
-
   const filteredSizes = predefinedSizes.filter(size =>
     size.toLowerCase().includes(sizeSearchTerm.toLowerCase())
   );
-
   const filteredColors = predefinedColors.filter(color =>
     color.toLowerCase().includes(colorSearchTerm.toLowerCase())
   );
@@ -834,6 +818,28 @@ const Toolkits = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleApplyFilters = () => {
+    setShowFiltersModal(false);
+    // Filters are already applied in the state
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      dateFilter: 'all',
+      toolkits: [],
+      sizes: [],
+      colors: [],
+      statuses: [],
+      lastMonthsCount: 6,
+      customStartDate: '',
+      customEndDate: ''
+    });
+  };
+
   const exportToExcel = async () => {
     try {
       setExporting(true);
@@ -841,8 +847,8 @@ const Toolkits = () => {
       // Apply export filters
       let dataToExport = toolkits;
 
-      if (exportFilters.toolkit !== 'all') {
-        dataToExport = dataToExport.filter(t => t._id === exportFilters.toolkit);
+      if (filters.toolkits.length > 0) {
+        dataToExport = dataToExport.filter(t => filters.toolkits.includes(t._id));
       }
 
       // Create a new workbook and worksheet
@@ -901,16 +907,16 @@ const Toolkits = () => {
           let filteredVariants = toolkit.variants;
 
           // Apply variant filters
-          if (exportFilters.size !== 'all') {
-            filteredVariants = filteredVariants.filter(v => v.size === exportFilters.size);
+          if (filters.sizes.length > 0) {
+            filteredVariants = filteredVariants.filter(v => filters.sizes.includes(v.size));
           }
-          if (exportFilters.color !== 'all') {
-            filteredVariants = filteredVariants.filter(v => v.color === exportFilters.color);
+          if (filters.colors.length > 0) {
+            filteredVariants = filteredVariants.filter(v => filters.colors.includes(v.color));
           }
-          if (exportFilters.status !== 'all') {
+          if (filters.statuses.length > 0) {
             filteredVariants = filteredVariants.filter(v => {
               const status = calculateStatus(v.stockCount, v.minStockLevel);
-              return status === exportFilters.status;
+              return filters.statuses.includes(status);
             });
           }
 
@@ -1105,23 +1111,8 @@ const Toolkits = () => {
       <div className="toolkits-actions">
         <Button
           text="Add Toolkit"
-          onClick={() => openAddForm}
+          onClick={openAddForm}
           colorScheme="violet-800"
-          variant="gradient"
-          font="md"
-          animation=""
-          rounded="md"
-          width="160px"
-          height="38px"
-          type="submit"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
-        <Button
-          text={showExportFilters ? 'Hide Export Filters' : 'Export Filters'}
-          onClick={() => setShowExportFilters(!showExportFilters)}
-          colorScheme="slate-600"
           variant="gradient"
           font="md"
           animation=""
@@ -1153,7 +1144,7 @@ const Toolkits = () => {
         />
         <Button
           text={exporting ? 'Exporting...' : 'Export to Excel'}
-          onClick={() => exportToExcel}
+          onClick={exportToExcel}
           colorScheme=""
           variant="gradient"
           font="md"
@@ -1166,80 +1157,22 @@ const Toolkits = () => {
           shadowPosition="to-bottom"
           shadowColor="white-600"
         />
+        <Button
+          text="Filters"
+          onClick={() => setShowFiltersModal(true)}
+          colorScheme="amber-600"
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="160px"
+          height="38px"
+          type="submit"
+          textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
       </div>
-
-      {/* Export Filters Panel */}
-      {showExportFilters && (
-        <div className="export-filters-panel">
-          <h3>Export Filters</h3>
-          <div className="export-filters-grid">
-            <div className="export-filter-group">
-              <label>Toolkit</label>
-              <select
-                value={exportFilters.toolkit}
-                onChange={(e) => setExportFilters({ ...exportFilters, toolkit: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Toolkits</option>
-                {toolkits.map(toolkit => (
-                  <option key={toolkit._id} value={toolkit._id}>{toolkit.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="export-filter-group">
-              <label>Size</label>
-              <select
-                value={exportFilters.size}
-                onChange={(e) => setExportFilters({ ...exportFilters, size: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Sizes</option>
-                {predefinedSizes.map(size => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="export-filter-group">
-              <label>Color</label>
-              <select
-                value={exportFilters.color}
-                onChange={(e) => setExportFilters({ ...exportFilters, color: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Colors</option>
-                {predefinedColors.map(color => (
-                  <option key={color} value={color}>{color}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="export-filter-group">
-              <label>Status</label>
-              <select
-                value={exportFilters.status}
-                onChange={(e) => setExportFilters({ ...exportFilters, status: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Status</option>
-                <option value="available">In Stock</option>
-                <option value="low">Low Stock</option>
-                <option value="out">Out of Stock</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="export-filter-actions">
-            <button
-              className="clear-export-filters-btn"
-              onClick={() => setExportFilters({ toolkit: 'all', size: 'all', color: 'all', status: 'all' })}
-            >
-              Clear All Filters
-            </button>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <div className="loading">Loading safety tools inventory...</div>
@@ -2069,6 +2002,80 @@ const Toolkits = () => {
           </div>
         </div>
       )}
+      {/* Filters Modal */}
+      <DevModal
+        isOpen={showFiltersModal}
+        onClose={() => setShowFiltersModal(false)}
+        type="filters"
+        title="Toolkit Filters"
+        message="Customize your export and view with advanced filtering options"
+        filterGroups={[
+          {
+            name: 'dateFilter',
+            label: 'Date Range',
+            type: 'select',
+            options: [
+              { value: 'all', label: 'All Time' },
+              { value: 'thismonth', label: 'This Month' },
+              { value: 'lastXmonths', label: 'Last X Months' },
+              { value: 'custom', label: 'Custom Range' }
+            ]
+          },
+          ...(filters.dateFilter === 'lastXmonths' ? [{
+            name: 'lastMonthsCount',
+            label: 'Number of Months',
+            type: 'select',
+            options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n =>
+              ({ value: n, label: `${n} Month${n > 1 ? 's' : ''}` })
+            )
+          }] : []),
+          ...(filters.dateFilter === 'custom' ? [
+            {
+              name: 'customStartDate',
+              label: 'Start Date',
+              type: 'date'
+            },
+            {
+              name: 'customEndDate',
+              label: 'End Date',
+              type: 'date'
+            }
+          ] : []),
+          {
+            name: 'toolkits',
+            label: 'Toolkits',
+            type: 'checkbox',
+            options: toolkits.map(t => ({ value: t._id, label: t.name }))
+          },
+          {
+            name: 'sizes',
+            label: 'Sizes',
+            type: 'checkbox',
+            options: predefinedSizes.map(s => ({ value: s, label: s }))
+          },
+          {
+            name: 'colors',
+            label: 'Colors',
+            type: 'checkbox',
+            options: predefinedColors.map(c => ({ value: c, label: c }))
+          },
+          {
+            name: 'statuses',
+            label: 'Stock Status',
+            type: 'checkbox',
+            options: [
+              { value: 'available', label: 'In Stock' },
+              { value: 'low', label: 'Low Stock' },
+              { value: 'out', label: 'Out of Stock' }
+            ]
+          }
+        ]}
+        filterValues={filters}
+        onFilterChange={handleFilterChange}
+        onApplyFilters={handleApplyFilters}
+        onResetFilters={handleResetFilters}
+        buttonText="Apply Filters"
+      />
     </div>
   );
 };

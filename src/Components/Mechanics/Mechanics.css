@@ -11,7 +11,7 @@
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid  var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .header-left h1 {
@@ -30,7 +30,7 @@
   background: var(--bg-card);
   padding: 12px 16px;
   border-radius: var(--radius-md);
-  border: 1px solid  var(--border-primary);
+  border: 1px solid var(--border-primary);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
@@ -47,10 +47,8 @@
 
 /* Sidebar Styles */
 .mechanics-sidebar {
-  background:  var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid  var(--border-primary);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-inner-xxl);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -58,9 +56,10 @@
 
 .sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid  var(--border-primary);
-  background: var(--bg-primary);
-  color: white;
+  background: var(--gradient-primary-600);
+  color: var(--text-color);
+  box-shadow: var(--shadow-outer-xxl);
+  border-radius: var(--radius-4xl);
 }
 
 .sidebar-header h3 {
@@ -73,32 +72,10 @@
   position: relative;
 }
 
-/* .search-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  placeholder-color: rgba(255, 255, 255, 0.7);
-}
-
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.search-input:focus {
-  outline: none;
-  background: rgba(255, 255, 255, 0.3);
-} */
-
-/* Mechanics List */
 .mechanics-list {
   flex: 1;
   overflow-y: auto;
   padding: 8px;
-  background-color: var(--bg-card);
 }
 
 .mechanic-card {
@@ -106,16 +83,16 @@
   align-items: center;
   padding: 16px;
   margin-bottom: 8px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-4xl);
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid transparent;
-  background: var(--bg-card);
+  background: var(--gradient-glass-600);
+  box-shadow: var(--shadow-inner-xxl);
 }
 
 .mechanic-card:hover {
   background: var(--bg-hover);
-  border-color:  var(--border-primary);
+  border-color: var(--border-primary);
 }
 
 .mechanic-card.selected {
@@ -191,10 +168,9 @@
 
 /* Main Content */
 .mechanics-main {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid  var(--border-primary);
-  box-shadow: var(--shadow-sm);
+  background: var(--gradient-glass-600);
+  border-radius: var(--radius-4xl);
+  box-shadow: var(--shadow-outer-xxl);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -206,8 +182,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid  var(--border-primary);
-  background: var(--bg-card)
+  background: var()
 }
 
 .mechanic-profile {
@@ -236,17 +211,17 @@
 
 .edit-form {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
 }
 
 .edit-input {
   padding: 8px 12px;
-  border: 1px solid  var(--border-primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   font-size: 14px;
-  background: var(--bg-card);
+  background: var(--gradient-glass-300);
   color: var(--text-primary);
+  box-shadow: var(--shadow-inner-lg);
 }
 
 .edit-input:focus {
@@ -316,8 +291,6 @@
 /* Detail Tabs */
 .detail-tabs {
   display: flex;
-  background: var(--bg-primary);
-  border-bottom: 1px solid  var(--border-primary);
 }
 
 .detail-tab {
@@ -326,11 +299,11 @@
   border: none;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-tertiary);
+  color: var(--text-color);
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 2px solid transparent;
   position: relative;
+   border-radius: var(--radius-2xl);
 }
 
 .detail-tab:hover {
@@ -339,9 +312,10 @@
 }
 
 .detail-tab.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  color: var(--text-color);
   background: var(--bg-card);
+  background: var(--gradient-glass-600);
+  margin-left: 1rem;
 }
 
 /* Tab Content */
@@ -365,15 +339,14 @@
 }
 
 .stat-card {
-  background:  var(--border-primary);
-  border: 1px solid  var(--border-primary);
-  border-radius: var(--radius-md);
+  background: var(--gradient-glass-200);
+  border-radius: var(--radius-4xl);
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 16px;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-inner-xxl);
 }
 
 .stat-card:hover {
@@ -389,25 +362,25 @@
 .stat-info h3 {
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-inverse);
   margin-bottom: 4px;
 }
 
 .stat-info p {
-  font-size: 14px;
-  color: var(--text-tertiary);
+  font-size: 18px;
+  color: var(--text-inverse-300);
 }
 
 .recent-activity {
-  background: var(--bg-card);
-  border: 1px solid  var(--border-primary);
-  border-radius: var(--radius-md);
+  background: var( --gradient-primary-900);
+  border-radius: var(--radius-4xl);
   padding: 20px;
+  box-shadow: var(--shadow-outer-xxl);
 }
 
 .recent-activity h3 {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 400;
   margin-bottom: 16px;
   color: var(--text-primary);
 }
@@ -423,8 +396,9 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--bg-primary);
-  border-radius: var(--radius-sm);
+  background: var(--gradient-glass-600);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-outer-sm);
 }
 
 .activity-icon {
@@ -437,14 +411,14 @@
 }
 
 .activity-content p {
-  font-size: 14px;
-  color: var(--text-primary);
+  font-size: 15px;
+  color: var(--text-color);
   margin-bottom: 2px;
 }
 
 .activity-date {
-  font-size: 12px;
-  color: var(--text-tertiary);
+  font-size: 14px;
+  color: var(--text-color-200);
 }
 
 .no-activity {
@@ -493,7 +467,7 @@
 
 .toolkit-card {
   background: var(--bg-card);
-  border: 1px solid  var(--border-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   padding: 20px;
   transition: all 0.2s ease;
@@ -554,14 +528,14 @@
   color: var(--text-tertiary);
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid  var(--border-primary);
+  border-top: 1px solid var(--border-primary);
 }
 
 /* Tables */
 .attendance-table-wrapper,
 .overtime-table-wrapper {
   background: var(--bg-card);
-  border: 1px solid  var(--border-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -581,7 +555,7 @@
   text-align: left;
   font-weight: 600;
   color: var(--text-primary);
-  border-bottom: 2px solid  var(--border-primary);
+  border-bottom: 2px solid var(--border-primary);
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -590,7 +564,7 @@
 .attendance-table td,
 .overtime-table td {
   padding: 14px 12px;
-  border-bottom: 1px solid  var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
   color: var(--text-primary);
 }
 
@@ -652,7 +626,7 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid  var(--border-primary);
+  border: 4px solid var(--border-primary);
   border-top: 4px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -697,7 +671,7 @@
 .overtime-daily-table-wrapper,
 .toolkits-table-wrapper {
   background: var(--bg-card);
-  border: 1px solid  var(--border-primary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -721,7 +695,7 @@
   text-align: left;
   font-weight: 600;
   color: var(--text-primary);
-  border-bottom: 2px solid  var(--border-primary);
+  border-bottom: 2px solid var(--border-primary);
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -732,7 +706,7 @@
 .overtime-table td,
 .toolkits-table td {
   padding: 14px 12px;
-  border-bottom: 1px solid  var(--border-primary);
+  border-bottom: 1px solid var(--border-primary);
   color: var(--text-primary);
   vertical-align: middle;
 }
@@ -823,7 +797,7 @@
 }
 
 .back-btn:hover {
-  background:  var(--border-primary);
+  background: var(--border-primary);
 }
 
 .equipment-list {
@@ -872,7 +846,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background:  var(--border-primary);
+  background: var(--border-primary);
   border-radius: 3px;
 }
 

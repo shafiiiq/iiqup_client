@@ -86,6 +86,7 @@
 }
 
 .user-details {
+  margin-left: 0.3rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -258,6 +259,28 @@
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-shadow: var(--shadow-outer-xxl);
+}
+
+.header-nav:hover {
+  animation: scale-vibrate 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes scale-vibrate {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  25% {
+    transform: translateX(-50%) scale(1.0111);
+  }
+  50% {
+    transform: translateX(-50%) scale(1);
+  }
+  75% {
+    transform: translateX(-50%) scale(1.0111);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
 }
 
 .header-nav.shrink {

@@ -62,7 +62,6 @@
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
   color: var(--text-primary);
-  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-error {
@@ -913,21 +912,6 @@
   opacity: 0.6;
   pointer-events: none;
 }
-
-.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-primary);
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  transform: translate(-50%, -50%);
-}
-
 
 /* Dropdown Container Styles */
 .dropdown-container {

@@ -488,9 +488,7 @@ const Operators = () => {
   };
 
   // Form submit handler
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleFormSubmit = async () => {
     try {
       let profilePicUrl = null;
 
@@ -651,7 +649,7 @@ const Operators = () => {
       <div className="operators-actions">
         <Button
           text="Add Operator"
-          onClick={() => openAddForm}
+          onClick={openAddForm}
           colorScheme="lime-700"
           variant="gradient"
           font="md"
@@ -984,12 +982,36 @@ const Operators = () => {
             <div className="operator-actions">
               <h3>Actions</h3>
               <div className="action-btn-group">
-                <button className="action-btn edit" onClick={() => openEditForm(selectedOperator)}>
-                  Edit Operator
-                </button>
-                <button className="action-btn delete" onClick={() => deleteOperator(selectedOperator.qatarId)}>
-                  Delete Operator
-                </button>
+                <Button
+                  text="Edit Operator"
+                  onClick={() => openEditForm(selectedOperator)}
+                  colorScheme="blue-700"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="md"
+                  width="160px"
+                  height="38px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+                <Button
+                  text="Delete Operator"
+                  onClick={() => deleteOperator(selectedOperator.qatarId)}
+                  colorScheme="red-700"
+                  variant="gradient"
+                  font="md"
+                  animation=""
+                  rounded="md"
+                  width="160px"
+                  height="38px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
               </div>
             </div>
           </div>
@@ -1005,7 +1027,7 @@ const Operators = () => {
               <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
             </div>
             <div className="form-content">
-              <form onSubmit={handleFormSubmit}>
+              <form>
                 <div className="form-section">
                   <h3>Profile Picture</h3>
                   <div className="profile-upload">
@@ -1482,16 +1504,36 @@ const Operators = () => {
                 </div>
 
                 <div className="form-actions">
-                  <button type="button" className="cancel-btn" onClick={() => setShowForm(false)}>
-                    Cancel
-                  </button>
-                  <button
+                  <Button
+                    text="Cancel"
+                    onClick={() => setShowForm(false)}
+                    colorScheme="red-700"
+                    variant="gradient"
+                    font="md"
+                    animation=""
+                    rounded="md"
+                    width="160px"
+                    height="38px"
                     type="submit"
-                    className="submit-btn"
-                    disabled={uploading}
-                  >
-                    {uploading ? 'Uploading...' : (formMode === 'add' ? 'Add Operator' : 'Update Operator')}
-                  </button>
+                    textColor="white-900"
+                    shadowPosition="to-bottom"
+                    shadowColor="white-600"
+                  />
+                  <Button
+                    text={uploading ? 'Uploading...' : (formMode === 'add' ? 'Add Operator' : 'Update Operator')}
+                    onClick={handleFormSubmit}
+                    colorScheme={uploading ? 'lime-900' : 'lime-500'}
+                    variant="gradient"
+                    font="md"
+                    animation=""
+                    rounded="md"
+                    width="160px"
+                    height="38px"
+                    type={uploading ? 'disabled' : 'submit'}
+                    textColor={uploading ? 'white-900' : 'black-500'}
+                    shadowPosition="to-bottom"
+                    shadowColor="white-600"
+                  />
                 </div>
               </form>
             </div>

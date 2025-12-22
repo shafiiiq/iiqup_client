@@ -61,13 +61,6 @@
   flex-direction: column;
 }
 
-.form-group label {
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #64748b;
-}
-
 .form-group input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);

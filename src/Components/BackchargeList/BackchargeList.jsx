@@ -5,9 +5,13 @@ import './BackchargeList.css';
 import { apiRequest } from '../../utils/0auth';
 import { useSearch } from '../../context/SearchContext';
 import Button from '../../common/Button/Button';
+import DevModal from '../../common/DevModal';
 
 function BackchargeList() {
   const { searchTerm, setSearchTerm } = useSearch();
+  const navigate = useNavigate();
+  const tableRef = useRef(null);
+
   const [backcharges, setBackcharges] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -15,12 +19,16 @@ function BackchargeList() {
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState('');
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
-  const [supplierFilter, setSupplierFilter] = useState('');
-  const [uniqueSuppliers, setUniqueSuppliers] = useState([]);
-
-  const navigate = useNavigate();
-  const tableRef = useRef(null);
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [filters, setFilters] = useState({
+    dateFilter: 'all',
+    suppliers: [],
+    equipmentTypes: [],
+    costRange: { min: '', max: '' },
+    lastMonthsCount: 6,
+    customStartDate: '',
+    customEndDate: ''
+  });
 
   // Get current date and time
   useEffect(() => {
@@ -60,9 +68,6 @@ function BackchargeList() {
         setBackcharges(data.data);
         setFilteredData(data.data);
 
-        // Extract unique suppliers for filter dropdown
-        const suppliers = [...new Set(data.data.map(item => item.supplierName))].sort();
-        setUniqueSuppliers(suppliers);
       } else {
         console.error('Failed to fetch backcharge reports:', response.message);
       }
@@ -71,51 +76,102 @@ function BackchargeList() {
     }
   };
 
-  useEffect(() => {
-    if (backcharges && backcharges.length > 0) {
-      let results = backcharges;
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
 
-      // Filter by search term
-      if (searchTerm) {
-        results = results.filter(item => {
-          const searchableFields = [
-            item.reportNo,
-            item.refNo,
-            item.supplierName,
-            item.equipmentType,
-            item.plateNo,
-            item.model,
-            item.contactPerson,
-            item.siteLocation,
-            item.scopeOfWork?.combinedText || '',
-            item.workshopComments?.combinedText || ''
-          ];
+  const applyAllFilters = () => {
+    let results = [...backcharges];
 
-          return searchableFields.some(field =>
-            String(field).toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        });
-      }
-
-      // Filter by supplier
-      if (supplierFilter) {
-        results = results.filter(item => item.supplierName === supplierFilter);
-      }
-
-      setFilteredData(results);
+    // Apply date filter
+    if (filters.dateFilter === 'custom' && filters.customStartDate && filters.customEndDate) {
+      const startDate = new Date(filters.customStartDate);
+      const endDate = new Date(filters.customEndDate);
+      results = results.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+    } else if (filters.dateFilter === 'lastXmonths') {
+      const monthsAgo = new Date();
+      monthsAgo.setMonth(monthsAgo.getMonth() - filters.lastMonthsCount);
+      results = results.filter(item => new Date(item.date) >= monthsAgo);
+    } else if (filters.dateFilter === 'thismonth') {
+      const now = new Date();
+      results = results.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate.getMonth() === now.getMonth() &&
+          itemDate.getFullYear() === now.getFullYear();
+      });
     }
-  }, [searchTerm, backcharges, supplierFilter]);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    // Apply supplier filter
+    if (filters.suppliers.length > 0) {
+      results = results.filter(item =>
+        filters.suppliers.includes(item.supplierName)
+      );
+    }
+
+    // Apply equipment filter
+    if (filters.equipmentTypes.length > 0) {
+      results = results.filter(item =>
+        filters.equipmentTypes.includes(item.equipmentType)
+      );
+    }
+
+    // Apply cost range filter
+    if (filters.costRange.min || filters.costRange.max) {
+      results = results.filter(item => {
+        const cost = item.costSummary?.totalCost || 0;
+        const min = filters.costRange.min ? parseFloat(filters.costRange.min) : 0;
+        const max = filters.costRange.max ? parseFloat(filters.costRange.max) : Infinity;
+        return cost >= min && cost <= max;
+      });
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      results = results.filter(item => {
+        const searchableFields = [
+          item.reportNo,
+          item.refNo,
+          item.supplierName,
+          item.equipmentType,
+          item.plateNo,
+          item.model,
+          item.contactPerson,
+          item.siteLocation,
+          item.scopeOfWork?.combinedText || '',
+          item.workshopComments?.combinedText || ''
+        ];
+        return searchableFields.some(field =>
+          String(field).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+    }
+
+    setFilteredData(results);
   };
 
-  const handleClearSearch = () => {
-    setSearchTerm('');
+  useEffect(() => {
+    applyAllFilters();
+  }, [backcharges, searchTerm, filters]);
+
+  const handleApplyFilters = () => {
+    setShowFiltersModal(false);
+    applyAllFilters();
   };
 
-  const handleSupplierFilterChange = (e) => {
-    setSupplierFilter(e.target.value);
+  const handleResetFilters = () => {
+    setFilters({
+      dateFilter: 'all',
+      suppliers: [],
+      equipmentTypes: [],
+      costRange: { min: '', max: '' },
+      lastMonthsCount: 6,
+      customStartDate: '',
+      customEndDate: ''
+    });
+    setFilteredData(backcharges);
   };
 
   const handleRowClick = (reportNo) => {
@@ -147,7 +203,6 @@ function BackchargeList() {
         <body>
           <h1>Backcharge Reports List</h1>
           ${searchTerm ? `<p>Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
-          ${supplierFilter ? `<p>Filtered by supplier: "<strong>${supplierFilter}</strong>"</p>` : ''}
           <table>
             <thead>
               <tr>
@@ -185,8 +240,7 @@ function BackchargeList() {
             </tbody>
           </table>
           <div style="margin-top: 10px; text-align: center;">
-            Showing ${filteredData?.length || 0} ${searchTerm || supplierFilter ? 'matching entries' : 'entries'}
-          </div>
+             Showing ${filteredData?.length || 0} ${searchTerm ? 'matching entries' : 'entries'}          </div>
         </body>
       </html>
     `;
@@ -257,42 +311,6 @@ function BackchargeList() {
     navigate('/backcharge-form');
   };
 
-  const handleDateRangeChange = (e) => {
-    const { name, value } = e.target;
-    setDateRange(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFilterByDate = () => {
-    if (!dateRange.startDate || !dateRange.endDate) {
-      setDeleteStatus({
-        message: 'Please select both start and end dates',
-        isError: true
-      });
-      setShowStatusModal(true);
-      return;
-    }
-
-    const startDate = new Date(dateRange.startDate);
-    const endDate = new Date(dateRange.endDate);
-
-    const filtered = backcharges.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-
-    setFilteredData(filtered);
-  };
-
-  const resetFilters = () => {
-    setDateRange({ startDate: '', endDate: '' });
-    setSupplierFilter('');
-    setSearchTerm('');
-    setFilteredData(backcharges);
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -307,6 +325,21 @@ function BackchargeList() {
     <div className="bcl-main-container">
       <div className="bcl-controls-wrapper">
         <div className="bcl-actions-wrapper">
+          <Button
+            text="Filters"
+            onClick={() => setShowFiltersModal(true)}
+            colorScheme="amber-600"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
           <Button
             text="Add Backcharge"
             onClick={handleAddBackcharge}
@@ -340,50 +373,8 @@ function BackchargeList() {
         </div>
       </div>
 
-      <div className="bcl-filters-container">
-        <div className="bcl-filter-group">
-          <label>Supplier:</label>
-          <select
-            value={supplierFilter}
-            onChange={handleSupplierFilterChange}
-            className="bcl-filter-select"
-          >
-            <option value="">All Suppliers</option>
-            {uniqueSuppliers.map(supplier => (
-              <option key={supplier} value={supplier}>{supplier}</option>
-            ))}
-          </select>
-        </div>
-        <div className="bcl-filter-group">
-          <label>From:</label>
-          <input
-            type="date"
-            name="startDate"
-            value={dateRange.startDate}
-            onChange={handleDateRangeChange}
-            className="bcl-date-input"
-          />
-        </div>
-        <div className="bcl-filter-group">
-          <label>To:</label>
-          <input
-            type="date"
-            name="endDate"
-            value={dateRange.endDate}
-            onChange={handleDateRangeChange}
-            className="bcl-date-input"
-          />
-        </div>
-        <button onClick={handleFilterByDate} className="bcl-btn bcl-btn-filter">
-          Filter by Date
-        </button>
-        <button onClick={resetFilters} className="bcl-btn bcl-btn-reset">
-          Reset All
-        </button>
-      </div>
-
       <div className="bcl-table-summary">
-        {(searchTerm || supplierFilter || dateRange.startDate) ? (
+        {searchTerm || filters.suppliers.length > 0 || filters.dateFilter !== 'all' ? (
           `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
         ) : (
           `Showing ${filteredData?.length || 0} entries`
@@ -519,6 +510,74 @@ function BackchargeList() {
           </div>
         </div>
       )}
+
+      {/* Filter modal  */}
+      <DevModal
+        isOpen={showFiltersModal}
+        onClose={() => setShowFiltersModal(false)}
+        type="filters"
+        title="Backcharge Filters"
+        message="Customize your view with advanced filtering options"
+        filterGroups={[
+          {
+            name: 'dateFilter',
+            label: 'Date Range',
+            type: 'select',
+            options: [
+              { value: 'all', label: 'All Time' },
+              { value: 'thismonth', label: 'This Month' },
+              { value: 'lastXmonths', label: 'Last X Months' },
+              { value: 'custom', label: 'Custom Range' }
+            ]
+          },
+          ...(filters.dateFilter === 'lastXmonths' ? [{
+            name: 'lastMonthsCount',
+            label: 'Number of Months',
+            type: 'select',
+            options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n =>
+              ({ value: n, label: `${n} Month${n > 1 ? 's' : ''}` })
+            )
+          }] : []),
+          ...(filters.dateFilter === 'custom' ? [
+            {
+              name: 'customStartDate',
+              label: 'Start Date',
+              type: 'date'
+            },
+            {
+              name: 'customEndDate',
+              label: 'End Date',
+              type: 'date'
+            }
+          ] : []),
+          {
+            name: 'suppliers',
+            label: 'Suppliers',
+            type: 'checkbox',
+            options: [...new Set(backcharges.map(item => item.supplierName).filter(Boolean))].map(s =>
+              ({ value: s, label: s })
+            )
+          },
+          {
+            name: 'equipmentTypes',
+            label: 'Equipment Types',
+            type: 'checkbox',
+            options: [...new Set(backcharges.map(item => item.equipmentType).filter(Boolean))].map(e =>
+              ({ value: e, label: e })
+            )
+          },
+          {
+            name: 'costRange',
+            label: 'Total Cost Range (QR)',
+            type: 'range'
+          }
+        ]}
+        filterValues={filters}
+        onFilterChange={handleFilterChange}
+        onApplyFilters={handleApplyFilters}
+        onResetFilters={handleResetFilters}
+        buttonText="Apply Filters"
+      />
     </div>
   );
 }
