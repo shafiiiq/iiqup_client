@@ -558,7 +558,11 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           <div className="modal-content">
             <div className="modal-header">
               <h2>Confirm Deletion</h2>
-              <button className="close-btn" onClick={cancelDelete}>×</button>
+              <button className="close-btn" onClick={cancelDelete}>
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
             </div>
             <div className="modal-body">
               <p>Are you sure you want to delete LPO <strong>{selectedLpo?.lpoRef}</strong>?</p>
@@ -578,7 +582,11 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           <div className={`modal-content ${deleteStatus.isError ? 'error' : 'success'}`}>
             <div className="modal-header">
               <h2>{deleteStatus.isError ? 'Error' : 'Success'}</h2>
-              <button className="close-btn" onClick={closeStatusModal}>×</button>
+              <button className="close-btn" onClick={closeStatusModal}>
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
             </div>
             <div className="modal-body">
               <p>{deleteStatus.message}</p>

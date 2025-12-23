@@ -152,7 +152,11 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                 <div className="pending-lpo-alert">
                     <div className="alert-header">
                         <h3 className="alert-title">⚠️ Pending LPO Requests ({pendingLpos.length})</h3>
-                        <button className="alert-close-btn" onClick={handleClosePendingAlert}>×</button>
+                        <button className="alert-close-btn" onClick={handleClosePendingAlert}>
+                            <span class="material-symbols-rounded">
+                                close
+                            </span>
+                        </button>
                     </div>
                     <div className="pending-lpo-list">
                         {pendingLpos.map((lpoItem) => (

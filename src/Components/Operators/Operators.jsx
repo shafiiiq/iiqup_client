@@ -768,7 +768,11 @@ const Operators = () => {
         <div className="operator-details">
           <div className="details-header">
             <h2>Operator Details</h2>
-            <button className="close-btn" onClick={() => setSelectedOperator(null)}>×</button>
+            <button className="close-btn" onClick={() => setSelectedOperator(null)}>
+              <span class="material-symbols-rounded">
+                close
+              </span>
+            </button>
           </div>
           <div className="details-content">
             <div className="operator-profile-section">
@@ -1024,7 +1028,11 @@ const Operators = () => {
           <div className="form-modal large">
             <div className="form-header">
               <h2>{formMode === 'add' ? 'Add New Operator' : 'Edit Operator'}</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
+              <button className="close-btn" onClick={() => setShowForm(false)}>
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
             </div>
             <div className="form-content">
               <form>

@@ -19,13 +19,13 @@ const EquipmentUpdate = () => {
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
-      
+
       // Format date as DD-MM-YY
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = String(now.getFullYear()).slice(-2);
       const dateString = `${day}-${month}-${year}`;
-      
+
       // Format time in AM/PM
       let hours = now.getHours();
       const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -33,13 +33,13 @@ const EquipmentUpdate = () => {
       hours = hours % 12;
       hours = hours ? hours : 12; // Convert 0 to 12
       const timeString = `${hours}:${minutes} ${ampm}`;
-      
+
       setCurrentDateTime(`${dateString}   |   ${timeString}`);
     };
 
     updateDateTime();
     const interval = setInterval(updateDateTime, 60000); // Update every minute
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -48,7 +48,7 @@ const EquipmentUpdate = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // For now, use the sample data
         setTimeout(() => {
           setEquipmentData([
@@ -228,8 +228,8 @@ const EquipmentUpdate = () => {
   };
 
   // Filter data based on selected filter
-  const filteredData = filter === 'all' 
-    ? equipmentData 
+  const filteredData = filter === 'all'
+    ? equipmentData
     : equipmentData.filter(item => item.status === filter);
 
   // Update equipment status
@@ -237,13 +237,13 @@ const EquipmentUpdate = () => {
     try {
 
       // For now, update the local state directly
-      const updatedData = equipmentData.map(item => 
+      const updatedData = equipmentData.map(item =>
         item.id === equipmentId ? { ...item, status: newStatus } : item
       );
-      
+
       setEquipmentData(updatedData);
       setSelectedEquipment(null); // Close details panel after update
-      
+
       alert(`Equipment ID ${equipmentId} status updated to ${newStatus}`);
     } catch (err) {
       console.error('Error updating equipment status:', err);
@@ -262,28 +262,28 @@ const EquipmentUpdate = () => {
         <h1 className='equip-updates'>Equipment Updates</h1>
         <div className="date-time">{currentDateTime}</div>
       </div>
-      
+
       <div className="filter-buttons">
-        <button 
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`} 
+        <button
+          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
           All ({statusCounts.all})
         </button>
-        <button 
-          className={`filter-btn idle ${filter === 'idle' ? 'active' : ''}`} 
+        <button
+          className={`filter-btn idle ${filter === 'idle' ? 'active' : ''}`}
           onClick={() => setFilter('idle')}
         >
           Idle ({statusCounts.idle})
         </button>
-        <button 
-          className={`filter-btn committed ${filter === 'committed' ? 'active' : ''}`} 
+        <button
+          className={`filter-btn committed ${filter === 'committed' ? 'active' : ''}`}
           onClick={() => setFilter('committed')}
         >
           Committed ({statusCounts.committed})
         </button>
-        <button 
-          className={`filter-btn maintenance ${filter === 'maintenance' ? 'active' : ''}`} 
+        <button
+          className={`filter-btn maintenance ${filter === 'maintenance' ? 'active' : ''}`}
           onClick={() => setFilter('maintenance')}
         >
           Maintenance ({statusCounts.maintenance})
@@ -315,15 +315,15 @@ const EquipmentUpdate = () => {
                   <td>{item.machine}</td>
                   <td>{item.brand}</td>
                   <td>{item.regNo}</td>
-                  {item.status === 'committed' ? <td>Raslaffan</td>: <td> </td>}
+                  {item.status === 'committed' ? <td>Raslaffan</td> : <td> </td>}
                   <td>
                     <span className={`status-badge ${item.status}`}>
                       {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                     </span>
                   </td>
                   <td>
-                    <button 
-                      className="action-btn details" 
+                    <button
+                      className="action-btn details"
                       onClick={() => showDetails(item)}
                     >
                       Status change
@@ -340,7 +340,11 @@ const EquipmentUpdate = () => {
         <div className="equipment-details">
           <div className="details-header">
             <h2>Equipment Details</h2>
-            <button className="close-btn" onClick={() => setSelectedEquipment(null)}>×</button>
+            <button className="close-btn" onClick={() => setSelectedEquipment(null)}>
+              <span class="material-symbols-rounded">
+                close
+              </span>
+            </button>
           </div>
           <div className="details-content">
             <div className="detail-item">
@@ -365,26 +369,26 @@ const EquipmentUpdate = () => {
                 {selectedEquipment.status.charAt(0).toUpperCase() + selectedEquipment.status.slice(1)}
               </span>
             </div>
-            
+
             <div className="status-update-buttons">
               <h3>Update Status</h3>
               <div className="status-btn-group">
-                <button 
-                  className="status-btn idle" 
+                <button
+                  className="status-btn idle"
                   onClick={() => updateStatus(selectedEquipment.id, 'idle')}
                   disabled={selectedEquipment.status === 'idle'}
                 >
                   Set to Idle
                 </button>
-                <button 
-                  className="status-btn committed" 
+                <button
+                  className="status-btn committed"
                   onClick={() => updateStatus(selectedEquipment.id, 'committed')}
                   disabled={selectedEquipment.status === 'committed'}
                 >
                   Set to Committed
                 </button>
-                <button 
-                  className="status-btn maintenance" 
+                <button
+                  className="status-btn maintenance"
                   onClick={() => updateStatus(selectedEquipment.id, 'maintenance')}
                   disabled={selectedEquipment.status === 'maintenance'}
                 >

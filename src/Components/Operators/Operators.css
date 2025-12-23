@@ -353,25 +353,13 @@
   color: var(--text-primary);
 }
 
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 54px;
-  cursor: pointer;
-  color: var(--text-color);
-  padding: 5px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  color: var(--out-color);
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
 .details-content {
   display: flex;
   flex-direction: column;
+}
+
+.details-content::-webkit-scrollbar {
+  display: none;
 }
 
 .operator-profile-section {
@@ -495,6 +483,10 @@
   overflow-y: auto;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   animation: modal-appear 0.3s ease-out;
+}
+
+.form-modal::-webkit-scrollbar {
+  display: none;
 }
 
 .form-group input,

@@ -21,6 +21,10 @@ const Toolkits = () => {
   const predefinedTypes = ['Head Protection', 'Eye Protection', 'Hand Protection', 'Foot Protection', 'Body Protection', 'Fall Protection', 'Respiratory Protection'];
   const predefinedSizes = ['S', 'M', 'L', 'XL', 'XXL', 'One Size'];
 
+  const [showSizeSearchDropdown, setShowSizeSearchDropdown] = useState(false);
+  const [sizeDropdownItems, setSizeDropdownItems] = useState([]);
+  const [showColorSearchDropdown, setShowColorSearchDropdown] = useState(false);
+  const [colorDropdownItems, setColorDropdownItems] = useState([]);
   const [variantSearchTerm, setVariantSearchTerm] = useState('');
   const [variantFilterSize, setVariantFilterSize] = useState('all');
   const [variantFilterColor, setVariantFilterColor] = useState('all');
@@ -680,7 +684,6 @@ const Toolkits = () => {
 
   // Form submit handler for variant
   const handleVariantFormSubmit = async (e) => {
-    e.preventDefault();
     try {
       if (variantFormMode === 'add') {
         const response = await apiRequest(`${END_POINT}/toolkits/update-toolkit/${selectedToolkit._id}`,
@@ -1233,7 +1236,11 @@ const Toolkits = () => {
         <div className="toolkit-details">
           <div className="details-header">
             <h2>Toolkit Details</h2>
-            <button className="close-btn" onClick={() => setSelectedToolkit(null)}>×</button>
+            <button className="close-btn" onClick={() => setSelectedToolkit(null)}>
+              <span class="material-symbols-rounded">
+                close
+              </span>
+            </button>
           </div>
           <div className="details-content">
             <div className="detail-item detail-item-side-container">
@@ -1513,7 +1520,11 @@ const Toolkits = () => {
               <div className="variant-details">
                 <div className="details-header">
                   <h2>Variant Details</h2>
-                  <button className="close-btn" onClick={() => setSelectedVariant(null)}>×</button>
+                  <button className="close-btn" onClick={() => setSelectedVariant(null)}>
+                    <span class="material-symbols-rounded">
+                      close
+                    </span>
+                  </button>
                 </div>
                 <div className="details-content">
                   <div className="detail-item detail-item-side-container">
@@ -1768,30 +1779,67 @@ const Toolkits = () => {
         secondaryButtonText="Cancel"
         onSecondaryClick={() => setShowForm(false)}
       />
-
       {/* Form Modal for Add/Update Variant using DevModal */}
       <DevModal
         isOpen={showVariantForm}
         onClose={() => setShowVariantForm(false)}
         type="form"
         title={variantFormMode === 'add' ? 'Add New Variant' : 'Update Variant'}
-        message={`Adding variant to: ${selectedToolkit?.name || ''}`}
+        message={`${variantFormMode === 'add' ? 'Adding' : 'Updating'} variant for: ${selectedToolkit?.name || ''}`}
         formFields={[
           {
             name: 'size',
             label: 'Size',
-            type: 'select',
-            placeholder: 'Select size',
+            type: 'searchable-select',
+            placeholder: 'Type to search or add new size...',
             required: true,
-            options: predefinedSizes.map(s => ({ value: s, label: s }))
+            allowCustom: true,
+            showDropdown: showSizeSearchDropdown,
+            dropdownItems: sizeDropdownItems.map(s => ({ value: s, label: s })),
+            onSearchFocus: () => {
+              setSizeDropdownItems(predefinedSizes);
+              setShowSizeSearchDropdown(true);
+            },
+            onSearch: (value) => {
+              const filtered = predefinedSizes.filter(s =>
+                s.toLowerCase().includes(value.toLowerCase())
+              );
+              setSizeDropdownItems(filtered);
+              setShowSizeSearchDropdown(true);
+            },
+            onSearchBlur: () => {
+              setShowSizeSearchDropdown(false);
+            },
+            onItemSelect: (item) => {
+              setShowSizeSearchDropdown(false);
+            }
           },
           {
             name: 'color',
             label: 'Color',
-            type: 'select',
-            placeholder: 'Select color',
+            type: 'searchable-select',
+            placeholder: 'Type to search or add new color...',
             required: true,
-            options: predefinedColors.map(c => ({ value: c, label: c }))
+            allowCustom: true,
+            showDropdown: showColorSearchDropdown,
+            dropdownItems: colorDropdownItems.map(c => ({ value: c, label: c })),
+            onSearchFocus: () => {
+              setColorDropdownItems(predefinedColors);
+              setShowColorSearchDropdown(true);
+            },
+            onSearch: (value) => {
+              const filtered = predefinedColors.filter(c =>
+                c.toLowerCase().includes(value.toLowerCase())
+              );
+              setColorDropdownItems(filtered);
+              setShowColorSearchDropdown(true);
+            },
+            onSearchBlur: () => {
+              setShowColorSearchDropdown(false);
+            },
+            onItemSelect: (item) => {
+              setShowColorSearchDropdown(false);
+            }
           },
           {
             name: 'stockCount',
@@ -1809,24 +1857,16 @@ const Toolkits = () => {
           }
         ]}
         formValues={{
-          size: sizeSearchTerm,
-          color: colorSearchTerm,
+          size: variantFormData.size,
+          color: variantFormData.color,
           stockCount: variantFormData.stockCount,
           minStockLevel: variantFormData.minStockLevel
         }}
         onFormChange={(field, value) => {
-          if (field === 'size') {
-            setSizeSearchTerm(value);
-            setVariantFormData({ ...variantFormData, size: value });
-          } else if (field === 'color') {
-            setColorSearchTerm(value);
-            setVariantFormData({ ...variantFormData, color: value });
-          } else {
-            setVariantFormData({
-              ...variantFormData,
-              [field]: field === 'stockCount' || field === 'minStockLevel' ? parseInt(value) || 0 : value
-            });
-          }
+          setVariantFormData({
+            ...variantFormData,
+            [field]: field === 'stockCount' || field === 'minStockLevel' ? parseInt(value) || 0 : value
+          });
         }}
         buttonText={variantFormMode === 'add' ? 'Add Variant' : 'Update Variant'}
         onButtonClick={handleVariantFormSubmit}
@@ -1840,7 +1880,11 @@ const Toolkits = () => {
           <div className="form-modal history-modal">
             <div className="form-header">
               <h2>All Toolkits History</h2>
-              <button className="close-btn" onClick={() => setShowToolkitHistory(false)}>×</button>
+              <button className="close-btn" onClick={() => setShowToolkitHistory(false)}>
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
             </div>
 
             <div className="history-filters">

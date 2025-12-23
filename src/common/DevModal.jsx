@@ -597,6 +597,84 @@ const DevModal = ({
                               </option>
                             ))}
                           </select>
+
+                        ) : field.type === 'searchable-select' ? (
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              className="dm-form-input"
+                              value={formValues[field.name] || ''}
+                              onChange={(e) => {
+                                onFormChange(field.name, e.target.value);
+                                if (field.onSearch) field.onSearch(e.target.value);
+                              }}
+                              onFocus={() => field.onSearchFocus && field.onSearchFocus()}
+                              onBlur={() => {
+                                setTimeout(() => {
+                                  field.onSearchBlur && field.onSearchBlur();
+                                }, 200);
+                              }}
+                              placeholder={field.placeholder || 'Type to search or add new...'}
+                            />
+                            {field.showDropdown && field.dropdownItems && field.dropdownItems.length > 0 && (
+                              <div className="dm-searchable-dropdown" style={{
+                                position: 'absolute',
+                                zIndex: 1000,
+                                width: '100%',
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                backgroundColor: 'white',
+                                border: '2px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '8px',
+                                marginTop: '4px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                              }}>
+                                {field.dropdownItems.map((item, i) => (
+                                  <div
+                                    key={i}
+                                    onClick={() => {
+                                      onFormChange(field.name, item.value || item.label || item);
+                                      field.onItemSelect && field.onItemSelect(item);
+                                    }}
+                                    style={{
+                                      padding: '10px 12px',
+                                      cursor: 'pointer',
+                                      borderBottom: '1px solid #f0f0f0',
+                                      color: '#1f2937',
+                                      transition: 'background 150ms ease'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                  >
+                                    <div style={{ fontWeight: '500' }}>{item.label || item}</div>
+                                  </div>
+                                ))}
+                                {field.allowCustom && formValues[field.name] &&
+                                  !field.dropdownItems.some(item =>
+                                    (item.value || item.label || item).toLowerCase() === formValues[field.name].toLowerCase()
+                                  ) && (
+                                    <div
+                                      onClick={() => {
+                                        // Value is already set, just close dropdown
+                                        field.onSearchBlur && field.onSearchBlur();
+                                      }}
+                                      style={{
+                                        padding: '10px 12px',
+                                        cursor: 'pointer',
+                                        borderTop: '2px solid #e5e7eb',
+                                        color: '#059669',
+                                        fontWeight: '600',
+                                        transition: 'background 150ms ease'
+                                      }}
+                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
+                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                    >
+                                      ✓ Add "{formValues[field.name]}" as new
+                                    </div>
+                                  )}
+                              </div>
+                            )}
+                          </div>
                         ) : field.type === 'searchable-multi-select' ? (
                           <div style={{ marginBottom: '15px' }}>
                             <div className="dm-selected-items" style={{

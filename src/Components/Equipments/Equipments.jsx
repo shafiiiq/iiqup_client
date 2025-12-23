@@ -5,10 +5,13 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
+import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 import Button from '../../common/Button/Button';
 
 function Equipments() {
   const { searchTerm, setSearchTerm } = useSearch();
+  const { triggerVibration } = useHeaderVibration();
+
   const [equipments, setEquipments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -590,8 +593,10 @@ function Equipments() {
   };
 
   const handleEdit = (e, equipment) => {
-    e.stopPropagation();
+    e.stopPropagation()
+    triggerVibration();
     setEditEquipment(equipment);
+    
     const currentOperator = equipment.certificationBody[equipment.certificationBody.length - 1] || '';
 
     setEditFormData({
@@ -612,7 +617,8 @@ function Equipments() {
   };
 
   const handleDeleteClick = (e, equipment) => {
-    e.stopPropagation();
+    e.stopPropagation()
+    triggerVibration();
     setSelectedEquipment(equipment);
     setShowDeleteModal(true);
   };
@@ -656,6 +662,7 @@ function Equipments() {
 
   // Updated handleAdd function to show modal instead of navigate
   const handleAdd = () => {
+    triggerVibration();
     setShowAddModal(true);
   };
 
@@ -1213,7 +1220,11 @@ function Equipments() {
         <div className="completed-work-alert">
           <div className="alert-header">
             <h3 className="alert-title">✓ Completed Work ({completedWorks.length})</h3>
-            <button className="alert-close-btn" onClick={handleCloseCompletedWorkAlert}>×</button>
+            <button className="alert-close-btn" onClick={handleCloseCompletedWorkAlert}>
+              <span class="material-symbols-rounded">
+                close
+              </span>
+            </button>
           </div>
           <div className="work-alert-list">
             {completedWorks.map((workItem) => (
@@ -1486,7 +1497,11 @@ function Equipments() {
           <div className="sidebar-content" onClick={(e) => e.stopPropagation()}>
             <div className="sidebar-header">
               <h2>{sidebarTitle}</h2>
-              <button className="close-btn" onClick={closeSidebar}>×</button>
+              <button className="close-btn" onClick={closeSidebar}>
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
             </div>
             <div className="sidebar-body">
               {isLoadingFuels ? (
@@ -1633,7 +1648,11 @@ function Equipments() {
           <div className="modal-content outside">
             <div className="modal-header">
               <h2>Add Outside Equipment</h2>
-              <button className="close-btn" onClick={closeOutsideEquipmentModal}>×</button>
+              <button className="close-btn" onClick={closeOutsideEquipmentModal}>
+                <span class="material-symbols-rounded">
+                  close
+                </span>
+              </button>
             </div>
             <div className="modal-body">
               <form onSubmit={handleAddOutsideEquipment} className="edit-form">

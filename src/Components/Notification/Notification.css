@@ -853,26 +853,6 @@
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--ntf-scrollbar-track);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--ntf-scrollbar-thumb);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ntf-border-light);
-}
-
 /* Smooth animation for new notifications */
 @keyframes slideInFromTop {
   from {

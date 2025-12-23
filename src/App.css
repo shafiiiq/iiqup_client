@@ -4,7 +4,7 @@
 :root {
   --fancy-color-100: linear-gradient(295deg, rgba(250, 12, 230, 0.589) 0%, #880c3ba6 100%);
 
-  /* ========== PRIMARY BRAND COLORS (Full Scale) ========== */
+  /* ========== HEADER COLOR ========== */
   --header-color-primary-50: #f9e7c7;
   --header-color-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
   --header-color-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
@@ -17,15 +17,15 @@
   --header-color-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
   --header-bg-primary-50: #f0f2ff;
-  --header-bg-primary-100: #f0f2ff;
-  --header-bg-primary-200: #f0f2ff;
-  --header-bg-primary-300: #f0f2ff;
-  --header-bg-primary-400: #f0f2ff;
-  --header-bg-primary-500: #f0f2ff;
-  --header-bg-primary-600: #f0f2ff;
-  --header-bg-primary-700: #f0f2ff;
-  --header-bg-primary-800: #f0f2ff;
-  --header-bg-primary-900: #f0f2ff;
+  --header-bg-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
+  --header-bg-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
+  --header-bg-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
+  --header-bg-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
+  --header-bg-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
+  --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
+  --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
   --glass-color-50: rgba(214, 214, 214, 0.178);
 
@@ -494,68 +494,38 @@
   --space-0: 0;
   --space-px: 1px;
   --space-0-5: 0.125rem;
-  /* 2px */
   --space-1: 0.25rem;
-  /* 4px */
   --space-1-5: 0.375rem;
-  /* 6px */
   --space-2: 0.5rem;
-  /* 8px */
   --space-2-5: 0.625rem;
-  /* 10px */
   --space-3: 0.75rem;
-  /* 12px */
   --space-3-5: 0.875rem;
-  /* 14px */
   --space-4: 1rem;
-  /* 16px */
   --space-5: 1.25rem;
-  /* 20px */
   --space-6: 1.5rem;
-  /* 24px */
   --space-7: 1.75rem;
-  /* 28px */
   --space-8: 2rem;
-  /* 32px */
   --space-9: 2.25rem;
-  /* 36px */
   --space-10: 2.5rem;
-  /* 40px */
   --space-11: 2.75rem;
-  /* 44px */
   --space-12: 3rem;
-  /* 48px */
   --space-14: 3.5rem;
-  /* 56px */
   --space-16: 4rem;
-  /* 64px */
   --space-20: 5rem;
-  /* 80px */
   --space-24: 6rem;
-  /* 96px */
   --space-28: 7rem;
-  /* 112px */
   --space-32: 8rem;
-  /* 128px */
 
-  /* ========== BORDER RADIUS (Enhanced) ========== */
+  /* ========== BORDER RADIUS ========== */
   --radius-none: 0;
   --radius-sm: 0.125rem;
-  /* 2px */
   --radius-base: 0.25rem;
-  /* 4px */
   --radius-md: 0.375rem;
-  /* 6px */
   --radius-lg: 0.5rem;
-  /* 8px */
   --radius-xl: 0.75rem;
-  /* 12px */
   --radius-2xl: 1rem;
-  /* 16px */
   --radius-3xl: 1.5rem;
-  /* 24px */
   --radius-4xl: 2rem;
-  /* 32px */
   --radius-full: 9999px;
 
   /* ========== BORDER WIDTH ========== */
@@ -571,33 +541,20 @@
   --font-mono: 'Courier New', Courier, monospace;
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* ========== FONT SIZE (Enhanced) ========== */
+  /* ========== FONT SIZE ========== */
   --text-xs: 0.75rem;
-  /* 12px */
   --text-sm: 0.875rem;
-  /* 14px */
   --text-base: 1rem;
-  /* 16px */
   --text-lg: 1.125rem;
-  /* 18px */
   --text-xl: 1.25rem;
-  /* 20px */
   --text-2xl: 1.5rem;
-  /* 24px */
   --text-3xl: 1.875rem;
-  /* 30px */
   --text-4xl: 2.25rem;
-  /* 36px */
   --text-5xl: 3rem;
-  /* 48px */
   --text-6xl: 3.75rem;
-  /* 60px */
   --text-7xl: 4.5rem;
-  /* 72px */
   --text-8xl: 6rem;
-  /* 96px */
   --text-9xl: 8rem;
-  /* 128px */
 
   /* ========== FONT WEIGHT ========== */
   --font-thin: 100;
@@ -648,7 +605,6 @@
   --transition-base: 300ms ease-in-out;
   --transition-slow: 500ms ease-in-out;
   --transition-slower: 700ms ease-in-out;
-
   --transition-all: all 300ms ease-in-out;
   --transition-colors: color, background-color, border-color 300ms ease-in-out;
   --transition-opacity: opacity 300ms ease-in-out;
@@ -677,16 +633,6 @@
   --opacity-90: 0.9;
   --opacity-95: 0.95;
   --opacity-100: 1;
-
-  /* ========== TABLE SPECIFIC ========== */
-  --table-header-bg: #f8fafc;
-  --table-header-text: #4b5563;
-  --table-row-odd: #ffffff;
-  --table-row-even: #f9fafb;
-  --table-row-hover: #f0f4ff;
-  --table-row-selected: #dbeafe;
-  --table-border: #e5e7eb;
-  --table-striped-bg: #f9fafb;
 
   /* ========== SCROLLBAR ========== */
   --scrollbar-width: 12px;
@@ -756,27 +702,16 @@
 
   /* ========== MAX WIDTHS ========== */
   --max-width-xs: 20rem;
-  /* 320px */
   --max-width-sm: 24rem;
-  /* 384px */
   --max-width-md: 28rem;
-  /* 448px */
   --max-width-lg: 32rem;
-  /* 512px */
   --max-width-xl: 36rem;
-  /* 576px */
   --max-width-2xl: 42rem;
-  /* 672px */
   --max-width-3xl: 48rem;
-  /* 768px */
   --max-width-4xl: 56rem;
-  /* 896px */
   --max-width-5xl: 64rem;
-  /* 1024px */
   --max-width-6xl: 72rem;
-  /* 1152px */
   --max-width-7xl: 80rem;
-  /* 1280px */
   --max-width-full: 100%;
   --max-width-screen-sm: 640px;
   --max-width-screen-md: 768px;
@@ -836,7 +771,7 @@ body.dark-theme {
   --color-success-700-900-light: #6ee7b7;
   --color-success-700-900-dark: #10b981;
 
-  /* ========== WARNING COLORS (Full Scale - Adjusted for dark) ========== */
+  /* ========== WARNING COLORS ========== */
   --color-warning-50: #451a03;
   --color-warning-100: #78350f;
   --color-warning-200: #92400e;
@@ -855,7 +790,7 @@ body.dark-theme {
   --color-warning-light: #fcd34d;
   --color-warning-dark: #f59e0b;
 
-  /* ========== ERROR/DANGER COLORS (Full Scale - Adjusted for dark) ========== */
+  /* ========== ERROR/DANGER COLORS ========== */
   --color-error-50: #450a0a;
   --color-error-100: #7f1d1d;
   --color-error-200: #991b1b;
@@ -875,7 +810,7 @@ body.dark-theme {
   --color-error-light: #fca5a5;
   --color-error-dark: #ef4444;
 
-  /* ========== INFO COLORS (Full Scale - Adjusted for dark) ========== */
+  /* ========== INFO COLORS ========== */
   --color-info-50: #172554;
   --color-info-100: #1e3a8a;
   --color-info-200: #1e40af;
@@ -894,7 +829,7 @@ body.dark-theme {
   --color-info-light: #93c5fd;
   --color-info-dark: #3b82f6;
 
-  /* ========== NEUTRAL/GRAY COLORS (Inverted for dark) ========== */
+  /* ========== NEUTRAL/GRAY COLORS ========== */
   --color-gray-50: #030712;
   --color-gray-100: #111827;
   --color-gray-200: #1f2937;
@@ -906,7 +841,7 @@ body.dark-theme {
   --color-gray-800: #e5e7eb;
   --color-gray-900: #f3f4f6;
   --color-gray-950: #f9fafb;
-  /* ========== SEMANTIC STATE COLORS (Adjusted) ========== */
+  /* ========== SEMANTIC STATE COLORS ========== */
   --color-idle: #34d399;
   --color-active: #4ade80;
   --color-committed: #60a5fa;
@@ -917,7 +852,7 @@ body.dark-theme {
   --color-completed: #34d399;
   --color-cancelled: #9ca3af;
   --color-expired: #f87171;
-  /* ========== BACKGROUND COLORS (Dark Mode) ========== */
+  /* ========== BACKGROUND COLORS ========== */
   --bg-primary: #010205;
   --bg-secondary: #fbff021f;
   --bg-tertiary: #334155;
@@ -941,7 +876,42 @@ body.dark-theme {
   --bg-primary-alpha-50: rgba(1, 2, 5, 0.5);
   --bg-primary-alpha-80: rgba(1, 2, 5, 0.8);
   --bg-primary-alpha-90: rgba(1, 2, 5, 0.9);
-  /* ========== TEXT COLORS (Dark Mode) ========== */
+
+  /* ========== TEXT COLORS ========== */
+  --text-color: #ffffff;
+  --text-color-50: #eeeeee;
+  --text-color-100: #dddddd;
+  --text-color-200: #cccccc;
+  --text-color-300: #bbbbbb;
+  --text-color-400: #aaaaaa;
+  --text-color-500: #999999;
+  --text-color-600: #888888;
+  --text-color-700: #777777;
+  --text-color-800: #666666;
+  --text-color-900: #555555;
+  --text-color-1000: #444444;
+  --text-color-1100: #333333;
+  --text-color-1200: #222222;
+  --text-color-1300: #111111;
+  --text-color-1400: #000000;
+
+  --text-inverse-1400: #ffffff;
+  --text-inverse-1300: #eeeeee;
+  --text-inverse-1200: #dddddd;
+  --text-inverse-1100: #cccccc;
+  --text-inverse-1000: #bbbbbb;
+  --text-inverse-900: #aaaaaa;
+  --text-inverse-800: #999999;
+  --text-inverse-700: #888888;
+  --text-inverse-600: #777777;
+  --text-inverse-500: #666666;
+  --text-inverse-400: #555555;
+  --text-inverse-300: #444444;
+  --text-inverse-200: #333333;
+  --text-inverse-100: #222222;
+  --text-inverse-50: #111111;
+  --text-inverse: #000000;
+  /* Text hero  */
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --text-tertiary: #94a3b8;
@@ -959,7 +929,7 @@ body.dark-theme {
   /* Text with opacity */
   --text-primary-alpha-80: rgba(241, 245, 249, 0.8);
   --text-primary-alpha-60: rgba(241, 245, 249, 0.6);
-  /* ========== BORDER COLORS (Dark Mode) ========== */
+  /* ========== BORDER COLORS ========== */
   --border-primary: #fbff0836;
   --border-secondary: #475569;
   --border-tertiary: #ffd208a9;
@@ -969,7 +939,7 @@ body.dark-theme {
   --border-warning: #fbbf24;
   --border-disabled: #374151;
   --border-muted: #1f2937;
-  /* ========== SHADOWS (Dark Mode - Stronger) ========== */
+  /* ========== SHADOWS ========== */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -986,7 +956,7 @@ body.dark-theme {
   --shadow-success: 0 4px 14px rgba(52, 211, 153, 0.4);
   --shadow-error: 0 4px 14px rgba(248, 113, 113, 0.4);
   --shadow-warning: 0 4px 14px rgba(251, 191, 36, 0.4);
-  /* ========== GRADIENTS (Dark Mode) ========== */
+  /* ========== GRADIENTS ========== */
   --gradient-primary-hover: linear-gradient(135deg, #2e40cc 0%, #4a5fd8 100%);
   --gradient-primary-vertical: linear-gradient(180deg, #4a5fd8 0%, #6b7fe3 100%);
   --gradient-secondary: linear-gradient(135deg, #8a9ae8 0%, #4a5fd8 100%);

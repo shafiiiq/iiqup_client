@@ -656,18 +656,23 @@ body.dark-theme .status-badge.loading {
   cursor: pointer;
   color: var(--text-secondary);
   padding: 0;
-  width: 36px;
-  height: 36px;
+  width: 46px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
+  padding: 1rem;
+}
+
+.close-btn span {
+  font-size: 50px;
 }
 
 .close-btn:hover {
   color: var(--color-error);
-  background-color: rgba(173, 41, 27, 0.1);
+  background: var(--gradient-primary-800);
 }
 
 .sidebar-body {
@@ -1187,26 +1192,6 @@ body.dark-theme .status-badge.loading {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
 }
 
 /* Dark Theme Adjustments */

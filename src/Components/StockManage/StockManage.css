@@ -274,22 +274,6 @@
   color: var(--text-primary);
 }
 
-.stock-manage-close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--bg-disabled);
-  padding: 5px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.stock-manage-close-btn:hover {
-  color: var(--color-error);
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
 .stock-manage-details-content {
   display: flex;
   flex-direction: column;
@@ -768,7 +752,8 @@
 }
 
 .stock-manage-history-table th {
-  background: var(--gradient-primary-900);;
+  background: var(--gradient-primary-900);
+  ;
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
@@ -875,26 +860,6 @@
 .equipment-select {
   width: 100%;
   margin-top: 8px;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
 }
 
 /* Focus Styles for Accessibility */

@@ -4,6 +4,7 @@ import logoImage from '../../../assets/images/al-ansari.png';
 import { LoginLogic } from '../../../utils/authUtils';
 import { useSearch } from '../../../context/SearchContext';
 import { useHeaderTitle } from '../../../context/HeaderTitleContext';
+import { useHeaderVibration } from '../../../context/HeaderVibrationContext';
 import '../Header/Header.css';
 
 const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
@@ -11,11 +12,13 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const navigate = useNavigate();
   const { searchTerm, setSearchTerm, clearSearch } = useSearch();
   const { headerTitle, headerSubtitle } = useHeaderTitle();
+  const { shouldVibrate, resetVibration } = useHeaderVibration();
   const searchInputRef = useRef(null);
   const navRef = useRef(null);
   const activeItemRef = useRef(null);
   const indicatorRef = useRef(null);
 
+  const [isVibrating, setIsVibrating] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState('/');
@@ -83,6 +86,18 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
       icon: <span class="material-symbols-rounded">browse</span>
     }
   ];
+
+  useEffect(() => {
+    if (shouldVibrate) {
+      setIsVibrating(true);
+
+      // Remove the vibrating class after animation completes (300ms)
+      setTimeout(() => {
+        setIsVibrating(false);
+        resetVibration();
+      }, 300);
+    }
+  }, [shouldVibrate, resetVibration]);
 
   // In your Header component
   useEffect(() => {
@@ -255,7 +270,7 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
         )}
 
         <nav
-          className={`header-nav ${searchExpanded ? 'shrink' : ''} ${headerTitle ? 'has-title' : ''}`}
+          className={`header-nav ${searchExpanded ? 'shrink' : ''} ${headerTitle ? 'has-title' : ''} ${isVibrating ? 'vibrating' : ''}`}
           ref={navRef}
           onMouseEnter={() => setShowNav(true)}
           onMouseLeave={() => setShowNav(false)}

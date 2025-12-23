@@ -1370,7 +1370,11 @@ function StockManage() {
         <div className="stock-manage-details no-print">
           <div className="stock-manage-details-header">
             <h2>Stock Details</h2>
-            <button className="stock-manage-close-btn" onClick={() => setSelectedStock(null)}>×</button>
+            <button className="close-btn" onClick={() => setSelectedStock(null)}>
+              <span class="material-symbols-rounded">
+                close
+              </span>
+            </button>
           </div>
           <div className="stock-manage-details-content">
             <div className="stock-manage-detail-item">
@@ -1519,7 +1523,7 @@ function StockManage() {
               <h3>Stock Movement History</h3>
               <Button
                 text={showStockHistory ? 'Hide History' : 'Show History'}
-                onClick={() =>  setShowStockHistory(!showStockHistory)}
+                onClick={() => setShowStockHistory(!showStockHistory)}
                 colorScheme={showStockHistory ? 'indigo-900' : 'lime-700'}
                 variant="gradient"
                 font="md"
