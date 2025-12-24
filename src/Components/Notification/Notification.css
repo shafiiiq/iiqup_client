@@ -1,56 +1,3 @@
-/* Theme Toggle Switch */
-.ntf-theme-switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  margin-left: 20px;
-}
-
-.ntf-theme-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.ntf-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-}
-
-.ntf-slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-}
-
-.ntf-theme-switch input:checked+.ntf-slider {
-  background-color: #2196F3;
-}
-
-.ntf-theme-switch input:checked+.ntf-slider:before {
-  transform: translateX(26px);
-}
-
-.ntf-slider.round {
-  border-radius: 34px;
-}
-
-.ntf-slider.round:before {
-  border-radius: 50%;
-}
-
 /* Header with theme toggle */
 .ntf-header-content {
   display: flex;
@@ -72,6 +19,21 @@
   padding: 0;
   margin: 0;
   transition: background 0.3s ease, color 0.3s ease;
+}
+
+.ntf-table-info {
+  text-align: right;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  opacity: 0;
+  margin-right: 2rem;
+  animation: slideInRight 0.8s ease-out 0.3s forwards;
+}
+
+.live-table-info {
+  display: none;
 }
 
 /* Loading State */
@@ -486,10 +448,9 @@
 
 .ntf-card {
   background: var(--gradient-primary-400);
-  border-radius: 16px;
+  border-radius: var(--radius-3xl);
   padding: 0;
   box-shadow: var(--shadow-inner-5xl);
-  border: 1px solid var(--ntf-border-light);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;

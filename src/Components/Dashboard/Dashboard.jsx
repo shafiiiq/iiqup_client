@@ -38,6 +38,7 @@ const Dashboard = () => {
   const statusBarRef = useRef(null);
   const dashboardHeaderRef = useRef(null);
   const dashboardTabsRef = useRef(null);
+  const notificationContainerRef = useRef(null);
 
   const [dashboardData, setDashboardData] = useState({
     daily: null,
@@ -290,10 +291,13 @@ const Dashboard = () => {
           paddingInline: '1rem'
         }}
       >
-        <div className="dsh-auto-wraper-live">
+        <div className="dsh-auto-wraper-live" ref={notificationContainerRef}>
           <div className="dsh-auto-roller-controller">
             <div className="dsh-roler-move">
-              <Notifications islivemodeON={true} />
+              <Notifications
+                islivemodeON={true}
+                scrollContainerRef={notificationContainerRef}
+              />
             </div>
           </div>
         </div>

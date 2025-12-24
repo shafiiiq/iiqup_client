@@ -27,7 +27,12 @@
   box-shadow: var(--shadow-outer-xl);
   border-radius: var(--radius-4xl);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.dsh-auto-wraper-live::-webkit-scrollbar {
+  display: none;
 }
 
 .dsh-auto-roller-controller::before {
@@ -45,16 +50,17 @@
 
 .dsh-auto-roller-controller {
   height: 100%;
-  overflow-y: auto;
   border-radius: var(--radius-4xl);
+}
+
+.dsh-roler-move {
+  height: 100%;
 }
 
 .dashboard-content {
   position: relative;
   z-index: 1;
-  /* padding: 2rem; */
   width: 100%;
-  /* max-width: 1400px; */
 }
 
 /* Header Styles */
@@ -99,7 +105,7 @@
   gap: 1rem;
 }
 
-.datetime-display span{
+.datetime-display span {
   font-variant: var(--text-color);
 }
 

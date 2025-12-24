@@ -5,7 +5,7 @@ import './Notification.css';
 import { apiRequest } from '../../utils/0auth';
 import Button from '../../common/Button/Button';
 
-const Notifications = ({ islivemodeON }) => {
+const Notifications = ({ islivemodeON, scrollContainerRef }) => {
   const soundOptions = {
     bell: {
       name: 'Bell 🔔',
@@ -29,6 +29,12 @@ const Notifications = ({ islivemodeON }) => {
     }
   };
 
+  const ITEMS_PER_PAGE = 20;
+  const BUFFER_ITEMS = 10;
+
+  const [displayedNotifications, setDisplayedNotifications] = useState([]);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [visibleCards, setVisibleCards] = useState(new Set());
   const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +42,6 @@ const Notifications = ({ islivemodeON }) => {
   const [uniqueCode, setUniqueCode] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -77,10 +82,16 @@ const Notifications = ({ islivemodeON }) => {
   }, []);
 
   useEffect(() => {
-    filterNotifications();
-    // Update unread count when notifications change
+    // Sort notifications by date - newest first
+    const sorted = [...notifications].sort((a, b) => {
+      const dateA = new Date(a.time || a.createdAt || 0);
+      const dateB = new Date(b.time || b.createdAt || 0);
+      return dateB - dateA; // Newest first
+    });
+
+    setFilteredNotifications(sorted);
     setUnreadCount(notifications.filter(n => !n.read).length);
-  }, [selectedFilter, notifications]);
+  }, [notifications]);
 
   // Live time update effect
   useEffect(() => {
@@ -105,6 +116,91 @@ const Notifications = ({ islivemodeON }) => {
 
   //   return () => clearInterval(refreshInterval);
   // }, []);
+
+  // Virtual scrolling - only render visible items
+  useEffect(() => {
+    if (!filteredNotifications || filteredNotifications.length === 0) {
+      setDisplayedNotifications([]);
+      return;
+    }
+
+    const itemsToShow = Math.min(
+      filteredNotifications.length,
+      ITEMS_PER_PAGE + scrollPosition
+    );
+
+    const visibleItems = filteredNotifications.slice(0, itemsToShow);
+    setDisplayedNotifications(visibleItems);
+  }, [filteredNotifications, scrollPosition]);
+
+  // Detect scroll and update which items to show
+  useEffect(() => {
+    let scrollTimeout = null;
+
+    const handleScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      scrollTimeout = setTimeout(() => {
+        // Use scrollContainerRef if provided (for dashboard), otherwise use window
+        const scrollElement = scrollContainerRef?.current || window;
+
+        let scrollTop, windowHeight, documentHeight;
+
+        if (scrollElement === window) {
+          scrollTop = window.scrollY;
+          windowHeight = window.innerHeight;
+          documentHeight = document.documentElement.scrollHeight;
+        } else {
+          scrollTop = scrollElement.scrollTop;
+          windowHeight = scrollElement.clientHeight;
+          documentHeight = scrollElement.scrollHeight;
+        }
+
+        // Load more when near bottom (500px before end)
+        if (scrollTop + windowHeight >= documentHeight - 500) {
+          setScrollPosition(prev => {
+            const newPosition = prev + 10;
+            console.log('📜 Loading more notifications...', newPosition);
+            return newPosition;
+          });
+        }
+      }, 150);
+    };
+
+    // Attach listener to the correct element
+    const scrollElement = scrollContainerRef?.current || window;
+    scrollElement.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      scrollElement.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, [scrollContainerRef]);
+
+  // Lazy load cards when they come into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const notificationId = entry.target.dataset.notificationId;
+            setVisibleCards(prev => new Set([...prev, notificationId]));
+          }
+        });
+      },
+      {
+        rootMargin: '100px',
+        threshold: 0.1
+      }
+    );
+
+    const cards = document.querySelectorAll('.ntf-card');
+    cards.forEach(card => observer.observe(card));
+
+    return () => {
+      cards.forEach(card => observer.unobserve(card));
+    };
+  }, [displayedNotifications]);
 
   const initializeApp = async () => {
     try {
@@ -516,29 +612,6 @@ const Notifications = ({ islivemodeON }) => {
     setRefreshing(false);
   };
 
-  const filterNotifications = () => {
-    let filtered = notifications;
-
-    switch (selectedFilter) {
-      case 'normal':
-        filtered = notifications.filter(n => n.type === 'normal');
-        break;
-      case 'special':
-        filtered = notifications.filter(n => n.type === 'special');
-        break;
-      case 'high':
-        filtered = notifications.filter(n =>
-          (n.type === 'normal' && n.priority === 'high') ||
-          (n.type === 'special' && n.priority === 'high')
-        );
-        break;
-      default:
-        filtered = notifications;
-    }
-
-    setFilteredNotifications(filtered);
-  };
-
   const handleDeleteNotification = async (notificationId, notification) => {
     if (notification.type === 'special') {
       await deleteSpecialNotification(notificationId);
@@ -895,25 +968,25 @@ const Notifications = ({ islivemodeON }) => {
         )
       }
 
+      <div className={islivemodeON ? 'live-table-info' : 'ntf-table-info'}>
+        Showing {displayedNotifications?.length || 0} of {filteredNotifications?.length || 0} notifications
+      </div>
+
       <div className={`ntf-grid ${islivemodeON ? 'live-dsh-pad' : 'ntf-pad'}`}>
-        {filteredNotifications.length > 0 ? (
-          filteredNotifications.slice().reverse().map((notification, index) => {
+        {displayedNotifications.length > 0 ? (
+          displayedNotifications.map((notification, index) => {
             const notificationId = notification._id || `${notification.type}_${index}`;
             const isUnread = !notification.read;
 
             return (
               <div
                 key={notificationId}
+                data-notification-id={notificationId}
                 className={`ntf-card ${notification.type === 'special' ? 'ntf-special' : ''} ${isUnread ? 'ntf-unread' : ''} ${notification.animate ? 'ntf-animate' : ''} ${islivemodeON ? '' : 'ntf-card-color'}`}
                 onClick={() => {
                   setSelectedNotification(notification);
                   setShowDetailsPanel(true);
                   markAsRead(notificationId);
-                }}
-                onAnimationEnd={() => {
-                  setNotifications(prev => prev.map(n =>
-                    n._id === notificationId ? { ...n, animate: false } : n
-                  ));
                 }}
               >
                 <div className="ntf-content">
