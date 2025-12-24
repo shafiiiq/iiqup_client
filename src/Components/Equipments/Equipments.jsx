@@ -12,6 +12,18 @@ function Equipments() {
   const { searchTerm, setSearchTerm } = useSearch();
   const { triggerVibration } = useHeaderVibration();
 
+  // Cache helper functions
+  const CACHE_KEY = 'equipment_images_cache';
+  const EQUIPMENT_DATA_CACHE_KEY = 'equipment_data_cache';
+  const EQUIPMENT_LIST_CACHE_KEY = 'equipment_list_cache';
+  const CACHE_EXPIRY_HOURS = 6; // Cache expires after 6 hours
+  const EQUIPMENT_LIST_EXPIRY_HOURS = 24; // Cache list for 24 hours
+  const ITEMS_PER_PAGE = 20; // Show 20 cards at a time
+  const BUFFER_ITEMS = 10; // Preload 10 cards above/below viewport
+
+  const [displayedEquipment, setDisplayedEquipment] = useState([]);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [visibleCards, setVisibleCards] = useState(new Set());
   const [equipments, setEquipments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -82,6 +94,75 @@ function Equipments() {
     site: '',
     status: ''
   });
+
+  // Virtual scrolling - only render visible items
+  useEffect(() => {
+    if (!filteredData || filteredData.length === 0) {
+      setDisplayedEquipment([]);
+      return;
+    }
+
+    // Just show first batch plus what's been scrolled to
+    const itemsToShow = Math.min(
+      filteredData.length,
+      ITEMS_PER_PAGE + scrollPosition
+    );
+
+    const visibleItems = filteredData.slice(0, itemsToShow);
+    setDisplayedEquipment(visibleItems);
+  }, [filteredData, scrollPosition]);
+
+  // Detect scroll and update which items to show
+  useEffect(() => {
+    let scrollTimeout = null;
+
+    const handleScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      scrollTimeout = setTimeout(() => {
+        const scrollTop = window.scrollY + window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // When user scrolls near bottom, load more
+        if (scrollTop > documentHeight - 500) {
+          setScrollPosition(prev => prev + 10);
+        }
+      }, 200);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, []);
+
+  // Lazy load images when cards come into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const regNo = entry.target.dataset.regNo;
+            setVisibleCards(prev => new Set([...prev, regNo]));
+          }
+        });
+      },
+      {
+        rootMargin: '100px', // Start loading 100px before card is visible
+        threshold: 0.1
+      }
+    );
+
+    // Observe all equipment cards
+    const cards = document.querySelectorAll('.equipment-card');
+    cards.forEach(card => observer.observe(card));
+
+    return () => {
+      cards.forEach(card => observer.unobserve(card));
+    };
+  }, [displayedEquipment]);
 
   useEffect(() => {
     const fetchMechanics = async () => {
@@ -159,12 +240,6 @@ function Equipments() {
     }
   };
 
-  // Cache helper functions
-  const CACHE_KEY = 'equipment_images_cache';
-  const EQUIPMENT_DATA_CACHE_KEY = 'equipment_data_cache';
-  const CACHE_EXPIRY_HOURS = 6; // Cache expires after 6 hours
-
-
   const getCachedImageUrl = (filePath) => {
     try {
       const cache = localStorage.getItem(CACHE_KEY);
@@ -237,6 +312,47 @@ function Equipments() {
       }
     } catch (error) {
       console.error('Error clearing expired cache:', error);
+    }
+  };
+
+  // Cache equipment list (without images)
+  const getCachedEquipmentList = () => {
+    try {
+      const cache = localStorage.getItem(EQUIPMENT_LIST_CACHE_KEY);
+      if (!cache) return null;
+
+      const parsed = JSON.parse(cache);
+      const now = new Date().getTime();
+      const expiryTime = parsed.timestamp + (EQUIPMENT_LIST_EXPIRY_HOURS * 60 * 60 * 1000);
+
+      if (now > expiryTime) {
+        localStorage.removeItem(EQUIPMENT_LIST_CACHE_KEY);
+        console.log('Equipment list cache expired');
+        return null;
+      }
+
+      console.log('Using cached equipment list');
+      return parsed.data;
+    } catch (error) {
+      console.error('Error reading equipment list cache:', error);
+      return null;
+    }
+  };
+
+  const setCachedEquipmentList = (equipmentList) => {
+    try {
+      const cacheData = {
+        data: equipmentList,
+        timestamp: new Date().getTime()
+      };
+      localStorage.setItem(EQUIPMENT_LIST_CACHE_KEY, JSON.stringify(cacheData));
+      console.log('Equipment list cached successfully');
+    } catch (error) {
+      console.error('Error caching equipment list:', error);
+      if (error.name === 'QuotaExceededError') {
+        localStorage.removeItem(EQUIPMENT_LIST_CACHE_KEY);
+        console.log('Equipment list cache cleared due to quota exceeded');
+      }
     }
   };
 
@@ -341,8 +457,19 @@ function Equipments() {
     }, 150);
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-      const data = await response.json();
+      // Try to get cached equipment list first
+      let equipmentList = getCachedEquipmentList();
+
+      // If no cache, fetch from server
+      if (!equipmentList) {
+        console.log('Fetching equipment list from server...');
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+        const data = await response.json();
+        equipmentList = data.data;
+
+        // Cache the equipment list
+        setCachedEquipmentList(equipmentList);
+      }
 
       // Check if we have cached equipment data
       const cachedEquipmentData = localStorage.getItem(EQUIPMENT_DATA_CACHE_KEY);
@@ -362,48 +489,75 @@ function Equipments() {
         }
       }
 
-      const equipmentsWithImages = await Promise.all(
-        data.data.map(async (equipment) => {
-          // Check if this equipment's images are in cache
-          if (equipmentImagesCache[equipment.regNo]) {
-            console.log(`Using cached images for ${equipment.regNo}`);
-            return {
-              ...equipment,
-              equipmentImage: equipmentImagesCache[equipment.regNo]
-            };
-          }
+      // Separate equipment into cached and non-cached
+      const cachedEquipment = [];
+      const uncachedEquipment = [];
 
-          // If not in cache, fetch from API
-          try {
-            const imageResponse = await apiRequest(`${END_POINT}/stocks/equipment/${equipment.regNo}`, 'GET');
-            const imageData = await imageResponse.json();
+      equipmentList.forEach(equipment => {
+        if (equipmentImagesCache[equipment.regNo]) {
+          cachedEquipment.push({
+            ...equipment,
+            equipmentImage: equipmentImagesCache[equipment.regNo]
+          });
+        } else {
+          uncachedEquipment.push(equipment);
+        }
+      });
 
-            const imagesWithUrls = await Promise.all(
-              (imageData.data?.images || []).map(async (img) => {
-                const s3Url = await getMediaUrlWithCache(img.path);
-                return {
-                  ...img,
-                  s3Url: s3Url || `${END_POINT}/${img.path}`
-                };
-              })
-            );
-
-            // Cache this equipment's images
-            equipmentImagesCache[equipment.regNo] = imagesWithUrls;
-
-            return {
-              ...equipment,
-              equipmentImage: imagesWithUrls
-            };
-          } catch (error) {
+      // Fetch ALL uncached equipment images in PARALLEL
+      const uncachedImagePromises = uncachedEquipment.map(equipment =>
+        apiRequest(`${END_POINT}/stocks/equipment/${equipment.regNo}`, 'GET')
+          .then(response => response.json())
+          .then(imageData => ({ regNo: equipment.regNo, imageData }))
+          .catch(error => {
             console.error(`Error fetching images for ${equipment.regNo}:`, error);
-            return {
-              ...equipment,
-              equipmentImage: []
-            };
-          }
-        })
+            return { regNo: equipment.regNo, imageData: null };
+          })
       );
+
+      // Wait for ALL image data fetches to complete
+      const allImageData = await Promise.all(uncachedImagePromises);
+
+      // Now fetch ALL S3 URLs in PARALLEL
+      const equipmentWithImagePromises = allImageData.map(async ({ regNo, imageData }) => {
+        const equipment = uncachedEquipment.find(eq => eq.regNo === regNo);
+
+        if (!imageData || !imageData.data?.images) {
+          return {
+            ...equipment,
+            equipmentImage: []
+          };
+        }
+
+        // Fetch ALL S3 URLs for this equipment in PARALLEL
+        const s3UrlPromises = imageData.data.images.map(img =>
+          getMediaUrlWithCache(img.path)
+            .then(s3Url => ({
+              ...img,
+              s3Url: s3Url || `${END_POINT}/${img.path}`
+            }))
+            .catch(() => ({
+              ...img,
+              s3Url: `${END_POINT}/${img.path}`
+            }))
+        );
+
+        const imagesWithUrls = await Promise.all(s3UrlPromises);
+
+        // Cache this equipment's images
+        equipmentImagesCache[equipment.regNo] = imagesWithUrls;
+
+        return {
+          ...equipment,
+          equipmentImage: imagesWithUrls
+        };
+      });
+
+      // Wait for ALL equipment image processing to complete
+      const processedUncachedEquipment = await Promise.all(equipmentWithImagePromises);
+
+      // Combine cached and newly fetched equipment
+      const equipmentsWithImages = [...cachedEquipment, ...processedUncachedEquipment];
 
       // Save all equipment images to cache
       localStorage.setItem(EQUIPMENT_DATA_CACHE_KEY, JSON.stringify({
@@ -431,6 +585,7 @@ function Equipments() {
   const handleClearCache = () => {
     localStorage.removeItem(CACHE_KEY);
     localStorage.removeItem(EQUIPMENT_DATA_CACHE_KEY);
+    localStorage.removeItem(EQUIPMENT_LIST_CACHE_KEY);
     setDeleteStatus({
       message: 'Image cache cleared successfully. Reload the page to fetch fresh images.',
       isError: false
@@ -596,7 +751,7 @@ function Equipments() {
     e.stopPropagation()
     triggerVibration();
     setEditEquipment(equipment);
-    
+
     const currentOperator = equipment.certificationBody[equipment.certificationBody.length - 1] || '';
 
     setEditFormData({
@@ -1342,21 +1497,25 @@ function Equipments() {
         {searchTerm ? (
           `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
         ) : (
-          `Showing all ${filteredData?.length || 0} entries`
+          `Showing ${displayedEquipment?.length || 0} of ${filteredData?.length || 0} entries`
         )}
       </div>
 
       <div className="equipment-grid">
-        {filteredData && filteredData.length > 0 ? (
-          filteredData.map((item) => {
+        {displayedEquipment && displayedEquipment.length > 0 ? (
+          displayedEquipment.map((item) => {
             const currentImageIndex = activeImageIndex[item.regNo] || 0;
             const hasImages = item.equipmentImage && item.equipmentImage.length > 0;
 
             return (
-              <div className="equipment-card" key={item.id}>
+              <div
+                className="equipment-card"
+                key={item.id}
+                data-reg-no={item.regNo}
+              >
                 {/* Image Slider */}
                 <div className="card-image-slider">
-                  {hasImages ? (
+                  {hasImages && visibleCards.has(item.regNo) ? (
                     <>
                       <div className="slider-images">
                         {item.equipmentImage.map((img, index) => (
@@ -1365,6 +1524,7 @@ function Equipments() {
                             src={img.s3Url || img.url}
                             alt={img.label || `${item.machine} ${index + 1}`}
                             className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
+                            loading="lazy"
                           />
                         ))}
                       </div>
@@ -1383,6 +1543,10 @@ function Equipments() {
                         </div>
                       )}
                     </>
+                  ) : hasImages && !visibleCards.has(item.regNo) ? (
+                    <div className="no-image-placeholder">
+                      Loading images...
+                    </div>
                   ) : (
                     <div className="no-image-placeholder">
                       Upload images to view
