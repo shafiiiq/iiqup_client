@@ -17,7 +17,7 @@
   background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .maintenance-header {
@@ -28,13 +28,13 @@
 }
 
 .maintenance-header h1 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 34px;
   font-weight: 800;
 }
 
 .maintenance-title {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 34px;
   font-weight: 800;
 }
@@ -134,7 +134,7 @@
   background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .form-header {
@@ -145,7 +145,7 @@
 }
 
 .form-header h2 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 34px;
   font-weight: 800;
 }

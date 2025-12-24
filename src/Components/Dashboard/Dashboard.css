@@ -79,7 +79,7 @@
 }
 
 .dashboard-title {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 45px;
   font-weight: 600;
   background: var(--text-gradiant-inverse);
@@ -100,7 +100,7 @@
 }
 
 .datetime-display span{
-  font-variant: var(--text-primary);
+  font-variant: var(--text-color);
 }
 
 .refresh-button {
@@ -108,7 +108,7 @@
   background: var(--gradient-primary);
   border: none;
   border-radius: 12px;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -193,7 +193,7 @@
   padding: 12px;
   border-radius: var(--radius-4xl);
   background: var(--gradient-primary);
-  color: var(--text-primary);
+  color: var(--text-color);
   flex-shrink: 0;
 }
 
@@ -220,7 +220,7 @@
 .status-value {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--text-primary) !important;
+  color: var(--text-color) !important;
   display: block;
 }
 
@@ -266,7 +266,7 @@
 }
 
 .dashboard-tab:hover {
-  color: var(--text-primary);
+  color: var(--text-color);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -318,13 +318,13 @@
 .metric-card h3 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .metric-value {
   font-size: 3rem;
   font-weight: 900;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 0.5rem;
   line-height: 1;
 }
@@ -338,7 +338,7 @@
 }
 
 .metric-change.positive {
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .metric-change.neutral {
@@ -581,7 +581,7 @@
 
 .tag.success {
   background: rgba(16, 185, 129, 0.2);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
@@ -600,7 +600,7 @@
 
 .service-type.full {
   background: rgba(16, 185, 129, 0.2);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .service-type.partial {
@@ -617,7 +617,7 @@
 
 .status-badge.completed {
   background: rgba(16, 185, 129, 0.2);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 /* Health Dashboard */
@@ -637,7 +637,7 @@
 .health-header h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
@@ -668,7 +668,7 @@
 }
 
 .health-info h4 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
 }
 
@@ -681,7 +681,7 @@
 
 .health-status.active {
   background: rgba(16, 185, 129, 0.2);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .health-status.maintenance {
@@ -711,7 +711,7 @@
 
 .health-percentage {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
   min-width: 45px;
 }
 
@@ -736,7 +736,7 @@
 .summary-header h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .summary-period {
@@ -782,7 +782,7 @@
 
 .insight-icon.success {
   background: rgba(16, 185, 129, 0.2);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .insight-icon.warning {
@@ -796,7 +796,7 @@
 }
 
 .insight-text h4 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -840,7 +840,7 @@
   background: var(--color-error);
   border: none;
   border-radius: 12px;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
   cursor: pointer;
   display: flex;

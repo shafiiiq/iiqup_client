@@ -50,14 +50,16 @@ const LEADERSHIP_TEAM = [
 function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
     const location = useLocation();
     const navigate = useNavigate();
+    const navRef = useRef(null);
+    const activeItemRef = useRef(null);
+    const indicatorRef = useRef(null);
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeLink, setActiveLink] = useState('/');
     const [indicatorStyle, setIndicatorStyle] = useState({});
-    const navRef = useRef(null);
-    const activeItemRef = useRef(null);
-    const indicatorRef = useRef(null);
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
@@ -125,6 +127,20 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
         setMenuOpen(false);
     };
 
+    const toggleTheme = () => {
+        const newTheme = !isDarkMode;
+        setIsDarkMode(newTheme);
+
+        if (newTheme) {
+            document.body.classList.add('dark-theme');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.body.classList.remove('dark-theme');
+            localStorage.setItem('theme', 'light');
+        }
+    };
+
+
     const handleLogout = () => {
         const confirmLogout = window.confirm('Are you sure you want to logout?');
         if (confirmLogout) {
@@ -171,16 +187,26 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                             <img src={logoImage} alt="Al Ansari Logo" className="ansari-nav-logo" />
                         </div>
 
+                        {/* user control section  */}
                         {user_logged_in && (
-                            <div className="ansari-user-section">
-                                <div className="ansari-profile-icon">
-                                    {getProfileInitial()}
+                            <div className="user-section-home">
+                                <div className="user-details">
+                                    <div className="profile-icon">
+                                        {getProfileInitial()}
+                                    </div>
+                                    <span className="user-name">{currentUser?.name}</span>
                                 </div>
-                                <div className="ansari-user-actions">
-                                    <span className="ansari-user-name">{currentUser?.name}</span>
+                                <div className="user-actions">
+                                    <label className="theme-switch">
+                                        <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
+                                        <span className="slider round">
+                                            <span className="material-icons sun-icon">wb_sunny</span>
+                                            <span className="material-icons moon-icon">nightlight_round</span>
+                                        </span>
+                                    </label>
                                     <button
                                         onClick={handleLogout}
-                                        className="ansari-logout-btn"
+                                        className="logout-btn"
                                         title="Logout"
                                     >
                                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -192,6 +218,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                                 </div>
                             </div>
                         )}
+
                         <div className={`ansari-burger-btn ${menuOpen ? 'ansari-burger-active' : ''}`} onClick={toggleMenu}>
                             <div className="ansari-burger-inner">
                                 <span className="ansari-burger-line ansari-line-1"></span>
@@ -226,7 +253,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                             <Link to="/" onClick={() => handleNavClick('/')}>Home</Link>
                         </li>
                         <li className={activeLink === '/equipments' ? 'ansari-link-active' : ''}>
-                            <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
+                            <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipments</Link>
                         </li>
                         <li className={activeLink === '/stock-manage' ? 'ansari-link-active' : ''}>
                             <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
@@ -241,7 +268,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                             <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
                         </li>
                         <li className={activeLink === '/lpo-list' ? 'ansari-link-active' : ''}>
-                            <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
+                            <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO</a>
                         </li>
                         <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
                             <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>
@@ -353,22 +380,25 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
 
                 {isDesktop && (
                     <aside className="ansari-side-panel">
-                        <div className="ansari-sidebar-bg">
-                            <div className="ansari-side-shape ansari-sshape-1"></div>
-                            <div className="ansari-side-shape ansari-sshape-2"></div>
-                            <div className="ansari-side-shape ansari-sshape-3"></div>
-                        </div>
-
                         {user_logged_in && (
-                            <div className="ansari-side-user-section">
-                                <div className="ansari-profile-icon">
-                                    {getProfileInitial()}
+                            <div className="user-section-home">
+                                <div className="user-details">
+                                    <div className="profile-icon">
+                                        {getProfileInitial()}
+                                    </div>
+                                    <span className="user-name">{currentUser?.name}</span>
                                 </div>
-                                <div className="ansari-user-actions">
-                                    <span className="ansari-user-name">{currentUser?.name}</span>
+                                <div className="user-actions">
+                                    <label className="theme-switch">
+                                        <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
+                                        <span className="slider round">
+                                            <span className="material-icons sun-icon">wb_sunny</span>
+                                            <span className="material-icons moon-icon">nightlight_round</span>
+                                        </span>
+                                    </label>
                                     <button
                                         onClick={handleLogout}
-                                        className="ansari-logout-btn"
+                                        className="logout-btn"
                                         title="Logout"
                                     >
                                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -387,7 +417,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                                     <Link to="/" onClick={() => handleNavClick('/')}>Home</Link>
                                 </li>
                                 <li className={activeLink === '/equipments' ? 'ansari-nav-active' : ''}>
-                                    <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipements Inventory</Link>
+                                    <Link to="/equipments" onClick={() => handleNavClick('/equipments')}>Equipments</Link>
                                 </li>
                                 <li className={activeLink === '/stock-manage' ? 'ansari-nav-active' : ''}>
                                     <Link to="/stock-manage" onClick={() => handleNavClick('/stock-manage')}>Stock Manage</Link>
@@ -402,7 +432,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                                     <a href="/operators" onClick={() => handleNavClick('/operators')}>Operators</a>
                                 </li>
                                 <li className={activeLink === '/lpo-list' ? 'ansari-nav-active' : ''}>
-                                    <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO For Quatation</a>
+                                    <a href="/lpo-list" onClick={() => handleNavClick('/lpo-list')}>LPO</a>
                                 </li>
                                 <li className={activeLink === '/backcharge-list' ? 'active' : ''}>
                                     <a href="/backcharge-list" onClick={() => handleNavClick('/backcharge-list')}>Backcharges</a>

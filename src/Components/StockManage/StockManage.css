@@ -3,7 +3,7 @@
   background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -16,7 +16,7 @@
 }
 
 .stock-manage-title {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 2.125rem;
   font-weight: 800;
   margin: 0;
@@ -24,7 +24,7 @@
 
 .stock-manage-datetime {
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
@@ -61,7 +61,7 @@
   font-size: 18px;
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .stock-manage-error {
@@ -78,7 +78,7 @@
 
 .stock-manage-message.success {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
   border: 1px solid rgba(46, 204, 113, 0.2);
 }
 
@@ -116,7 +116,7 @@
 .stock-manage-table td {
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-primary) !important;
-  color: var(--text-primary) !important;
+  color: var(--text-color) !important;
   background: var(--gradient-primary-900);
 }
 
@@ -146,7 +146,7 @@
 
 .stock-manage-status-badge.available {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .stock-manage-status-badge.low {
@@ -247,7 +247,7 @@
   width: 800px;
   height: 100vh;
   background: var(--gradient-primary-900);
-  color: var(--text-primary);
+  color: var(--text-color);
   box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   overflow-y: auto;
@@ -271,7 +271,7 @@
 
 .stock-manage-details-header h2 {
   font-size: 20px;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .stock-manage-details-content {
@@ -294,7 +294,7 @@
 }
 
 .stock-manage-value {
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 /* Stock Progress */
@@ -332,7 +332,7 @@
 }
 
 .stock-manage-progress-bar.available {
-  background-color: var(--color-success-700-900);
+  background-color: var(--color-success);
 }
 
 .stock-manage-progress-bar.low {
@@ -390,7 +390,7 @@
 .stock-manage-form-modal,
 .stock-form-modal {
   background-color: var(--bg-modal);
-  color: var(--text-primary);
+  color: var(--text-color);
   border-radius: 12px;
   width: 800px;
   max-width: 90%;
@@ -426,7 +426,7 @@
 .stock-manage-form-header h2,
 .stock-form-header h2 {
   font-size: 20px;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin: 0;
   font-weight: 600;
 }
@@ -486,7 +486,7 @@
   font-size: 14px;
   transition: all 0.2s ease;
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .stock-manage-form-group input:focus,
@@ -524,7 +524,7 @@
 
 .stock-equipment-item {
   background-color: var(--bg-hover);
-  color: var(--text-primary);
+  color: var(--text-color);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -574,7 +574,7 @@
 }
 
 .equipment-detail-value {
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 /* Equipment selector styles */
@@ -626,7 +626,7 @@
   flex: 1;
   padding-right: 30px;
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
   border: 1px solid var(--border-primary);
 }
 
@@ -657,7 +657,7 @@
   gap: 10px;
   cursor: pointer;
   border-bottom: 1px solid var(--border-primary);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .equipment-dropdown-item:hover {
@@ -681,7 +681,7 @@
 
 .confirm-equipment-btn {
   padding: 8px 12px;
-  background-color: var(--color-success-700-900);
+  background-color: var(--color-success);
   color: white;
   border: none;
   border-radius: 6px;
@@ -764,7 +764,7 @@
 .stock-manage-history-table td {
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-primary);
-  color: var(--text-primary);
+  color: var(--text-color);
   background: var(--gradient-primary-900);
 }
 
@@ -782,7 +782,7 @@
 
 .stock-manage-history-badge.add {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .stock-manage-history-badge.deduct {
@@ -796,7 +796,7 @@
 }
 
 .stock-manage-positive {
-  color: var(--color-success-700-900);
+  color: var(--color-success);
   font-weight: 600;
 }
 
@@ -826,7 +826,7 @@
   flex-grow: 1;
   max-width: 300px;
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
   transition: all 0.2s ease;
 }
 
@@ -906,17 +906,13 @@
   transition: background-color 0.2s ease;
 }
 
-.dropdown-item:hover {
-  background-color: var(--bg-hover);
-}
-
 .dropdown-item:last-child {
   border-bottom: none;
 }
 
 .dropdown-item-main {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 2px;
 }
 

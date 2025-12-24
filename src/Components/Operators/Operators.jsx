@@ -10,8 +10,8 @@ const Operators = () => {
 
   // Predefined options
   const nationalityOptions = ['INDIAN', 'NEPALI', 'BANGLADESHI', 'PAKISTANI', 'SRI LANKAN', 'OTHER'];
-  const sponsorshipOptions = ['ATE', 'DIRECT', 'OTHER'];
-  const workingInOptions = ['ATE', 'FIELD', 'OFFICE', 'WAREHOUSE'];
+  const sponsorshipOptions = ['ATE', 'ASK', 'HIRED'];
+  const workingInOptions = ['ATE', 'SITE', 'OFFICE', 'ASK'];
   const licenceTypeOptions = ['Loader', 'Car', 'Bus', 'Med. Truck', 'Heavy Truck', 'Crane', 'Forklift'];
 
   const [operators, setOperators] = useState([]);
@@ -488,7 +488,8 @@ const Operators = () => {
   };
 
   // Form submit handler
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (e) => {
+    e.preventDefault()
     try {
       let profilePicUrl = null;
 
@@ -1529,7 +1530,7 @@ const Operators = () => {
                   />
                   <Button
                     text={uploading ? 'Uploading...' : (formMode === 'add' ? 'Add Operator' : 'Update Operator')}
-                    onClick={handleFormSubmit}
+                    onClick={(e) => handleFormSubmit(e)}
                     colorScheme={uploading ? 'lime-900' : 'lime-500'}
                     variant="gradient"
                     font="md"

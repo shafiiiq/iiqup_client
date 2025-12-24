@@ -17,7 +17,7 @@
 .header-left h1 {
   font-size: 28px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 4px;
 }
 
@@ -33,7 +33,7 @@
   border: 1px solid var(--border-primary);
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-color);
   box-shadow: var(--shadow-sm);
 }
 
@@ -125,7 +125,7 @@
 .mechanic-info h4 {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 4px;
 }
 
@@ -163,7 +163,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-success-700-900);
+  background: var(--color-success);
 }
 
 /* Main Content */
@@ -200,7 +200,7 @@
 .profile-info h2 {
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 4px;
 }
 
@@ -220,7 +220,7 @@
   border-radius: var(--radius-lg);
   font-size: 14px;
   background: var(--gradient-glass-300);
-  color: var(--text-primary);
+  color: var(--text-color);
   box-shadow: var(--shadow-inner-lg);
 }
 
@@ -270,7 +270,7 @@
 
 .save-btn {
   padding: 8px 16px;
-  background: var(--color-success-700-900);
+  background: var(--color-success);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -307,7 +307,7 @@
 }
 
 .detail-tab:hover {
-  color: var(--text-primary);
+  color: var(--text-color);
   background: rgba(52, 152, 219, 0.05);
 }
 
@@ -382,7 +382,7 @@
   font-size: 20px;
   font-weight: 400;
   margin-bottom: 16px;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .activity-list {
@@ -439,11 +439,11 @@
 .content-header h3 {
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .add-toolkit-btn {
-  background: var(--color-success-700-900);
+  background: var(--color-success);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -488,7 +488,7 @@
 .toolkit-info h4 {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin-bottom: 8px;
 }
 
@@ -509,7 +509,7 @@
 
 .status-badge.available {
   background: rgba(46, 204, 113, 0.1);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .status-badge.low {
@@ -554,7 +554,7 @@
   padding: 16px 12px;
   text-align: left;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
   border-bottom: 2px solid var(--border-primary);
   font-size: 13px;
   text-transform: uppercase;
@@ -565,7 +565,7 @@
 .overtime-table td {
   padding: 14px 12px;
   border-bottom: 1px solid var(--border-primary);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .equipment-count {
@@ -604,7 +604,7 @@
 .no-selection h3 {
   font-size: 24px;
   margin-bottom: 8px;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .no-selection p {
@@ -694,7 +694,7 @@
   padding: 16px 12px;
   text-align: left;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
   border-bottom: 2px solid var(--border-primary);
   font-size: 13px;
   text-transform: uppercase;
@@ -707,7 +707,7 @@
 .toolkits-table td {
   padding: 14px 12px;
   border-bottom: 1px solid var(--border-primary);
-  color: var(--text-primary);
+  color: var(--text-color);
   vertical-align: middle;
 }
 
@@ -716,7 +716,7 @@
 /* Toolkit Table Specific Styles */
 .toolkit-name {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .color-indicator {
@@ -771,7 +771,7 @@
 
 .total-time {
   font-weight: 600;
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .view-details-btn:hover:not(:disabled) {

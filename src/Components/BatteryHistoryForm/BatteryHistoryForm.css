@@ -3,7 +3,7 @@
   background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .tyre-header {
@@ -14,7 +14,7 @@
 }
 
 .tyre-header h1 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 34px;
   font-weight: 800;
 }

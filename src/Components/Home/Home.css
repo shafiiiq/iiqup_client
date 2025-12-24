@@ -1,81 +1,3 @@
-/* Home.css with Dark/Light Mode Toggle */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Geom:ital,wght@0,300..900;1,300..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Geom:ital,wght@0,300..900;1,300..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
-
-/* Theme Variables - Light (Default) */
-:root {
-  --black: black;
-  --ansari-primary-blue: #0f3562;
-  --ansari-secondary-blue: #1e63b0;
-  --ansari-accent-orange: #ffcb6b;
-  --ansari-accent-orange-hover: #ff8a50;
-  --ansari-background: #f5f5f5;
-  --ansari-card-background: #ffffff;
-  --ansari-text-primary: #333333;
-  --ansari-text-secondary: #666666;
-  --ansari-text-light: #555555;
-  --ansari-border: #e1e4e8;
-  --ansari-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-  --ansari-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
-  --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
-  --ansari-hero-overlay-1: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
-  --ansari-sidebar-bg: linear-gradient(145deg, #0f3562, #020b16);
-  --ansari-header-bg: linear-gradient(145deg, #0f3562, #1e63b0);
-  --ansari-mobile-nav-bg: linear-gradient(145deg, #09192e, #041e3d);
-  --ansari-logo-bg: rgba(255, 255, 255, 0.9);
-  --ansari-user-section-bg: rgba(255, 255, 255, 0.1);
-  --ansari-user-section-hover-bg: rgba(255, 255, 255, 0.15);
-  --ansari-logout-hover-bg: rgba(255, 75, 75, 0.2);
-  --ansari-nav-hover-bg: rgba(255, 255, 255, 0.1);
-  --ansari-nav-active-bg: rgba(255, 255, 255, 0.2);
-  --ansari-header-shape-bg: rgba(255, 255, 255, 0.08);
-  --ansari-sidebar-shape-bg: rgba(255, 255, 255, 0.05);
-  --ansari-main-content-bg: #f8f9fa;
-  --ansari-info-section-bg: #ffffff;
-  --ansari-company-info-bg: #f8f9fa;
-}
-
-/* Dark Theme */
-body.dark-theme {
-  --ansari-primary-blue: #b6c8dd;
-  --ansari-secondary-blue: #3498db;
-  --ansari-accent-orange: #f39c12;
-  --ansari-accent-orange-hover: #e67e22;
-  --ansari-background: #121212;
-  --ansari-card-background: #1e1e1e;
-  --ansari-text-primary: #ffffff;
-  --ansari-text-secondary: #cccccc;
-  --ansari-text-light: #aaaaaa;
-  --ansari-border: #333333;
-  --ansari-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  --ansari-shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.4);
-  --ansari-hero-overlay: linear-gradient(rgba(0, 0, 0, 0.068), rgba(0, 0, 0, 0.8));
-  --ansari-sidebar-bg: var(--bg-primary);
-  --ansari-header-bg: linear-gradient(145deg, #1a1a1a, #2c3e50);
-  --ansari-mobile-nav-bg: var(--bg-primary);
-  --ansari-logo-bg: rgba(30, 30, 30, 0.9);
-  --ansari-user-section-bg: rgba(255, 255, 255, 0.1);
-  --ansari-user-section-hover-bg: rgba(255, 255, 255, 0.15);
-  --ansari-logout-hover-bg: rgba(255, 75, 75, 0.3);
-  --ansari-nav-hover-bg: rgba(255, 255, 255, 0.1);
-  --ansari-nav-active-bg: rgba(255, 255, 255, 0.2);
-  --ansari-header-shape-bg: rgba(255, 255, 255, 0.05);
-  --ansari-sidebar-shape-bg: rgba(255, 255, 255, 0.03);
-  --ansari-main-content-bg: #181818;
-  --ansari-info-section-bg: #1e1e1e;
-  --ansari-company-info-bg: #2a2a2a;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-ul {
-  list-style: none;
-}
-
 .ansari-main-wrapper {
   display: flex;
   flex-direction: column;
@@ -153,125 +75,18 @@ ul {
   transform: scale(1.05) rotate(2deg);
 }
 
-/* User Section Styles */
-.ansari-user-section {
+.user-section-home {
   display: flex;
   align-items: center;
-  background: var(--ansari-user-section-bg);
-  backdrop-filter: blur(10px);
-  border-radius: 25px;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.ansari-user-section:hover {
-  background: var(--ansari-user-section-hover-bg);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.ansari-profile-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ansari-accent-orange), var(--ansari-accent-orange-hover));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 16px;
-  color: white;
-  margin-right: 12px;
-  box-shadow: 0 3px 10px rgba(255, 203, 107, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.ansari-user-actions {
-  display: flex;
-  align-items: end;
-  gap: 12px;
-  flex-direction: column;
-}
-
-.ansari-user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-  white-space: nowrap;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ansari-logout-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: white;
-  padding: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-}
-
-.ansari-logout-btn:hover {
-  background: var(--ansari-logout-hover-bg);
-  border-color: rgba(255, 75, 75, 0.4);
-  transform: scale(1.05);
-}
-
-.ansari-logout-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* Sidebar User Section */
-.ansari-side-user-section {
-  padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  z-index: 5;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  align-items: end;
-}
-
-.ansari-side-user-section .ansari-user-section {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--gradient-primary-600);
   width: 100%;
-  justify-content: flex-start;
+  height: 5rem;
+  border-radius: var(--radius-full);
+  color: var(--text-color);
+  box-shadow: var(--shadow-outer-xxl);
 }
 
-.ansari-side-user-section .ansari-profile-icon {
-  width: 45px;
-  height: 45px;
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.ansari-side-user-section .ansari-user-name {
-  flex: 1;
-  font-size: 16px;
-  max-width: none;
-}
-
-.ansari-side-user-section .ansari-logout-btn {
-  width: 40px;
-  height: 40px;
-}
-
-.ansari-side-user-section .ansari-logout-btn svg {
-  width: 20px;
-  height: 20px;
-}
 
 /* Hamburger Menu */
 .ansari-burger-btn {
@@ -413,13 +228,6 @@ ul {
   color: white;
 }
 
-.ansari-mobile-nav li a:hover,
-.ansari-mobile-nav li.ansari-link-active a {
-  border-left: 4px solid var(--ansari-accent-orange);
-  padding-left: 1.4rem;
-  background: rgba(255, 255, 255, 0.05);
-}
-
 /* Mobile nav background */
 .ansari-mobile-bg {
   position: absolute;
@@ -508,15 +316,23 @@ ul {
 
 /* Sidebar Styles */
 .ansari-side-panel {
-  width: 380px;
-  background: var(--gradient-primary-100);
-  color: #fff;
+  width: 420px;
+  background: var(--header-bg-primary-200);
+  top: 4rem;
+  bottom: 4rem;
+  border-radius: var(--radius-4xl);
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-inner-outer);
   position: relative;
   z-index: 10;
   overflow: hidden;
+  position: fixed;
+  right: 2rem;
+  align-items: center;
+  padding-top: 2rem;
+  padding-inline: 1rem;
 }
 
 /* Sidebar Background */
@@ -560,17 +376,6 @@ ul {
   animation: ansariFloatBubble 22s infinite linear alternate;
 }
 
-.ansari-logo-holder {
-  padding: 30px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  z-index: 5;
-  margin: 15px;
-  border-radius: 15px;
-}
-
 .ansari-main-logo {
   max-width: 85%;
   height: auto;
@@ -588,23 +393,30 @@ ul {
   padding-top: 20px;
   position: relative;
   z-index: 5;
+  display: flex;
+  width: 100%;
 }
 
 .ansari-side-nav ul {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .ansari-side-nav ul li {
   padding: 22px 20px;
   margin: 5px 15px;
-  border-radius: 6px;
+  width: 100%;
+  border-radius: var(--radius-full);
   transition: all 0.3s ease;
   font-weight: 500;
   position: relative;
   overflow: hidden;
   text-align: end;
-  background-color: rgba(255, 255, 255, 0.048);
+  background: var(--gradient-primary-400);
   cursor: pointer;
+  box-shadow: var(--shadow-inner-xxl);
   opacity: 0;
   animation: premiumNavSlide 0.6s ease-out forwards;
 }
@@ -662,32 +474,28 @@ ul {
 }
 
 .ansari-side-nav ul li.ansari-nav-active {
-  background-color: rgba(255, 255, 255, 0.2);
-  font-weight: 500;
+  background: var(--gradient-glass-400);
+  box-shadow: var(--shadow-outer-xxl);
 }
 
-.ansari-side-nav ul li.ansari-nav-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 4px;
-  background-color: #ffcb6b;
+.ansari-side-nav ul li.ansari-nav-active a {
+  font-weight: 500;
+  color: var(--text-inverse);
 }
 
 .ansari-side-nav ul li a {
   display: block;
-  font-size: 16px;
+  font-size: 20px;
   position: relative;
   z-index: 2;
+  font-weight: 100;
+  letter-spacing: 1px;
 }
 
 .ansari-side-footer {
   padding: 20px;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin-top: auto;
   position: relative;
   z-index: 5;
@@ -726,7 +534,7 @@ ul {
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--ansari-hero-overlay);
+  background: var(--gradient-overlay-100);
   z-index: 1;
 }
 
@@ -736,7 +544,7 @@ ul {
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--ansari-hero-overlay-1);
+  background: var(--gradient-overlay-100);
   z-index: -1;
 }
 
@@ -755,10 +563,10 @@ ul {
   font-size: 4rem;
   margin-bottom: 1rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  color: white;
+  color: var(--text-color);
   font-family: "Geom", sans-serif;
   font-optical-sizing: auto;
-  font-weight: 800;
+  font-weight: 400;
   font-style: normal;
 }
 
@@ -779,15 +587,18 @@ ul {
   transition: background-color 0.3s ease;
   opacity: 0;
   animation: premiumFadeInUp 1s ease-out 0.6s forwards;
+  padding-right: 30rem;
 }
 
 /* Company Details */
 .ansari-company-info {
   padding: 30px;
-  background: var(--black);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background: var(--text-inverse);
+  box-shadow: var(--shadow-outer-xxl);
   transition: background-color 0.3s ease;
   z-index: 99999999;
+  position: relative;
+  border-radius: var(--radius-2xl);
 }
 
 .ansari-comp-name {
@@ -795,11 +606,6 @@ ul {
   font-weight: 600;
   color: var(--ansari-text-primary);
   margin-bottom: 15px;
-}
-
-.ansari-company-info>div:not(.ansari-comp-name):not(.ansari-contact-block) {
-  margin-bottom: 8px;
-  color: var(--ansari-text-light);
 }
 
 .ansari-contact-block {
@@ -818,7 +624,7 @@ ul {
 .ansari-phone-info span,
 .ansari-email-info span {
   margin: 5px 0;
-  color: var(--ansari-text-light);
+  color: var(--text-color);
 }
 
 /* Feature Cards */
@@ -830,13 +636,12 @@ ul {
 }
 
 .ansari-card-item {
-  background: var(--ansari-card-background);
-  border-radius: 8px;
+  background: var(--gradient-glass-600);
+  border-radius: var(--radius-4xl);
   padding: 25px;
-  box-shadow: var(--ansari-shadow);
+  box-shadow: var(--shadow-outer-xxl);
   transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
   text-align: center;
-  border-top: 4px solid var(--ansari-primary-blue);
   opacity: 0;
   animation: premiumSlideInLeft 0.8s ease-out forwards;
 }
@@ -860,14 +665,14 @@ ul {
 
 .ansari-card-icon {
   font-size: 36px;
-  color: var(--ansari-primary-blue);
+  color: var(--text-color);
   margin-bottom: 15px;
 }
 
 .ansari-card-item h3 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: var(--ansari-text-primary);
+  color: var(--text-color);
 }
 
 .ansari-card-item p {
@@ -884,6 +689,7 @@ ul {
   border-radius: 10px;
   box-shadow: var(--ansari-shadow);
   transition: background-color 0.3s ease;
+  padding-right: 30rem;
 }
 
 .ansari-section-heading {
@@ -893,22 +699,10 @@ ul {
 
 .ansari-section-heading h2 {
   font-size: 32px;
-  color: var(--ansari-primary-blue);
+  color: var(--text-color);
   margin-bottom: 15px;
   position: relative;
   display: inline-block;
-}
-
-.ansari-section-heading h2::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 3px;
-  background: linear-gradient(to right, var(--ansari-primary-blue), var(--ansari-secondary-blue));
-  border-radius: 2px;
 }
 
 .ansari-section-heading p {
@@ -926,7 +720,7 @@ ul {
 
 .ansari-leader-card {
   background: var(--ansari-card-background);
-  border-radius: 12px;
+  border-radius: var(--radius-4xl);
   overflow: hidden;
   box-shadow: var(--ansari-shadow);
   transition: all 0.3s ease;
@@ -965,6 +759,7 @@ ul {
   position: relative;
   height: 280px;
   overflow: hidden;
+  border-radius: var(--radius-4xl);
 }
 
 .ansari-leader-image img {
@@ -985,15 +780,15 @@ ul {
 }
 
 .ansari-leader-info h3 {
-  font-size: 18px;
-  color: var(--ansari-primary-blue);
+  font-size: 30px;
+  color: var(--color-primary);
   margin-bottom: 5px;
-  font-weight: 600;
+  font-weight: 300;
 }
 
 .ansari-leader-info p {
-  color: var(--ansari-text-secondary);
-  font-size: 14px;
+  color: var(--text-color);
+  font-size: 20px;
   margin: 0;
 }
 
@@ -1138,6 +933,8 @@ ul {
   top: 0;
   right: 0;
   background: transparent;
+  display: flex;
+  justify-content: end;
 }
 
 /* Responsive Styles - Tablet */

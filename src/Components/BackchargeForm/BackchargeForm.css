@@ -612,7 +612,6 @@
 
 .dropdown-item:hover {
     background-color: #f8f9fa;
-    border-left: 3px solid #007bff;
 }
 
 .dropdown-item:last-child {

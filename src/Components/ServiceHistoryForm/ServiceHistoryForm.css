@@ -3,7 +3,7 @@
   background-color: var(--bg-primary);
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .service-header {
@@ -14,14 +14,14 @@
 }
 
 .service-header h1 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 34px;
   font-weight: 800;
 }
 
 .equipment-info {
   font-size: 24px;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
   margin-bottom: 20px;
   text-align: center;

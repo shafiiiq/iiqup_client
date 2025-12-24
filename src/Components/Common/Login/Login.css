@@ -6,7 +6,7 @@
 
 .auth-left-section {
   flex: 2;
-  background: var(--header-color-primary-600);
+  background: var(--header-bg-primary-600);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -32,7 +32,7 @@
   font-family: "Geom", sans-serif;
   display: inline-block;
   transform-origin: bottom;
-  background: var(--header-color-primary-400);
+  background: var(--header-bg-primary-400);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -83,7 +83,7 @@
 
 .auth-left-bar {
   width: 100px;
-  background: var(--header-color-primary-300);
+  background: var(--header-bg-primary-300);
   border-radius: 99px;
   animation: wave-flow 3s ease-in-out infinite;
   box-shadow: var(--shadow-outer-xxl);
@@ -174,7 +174,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--header-color-primary-800);
+  background: var(--header-bg-primary-800);
   box-shadow: var(--shadow-inner-primary-6xl);
   border-radius: var(--radius-4xl);
   margin: 20rem 3rem 20rem 10rem;
@@ -329,7 +329,7 @@
 .auth-login-form input[type="text"] {
   width: 100%;
   padding: 20px 24px 20px 56px;
-  background: var(--header-color-primary-200);
+  background: var(--header-bg-primary-200);
   border-radius: 99px;
   color: var(--text-color);
   font-size: 20px;
@@ -350,7 +350,7 @@
 }
 
 .auth-login-form input::placeholder {
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .auth-otp-input {

@@ -71,12 +71,12 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .lpo-header h1 {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 2.125rem;
   font-weight: 800;
   margin: 0;
@@ -89,7 +89,7 @@
   font-size: 16px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-primary);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 /* Controls Section */
@@ -118,7 +118,7 @@
   font-size: 14px;
   transition: all 0.2s ease;
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
 } */
 
 /* .search-input:focus {
@@ -204,7 +204,7 @@
 .date-filter-group label {
   font-weight: 500;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .date-filter-group input {
@@ -213,7 +213,7 @@
   border-radius: 6px;
   font-size: 14px;
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .action-btn.view {
@@ -267,7 +267,7 @@
 }
 
 .action-btn.save {
-  background-color: var(--color-success-700-900);
+  background-color: var(--color-success);
   color: white;
 }
 
@@ -312,7 +312,7 @@
 
 .action-btn.add-item,
 .action-btn.add-term {
-  background-color: var(--color-success-700-900);
+  background-color: var(--color-success);
   color: white;
   margin-top: 10px;
 }
@@ -364,7 +364,7 @@
   padding: 12px 15px;
   border-bottom: 1px solid var(--border-primary) !important;
   vertical-align: middle;
-  color: var(--text-primary) !important;
+  color: var(--text-color) !important;
 }
 
 .lpo-table tr:nth-child(odd) {
@@ -422,7 +422,7 @@
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
   animation: modal-appear 0.3s ease-out;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 @keyframes modal-appear {
@@ -449,7 +449,7 @@
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-weight: 600;
 }
 
@@ -459,7 +459,7 @@
 
 .modal-body p {
   margin-bottom: 15px;
-  color: var(--text-primary);
+  color: var(--text-color);
   line-height: 1.6;
 }
 
@@ -479,7 +479,7 @@
 }
 
 .modal-content.success .modal-header h2 {
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .modal-content.error .modal-header {
@@ -519,12 +519,12 @@
 .detail-label {
   font-weight: 600;
   width: 150px;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .detail-value {
   flex: 1;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .items-table {
@@ -539,7 +539,7 @@
   border: 1px solid var(--border-primary);
   padding: 10px;
   text-align: left;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .items-table th {

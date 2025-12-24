@@ -4,7 +4,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 20px;
   min-height: 100vh;
-  color: var(--text-primary);
+  color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -21,7 +21,7 @@
 
 .operators-title,
 .toolkits-title {
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 34px;
   font-weight: 800;
 }
@@ -34,7 +34,7 @@
 
 .date-time {
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
   border-radius: 8px;
   padding: 10px 15px;
   font-size: 16px;
@@ -64,7 +64,7 @@
   border-radius: 6px;
   font-size: 14px;
   background-color: var(--bg-card);
-  color: var(--text-primary);
+  color: var(--text-color);
   transition: border-color 0.2s;
 }
 
@@ -139,7 +139,7 @@
   padding: 40px;
   font-size: 18px;
   border-radius: 8px;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .error-message {
@@ -177,7 +177,7 @@
 .operators-table td,
 .toolkits-table td {
   padding: 12px 15px;
-  color: var(--text-primary);
+  color: var(--text-color);
   vertical-align: middle;
   background: var(--gradient-primary-900);
 }
@@ -262,7 +262,7 @@
 .status-badge.available,
 .status-badge.active {
   background-color: rgba(46, 204, 113, 0.1);
-  color: var(--color-success-700-900);
+  color: var(--color-success);
 }
 
 .status-badge.low,
@@ -317,7 +317,7 @@
 }
 
 .action-btn.add-variant {
-  background-color: var(--color-success-700-900);
+  background-color: var(--color-success);
 }
 
 .action-btn.reduce {
@@ -338,7 +338,7 @@
   width: 800px;
   height: 100vh;
   background: var(--gradient-primary-900);
-  color: var(--text-primary);
+  color: var(--text-color);
   box-shadow: var(--shadow-outer-xxl);
   z-index: 1000;
   overflow-y: auto;
@@ -348,9 +348,14 @@
   flex-direction: column;
 }
 
+.operator-details::-webkit-scrollbar,
+.toolkit-details::-webkit-scrollbar {
+  display: none;
+}
+
 .details-header h2 {
   font-size: 30px !important;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .details-content {
@@ -375,7 +380,7 @@
 
 .profile-info h3 {
   margin: 0 0 8px 0;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 24px;
 }
 
@@ -393,7 +398,7 @@
 
 .detail-group h4 {
   margin: 0 0 16px 0;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 18px;
   font-weight: 600;
   padding-bottom: 8px;
@@ -417,7 +422,7 @@
 }
 
 .operator-detail-item .value {
-  color: var(--text-primary);
+  color: var(--text-color);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -475,7 +480,7 @@
 
 .form-modal {
   background: var(--gradient-glass-600);
-  color: var(--text-primary);
+  color: var(--text-color);
   border-radius: var(--radius-4xl);
   width: 1000px;
   max-width: 90%;
@@ -517,7 +522,7 @@
 
 .form-header h2 {
   font-size: 30px;
-  color: var(--text-primary);
+  color: var(--text-color);
   margin: 0;
   font-weight: 300;
 }
@@ -539,7 +544,7 @@
 
 .form-section h3 {
   margin: 0 0 16px 0;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 25px;
   text-align: center;
   font-weight: 300;
@@ -660,7 +665,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--text-color);
   font-size: 12px;
   padding: 0;
 }
@@ -672,10 +677,8 @@
   right: 0;
   max-height: 200px;
   overflow-y: auto;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-primary);
+  background: var(--gradient-primary-600);
   border-radius: 6px;
-  box-shadow: var(--shadow-md);
   z-index: 100;
   margin-top: 4px;
   animation: fadeIn 0.2s ease-out;
@@ -685,11 +688,12 @@
   padding: 8px 12px;
   cursor: pointer;
   transition: background-color 0.2s;
-  color: var(--text-primary);
+  color: var(--text-color) !important;
 }
 
 .dropdown-item:hover {
-  background-color: var(--bg-hover);
+  background: var(--gradient-glass-300) !important;
+  color: var(--text-color) !important;
 }
 
 .dropdown-item.new-item {
@@ -725,7 +729,7 @@
 
 .cancel-btn:hover {
   background-color: #dee2e6;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .submit-btn {
@@ -758,7 +762,7 @@
 .variants-section h3 {
   margin-bottom: 15px;
   font-size: 18px;
-  color: var(--text-primary);
+  color: var(--text-color);
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border-primary);
 }
@@ -781,7 +785,7 @@
 .variants-table td {
   padding: 12px 15px;
   vertical-align: middle;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .variants-table tr.selected {

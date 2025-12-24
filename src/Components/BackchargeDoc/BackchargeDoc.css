@@ -646,15 +646,9 @@
 .dropdown-item {
     padding: 12px 15px;
     cursor: pointer;
-    border-bottom: 1px solid #000000;
     font-size: 14px;
     transition: background-color 0.2s ease;
-    color: #000000;
-}
-
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-    border-left: 3px solid #000000;
+    color: var(--text-inverse);
 }
 
 .dropdown-item:last-child {

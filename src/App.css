@@ -2,19 +2,17 @@
    LIGHT MODE (DEFAULT)
    ============================================ */
 :root {
-  --fancy-color-100: linear-gradient(295deg, rgba(250, 12, 230, 0.589) 0%, #880c3ba6 100%);
-
   /* ========== HEADER COLOR ========== */
-  --header-color-primary-50: #f9e7c7;
-  --header-color-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
-  --header-color-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
-  --header-color-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
-  --header-color-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
-  --header-color-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
-  --header-color-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
-  --header-color-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
-  --header-color-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
-  --header-color-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
+  --header-bg-primary-50: #f9e7c7;
+  --header-bg-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
+  --header-bg-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
+  --header-bg-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
+  --header-bg-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
+  --header-bg-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
+  --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
+  --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
   --header-bg-primary-50: #f0f2ff;
   --header-bg-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
@@ -27,107 +25,73 @@
   --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
   --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
-  --glass-color-50: rgba(214, 214, 214, 0.178);
+  /* ========== PRIMARY BRAND COLORS ========== */
+  --color-primary: #eeff00;
+  --color-primary-50: #d0df00;
+  --color-primary-100: #bac700;
+  --color-primary-200: #a0ac00;
+  --color-primary-300: #8a9400;
+  --color-primary-700: #757e00;
+  --color-primary-500: #646b00;
+  --color-primary-600: #515700;
+  --color-primary-700: #393d00;
+  --color-primary-800: #2d3000;
+  --color-primary-900: #1e2000;
+  --color-primary-1000: #131400;
 
-  /* ========== PRIMARY BRAND COLORS (Full Scale) ========== */
-  --color-primary-50: #f0f2ff;
-  --color-primary-100: #e0e5ff;
-  --color-primary-200: #c7d0ff;
-  --color-primary-300: #a3b3ff;
-  --color-primary-700: #8a9ae8;
-  --color-primary-500: #6b7fe3;
-  --color-primary-600: #4a5fd8;
-  --color-primary-700: #2e40cc;
-  /* Main */
-  --color-primary-800: #a49b828c;
-  --color-primary-900: #1a2780;
-  --color-primary-950: #0f1547;
+  /* ========== SUCCESS COLORS ========== */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #10b981;
+  --color-success-700: #059669;
+  --color-success-800: #047857;
+  --color-success-900: #065f46;
+  --color-success-1000: #022c22;
 
-  /* Primary Aliases for backward compatibility */
-  --color-primary: #eaecca;
-  --color-primary-light: #cfd84a;
-  --color-primary-lighter: #6b7fe3;
-  --color-primary-dark: #2333a8;
-  --color-primary-darker: #1a2780;
-
-  /* ========== SUCCESS COLORS (Full Scale) ========== */
-  --color-success-700-900-50: #f0fdf4;
-  --color-success-700-900-100: #dcfce7;
-  --color-success-700-900-200: #bbf7d0;
-  --color-success-700-900-300: #86efac;
-  --color-success-700-900-400: #4ade80;
-  --color-success-700-900-500: #22c55e;
-  --color-success-700-900-600: #10b981;
-  /* Main */
-  --color-success-700-900-700: #059669;
-  --color-success-700-900-800: #047857;
-  --color-success-700-900-900: #065f46;
-  --color-success-700-900-950: #022c22;
-
-  /* Success Aliases */
-  --color-success-700-900: #10b981;
-  --color-success-700-900-light: #34d399;
-  --color-success-700-900-dark: #059669;
-
-  /* ========== WARNING COLORS (Full Scale) ========== */
+  /* ========== WARNING COLORS ========== */
   --color-warning-50: #fffbeb;
   --color-warning-100: #fef3c7;
   --color-warning-200: #fde68a;
   --color-warning-300: #fcd34d;
   --color-warning-400: #fbbf24;
   --color-warning-500: #f59e0b;
-  /* Main */
   --color-warning-600: #d97706;
   --color-warning-700: #b45309;
   --color-warning-800: #92400e;
   --color-warning-900: #78350f;
-  --color-warning-950: #451a03;
+  --color-warning-1000: #451a03;
 
-  /* Warning Aliases */
-  --color-warning: #f59e0b;
-  --color-warning-light: #fbbf24;
-  --color-warning-dark: #d97706;
-
-  /* ========== ERROR/DANGER COLORS (Full Scale) ========== */
+  /* ========== ERROR/DANGER COLORS ========= */
   --color-error-50: #fef2f2;
   --color-error-100: #fee2e2;
   --color-error-200: #fecaca;
   --color-error-300: #fca5a5;
   --color-error-400: #f87171;
   --color-error-500: #ef4444;
-  /* Main */
   --color-error-600: #dc2626;
   --color-error-700: #b91c1c;
   --color-error-800: #991b1b;
   --color-error-900: #7f1d1d;
-  --color-error-950: #450a0a;
+  --color-error-1000: #450a0a;
 
-  /* Error Aliases */
-  --color-error: #ef4444;
-  --color-danger: #ef4444;
-  --color-error-light: #f87171;
-  --color-error-dark: #dc2626;
-
-  /* ========== INFO COLORS (Full Scale) ========== */
+  /* ========== INFO COLORS  ========== */
   --color-info-50: #eff6ff;
   --color-info-100: #dbeafe;
   --color-info-200: #bfdbfe;
   --color-info-300: #93c5fd;
   --color-info-400: #60a5fa;
   --color-info-500: #3b82f6;
-  /* Main */
   --color-info-600: #2563eb;
   --color-info-700: #1d4ed8;
   --color-info-800: #1e40af;
   --color-info-900: #1e3a8a;
-  --color-info-950: #172554;
+  --color-info-1000: #172554;
 
-  /* Info Aliases */
-  --color-info: #3b82f6;
-  --color-info-light: #60a5fa;
-  --color-info-dark: #2563eb;
-
-  /* ========== NEUTRAL/GRAY COLORS (Full Scale) ========== */
+  /* ========== NEUTRAL/GRAY COLORS ========== */
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
   --color-gray-200: #e5e7eb;
@@ -138,7 +102,7 @@
   --color-gray-700: #374151;
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
-  --color-gray-950: #030712;
+  --color-gray-1000: #030712;
 
   /* ========== SEMANTIC STATE COLORS ========== */
   --color-idle: #10b981;
@@ -158,36 +122,32 @@
   --color-transparent: transparent;
 
   /* ========== BACKGROUND COLORS ========== */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
+  --bg-primary: #fbff00;
+  --bg-secondary: #ffd900;
+  --bg-tertiary: #ffc400;
   --bg-quaternary: #e2e8f0;
-
   --bg-card: #ffffff;
   --bg-card-hover: #f8fafc;
-
   --bg-modal: #ffffff;
   --bg-modal-header: #f8fafc;
   --bg-modal-footer: #f8fafc;
-
   --bg-sidebar: #ffffff;
   --bg-sidebar-hover: #f8fafc;
-
-  --bg-hover: #293105;
-  --bg-active: #e0e7ff;
+  --bg-hover: #fbff00;
+  --bg-active: #ffffff;
   --bg-selected: #dbeafe;
-  --bg-disabled: #e9ecef;
-  --bg-muted: #f3f4f6;
+  --bg-disabled: #363636;
+  --bg-muted: #7a7a7a;
 
+  /* Background with opacity */
   --bg-overlay: rgba(0, 0, 0, 0.5);
   --bg-overlay-light: rgba(0, 0, 0, 0.3);
   --bg-overlay-dark: rgba(0, 0, 0, 0.7);
-
-  /* Background with opacity */
   --bg-primary-alpha-50: rgba(255, 255, 255, 0.5);
   --bg-primary-alpha-80: rgba(255, 255, 255, 0.8);
   --bg-primary-alpha-90: rgba(255, 255, 255, 0.9);
 
+  /* ========== TEXT COLORS ========== */
   --text-color: #ffffff;
   --text-color-50: #eeeeee;
   --text-color-100: #dddddd;
@@ -222,42 +182,27 @@
   --text-inverse-50: #111111;
   --text-inverse: #000000;
 
-  /* ========== TEXT COLORS ========== */
-  --text-primary: #1f2937;
-  --text-secondary: #4b5563;
-  --text-tertiary: #6b7280;
-  --text-quaternary: #9ca3af;
-  --text-disabled: #9ca3af;
-  --text-muted: #6b7280;
-  --text-on-primary: #ffffff;
-  --text-on-success: #ffffff;
-  --text-on-warning: #ffffff;
-  --text-on-error: #ffffff;
-
-  --text-link: #2e40cc;
-  --text-link-hover: #2333a8;
-  --text-link-visited: #6b7fe3;
-
   /* Text with opacity */
-  --text-primary-alpha-80: rgba(31, 41, 55, 0.8);
-  --text-primary-alpha-60: rgba(31, 41, 55, 0.6);
+  --text-color-alpha-80: rgba(31, 41, 55, 0.8);
+  --text-color-alpha-60: rgba(31, 41, 55, 0.6);
 
+  /* ========== BORDER PRIMARY ========== */
   --border-primary-solid-1: 1px solid #eaecca;
   --border-primary-solid-2: 2px solid #eaecca;
   --border-primary-solid-3: 3px solid #eaecca;
   --border-primary-solid-4: 4px solid #eaecca;
-
+  /* border secondary  */
   --border-secondary-solid-1: 1px solid #bec09b;
   --border-secondary-solid-2: 2px solid #bec09b;
   --border-secondary-solid-3: 3px solid #bec09b;
   --border-secondary-solid-4: 4px solid #bec09b;
+  /* border teritiary  */
+  --border-teritiary-solid-1: 1px solid #999b6f;
+  --border-teritiary-solid-2: 2px solid #999b6f;
+  --border-teritiary-solid-3: 3px solid #999b6f;
+  --border-teritiary-solid-4: 4px solid #999b6f;
 
-  --border-terotiary-solid-1: 1px solid #999b6f;
-  --border-secondary-solid-2: 2px solid #999b6f;
-  --border-secondary-solid-3: 3px solid #999b6f;
-  --border-secondary-solid-4: 4px solid #999b6f;
-
-  /* ========== BORDER COLORS ========== */
+  /* ========== BORDER NORMAL ========== */
   --border-primary: #fbff0836;
   --border-secondary: #d1d5db;
   --border-tertiary: #ffd208a9;
@@ -268,7 +213,7 @@
   --border-disabled: #e9ecef;
   --border-muted: #f3f4f6;
 
-  /* ========== SHADOWS ========== */
+  /* ========== NORMAL SHADOWS ========== */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
@@ -277,7 +222,7 @@
   --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.15);
   --shadow-3xl: 0 35px 60px rgba(0, 0, 0, 0.2);
 
-  /* Outer shadows only - Primary (Lime/Yellow) */
+  /* ========== OUTER SHADOWS NORMAL ========== */
   --shadow-outer-sm: inset 0 1px 2px #ffffff30,
     0 1px 2px #00000030,
     0 2px 4px #00000015;
@@ -297,7 +242,7 @@
     0 10px 12px #00000030,
     0 12px 16px #00000015;
 
-  /* Outer shadows only - White/Gray */
+  /* ========== OUTER SHADOWS PRIMARY ========== */
   --shadow-outer-primary-sm: inset 0 1px 2px #7c804a,
     0 1px 2px #3b3409,
     0 2px 4px #2c2707;
@@ -315,7 +260,7 @@
     0 10px 12px #3b3409,
     0 12px 16px #2c2707;
 
-  /* Inner shadows only - White/Gray (All sides equal) */
+  /* ========== INNER SHADOWS NORMAL ========== */
   --shadow-inner-sm: inset 0 0 4px #00000030;
   --shadow-inner-md: inset 0 0 8px #00000040;
   --shadow-inner-lg: inset 0 0 12px #00000050;
@@ -327,7 +272,7 @@
   --shadow-inner-6xl: inset 0 0 36px #00000090;
   --shadow-inner-7xl: inset 0 0 40px #00000090;
 
-  /* Inner shadows only - Primary (Lime/Yellow) (All sides equal) */
+  /* ========== INNER SHADOWS PRIMARY ========== */
   --shadow-inner-primary-sm: inset 0 0 4px #7c804a;
   --shadow-inner-primary-md: inset 0 0 8px #959958;
   --shadow-inner-primary-lg: inset 0 0 12px rgb(180, 185, 107);
@@ -354,10 +299,11 @@
   --gradient-subtle: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   --gradient-title: linear-gradient(135deg, #262429 0%, #f3f4f6 100%);
 
-  /* ========== DEV GRADIENTS ========== */
+  /* dev modal gradients*/
   --gradient-dev-filter-100: linear-gradient(280deg, #2c2904be 0%, #232c04be 100%);
   --gradient-dev-filter-200: linear-gradient(280deg, #cfd1612d 0%, #232c04be 100%);
 
+  /* text gradient primary  */
   --text-gradiant-color: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
   --text-gradiant-color-100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
   --text-gradiant-color-200: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
@@ -366,6 +312,7 @@
   --text-gradiant-color-500: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
   --text-gradiant-color-600: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
 
+  /* text gradient inverse  */
   --text-gradiant-inverse: linear-gradient(90deg, #141413 0%, #272905 100%);
   --text-gradiant-inverse-100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
   --text-gradiant-inverse-200: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
@@ -374,7 +321,7 @@
   --text-gradiant-inverse-500: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
   --text-gradiant-inverse-600: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
 
-  /* Primary Gradients (All Variations) */
+  /* primary gradients */
   --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f6f1ff 100%);
   --gradient-primary-50: linear-gradient(135deg, #ffffff 0%, #fefff1 100%);
   --gradient-primary-100: linear-gradient(295deg, #3b3409 0%, #000000 100%);
@@ -389,6 +336,7 @@
   --gradient-primary-1000: linear-gradient(295deg, #3c3f18 0%, #fffb00 100%);
   --gradient-primary-1100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
 
+  /* gradient glass  */
   --gradient-glass-100: linear-gradient(295deg, #f3fc926b 0%, #fffc3825 100%);
   --gradient-glass-200: linear-gradient(295deg, #eef87a6c 0%, #fcfbc1bb 100%);
   --gradient-glass-300: linear-gradient(295deg, #eef87a31 0%, #eef87a31 100%);
@@ -405,82 +353,78 @@
   --gradient-primary-subtle: linear-gradient(135deg, #f0f2ff 0%, #e0e5ff 100%);
   --gradient-primary-intense: linear-gradient(135deg, #0f1547 0%, #2e40cc 100%);
 
-  /* Success Gradients */
+  /* success gradients */
   --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --gradient-success-light: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
   --gradient-success-dark: linear-gradient(135deg, #047857 0%, #065f46 100%);
   --gradient-success-subtle: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   --gradient-success-vertical: linear-gradient(180deg, #10b981 0%, #059669 100%);
 
-  /* Warning Gradients */
+  /* warning gradients */
   --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   --gradient-warning-light: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   --gradient-warning-dark: linear-gradient(135deg, #b45309 0%, #92400e 100%);
   --gradient-warning-subtle: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   --gradient-warning-vertical: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
 
-  /* Error Gradients */
+  /* error gradients */
   --gradient-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   --gradient-error-light: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
   --gradient-error-dark: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
   --gradient-error-subtle: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   --gradient-error-vertical: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
 
-  /* Info Gradients */
+  /* info gradients */
   --gradient-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   --gradient-info-light: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   --gradient-info-dark: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
   --gradient-info-subtle: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   --gradient-info-vertical: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
 
-  /* Gray/Neutral Gradients */
+  /* gray/neutral gradients */
   --gradient-gray-light: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   --gradient-gray: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
   --gradient-gray-dark: linear-gradient(135deg, #4b5563 0%, #374151 100%);
   --gradient-gray-darker: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   --gradient-gray-subtle: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
 
-  /* Background Gradients */
+  /* background gradients */
   --gradient-bg-light: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   --gradient-bg-subtle: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   --gradient-bg-neutral: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
 
-  /* Overlay Gradients */
+  /* overlay gradients */
   --gradient-overlay: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 100%);
+  --gradient-overlay-100: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
   --gradient-overlay-light: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%);
   --gradient-overlay-dark: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.9) 100%);
   --gradient-overlay-top: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
   --gradient-overlay-white: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 100%);
 
-  /* Radial Gradients */
+  /* radial gradients */
   --gradient-radial-primary: radial-gradient(circle, #4a5fd8 0%, #2e40cc 100%);
   --gradient-radial-success: radial-gradient(circle, #22c55e 0%, #10b981 100%);
   --gradient-radial-warning: radial-gradient(circle, #fbbf24 0%, #f59e0b 100%);
   --gradient-radial-error: radial-gradient(circle, #f87171 0%, #ef4444 100%);
   --gradient-radial-subtle: radial-gradient(circle, #f9fafb 0%, #e5e7eb 100%);
 
-  /* Multi-color Gradients */
+  /* multi-color gradients */
   --gradient-rainbow: linear-gradient(135deg, #2e40cc 0%, #3b82f6 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%);
   --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #dc2626 100%);
   --gradient-ocean: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   --gradient-forest: linear-gradient(135deg, #065f46 0%, #10b981 50%, #34d399 100%);
   --gradient-cosmic: linear-gradient(135deg, #0f1547 0%, #2e40cc 50%, #6b7fe3 100%);
 
-  /* Mesh Gradients (Complex) */
+  /*mesh gradients */
   --gradient-mesh-1: linear-gradient(135deg, #2e40cc 0%, #3b82f6 33%, #10b981 66%, #6b7fe3 100%);
   --gradient-mesh-2: radial-gradient(at 20% 30%, #2e40cc 0%, transparent 50%), radial-gradient(at 80% 70%, #10b981 0%, transparent 50%);
   --gradient-mesh-vibrant: radial-gradient(at 30% 40%, #2e40cc 0%, transparent 50%), radial-gradient(at 70% 60%, #ef4444 0%, transparent 50%), linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
 
-  /* Glassmorphism Gradients */
-  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.911) 0%, rgba(255, 255, 255, 0.05) 100%);
-  --gradient-glass-dark: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
-  --gradient-glass-primary: linear-gradient(135deg, rgba(46, 64, 204, 0.1) 0%, rgba(74, 95, 216, 0.05) 100%);
-
-  /* Shimmer/Animation Gradients */
+  /* shimmer/animation gradients */
   --gradient-shimmer: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
   --gradient-shimmer-primary: linear-gradient(90deg, transparent 0%, rgba(46, 64, 204, 0.3) 50%, transparent 100%);
 
-  /* Directional Gradients (All 8 directions) */
+  /* directional gradients*/
   --gradient-to-right: linear-gradient(90deg, #2e40cc 0%, #4a5fd8 100%);
   --gradient-to-left: linear-gradient(270deg, #2e40cc 0%, #4a5fd8 100%);
   --gradient-to-top: linear-gradient(0deg, #2e40cc 0%, #4a5fd8 100%);
@@ -490,7 +434,7 @@
   --gradient-to-bottom-right: linear-gradient(135deg, #2e40cc 0%, #4a5fd8 100%);
   --gradient-to-bottom-left: linear-gradient(225deg, #2e40cc 0%, #4a5fd8 100%);
 
-  /* ========== SPACING (Enhanced) ========== */
+  /* ========== SPACING ========== */
   --space-0: 0;
   --space-px: 1px;
   --space-0-5: 0.125rem;
@@ -732,126 +676,125 @@
    DARK MODE
    ============================================ */
 body.dark-theme {
-  /* ========== PRIMARY BRAND COLORS (Full Scale) ========== */
-  --color-primary-50: #e5ff00d0;
-  --color-primary-100: #d7eb28d0;
-  --color-primary-200: #def12dd0;
-  --color-primary-300: #bccc2ed0;
-  --color-primary-400: #d4aa2cfa;
-  --color-primary-500: #9eac26d0;
-  --color-primary-600: #383d0bd0;
-  --color-primary-700: #c4b9992b;
-  --color-primary-800: #a49b828c;
-  --color-primary-900: #e0e5ff;
-  --color-primary-950: #f0f2ff;
+  /* ========== HEADER COLOR ========== */
+  --header-bg-primary-50: #f9e7c7;
+  --header-bg-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
+  --header-bg-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
+  --header-bg-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
+  --header-bg-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
+  --header-bg-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
+  --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
+  --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
-  /* Primary Aliases for backward compatibility */
-  --color-primary: #f9fadf;
-  --color-primary-light: #cfd84a;
-  --color-primary-lighter: #8a9ae8;
-  --color-primary-dark: #7d8510;
-  --color-primary-darker: #515708;
+  --header-bg-primary-50: #f0f2ff;
+  --header-bg-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
+  --header-bg-primary-200: linear-gradient(185deg, rgba(247, 231, 9, 0.164) 0%, #dde4a4c7 100%);
+  --header-bg-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
+  --header-bg-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
+  --header-bg-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, #a9af6e37 100%);
+  --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
+  --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
-  /* ========== SUCCESS COLORS (Full Scale - Adjusted for dark) ========== */
-  --color-success-700-900-50: #022c22;
-  --color-success-700-900-100: #065f46;
-  --color-success-700-900-200: #047857;
-  --color-success-700-900-300: #059669;
-  --color-success-700-900-400: #10b981;
-  --color-success-700-900-500: #22c55e;
-  --color-success-700-900-600: #34d399;
-  /* Main */
-  --color-success-700-900-700: #4ade80;
-  --color-success-700-900-800: #86efac;
-  --color-success-700-900-900: #bbf7d0;
-  --color-success-700-900-950: #dcfce7;
+  /* ========== PRIMARY BRAND COLORS ========== */
+  --color-primary: #eeff00;
+  --color-primary-50: #d0df00;
+  --color-primary-100: #bac700;
+  --color-primary-200: #a0ac00;
+  --color-primary-300: #8a9400;
+  --color-primary-700: #757e00;
+  --color-primary-500: #646b00;
+  --color-primary-600: #515700;
+  --color-primary-700: #393d00;
+  --color-primary-800: #2d3000;
+  --color-primary-900: #1e2000;
+  --color-primary-1000: #131400;
 
-  /* Success Aliases */
-  --color-success-700-900: #34d399;
-  --color-success-700-900-light: #6ee7b7;
-  --color-success-700-900-dark: #10b981;
+  /* ========== SUCCESS COLORS ========== */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #10b981;
+  --color-success-700: #059669;
+  --color-success-800: #047857;
+  --color-success-900: #065f46;
+  --color-success-1000: #022c22;
 
   /* ========== WARNING COLORS ========== */
-  --color-warning-50: #451a03;
-  --color-warning-100: #78350f;
-  --color-warning-200: #92400e;
-  --color-warning-300: #b45309;
-  --color-warning-400: #d97706;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
   --color-warning-500: #f59e0b;
-  --color-warning-600: #fbbf24;
-  /* Main */
-  --color-warning-700: #fcd34d;
-  --color-warning-800: #fde68a;
-  --color-warning-900: #fef3c7;
-  --color-warning-950: #fffbeb;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-1000: #451a03;
 
-  /* Warning Aliases */
-  --color-warning: #fbbf24;
-  --color-warning-light: #fcd34d;
-  --color-warning-dark: #f59e0b;
-
-  /* ========== ERROR/DANGER COLORS ========== */
-  --color-error-50: #450a0a;
-  --color-error-100: #7f1d1d;
-  --color-error-200: #991b1b;
-  --color-error-300: #b91c1c;
-  --color-error-400: #dc2626;
+  /* ========== ERROR/DANGER COLORS ========= */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
   --color-error-500: #ef4444;
-  --color-error-600: #f87171;
-  /* Main */
-  --color-error-700: #fca5a5;
-  --color-error-800: #fecaca;
-  --color-error-900: #fee2e2;
-  --color-error-950: #fef2f2;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-1000: #450a0a;
 
-  /* Error Aliases */
-  --color-error: #f87171;
-  --color-danger: #f87171;
-  --color-error-light: #fca5a5;
-  --color-error-dark: #ef4444;
-
-  /* ========== INFO COLORS ========== */
-  --color-info-50: #172554;
-  --color-info-100: #1e3a8a;
-  --color-info-200: #1e40af;
-  --color-info-300: #1d4ed8;
-  --color-info-400: #2563eb;
+  /* ========== INFO COLORS  ========== */
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
   --color-info-500: #3b82f6;
-  --color-info-600: #60a5fa;
-  /* Main */
-  --color-info-700: #93c5fd;
-  --color-info-800: #bfdbfe;
-  --color-info-900: #dbeafe;
-  --color-info-950: #eff6ff;
-
-  /* Info Aliases */
-  --color-info: #60a5fa;
-  --color-info-light: #93c5fd;
-  --color-info-dark: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+  --color-info-1000: #172554;
 
   /* ========== NEUTRAL/GRAY COLORS ========== */
-  --color-gray-50: #030712;
-  --color-gray-100: #111827;
-  --color-gray-200: #1f2937;
-  --color-gray-300: #374151;
-  --color-gray-400: #4b5563;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
   --color-gray-500: #6b7280;
-  --color-gray-600: #9ca3af;
-  --color-gray-700: #d1d5db;
-  --color-gray-800: #e5e7eb;
-  --color-gray-900: #f3f4f6;
-  --color-gray-950: #f9fafb;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-1000: #030712;
+
   /* ========== SEMANTIC STATE COLORS ========== */
-  --color-idle: #34d399;
-  --color-active: #4ade80;
-  --color-committed: #60a5fa;
-  --color-maintenance: #f87171;
-  --color-full-service: #fbbf24;
-  --color-regular: #4a5fd8;
-  --color-pending: #fbbf24;
-  --color-completed: #34d399;
-  --color-cancelled: #9ca3af;
-  --color-expired: #f87171;
+  --color-idle: #10b981;
+  --color-active: #22c55e;
+  --color-committed: #3b82f6;
+  --color-maintenance: #ef4444;
+  --color-full-service: #f59e0b;
+  --color-regular: #2e40cc;
+  --color-pending: #f59e0b;
+  --color-completed: #10b981;
+  --color-cancelled: #6b7280;
+  --color-expired: #ef4444;
+
+  /* ========== ABSOLUTE COLORS ========== */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+
   /* ========== BACKGROUND COLORS ========== */
   --bg-primary: #010205;
   --bg-secondary: #fbff021f;
@@ -911,24 +854,11 @@ body.dark-theme {
   --text-inverse-100: #222222;
   --text-inverse-50: #111111;
   --text-inverse: #000000;
-  /* Text hero  */
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
-  --text-quaternary: #64748b;
-  --text-disabled: #64748b;
-  --text-muted: #94a3b8;
-  --text-inverse: #0f172a;
-  --text-on-primary: #ffffff;
-  --text-on-success: #022c22;
-  --text-on-warning: #451a03;
-  --text-on-error: #ffffff;
-  --text-link: #6b7fe3;
-  --text-link-hover: #8a9ae8;
-  --text-link-visited: #a3b3ff;
-  /* Text with opacity */
-  --text-primary-alpha-80: rgba(241, 245, 249, 0.8);
-  --text-primary-alpha-60: rgba(241, 245, 249, 0.6);
+
+  /* text with opacity */
+  --text-color-alpha-80: rgba(31, 41, 55, 0.8);
+  --text-color-alpha-60: rgba(31, 41, 55, 0.6);
+
   /* ========== BORDER COLORS ========== */
   --border-primary: #fbff0836;
   --border-secondary: #475569;
