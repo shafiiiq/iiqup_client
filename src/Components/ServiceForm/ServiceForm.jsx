@@ -19,7 +19,6 @@ const ServiceForm = ({ initialData = {} }) => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isUpdateMode, setIsUpdateMode] = useState(false);
 
-
   // Set header title when component mounts or data changes
   useEffect(() => {
     if (regNo) {

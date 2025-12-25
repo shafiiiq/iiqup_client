@@ -4,6 +4,8 @@ import { END_POINT } from '../../constants';
 import './Complaints.css';
 import { Link, useParams } from 'react-router';
 import { apiRequest } from '../../utils/0auth';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../common/Button/Button';
 
 // Async Media Component for handling media URLs
 const AsyncMedia = ({ filePath, type, mimeType, alt, className, onError, mediaUrls, getMediaUrl, ...props }) => {
@@ -111,6 +113,8 @@ const AsyncMedia = ({ filePath, type, mimeType, alt, className, onError, mediaUr
 };
 
 const Complaints = () => {
+  const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const { complaintId, regNo } = useParams()
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -121,7 +125,20 @@ const Complaints = () => {
   const [videoErrors, setVideoErrors] = useState({}); // Track video loading errors
   const [videoLoadingStates, setVideoLoadingStates] = useState({}); // Track video loading states
 
-  const { complaintId, regNo } = useParams()
+
+  // Set header title when component mounts or data changes
+  useEffect(() => {
+    const title = 'Complaints Management'
+    const subtitle = `${complaints.length} Complaints`
+    setHeaderTitle(title);
+    setHeaderSubtitle(subtitle);
+
+    // Cleanup - reset when component unmounts
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [complaints.length]);
 
   // Real-time clock and date
   useEffect(() => {
@@ -198,14 +215,18 @@ const Complaints = () => {
 
   useEffect(() => {
     fetchComplaints();
-
-    // Auto-refresh every 10 seconds
-    const refreshInterval = setInterval(() => {
-      fetchComplaints(true);
-    }, 3000);
-
-    return () => clearInterval(refreshInterval);
   }, []);
+
+  // Auto-refresh every 10 seconds
+  // useEffect(() => {
+  //   fetchComplaints();
+
+  //   const refreshInterval = setInterval(() => {
+  //     fetchComplaints(true);
+  //   }, 10000);
+
+  //   return () => clearInterval(refreshInterval);
+  // }, []);
 
   const handleRefresh = () => {
     fetchComplaints(true);
@@ -420,30 +441,37 @@ const Complaints = () => {
       <div className="complaints-summary-header">
         <div className="complaints-summary-content">
           <Link to="/dashboard">
-            <button className={`app-refresh-btn ${refreshing ? 'is-refreshing' : ''}`}>
-              Return to Dashboard
-            </button>
+            <Button
+              text="Return to Dashboard"
+              onClick={() => { }}
+              colorScheme="amber-800"
+              variant="gradient"
+              font="md"
+              animation=""
+              rounded="md"
+              width="200px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           </Link>
-          <div className="complaints-updated-info">
-            <span>{lastUpdated}</span>
-            <span>Showing {complaints.length} complaints</span>
-          </div>
-          <button
+          <Button
+            text={refreshing ? 'Refreshing...' : 'Refresh'}
             onClick={handleRefresh}
-            className={`complaints-refresh-button ${refreshing ? 'refreshing' : ''}`}
-          >
-            <RefreshCw size={16} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </button>
-        </div>
-      </div>
-
-      <div className="complaints-dashboard-header">
-        <div className="complaints-header-content">
-          <div>
-            <h1 className="complaints-dashboard-title">Complaints Management</h1>
-            <p className="complaints-dashboard-subtitle">Real-time Complaint Tracking & Resolution</p>
-          </div>
+            colorScheme="lime-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            rounded="md"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
       </div>
 
@@ -705,7 +733,7 @@ const Complaints = () => {
             <div className="complaint-card-container work-navigation">
               <Link to={`/service-form-nav/${regNo}`}>
                 <button>
-                  Conclude & Store to database 
+                  Conclude & Store to database
                 </button>
               </Link>
             </div>

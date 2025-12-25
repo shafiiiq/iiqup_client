@@ -13,7 +13,7 @@ export const fetchDashboardData = async () => {
         equipmentCache = await equipResponse.json();
         cacheTime = now;
     }
-    
+
     // Create brand lookup map
     const brandMap = new Map();
     equipmentCache.data.forEach(equip => {
@@ -32,7 +32,7 @@ export const fetchDashboardData = async () => {
         endpoints.map(url =>
             apiRequest(url, 'GET').then(res => res.json())
         )
-    );    
+    );
 
     const [dailyData, weeklyData, monthlyData, yearlyData] = responses;
 
@@ -43,7 +43,7 @@ export const fetchDashboardData = async () => {
                 maintenance.brand = brandMap.get(maintenance.regNo.toString()) || 'Unknown';
             });
         }
-        
+
         if (dataset.data?.tyreHistory) {
             dataset.data.tyreHistory.forEach(tyre => {
                 tyre.brand = brandMap.get(tyre.equipmentNo.toString()) || 'Unknown';
@@ -79,6 +79,7 @@ export const generateRealTimeAnalytics = async (data) => {
         efficiency: 0,
         totalEquipment: 0,
         activeEquipment: 0,
+        idleEquipment: 0,
         pendingApplications: 0,
         trends: [],
         stockHealth: [],
@@ -116,6 +117,10 @@ export const generateRealTimeAnalytics = async (data) => {
     // Filter to get only active equipments
     const activeEquipment = allEquipments.filter(equipment => equipment.status === 'active');
     analytics.activeEquipment = activeEquipment.length || 0;
+
+    // Filter to get only active equipments
+    const idleEquipment = allEquipments.filter(equipment => equipment.status === 'idle');
+    analytics.idleEquipment = idleEquipment.length || 0;
 
     // Filter to get only low_stock equipments
     const lowStocks = stocks.filter(stock => stock.status === 'low_stock');
@@ -391,80 +396,80 @@ export const fetchBrand = async (regNo) => {
  * Fetch last 5 days comparison data
  */
 export const fetchLast5DaysComparison = async () => {
-  try {
-    const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-days-comparison`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch last 5 days comparison');
+    try {
+        const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-days-comparison`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch last 5 days comparison');
+        }
+        const result = await response.json();
+        return result.data;
+    } catch (error) {
+        console.error('Error fetching last 5 days comparison:', error);
+        throw error;
     }
-    const result = await response.json();
-    return result.data;
-  } catch (error) {
-    console.error('Error fetching last 5 days comparison:', error);
-    throw error;
-  }
 };
 
 /**
  * Fetch last 5 months comparison data
  */
 export const fetchLast5MonthsComparison = async () => {
-  try {
-    const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-months-comparison`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch last 5 months comparison');
+    try {
+        const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-months-comparison`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch last 5 months comparison');
+        }
+        const result = await response.json();
+        return result.data;
+    } catch (error) {
+        console.error('Error fetching last 5 months comparison:', error);
+        throw error;
     }
-    const result = await response.json();
-    return result.data;
-  } catch (error) {
-    console.error('Error fetching last 5 months comparison:', error);
-    throw error;
-  }
 };
 
 /**
  * Fetch last 5 years comparison data
  */
 export const fetchLast5YearsComparison = async () => {
-  try {
-    const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-years-comparison`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch last 5 years comparison');
+    try {
+        const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-years-comparison`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch last 5 years comparison');
+        }
+        const result = await response.json();
+        return result.data;
+    } catch (error) {
+        console.error('Error fetching last 5 years comparison:', error);
+        throw error;
     }
-    const result = await response.json();
-    return result.data;
-  } catch (error) {
-    console.error('Error fetching last 5 years comparison:', error);
-    throw error;
-  }
 };
 
 /**
  * Prepare comparison chart data for visualization
  */
 export const prepareComparisonChartData = (comparisonData, period) => {
-  if (!comparisonData || !comparisonData.comparison) {
-    return [];
-  }
+    if (!comparisonData || !comparisonData.comparison) {
+        return [];
+    }
 
-  return comparisonData.comparison.map(item => {
-    const label = period === 'last-5-days'
-      ? item.date
-      : period === 'last-5-months'
-        ? item.month
-        : item.year;
+    return comparisonData.comparison.map(item => {
+        const label = period === 'last-5-days'
+            ? item.date
+            : period === 'last-5-months'
+                ? item.month
+                : item.year;
 
-    return {
-      label,
-      'Service History': item.collections['service-history'] || 0,
-      'Service Reports': item.collections['service-report'] || 0,
-      'Maintenance': item.collections['maintanance-history'] || 0,
-      'Tyre History': item.collections['tyre-history'] || 0,
-      'Battery History': item.collections['battery-history'] || 0,
-      'Equipment': item.collections['equipment'] || 0,
-      'Stocks': item.collections['stocks'] || 0,
-      'Toolkit': item.collections['toolkit'] || 0,
-      'Complaints': item.collections['complaints'] || 0,
-      'Total': item.total
-    };
-  });
+        return {
+            label,
+            'Service History': item.collections['service-history'] || 0,
+            'Service Reports': item.collections['service-report'] || 0,
+            'Maintenance': item.collections['maintanance-history'] || 0,
+            'Tyre History': item.collections['tyre-history'] || 0,
+            'Battery History': item.collections['battery-history'] || 0,
+            'Equipment': item.collections['equipment'] || 0,
+            'Stocks': item.collections['stocks'] || 0,
+            'Toolkit': item.collections['toolkit'] || 0,
+            'Complaints': item.collections['complaints'] || 0,
+            'Total': item.total
+        };
+    });
 };

@@ -30,10 +30,10 @@ const StatusBar = ({ realTimeData }) => {
       </div>
       <Link to="/complaints" className='status-item'>
         <div className="complaints-item">
-          <Wrench className="status-icon warning" />
+          <AlertTriangle className="status-icon warning" />
           <div className="status-content">
-            <span className="status-value">{realTimeData.pendingMaintenance}</span>
-            <span className="status-label">Pending Maintenance</span>
+            <span className="status-value">{realTimeData.idleEquipment}</span>
+            <span className="status-label">Idle Units</span>
             <br />
             <span className="status-view">Click to view</span>
           </div>
@@ -78,7 +78,18 @@ const StatusBar = ({ realTimeData }) => {
           <span className="status-label">Low Stock Alerts</span>
         </div>
       </div>
-      <Link to="/application-hr" className='status-item'>
+      <Link to="/complaints" className='status-item'>
+        <div className="complaints-item">
+          <Wrench className="status-icon warning" />
+          <div className="status-content">
+            <span className="status-value">{realTimeData.pendingMaintenance}</span>
+            <span className="status-label">Pending Maintenance</span>
+            <br />
+            <span className="status-view">Click to view</span>
+          </div>
+        </div>
+      </Link>
+      {/* <Link to="/application-hr" className='status-item'>
         <div className="complaints-item">
           <TrendingDown className="status-icon warning" />
           <div className="status-content">
@@ -88,7 +99,7 @@ const StatusBar = ({ realTimeData }) => {
             <span className="status-view">Click to view</span>
           </div>
         </div>
-      </Link>
+      </Link> */}
     </div>
   );
 };

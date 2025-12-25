@@ -46,7 +46,7 @@ function DocumentDetails() {
   // Set header title when component mounts or data changes
   useEffect(() => {
     if (equipmentData) {
-      const title = activeTab === 'add' ? 'Uplodad Document' : 'View Document'
+      const title = activeTab === 'add' ? 'Upload Document' : 'View Document'
       const subtitle = `${equipmentData.machine} - ${regNo}`
       setHeaderTitle(title);
       setHeaderSubtitle(subtitle);
