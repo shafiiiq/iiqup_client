@@ -217,16 +217,16 @@ const Complaints = () => {
     fetchComplaints();
   }, []);
 
-  // Auto-refresh every 10 seconds
-  // useEffect(() => {
-  //   fetchComplaints();
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    fetchComplaints();
 
-  //   const refreshInterval = setInterval(() => {
-  //     fetchComplaints(true);
-  //   }, 10000);
+    const refreshInterval = setInterval(() => {
+      fetchComplaints(true);
+    }, 30000);
 
-  //   return () => clearInterval(refreshInterval);
-  // }, []);
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   const handleRefresh = () => {
     fetchComplaints(true);

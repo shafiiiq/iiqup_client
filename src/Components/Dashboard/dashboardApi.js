@@ -103,7 +103,7 @@ export const generateRealTimeAnalytics = async (data) => {
 
 
     // Filter to get only pending complaints
-    const pendingComplaints = complaints.filter(complaint => complaint.status === 'pending');
+    const pendingComplaints = complaints.data.filter(complaint => complaint.status === 'pending');
     analytics.pendingComplaints = pendingComplaints
     analytics.pendingMaintenance = pendingComplaints.length || 0;
 

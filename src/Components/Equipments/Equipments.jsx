@@ -21,6 +21,10 @@ function Equipments() {
   const ITEMS_PER_PAGE = 20; // Show 20 cards at a time
   const BUFFER_ITEMS = 10; // Preload 10 cards above/below viewport
 
+   const [activeTab, setActiveTab] = useState('equipment-based');
+  const [displayedSites, setDisplayedSites] = useState([]);
+  const [siteScrollPosition, setSiteScrollPosition] = useState(0);
+  const [siteGroupedEquipment, setSiteGroupedEquipment] = useState({});
   const [displayedEquipment, setDisplayedEquipment] = useState([]);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [visibleCards, setVisibleCards] = useState(new Set());
@@ -95,6 +99,83 @@ function Equipments() {
     status: ''
   });
 
+  // Group equipment by site whenever filteredData changes
+  useEffect(() => {
+    if (filteredData && filteredData.length > 0) {
+      const grouped = filteredData.reduce((acc, equipment) => {
+        // Handle site as array or string
+        let site = equipment.site;
+        if (Array.isArray(site)) {
+          site = site[site.length - 1] || 'Unassigned';
+        } else {
+          site = site || 'Unassigned';
+        }
+
+        if (!acc[site]) {
+          acc[site] = [];
+        }
+        acc[site].push(equipment);
+        return acc;
+      }, {});
+      setSiteGroupedEquipment(grouped);
+    } else {
+      setSiteGroupedEquipment({});
+    }
+  }, [filteredData]);
+
+  // Virtual scrolling for site-based view
+  useEffect(() => {
+    if (activeTab !== 'site-based') return;
+
+    if (!siteGroupedEquipment || Object.keys(siteGroupedEquipment).length === 0) {
+      setDisplayedSites([]);
+      return;
+    }
+
+    const allSites = Object.entries(siteGroupedEquipment);
+    const SITES_PER_LOAD = 5; // Load 5 sites at a time
+
+    const sitesToShow = Math.min(
+      allSites.length,
+      SITES_PER_LOAD + siteScrollPosition
+    );
+
+    const visibleSites = allSites.slice(0, sitesToShow);
+    setDisplayedSites(visibleSites);
+  }, [siteGroupedEquipment, siteScrollPosition, activeTab]);
+
+  // Detect scroll for site view
+  useEffect(() => {
+    if (activeTab !== 'site-based') return;
+
+    let scrollTimeout = null;
+
+    const handleSiteScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      scrollTimeout = setTimeout(() => {
+        const scrollTop = window.scrollY + window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        if (scrollTop > documentHeight - 800) {
+          setSiteScrollPosition(prev => prev + 3);
+        }
+      }, 200);
+    };
+
+    window.addEventListener('scroll', handleSiteScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleSiteScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, [activeTab]);
+
+  // Reset site scroll when switching tabs
+  useEffect(() => {
+    setSiteScrollPosition(0);
+  }, [activeTab]);
+
   // Virtual scrolling - only render visible items
   useEffect(() => {
     if (!filteredData || filteredData.length === 0) {
@@ -150,19 +231,23 @@ function Equipments() {
         });
       },
       {
-        rootMargin: '100px', // Start loading 100px before card is visible
+        rootMargin: '100px',
         threshold: 0.1
       }
     );
 
-    // Observe all equipment cards
-    const cards = document.querySelectorAll('.equipment-card');
-    cards.forEach(card => observer.observe(card));
+    // Observe both equipment-card AND site-equipment-item
+    const equipmentCards = document.querySelectorAll('.equipment-card');
+    const siteEquipmentItems = document.querySelectorAll('.site-equipment-item');
+
+    equipmentCards.forEach(card => observer.observe(card));
+    siteEquipmentItems.forEach(item => observer.observe(item));
 
     return () => {
-      cards.forEach(card => observer.unobserve(card));
+      equipmentCards.forEach(card => observer.unobserve(card));
+      siteEquipmentItems.forEach(item => observer.unobserve(item));
     };
-  }, [displayedEquipment]);
+  }, [displayedEquipment, siteGroupedEquipment, activeTab]);
 
   useEffect(() => {
     const fetchMechanics = async () => {
@@ -613,11 +698,29 @@ function Equipments() {
 
   useEffect(() => {
     if (equipments && equipments.length > 0) {
-      const results = equipments.filter(item => {
-        return Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      });
+      let results;
+
+      if (activeTab === 'site-based' && searchTerm) {
+        // In site-based view, filter by site name
+        results = equipments.filter(item => {
+          // Handle site as array or string
+          let siteName = item.site;
+          if (Array.isArray(siteName)) {
+            siteName = siteName[siteName.length - 1] || 'Unassigned';
+          } else {
+            siteName = siteName || 'Unassigned';
+          }
+          return String(siteName).toLowerCase().includes(searchTerm.toLowerCase());
+        });
+      } else {
+        // In equipment-based view, search all fields
+        results = equipments.filter(item => {
+          return Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        });
+      }
+
       setFilteredData(results);
 
       // Show modal if search term exists but no results found
@@ -627,7 +730,7 @@ function Equipments() {
         setShowNoResultsModal(false);
       }
     }
-  }, [searchTerm, equipments]);
+  }, [searchTerm, equipments, activeTab]);
 
   const handleNavigateToComplaint = (workItem) => {
     navigate(`/complaints/${workItem._id}/${workItem.regNo}`);
@@ -1493,167 +1596,360 @@ function Equipments() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="doc-details-tabs">
+        <Button
+          text="View By Equipments"
+          onClick={() => setActiveTab('equipment-based')}
+          colorScheme={activeTab === 'equipment-based' ? 'amber-300' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'equipment-based' ? 'black-300' : 'white-900'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text="View By Sites"
+          onClick={() => setActiveTab('site-based')}
+          colorScheme={activeTab === 'site-based' ? 'amber-400' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          rounded="md"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'site-based' ? 'black-300' : 'white-900'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+      </div>
+
       <div className="table-info">
-        {searchTerm ? (
-          `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
+        {activeTab === 'site-based' ? (
+          searchTerm ? (
+            `Found ${Object.keys(siteGroupedEquipment).length} matching ${Object.keys(siteGroupedEquipment).length === 1 ? 'site' : 'sites'} with ${filteredData?.length || 0} equipment`
+          ) : (
+            `Showing ${displayedSites.length} of ${Object.keys(siteGroupedEquipment).length} sites with ${filteredData?.length || 0} equipment`
+          )
         ) : (
-          `Showing ${displayedEquipment?.length || 0} of ${filteredData?.length || 0} entries`
+          searchTerm ? (
+            `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
+          ) : (
+            `Showing ${displayedEquipment?.length || 0} of ${filteredData?.length || 0} entries`
+          )
         )}
       </div>
 
-      <div className="equipment-grid">
-        {displayedEquipment && displayedEquipment.length > 0 ? (
-          displayedEquipment.map((item) => {
-            const currentImageIndex = activeImageIndex[item.regNo] || 0;
-            const hasImages = item.equipmentImage && item.equipmentImage.length > 0;
+      {activeTab === 'equipment-based' ? (
+        <div className="equipment-grid">
+          {displayedEquipment && displayedEquipment.length > 0 ? (
+            displayedEquipment.map((item) => {
+              const currentImageIndex = activeImageIndex[item.regNo] || 0;
+              const hasImages = item.equipmentImage && item.equipmentImage.length > 0;
 
-            return (
-              <div
-                className="equipment-card"
-                key={item.id}
-                data-reg-no={item.regNo}
-              >
-                {/* Image Slider */}
-                <div className="card-image-slider">
-                  {hasImages && visibleCards.has(item.regNo) ? (
-                    <>
-                      <div className="slider-images">
-                        {item.equipmentImage.map((img, index) => (
-                          <img
-                            key={index}
-                            src={img.s3Url || img.url}
-                            alt={img.label || `${item.machine} ${index + 1}`}
-                            className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
-                            loading="lazy"
-                          />
-                        ))}
-                      </div>
-                      {item.equipmentImage.length > 1 && (
-                        <div className="slider-dots">
-                          {item.equipmentImage.map((_, index) => (
-                            <div
+              return (
+                <div
+                  className="equipment-card"
+                  key={item.id}
+                  data-reg-no={item.regNo}
+                >
+                  {/* Image Slider */}
+                  <div className="card-image-slider">
+                    {hasImages && visibleCards.has(item.regNo) ? (
+                      <>
+                        <div className="slider-images">
+                          {item.equipmentImage.map((img, index) => (
+                            <img
                               key={index}
-                              className={`slider-dot ${index === currentImageIndex ? 'active' : ''}`}
-                              onClick={() => setActiveImageIndex(prev => ({
-                                ...prev,
-                                [item.id]: index
-                              }))}
+                              src={img.s3Url || img.url}
+                              alt={img.label || `${item.machine} ${index + 1}`}
+                              className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
+                              loading="lazy"
                             />
                           ))}
                         </div>
-                      )}
-                    </>
-                  ) : hasImages && !visibleCards.has(item.regNo) ? (
-                    <div className="no-image-placeholder">
-                      Loading images...
+                        {item.equipmentImage.length > 1 && (
+                          <div className="slider-dots">
+                            {item.equipmentImage.map((_, index) => (
+                              <div
+                                key={index}
+                                className={`slider-dot ${index === currentImageIndex ? 'active' : ''}`}
+                                onClick={() => setActiveImageIndex(prev => ({
+                                  ...prev,
+                                  [item.id]: index
+                                }))}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : hasImages && !visibleCards.has(item.regNo) ? (
+                      <div className="no-image-placeholder">
+                        Loading images...
+                      </div>
+                    ) : (
+                      <div className="no-image-placeholder">
+                        Upload images to view
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="card-content">
+                    <div className="card-header">
+                      <div className="main-details">
+                        <div className="equipment-name-and-reg">
+                          <h3 className="card-title">{item.machine} - </h3>
+                          <div className="card-subtitle">{item.regNo}</div>
+                        </div>
+                        <div className="card-brand">{item.brand} • {item.year}</div>
+                      </div>
+                      <div>
+                        <span className={`status-badge ${item.status?.toLowerCase()}`}>
+                          {item.status}
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="no-image-placeholder">
-                      Upload images to view
+                    <div className="card-details-grid">
+                      <div className="detail-item">
+                        <span className="detail-label">Operator</span>
+                        <span className="detail-value">
+                          {item.certificationBody && item.certificationBody.length > 0
+                            ? item.certificationBody[item.certificationBody.length - 1]
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Site</span>
+                        <span className="detail-value">{item.site || 'N/A'}</span>
+                      </div>
                     </div>
-                  )}
+                    <div className="card-footer">
+                      <div className="card-actions">
+                        <Button
+                          iconCenter="edit_square"
+                          onClick={(e) => handleEdit(e, item)}
+                          colorScheme="blue-800"
+                          variant="gradient"
+                          font="md"
+                          animation=""
+                          rounded="md"
+                          width="45px"
+                          height="45px"
+                          type="submit"
+                          textColor="white-200"
+                          shadowPosition="to-bottom"
+                          shadowColor="white-600"
+                        />
+                        <Button
+                          iconCenter="backspace"
+                          onClick={(e) => handleDeleteClick(e, item)}
+                          colorScheme="red-600"
+                          variant="gradient"
+                          font="md"
+                          animation=""
+                          rounded="md"
+                          width="45px"
+                          height="45px"
+                          type="submit"
+                          textColor="white-200"
+                          shadowPosition="to-bottom"
+                          shadowColor="white-600"
+                        />
+                      </div>
+                      <Button
+                        text="Service History"
+                        onClick={() => handleRowClick(item.regNo)}
+                        colorScheme="lime-800"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
+                      <Button
+                        text="View More"
+                        onClick={() => handleViewDetails(item)}
+                        colorScheme="warning-800"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        rounded="md"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : null}
+        </div>
+      ) : (
+        // SITE-BASED GRID
+        <div className="site-grid">
+          {displayedSites.length > 0 ? (
+            displayedSites.map(([site, equipments]) => (
+              <div
+                className="site-card"
+                key={site}
+                style={{
+                  gridRow: `span ${Math.ceil(equipments.length / 2)}`
+                }}
+              >
+                <div className="site-card-header">
+                  <h2 className="site-name">{site}</h2>
+                  <span className="equipment-count">{equipments.length} Equipment{equipments.length !== 1 ? 's' : ''}</span>
                 </div>
 
-                {/* Card Content */}
-                <div className="card-content">
-                  <div className="card-header">
-                    <div className="main-details">
-                      <div className="equipment-name-and-reg">
-                        <h3 className="card-title">{item.machine} - </h3>
-                        <div className="card-subtitle">{item.regNo}</div>
+                <div className="site-equipments-grid">
+                  {equipments.map((item) => {
+                    const currentImageIndex = activeImageIndex[item.regNo] || 0;
+                    const hasImages = item.equipmentImage && item.equipmentImage.length > 0;
+
+                    return (
+                      <div
+                        className="site-equipment-item"
+                        key={item.id}
+                        data-reg-no={item.regNo}
+                      >
+                        {/* Image Slider */}
+                        <div className="site-card-image-slider">
+                          {hasImages && visibleCards.has(item.regNo) ? (
+                            <>
+                              <div className="slider-images">
+                                {item.equipmentImage.map((img, index) => (
+                                  <img
+                                    key={index}
+                                    src={img.s3Url || img.url}
+                                    alt={img.label || `${item.machine} ${index + 1}`}
+                                    className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
+                                    loading="lazy"
+                                  />
+                                ))}
+                              </div>
+                              {item.equipmentImage.length > 1 && (
+                                <div className="slider-dots">
+                                  {item.equipmentImage.map((_, index) => (
+                                    <div
+                                      key={index}
+                                      className={`slider-dot ${index === currentImageIndex ? 'active' : ''}`}
+                                      onClick={() => setActiveImageIndex(prev => ({
+                                        ...prev,
+                                        [item.id]: index
+                                      }))}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          ) : hasImages && !visibleCards.has(item.regNo) ? (
+                            <div className="no-image-placeholder">Loading...</div>
+                          ) : (
+                            <div className="no-image-placeholder">No images</div>
+                          )}
+                        </div>
+
+                        {/* Card Content */}
+                        <div className="site-card-content">
+                          <div className="site-card-header-mini">
+                            <div className="equipment-name-and-reg">
+                              <h3 className="site-card-title">{item.machine}</h3>
+                              <div className="site-card-subtitle">{item.regNo}</div>
+                            </div>
+                            <span className={`status-badge ${item.status?.toLowerCase()}`}>
+                              {item.status}
+                            </span>
+                          </div>
+
+                          <div className="site-card-details">
+                            <div className="detail-item">
+                              <span className="detail-label">Brand</span>
+                              <span className="detail-value">{item.brand} • {item.year}</span>
+                            </div>
+                            <div className="detail-item">
+                              <span className="detail-label">Operator</span>
+                              <span className="detail-value">
+                                {item.certificationBody && item.certificationBody.length > 0
+                                  ? item.certificationBody[item.certificationBody.length - 1]
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="site-card-actions">
+                            <Button
+                              iconCenter="edit_square"
+                              onClick={(e) => handleEdit(e, item)}
+                              colorScheme="blue-800"
+                              variant="gradient"
+                              font="md"
+                              rounded="md"
+                              width="40px"
+                              height="40px"
+                              textColor="white-200"
+                            />
+                            <Button
+                              iconCenter="backspace"
+                              onClick={(e) => handleDeleteClick(e, item)}
+                              colorScheme="red-600"
+                              variant="gradient"
+                              font="md"
+                              rounded="md"
+                              width="40px"
+                              height="40px"
+                              textColor="white-200"
+                            />
+                            <Button
+                              text="History"
+                              onClick={() => handleRowClick(item.regNo)}
+                              colorScheme="lime-800"
+                              variant="gradient"
+                              font="sm"
+                              rounded="md"
+                              width="90px"
+                              height="36px"
+                              textColor="white-200"
+                            />
+                            <Button
+                              text="View"
+                              onClick={() => handleViewDetails(item)}
+                              colorScheme="warning-800"
+                              variant="gradient"
+                              font="sm"
+                              rounded="md"
+                              width="90px"
+                              height="36px"
+                              textColor="white-200"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="card-brand">{item.brand} • {item.year}</div>
-                    </div>
-                    <div>
-                      <span className={`status-badge ${item.status?.toLowerCase()}`}>
-                        {item.status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="card-details-grid">
-                    <div className="detail-item">
-                      <span className="detail-label">Operator</span>
-                      <span className="detail-value">
-                        {item.certificationBody && item.certificationBody.length > 0
-                          ? item.certificationBody[item.certificationBody.length - 1]
-                          : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Site</span>
-                      <span className="detail-value">{item.site || 'N/A'}</span>
-                    </div>
-                  </div>
-                  <div className="card-footer">
-                    <div className="card-actions">
-                      <Button
-                        iconCenter="edit_square"
-                        onClick={(e) => handleEdit(e, item)}
-                        colorScheme="blue-800"
-                        variant="gradient"
-                        font="md"
-                        animation=""
-                        rounded="md"
-                        width="45px"
-                        height="45px"
-                        type="submit"
-                        textColor="white-200"
-                        shadowPosition="to-bottom"
-                        shadowColor="white-600"
-                      />
-                      <Button
-                        iconCenter="backspace"
-                        onClick={(e) => handleDeleteClick(e, item)}
-                        colorScheme="red-600"
-                        variant="gradient"
-                        font="md"
-                        animation=""
-                        rounded="md"
-                        width="45px"
-                        height="45px"
-                        type="submit"
-                        textColor="white-200"
-                        shadowPosition="to-bottom"
-                        shadowColor="white-600"
-                      />
-                    </div>
-                    <Button
-                      text="Service History"
-                      onClick={() => handleRowClick(item.regNo)}
-                      colorScheme="lime-800"
-                      variant="gradient"
-                      font="md"
-                      animation=""
-                      rounded="md"
-                      width="160px"
-                      height="38px"
-                      type="submit"
-                      textColor="white-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="white-600"
-                    />
-                    <Button
-                      text="View More"
-                      onClick={() => handleViewDetails(item)}
-                      colorScheme="warning-800"
-                      variant="gradient"
-                      font="md"
-                      animation=""
-                      rounded="md"
-                      width="160px"
-                      height="38px"
-                      type="submit"
-                      textColor="white-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="white-600"
-                    />
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
-            );
-          })
-        ) : null}
-      </div>
+            ))
+          ) : (
+            <div className="no-results">No equipment found</div>
+          )}
+        </div>
+      )}
 
       {/* Sidebar for View All content */}
       {showSidebar && (

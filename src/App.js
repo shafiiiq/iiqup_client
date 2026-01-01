@@ -44,6 +44,7 @@ import DevModal from './common/DevModal';
 import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
 import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
 import BackchargeList from './Components/BackchargeList/BackchargeList'; import Spacer from './Components/Spacer/Spacer';
+import NotFound from './Components/Common/NotFound/NotFound';
 ;
 
 // Create contexts
@@ -114,6 +115,7 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
     location.pathname.startsWith('/all') ||
     location.pathname.startsWith('/battery-doc') ||
     location.pathname.startsWith('/tyre-doc') ||
+    location.pathname.startsWith('/not-found') ||
     isCEO;
 
   const currentUser = AuthUtils.getCurrentUser();
@@ -206,7 +208,7 @@ function App() {
   function SpacerWrapper() {
     const location = useLocation();
 
-    const hideSpacer = location.pathname === '/login' || location.pathname === '/';
+    const hideSpacer = location.pathname === '/login' || location.pathname === '/' || location.pathname === '/not-found';
 
     return !hideSpacer && <Spacer vertical="4rem" horizontal="100%" />;
   }
@@ -387,61 +389,29 @@ function App() {
               <SpacerWrapper />
               <NavigationButtons />
 
-              {/* {isWorkAlert && newWork.length > 0 && (
-          <DevModal
-            isOpen={true}
-            onClose={() => {
-              // Reset index when modal is closed
-              setCurrentModalIndex(0);
-              setisLPOAlert(false);
-            }}
-            type="announcements"
-            title={`${newWork[currentModalIndex]?.assignedMechanic.mechanicName} Completed the work - ${newWork[currentModalIndex]?.regNo}`}
-            message={`Mechanic ${newWork[currentModalIndex]?.assignedMechanic.mechanicName} is completed the work of equipment - ${newWork[currentModalIndex]?.regNo}, Please check the video and explain the actual work to process and store. (${currentModalIndex + 1} of ${newWork.length})`}
-            buttonText={getButtonText()}
-            onButtonClick={handleWorkModalButtonClick}
-          />
-        )} */}
-
-              {/* {isLPOAlert && newLPO.length > 0 && (
-          <DevModal
-            isOpen={true}
-            onClose={() => {
-              // Reset index when modal is closed
-              setCurrentModalIndex(0);
-              setisLPOAlert(false);
-            }}
-            type="announcements"
-            title="Hamza Requested to buy an item"
-            message={`Quotation raised for ${newLPO[currentModalIndex]?.regNo}. (${currentModalIndex + 1} of ${newLPO.length}) Please check your phone to know more.`}
-            buttonText={getButtonText()}
-            onButtonClick={handleModalButtonClick}
-          />
-        )} */}
-
               {/* {isExplored && (
-          <DevModal
-            isOpen={true}
-            onClose={() => { }}
-            type="announcements"
-            title="Fuel Data Collected"
-            message="We have collected all fuel data from April 2020 to August 31, 2025."
-            buttonText="Explore Now"
-            onButtonClick={explore}
-          />
-        )} */}
+                <DevModal
+                  isOpen={true}
+                  onClose={() => { }}
+                  type="announcements"
+                  title="Fuel Data Collected"
+                  message="We have collected all fuel data from April 2020 to August 31, 2025."
+                  buttonText="Explore Now"
+                  onButtonClick={explore}
+                />
+              )}
 
-              {/* {showDevModalHidden && (
-          <DevModal
-            isOpen={true}
-            onClose={() => { }}
-            type="warning"
-            title="Server Maintenance in Progress"
-            message="Our servers are currently undergoing maintenance to implement new features. You may experience temporary inconvenience."
-            buttonText="Don't Show Again"
-            onButtonClick={dontShowAgain}
-          />
-        )} */}
+              {showDevModalHidden && (
+                <DevModal
+                  isOpen={true}
+                  onClose={() => { }}
+                  type="warning"
+                  title="Server Maintenance in Progress"
+                  message="Our servers are currently undergoing maintenance to implement new features. You may experience temporary inconvenience."
+                  buttonText="Don't Show Again"
+                  onButtonClick={dontShowAgain}
+                />
+              )} */}
 
               <Routes>
                 {/* Public Routes */}
@@ -1205,9 +1175,20 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/not-found"
+                  element={
+                    <ProtectedRoute>
+                      <CEOGuard>
+                        <NotFound />
+                      </CEOGuard>
+                    </ProtectedRoute>
+                  }
+                />
                 {/* Fallback Route */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+              <SpacerWrapper />
             </HeaderVibrationProvider>
           </HeaderTitleProvider>
         </SearchProvider>

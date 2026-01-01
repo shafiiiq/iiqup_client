@@ -106,16 +106,16 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     };
   }, []);
 
-  // Auto-refresh every 10 seconds
-  // useEffect(() => {
-  //   fetchAllNotifications(false);
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    fetchAllNotifications(false);
 
-  //   const refreshInterval = setInterval(() => {
-  //     fetchAllNotifications(true); 
-  //   }, 3000);
+    const refreshInterval = setInterval(() => {
+      fetchAllNotifications(true); 
+    }, 30000);
 
-  //   return () => clearInterval(refreshInterval);
-  // }, []);
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   // Virtual scrolling - only render visible items
   useEffect(() => {
