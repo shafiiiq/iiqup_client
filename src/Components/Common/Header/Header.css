@@ -97,7 +97,7 @@
   height: 60px;
   border-radius: 50%;
   background: var(--gradient-glass-200);
-  color: var(--text-inverse);
+  color: var(--text-black);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -51,11 +51,11 @@ body.dark-theme {
 
 .service-history-container {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
     padding: 20px;
     min-height: 100vh;
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
 }
 
 .service-header {

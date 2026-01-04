@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import logoImage from '../../assets/images/al-ansari-color.png';
-import alAnsariText from '../../assets/images/al-ansari-text.png';
+import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import mechanicSign from '../../assets/images/mechanic-sign.png';
 import { useParams, useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
@@ -214,6 +214,9 @@ const ServiceDoc = () => {
         'POST',
         { password: sixDigitPassword }
       );
+
+      console.log("sixDigitPassword", await passwordResponse.json());
+
 
       if (!passwordResponse.ok) {
         throw new Error('Invalid 6-digit password');
@@ -1003,129 +1006,129 @@ const renderChecklistItems = (reportData) => {
         <td>1</td>
         <td>{reportData.checklistItems[0].description}</td>
         <td className='tick'>{checklistLookup[1] || ''}</td>
-        <td>25</td>
-        <td>Check Silencer</td>
-        <td className='tick'>{checklistLookup[25] || ''}</td>
+        <td>18</td>
+        <td>Check Gear Shift System</td>
+        <td className='tick'>{checklistLookup[18] || ''}</td>
       </tr>
       <tr>
         <td>2</td>
         <td>{reportData.checklistItems[1].description}</td>
         <td className='tick'>{checklistLookup[2] || ''}</td>
-        <td>26</td>
-        <td>Replace Hydraulic Oil- Filter</td>
-        <td className='tick'>{checklistLookup[26] || ''}</td>
+        <td>19</td>
+        <td>Check Clutch System</td>
+        <td className='tick'>{checklistLookup[19] || ''}</td>
       </tr>
       <tr>
         <td>3</td>
         <td>{ifClean ? "Check/Clean Air Filter" : "Check/Change Air Filter"}</td>
         <td className='tick'>{checklistLookup[3] || ''}</td>
-        <td>27</td>
-        <td>Replace Transmission Oil</td>
-        <td className='tick'>{checklistLookup[27] || ''}</td>
+        <td>20</td>
+        <td>Check Wheel Nut</td>
+        <td className='tick'>{checklistLookup[20] || ''}</td>
       </tr>
       <tr>
         <td>4</td>
         <td>Check Transmission Filter</td>
         <td className='tick'>{checklistLookup[4] || ''}</td>
-        <td>28</td>
-        <td>Replace Differential Oil</td>
-        <td className='tick'>{checklistLookup[28] || ''}</td>
+        <td>21</td>
+        <td>Check Starter & Alternator</td>
+        <td className='tick'>{checklistLookup[21] || ''}</td>
       </tr>
       <tr>
         <td>5</td>
         <td>Check Power Steering Oil</td>
         <td className='tick'>{checklistLookup[5] || ''}</td>
-        <td>29</td>
-        <td>Replace Steering Box Oil</td>
-        <td className='tick'>{checklistLookup[29] || ''}</td>
+        <td>22</td>
+        <td>Check Number Plate both</td>
+        <td className='tick'>{checklistLookup[22] || ''}</td>
       </tr>
       <tr>
         <td>6</td>
         <td>Check Hydraulic Oil</td>
         <td className='tick'>{checklistLookup[6] || ''}</td>
-        <td>30</td>
-        <td>Check Engine Valve Clearence</td>
-        <td className='tick'>{checklistLookup[30] || ''}</td>
+        <td>23</td>
+        <td>Check Paint</td>
+        <td className='tick'>{checklistLookup[23] || ''}</td>
       </tr>
       <tr>
         <td>7</td>
         <td>Check Brake</td>
         <td className='tick'>{checklistLookup[7] || ''}</td>
-        <td>31</td>
-        <td>Replace clutch fluid</td>
-        <td className='tick'>{checklistLookup[31] || ''}</td>
+        <td>24</td>
+        <td>Check Tires</td>
+        <td className='tick'>{checklistLookup[24] || ''}</td>
       </tr>
       <tr>
         <td>8</td>
         <td>Check Tyre Air Pressure</td>
         <td className='tick'>{checklistLookup[8] || ''}</td>
-        <td>32</td>
-        <td>Check Brake Lining</td>
-        <td className='tick'>{checklistLookup[32] || ''}</td>
+        <td>25</td>
+        <td>Check Silencer</td>
+        <td className='tick'>{checklistLookup[25] || ''}</td>
       </tr>
       <tr>
         <td>9</td>
         <td>Check Oil Leak</td>
         <td className='tick'>{checklistLookup[9] || ''}</td>
-        <td>33</td>
-        <td>Change Drive Belt</td>
-        <td>{checklistLookup[33] || ''}</td>
+        <td>26</td>
+        <td>Replace Hydraulic Oil- Filter</td>
+        <td className='tick'>{checklistLookup[26] || ''}</td>
       </tr>
       <tr>
         <td>10</td>
         <td>Check Battery Condition</td>
         <td className='tick'>{checklistLookup[10] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>27</td>
+        <td>Replace Transmission Oil</td>
+        <td className='tick'>{checklistLookup[27] || ''}</td>
       </tr>
       <tr>
         <td>11</td>
         <td>Check Wiper & Water</td>
         <td className='tick'>{checklistLookup[11] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>28</td>
+        <td>Replace Differential Oil</td>
+        <td className='tick'>{checklistLookup[28] || ''}</td>
       </tr>
       <tr>
         <td>12</td>
         <td>Check All Lights</td>
         <td className='tick'>{checklistLookup[12] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>29</td>
+        <td>Replace Steering Box Oil</td>
+        <td className='tick'>{checklistLookup[29] || ''}</td>
       </tr>
       <tr>
         <td>13</td>
         <td>Check All Horns</td>
         <td className='tick'>{checklistLookup[13] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>30</td>
+        <td>Check Engine Valve Clearence</td>
+        <td className='tick'>{checklistLookup[30] || ''}</td>
       </tr>
       <tr>
         <td>14</td>
         <td>Check Parking Brake</td>
         <td className='tick'>{checklistLookup[14] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>31</td>
+        <td>Replace clutch fluid</td>
+        <td className='tick'>{checklistLookup[31] || ''}</td>
       </tr>
       <tr>
         <td>15</td>
         <td>Check Differential Oil</td>
         <td className='tick'>{checklistLookup[15] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>32</td>
+        <td>Check Brake Lining</td>
+        <td className='tick'>{checklistLookup[32] || ''}</td>
       </tr>
       <tr>
         <td>16</td>
         <td>Check Rod Water & Hoses</td>
         <td className='tick'>{checklistLookup[16] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>33</td>
+        <td>Change Drive Belt</td>
+        <td>{checklistLookup[33] || ''}</td>
       </tr>
       <tr>
         <td>17</td>
@@ -1135,68 +1138,12 @@ const renderChecklistItems = (reportData) => {
         <td></td>
         <td></td>
       </tr>
-      <tr>
-        <td>18</td>
-        <td>Check Gear Shift System</td>
-        <td className='tick'>{checklistLookup[18] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>19</td>
-        <td>Check Clutch System</td>
-        <td className='tick'>{checklistLookup[19] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>20</td>
-        <td>Check Wheel Nut</td>
-        <td className='tick'>{checklistLookup[20] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>21</td>
-        <td>Check Starter & Alternator</td>
-        <td className='tick'>{checklistLookup[21] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>22</td>
-        <td>Check Number Plate both</td>
-        <td className='tick'>{checklistLookup[22] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>23</td>
-        <td>Check Paint</td>
-        <td className='tick'>{checklistLookup[23] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>24</td>
-        <td>Check Tires</td>
-        <td className='tick'>{checklistLookup[24] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
 
       <tr className="remarks-row">
         <td colSpan="6">
           <div className="remarks-box">
-            <div className="remarks-text">
-              <strong>REMARKS : </strong>
+            <div className="remarks-text-doc">
+              <strong className='remarks-label'>REMARKS : </strong>
               {reportData.remarks}
             </div>
           </div>

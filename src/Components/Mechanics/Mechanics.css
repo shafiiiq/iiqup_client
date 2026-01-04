@@ -1,6 +1,5 @@
 .mechanics-container {
   min-height: 100vh;
-  background-color: var(--bg-primary);
   padding: 20px;
 }
 
@@ -96,7 +95,7 @@
 }
 
 .mechanic-card.selected {
-  background-color: var(--bg-primary);
+  background: var(--gradient-primary-200);
   border-color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
 }
@@ -339,7 +338,7 @@
 }
 
 .stat-card {
-  background: var(--gradient-glass-200);
+  background: var(--gradient-glass-600);
   border-radius: var(--radius-4xl);
   padding: 20px;
   display: flex;

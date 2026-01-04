@@ -4,6 +4,7 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  background: var(--gradient-primary-50);
 }
 
 /* Header Styles */
@@ -50,13 +51,7 @@
 .ansari-logo-wrapper {
   display: flex;
   align-items: center;
-  animation: ansariFadeLeft 0.8s ease-out;
-  background: var(--ansari-logo-bg);
   padding: 8px 15px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ansari-nav-logo {
@@ -490,6 +485,7 @@
   z-index: 2;
   font-weight: 100;
   letter-spacing: 1px;
+  color: var(--text-color);
 }
 
 .ansari-side-footer {
@@ -504,7 +500,6 @@
 /* Main Content Area */
 .ansari-main-content {
   flex-grow: 1;
-  background-color: var(--ansari-main-content-bg);
   overflow-y: auto;
   transition: background-color 0.3s ease;
 }
@@ -516,7 +511,7 @@
 /* Hero Section */
 .ansari-hero-area {
   position: relative;
-  height: 350px;
+  height: 230px;
   overflow: hidden;
   opacity: 0;
   animation: premiumFadeInUp 1s ease-out 0.3s forwards;
@@ -553,7 +548,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
+  color: var(--text-white-200);
   text-align: center;
   z-index: 2;
   width: 80%;
@@ -563,7 +558,7 @@
   font-size: 4rem;
   margin-bottom: 1rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  color: var(--text-color);
+  color: var(--text-white);
   font-family: "Geom", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
@@ -593,7 +588,7 @@
 /* Company Details */
 .ansari-company-info {
   padding: 30px;
-  background: var(--text-inverse);
+  background: var(--gradient-primary-50);
   box-shadow: var(--shadow-outer-xxl);
   transition: background-color 0.3s ease;
   z-index: 99999999;
@@ -684,12 +679,11 @@
 /* Leadership Team Section */
 .ansari-leadership-section {
   padding: 20px 40px;
-  background: var(--gradient-primary-50);
   margin: 30px;
   border-radius: 10px;
   box-shadow: var(--ansari-shadow);
   transition: background-color 0.3s ease;
-  padding-right: 30rem;
+  margin-right: 30rem;
 }
 
 .ansari-section-heading {
@@ -714,7 +708,7 @@
 
 .ansari-leaders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 30px;
 }
 

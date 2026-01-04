@@ -12,9 +12,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -95,7 +92,7 @@
 }
 
 .dashboard-subtitle {
-  color: var(--text-inverse-300);
+  color: var(--text-color);
   font-size: 26px;
 }
 
@@ -198,7 +195,7 @@
   height: 48px;
   padding: 12px;
   border-radius: var(--radius-4xl);
-  background: var(--gradient-primary);
+  background: var(--gradient-info);
   color: var(--text-color);
   flex-shrink: 0;
 }
@@ -261,7 +258,7 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-4xl);
-  color: var(--text-secondary);
+  color: var(--text-white);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -517,7 +514,7 @@
 
 .timeline-datetime {
   font-size: 18px;
-  color: var(--text-inverse-100);
+  color: var(--text-color);
 }
 
 .timeline-description {
@@ -928,7 +925,7 @@
 .maintenance-table td {
   padding: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
 }
 
 /* Specific to Maintenance Table */
@@ -986,7 +983,7 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-4xl);
-  color: var(--text-inverse);
+  color: var(--text-color);
   cursor: pointer;
   display: flex;
   align-items: center;

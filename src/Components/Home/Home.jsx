@@ -5,45 +5,73 @@ import logoImage from '../../assets/images/al-ansari.png';
 import Jcb from '../../assets/images/jcb.png';
 import Excavator from '../../assets/images/excavator.jpg';
 import Heavy from '../../assets/images/heavy.jpg';
-import Chairman from '../../assets/images/chairman.jpg';
+import ViseChairman from '../../assets/images/vice-chairman.jpg';
+import Chairman from '../../assets/images/chairman.png';
 import MD from '../../assets/images/md.jpg';
 import CEO from '../../assets/images/ceo.jpg';
 import Manager from '../../assets/images/manager.jpg';
+import WorkshopManager from '../../assets/images/workshop-manager.jpeg';
+import SalesManager from '../../assets/images/manager.jpg';
+import ItHead from '../../assets/images/it-head.png';
 import PurchaseManager from '../../assets/images/purchase-manager.jpg';
 import { LoginLogic } from '../../utils/authUtils';
 import "./Home.css";
 
-// Leadership team data (easy to maintain and expand)
+// Leadership team data
 const LEADERSHIP_TEAM = [
     {
         id: 1,
-        name: 'Mr. Abu Kombathayil',
-        position: 'Vise Chairman & Founder',
+        name: 'Mr. Abdulrahman Abdulla Al Ansari',
+        position: 'Chairman',
         image: Chairman
     },
     {
         id: 2,
+        name: 'Mr. Abu Kombathayil',
+        position: 'Vise Chairman & Founder',
+        image: ViseChairman
+    },
+    {
+        id: 3,
         name: 'Mr. Mohammed Shaheen',
         position: 'Managing Director',
         image: MD
     },
     {
-        id: 3,
+        id: 4,
         name: 'Mr. Ahammed Kamal',
         position: 'Chief Executive Officer',
         image: CEO
     },
     {
-        id: 4,
+        id: 5,
         name: 'Mr. Suresh Kanth',
         position: 'Operation Manager',
         image: Manager
     },
     {
-        id: 5,
+        id: 6,
         name: 'Mr. Abdul Malik',
         position: 'Purchase Manager',
         image: PurchaseManager
+    },
+    {
+        id: 7,
+        name: 'Mr. Sruthin Kezhuvappaly',
+        position: 'Sales Manager',
+        image: SalesManager
+    },
+    {
+        id: 8,
+        name: 'Mr. Firoz Khan',
+        position: 'Workshop Manger',
+        image: WorkshopManager
+    },
+    {
+        id: 9,
+        name: 'Mr. Muhammed Shafeek',
+        position: 'IT Head',
+        image: ItHead
     }
 ];
 
@@ -337,7 +365,8 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
                                 Logistic Park-A,
                             </div>
                             <div>Birkat Al Awamer, Doha, Qatar,
-                                P.O Box 1265</div>
+                                P.O Box 1265
+                            </div>
                             <div className="ansari-logo-holder home-hero-logo">
                                 <img src={logoImage} alt="Company Logo" className="ansari-main-logo" />
                             </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './BackchargeDoc.css';
 import logoImage from '../../assets/images/al-ansari-color.png';
-import alAnsariText from '../../assets/images/al-ansari-text.png';
+import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { apiRequest } from '../../utils/0auth';

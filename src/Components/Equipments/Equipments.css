@@ -1,7 +1,7 @@
 /* Main Container */
 .equipment-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--gradient-primary-300);
+  /* background: var(--gradient-primary-300); */
   padding: 20px;
   min-height: 100vh;
   color: var(--text-color);
@@ -253,7 +253,7 @@
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 3px solid var(--border-primary);
+  border: var(--border-primary-solid-3);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: row;
@@ -286,7 +286,7 @@
 .equipment-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 12px 40px rgba(52, 152, 219, 0.15);
-  border: 3px dashed var(--border-tertiary);
+  border: var(--border-primary-dashed-3)
 }
 
 /* Image Slider Section - NEW */

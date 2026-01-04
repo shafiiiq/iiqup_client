@@ -1,6 +1,5 @@
 .toolkits-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--gradient-primary-50) !important;
   padding: 20px;
   min-height: 100vh;
   color: var(--text-color);

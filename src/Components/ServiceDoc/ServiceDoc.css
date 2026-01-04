@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  background: #f1f1f1 !important;
+  overflow-x: hidden;
 }
 
 .header {
@@ -35,7 +35,7 @@
   height: 100%;
   display: flex;
   align-items: center;
-  margin-top: 1.3rem;
+  margin-bottom: 1.3rem;
 }
 
 .company-details-s img {
@@ -43,7 +43,7 @@
 }
 
 .report-container {
-  padding: 10px;
+  padding: 16px 16px;
   font-family: 'Poppins', sans-serif;
   font-size: 12px;
   width: 220mm;
@@ -51,10 +51,11 @@
   /* min-height: 326mm; */
   margin: 0 auto;
   background-color: white;
-  color: var(--text-inverse);
+  color: var(--text-black);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .checklist-table-s {
@@ -69,7 +70,11 @@
 }
 
 .checklist-table-s td {
-  padding: 5px 4px !important;
+  padding: 6.5px 4px !important;
+}
+
+.checklist-table-s tr td:nth-child(5) {
+  width: 16rem;
 }
 
 .checklist-table-s .heading {
@@ -86,7 +91,7 @@
 }
 
 .remarks-box {
-  height: 100px;
+  height: 180px;
   padding: 6px 8px;
   box-sizing: border-box;
   overflow: hidden;
@@ -96,13 +101,18 @@
   position: relative;
 }
 
-.remarks-text {
+.remarks-text-doc {
   margin-top: 4px;
   overflow-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
   max-height: 100%;
   overflow: hidden;
+}
+
+.remarks-label {
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* Print Button Styles */
@@ -296,6 +306,7 @@ td.tick {
 
 .doc-wrapper {
   margin-top: -1.2rem;
+  overflow-x: hidden;
 }
 
 .pb-n {
@@ -799,7 +810,6 @@ td.tick {
   gap: 15px;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
 }
 
