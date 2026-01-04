@@ -90,7 +90,7 @@
 }
 
 .auth-left-bar:hover {
-  box-shadow: var(--shadow-outer-primary-xxl);
+  box-shadow: var(--shadow-outer-md);
 }
 
 /* Initial heights - INCREASED RATIO */
@@ -175,7 +175,7 @@
   align-items: center;
   justify-content: center;
   background: var(--header-bg-primary-800);
-  box-shadow: var(--shadow-inner-primary-6xl);
+  box-shadow: var(--shadow-inner-primary-5xl);
   border-radius: var(--radius-4xl);
   margin: 20rem 3rem 20rem 10rem;
   position: relative;
@@ -193,7 +193,6 @@
 .auth-login-card {
   width: 100%;
   max-width: 750px;
-  background: transparent;
   backdrop-filter: none;
   border-radius: 0;
   border: none;

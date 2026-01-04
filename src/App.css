@@ -7,11 +7,11 @@
   --header-bg-primary-100: linear-gradient(295deg, rgba(149, 173, 28, 0.055) 0%, #5c660ea6 100%);
   --header-bg-primary-200: linear-gradient(185deg, rgb(255, 249, 170) 0%, #e8ecc44f 100%);
   --header-bg-primary-300: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
-  --header-bg-primary-400: linear-gradient(595deg, #dee79eda 0%, rgb(134, 175, 22) 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #acb856fa 0%, rgb(83, 104, 25) 100%);
   --header-bg-primary-500: linear-gradient(295deg, rgba(63, 72, 10, 0.164) 0%, #c7d82c84 100%);
   --header-bg-primary-600: linear-gradient(295deg, rgba(48, 50, 33, 0.121) 0%, t#a9af6e37 100%);
   --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #ebf1b969 100%);
-  --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(129, 141, 66, 0.795) 0%, #ebeb8d 100%);
   --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
 
   /* ========== HEADER COLOR ========== */
