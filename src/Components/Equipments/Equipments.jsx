@@ -1553,7 +1553,7 @@ function Equipments() {
             variant="gradient"
             font="md"
             animation=""
-            rounded="md"
+            squircle="4xl"
             width="160px"
             height="38px"
             type="submit"

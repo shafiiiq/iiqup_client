@@ -315,7 +315,8 @@
   background: var(--header-bg-primary-200);
   top: 4rem;
   bottom: 4rem;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-7xl);
+  corner-shape: squircle;
   color: var(--text-color);
   display: flex;
   flex-direction: column;
@@ -575,7 +576,8 @@
   padding: 40px;
   background: var(--gradient-primary-200);
   margin: 20px 30px 30px;
-  border-radius: 10px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--ansari-shadow);
   position: relative;
   z-index: 5;
@@ -593,7 +595,8 @@
   transition: background-color 0.3s ease;
   z-index: 99999999;
   position: relative;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .ansari-comp-name {
@@ -632,7 +635,8 @@
 
 .ansari-card-item {
   background: var(--gradient-glass-600);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 25px;
   box-shadow: var(--shadow-outer-xxl);
   transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
@@ -680,7 +684,8 @@
 .ansari-leadership-section {
   padding: 20px 40px;
   margin: 30px;
-  border-radius: 10px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--ansari-shadow);
   transition: background-color 0.3s ease;
   margin-right: 30rem;
@@ -714,7 +719,8 @@
 
 .ansari-leader-card {
   background: var(--ansari-card-background);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   overflow: hidden;
   box-shadow: var(--ansari-shadow);
   transition: all 0.3s ease;
@@ -753,7 +759,8 @@
   position: relative;
   height: 280px;
   overflow: hidden;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .ansari-leader-image img {

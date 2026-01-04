@@ -6,59 +6,13 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.stock-manage-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 15px 0;
-}
-
-.stock-manage-title {
-  color: var(--text-color);
-  font-size: 2.125rem;
-  font-weight: 800;
-  margin: 0;
-}
-
-.stock-manage-datetime {
-  background-color: var(--bg-card);
-  color: var(--text-color);
-  border-radius: 8px;
-  padding: 10px 15px;
-  font-size: 16px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-primary);
-}
-
-.stock-manage-actions {
-  margin-bottom: 20px;
-}
-
-.stock-manage-add-btn {
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.stock-manage-add-btn:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
 .stock-manage-loading,
 .stock-manage-error {
   text-align: center;
   padding: 40px;
   font-size: 18px;
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-sm);
   color: var(--text-color);
 }
@@ -70,7 +24,8 @@
 .stock-manage-message {
   padding: 15px;
   margin-bottom: 20px;
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   text-align: center;
   font-weight: 500;
 }
@@ -89,9 +44,9 @@
 
 .stock-manage-table-container {
   overflow-x: auto;
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-table {
@@ -247,13 +202,14 @@
   height: 100vh;
   background: var(--gradient-primary-900);
   color: var(--text-color);
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-outer-xxl);
   z-index: 1000;
   overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border-primary);
+  border-radius: var(--radius-6xl) var(--radius-none) var(--radius-none) var(--radius-6xl);
+  corner-shape: squircle
 }
 
 .stock-manage-details-header {
@@ -370,150 +326,6 @@
   min-width: 120px;
 }
 
-/* Form Modal */
-.stock-manage-form-modal-overlay,
-.stock-form-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  backdrop-filter: blur(2px);
-}
-
-.stock-manage-form-modal,
-.stock-form-modal {
-  background-color: var(--bg-modal);
-  color: var(--text-color);
-  border-radius: 12px;
-  width: 800px;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-primary);
-  animation: modal-appear 0.3s ease-out;
-}
-
-@keyframes modal-appear {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.stock-manage-form-header,
-.stock-form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-primary);
-  background-color: var(--bg-modal-header);
-}
-
-.stock-manage-form-header h2,
-.stock-form-header h2 {
-  font-size: 20px;
-  color: var(--text-color);
-  margin: 0;
-  font-weight: 600;
-}
-
-.stock-manage-form-close-btn,
-.stock-form-close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--bg-disabled);
-  padding: 5px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.stock-manage-form-close-btn:hover,
-.stock-form-close-btn:hover {
-  color: var(--color-error);
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
-.stock-form {
-  padding: 24px !important;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.stock-manage-form-group,
-.stock-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.stock-manage-form-group label,
-.stock-form-group label {
-  display: block;
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-
-.stock-manage-form-group input,
-.stock-manage-form-group select,
-.stock-manage-form-group textarea,
-.stock-form-group input,
-.stock-form-group select,
-.stock-form-group textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background-color: var(--bg-card);
-  color: var(--text-color);
-}
-
-.stock-manage-form-group input:focus,
-.stock-manage-form-group select:focus,
-.stock-manage-form-group textarea:focus,
-.stock-form-group input:focus,
-.stock-form-group select:focus,
-.stock-form-group textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.stock-manage-form-group input::placeholder,
-.stock-form-group input::placeholder {
-  color: var(--bg-disabled);
-}
-
-.stock-manage-form-actions,
-.stock-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-primary);
-}
-
 /* Equipment selection styles */
 .stock-equipment-list {
   display: flex;
@@ -525,9 +337,9 @@
   background-color: var(--bg-hover);
   color: var(--text-color);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   font-size: 12px;
-  border: 1px solid var(--border-primary);
 }
 
 .stock-equipment-more {
@@ -541,7 +353,8 @@
   margin: 15px 0;
   padding: 15px;
   background-color: var(--bg-hover);
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   border: 1px solid var(--border-primary);
 }
 
@@ -554,7 +367,8 @@
 
 .equipment-detail-card {
   background-color: var(--bg-card);
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 12px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-primary);
@@ -576,150 +390,11 @@
   color: var(--text-color);
 }
 
-/* Equipment selector styles */
-.stock-equipment-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.selected-equipments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px;
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
-  background-color: var(--bg-hover);
-  margin-bottom: 8px;
-}
-
-.selected-equipment-tag {
-  background-color: var(--color-primary);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.remove-equipment-btn {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 0;
-  margin-left: 4px;
-}
-
-.equipment-search-container {
-  display: flex;
-  position: relative;
-}
-
-.equipment-search-input {
-  flex: 1;
-  padding-right: 30px;
-  background-color: var(--bg-card);
-  color: var(--text-color);
-  border: 1px solid var(--border-primary);
-}
-
-.select-equipment-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary);
-}
-
-.equipment-dropdown {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
-  background-color: var(--bg-card);
-  box-shadow: var(--shadow-sm);
-}
-
-.equipment-dropdown-item {
-  padding: 10px 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border-primary);
-  color: var(--text-color);
-}
-
-.equipment-dropdown-item:hover {
-  background-color: var(--bg-hover);
-}
-
-.equipment-dropdown-item.selected {
-  background-color: rgba(52, 152, 219, 0.1);
-}
-
-.equipment-dropdown-item input[type="checkbox"] {
-  cursor: pointer;
-}
-
 .no-equipments-found {
   padding: 15px;
   text-align: center;
   color: var(--bg-disabled);
   font-style: italic;
-}
-
-.confirm-equipment-btn {
-  padding: 8px 12px;
-  background-color: var(--color-success);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  align-self: flex-start;
-  transition: all 0.2s ease;
-}
-
-.confirm-equipment-btn:hover {
-  background-color: #27ae60;
-}
-
-/* Form actions */
-.stock-form-action-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.stock-form-action-btn.cancel {
-  background-color: var(--color-error);
-  color: white;
-}
-
-.stock-form-action-btn.cancel:hover {
-  background-color: #c82333;
-}
-
-.stock-form-action-btn.submit {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.stock-form-action-btn.submit:hover {
-  background-color: #2980b9;
 }
 
 /* Stock Movement History Styles */
@@ -739,8 +414,8 @@
   margin-top: 15px;
   overflow-x: auto;
   background-color: var(--bg-card);
-  border-radius: 8px;
-  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .stock-manage-history-table {
@@ -773,7 +448,8 @@
 
 .stock-manage-history-badge {
   padding: 4px 8px;
-  border-radius: 20px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   font-size: 12px;
   font-weight: 600;
   display: inline-block;
@@ -811,51 +487,6 @@
   padding: 20px;
 }
 
-/* Search and Print Button Styles */
-.stock-search-container {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.stock-search-input {
-  padding: 8px 12px;
-  border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  flex-grow: 1;
-  max-width: 300px;
-  background-color: var(--bg-card);
-  color: var(--text-color);
-  transition: all 0.2s ease;
-}
-
-.stock-search-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-.stock-search-input::placeholder {
-  color: var(--bg-disabled);
-}
-
-.stock-print-btn {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.stock-print-btn:hover {
-  background-color: #5a6268;
-  transform: translateY(-1px);
-}
-
-/* Equipment Select */
 .equipment-select {
   width: 100%;
   margin-top: 8px;
@@ -877,72 +508,12 @@
   pointer-events: none;
 }
 
-/* Dropdown Container Styles */
-.dropdown-container {
-  position: relative;
-  width: 100%;
-}
-
-.search-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  box-shadow: var(--shadow-sm);
-  max-height: 250px;
-  overflow-y: auto;
-  z-index: 1000;
-}
-
-.dropdown-item {
-  padding: 12px 15px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border-primary);
-  transition: background-color 0.2s ease;
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.dropdown-item-main {
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 2px;
-}
-
-.dropdown-item-sub {
-  font-size: 12px;
-  color: var(--bg-disabled);
-}
-
-.dropdown-more {
-  padding: 8px 15px;
-  font-size: 12px;
-  color: var(--bg-disabled);
-  font-style: italic;
-  background-color: var(--bg-hover);
-  text-align: center;
-}
-
-/* Ensure dropdown appears above other elements */
-.stock-form-modal {
-  z-index: 2000;
-}
-
-.search-dropdown {
-  z-index: 2001;
-}
-
 .stock-manage-barcode-section {
   margin-top: 25px;
   padding: 20px;
   background: var(--gradient-primary-800);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   text-align: center;
 }
 
@@ -961,7 +532,8 @@
   align-items: center;
   padding: 20px;
   background: white;
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 12px;
 }

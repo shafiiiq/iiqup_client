@@ -490,6 +490,11 @@
   --radius-2xl: 1rem;
   --radius-3xl: 1.5rem;
   --radius-4xl: 2rem;
+  --radius-5xl: 3rem;
+  --radius-6xl: 4rem;
+  --radius-7xl: 5rem;
+  --radius-8xl: 6rem;
+  --radius-9xl: 7rem;
   --radius-full: 9999px;
 
   /* ========== BORDER WIDTH ========== */

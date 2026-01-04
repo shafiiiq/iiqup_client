@@ -107,9 +107,9 @@
 
 .toolkits-table-container {
   overflow-x: auto;
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--border-primary);
 }
 
 .toolkits-table {
@@ -247,7 +247,8 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border-primary);
+  border-radius: var(--radius-6xl) var(--radius-none) var(--radius-none) var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .toolkit-details::-webkit-scrollbar {

@@ -1,33 +1,34 @@
 .lpo-cat-btn {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
 
 .add-lpos {
-    display: flex;
-    gap: 1rem;
+  display: flex;
+  gap: 1rem;
 }
 
 .view-lpos {
-    display: flex;
-    gap: 1rem;
+  display: flex;
+  gap: 1rem;
 }
 
 .equipment-table-container {
   overflow-x: auto;
-  border-radius: 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-primary);
 }
 
 .equipment-table {
-    border: none;
+  border: none;
 }
 
 .equipment-table tbody td {
   background: var(--gradient-primary-900) !important;
 }
 
-.equipment-table th, .maintenance-table th {
+.equipment-table th,
+.maintenance-table th {
   background: var(--gradient-primary-900) !important;
 }

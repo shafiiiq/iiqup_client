@@ -285,9 +285,9 @@
 .bcl-table-wrapper {
   overflow-x: auto;
   background-color: var(--bcl-card-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--bcl-shadow);
-  border: 1px solid var(--bcl-border);
 }
 
 /* Data Table */

@@ -20,6 +20,9 @@ const Button = ({
   iconPosition = 'left',
   animation = 'none',
   rounded = 'md',
+  squircle = null,
+  bevel = null,
+  scoop = null,
   borderWidth = '0',
   borderColor = 'transparent',
   shadowPosition = 'bottom',
@@ -124,6 +127,18 @@ const Button = ({
     full: '9999px',
   };
 
+  // Corner shape radius mapping
+  const cornerRadiusMap = {
+    sm: '6px',
+    md: '10px',
+    lg: '14px',
+    xl: '18px',
+    '2xl': '24px',
+    '3xl': '48px',
+    '4xl': '62px',
+    '5xl': '86px',
+  };
+
   // Font size mapping
   const fontMap = {
     xs: '12px',
@@ -141,9 +156,13 @@ const Button = ({
       width: fullWidth ? '100%' : width,
       height: height,
       fontSize: fontMap[font] || fontMap.md,
-      borderRadius: roundedMap[rounded] || roundedMap.md,
+      borderRadius: squircle ? (cornerRadiusMap[squircle] || cornerRadiusMap.md)
+        : bevel ? (cornerRadiusMap[bevel] || cornerRadiusMap.md)
+          : scoop ? (cornerRadiusMap[scoop] || cornerRadiusMap.md)
+            : (roundedMap[rounded] || roundedMap.md),
       border: borderWidth !== '0' ? `${borderWidth}px solid ${getBorderColor()}` : 'none',
       color: getTextColor(),
+      cornerShape: squircle ? 'squircle' : bevel ? 'bevel' : scoop ? 'scoop' : 'round',
       cursor: disabled || loading ? 'not-allowed' : cursor,
     };
 

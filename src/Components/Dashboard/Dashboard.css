@@ -22,7 +22,8 @@
   backdrop-filter: blur(20px);
   background: var(--gradient-primary-800);
   box-shadow: var(--shadow-outer-xl);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
@@ -47,7 +48,8 @@
 
 .dsh-auto-roller-controller {
   height: 100%;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .dsh-roler-move {
@@ -64,7 +66,8 @@
 .dashboard-header {
   background: var(--gradient-glass-200);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: var(--shadow-inner-6xl);
@@ -110,7 +113,8 @@
   padding: 0.75rem 1.5rem;
   background: var(--gradient-primary);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   color: var(--text-color);
   font-weight: 600;
   cursor: pointer;
@@ -159,7 +163,8 @@
   background: var(--gradient-glass-800);
   color: var(--text-secondary);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-outer-md);
   padding: 1.5rem;
   display: flex;
@@ -172,7 +177,8 @@
 
 .complaints-item {
   width: 100%;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -194,7 +200,8 @@
   width: 48px;
   height: 48px;
   padding: 12px;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   background: var(--gradient-info);
   color: var(--text-color);
   flex-shrink: 0;
@@ -246,7 +253,8 @@
   margin-bottom: 2rem;
   background: var(--gradient-glass-400);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 0.5rem;
   max-width: 58%;
   box-shadow: var(--shadow-outer-xxl);
@@ -257,7 +265,8 @@
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   color: var(--text-white);
   font-weight: 600;
   cursor: pointer;
@@ -289,7 +298,8 @@
 .metric-card {
   background: var(--gradient-glass-300);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-outer-xl);
   padding: 2rem;
   position: relative;
@@ -313,7 +323,8 @@
   width: 40px;
   height: 40px;
   padding: 8px;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   background: rgba(59, 130, 246, 0.2);
   color: var(--color-primary-light);
 }
@@ -366,7 +377,8 @@
 .chart-card {
   background: var(--gradient-glass-100);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 2rem;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-outer-xxl);
@@ -426,7 +438,8 @@
 .activity-card {
   background: var(--gradient-glass-600);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: var(--shadow-inner-5xl);
@@ -487,7 +500,8 @@
 .timeline-content {
   flex: 1;
   background: var(--gradient-glass-600);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 1.5rem;
   box-shadow: var(--shadow-inner-md);
   transition: all 0.3s ease;
@@ -526,7 +540,8 @@
 .data-table-card {
   background: var(--gradient-primary-800);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-outer-xxl);
   padding: 2rem;
   margin-bottom: 2rem;
@@ -576,7 +591,8 @@
 .tag {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   font-size: 0.8rem;
   font-weight: 600;
   margin: 0.125rem;
@@ -596,7 +612,8 @@
 
 .service-type {
   padding: 0.5rem 1rem;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   font-weight: 600;
   font-size: 0.85rem;
 }
@@ -613,7 +630,8 @@
 
 .status-badge {
   padding: 0.5rem 1rem;
-  border-radius: 20px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   font-weight: 600;
   font-size: 0.85rem;
 }
@@ -627,7 +645,8 @@
 .health-dashboard {
   background: var(--gradient-glass-100);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: var(--shadow-outer-xl);
@@ -653,7 +672,8 @@
 .health-card {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 1.5rem;
   transition: all 0.3s ease;
 }
@@ -677,7 +697,8 @@
 
 .health-status {
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -702,13 +723,15 @@
   flex: 1;
   height: 8px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   overflow: hidden;
 }
 
 .health-fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   transition: width 0.5s ease;
 }
 
@@ -722,7 +745,8 @@
 .summary-card {
   background: var(--gradient-glass-400);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 2rem;
   position: relative;
   overflow: hidden;
@@ -758,7 +782,8 @@
   gap: 1rem;
   padding: 1.5rem;
   background: var(--gradient-primary-200);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-outer-xl);
 }
@@ -771,7 +796,8 @@
 .insight-icon {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -842,7 +868,8 @@
   padding: 0.75rem 2rem;
   background: var(--color-error);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   color: var(--text-color);
   font-weight: 600;
   cursor: pointer;
@@ -861,7 +888,8 @@
 .dashboard-equipment-card {
   background: var(--gradient-primary-500);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-outer-xxl);
   padding: 2rem;
   margin-bottom: 2rem;
@@ -880,7 +908,8 @@
 .dashboard-maintenance-card {
   background: var(--gradient-primary-400);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 2rem;
   margin-bottom: 2rem;
   transition: all 0.3s ease;
@@ -963,7 +992,8 @@
   flex-wrap: wrap;
   background: var(--gradient-glass-100);
   backdrop-filter: blur(20px);
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 0.5rem;
   box-shadow: var(--shadow-outer-xxl);
 }
@@ -982,7 +1012,8 @@
   padding: 1rem 1.5rem;
   background: transparent;
   border: none;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   color: var(--text-color);
   cursor: pointer;
   display: flex;
@@ -1022,7 +1053,8 @@
 .comparison-summary .comparison-item {
   background: var(--gradient-primary-800);
   padding: 1.5rem;
-  border-radius: var(--radius-4xl);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-outer-xl);
   color: var(--text-color);
 }
