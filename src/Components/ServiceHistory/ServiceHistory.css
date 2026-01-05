@@ -623,7 +623,7 @@ body.dark-theme {
 }
 
 .view-more-btn {
-    display: none;
+    display: flex;
     background: none;
     justify-content: start;
     border: none;

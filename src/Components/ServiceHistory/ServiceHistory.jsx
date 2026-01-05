@@ -18,6 +18,24 @@ const ServiceHistory = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const tableRef = useRef(null);
 
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [supervisorSignUrl, setSupervisorSignUrl] = useState('');
+  const [sixDigitPassword, setSixDigitPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [signLoading, setSignLoading] = useState(false);
+  const [signError, setSignError] = useState('');
+  const [docAUTHmiddle, setDocAUTHmiddle] = useState('');
+  const [authAttempts, setAuthAttempts] = useState(0);
+  const [lastAttempt, setLastAttempt] = useState(null);
+  const [signatureCache, setSignatureCache] = useState({});
+  const [isDocumentSigned, setIsDocumentSigned] = useState(false);
+  const [signExpiryTime, setSignExpiryTime] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
   const { searchTerm, setSearchTerm } = useSearch();
   const [filteredData, setFilteredData] = useState([]);
@@ -66,6 +84,29 @@ const ServiceHistory = () => {
     };
   }, [equipmentData, regNo, activeTab, dateFilter]);
 
+  useEffect(() => {
+    let interval = null;
+
+    if (signExpiryTime && isDocumentSigned) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((signExpiryTime - now) / 1000));
+        setTimeRemaining(remaining);
+
+        if (remaining <= 0) {
+          setIsDocumentSigned(false);
+          setSupervisorSignUrl('');
+          setSignExpiryTime(null);
+          clearInterval(interval);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [signExpiryTime, isDocumentSigned]);
+
   // Get current date in DD-MM-YY format and time in AM/PM format
   useEffect(() => {
     const updateDateTime = () => {
@@ -99,6 +140,198 @@ const ServiceHistory = () => {
       ...prev,
       [index]: !prev[index]
     }));
+  };
+
+  const checkRateLimit = () => {
+    const now = Date.now();
+    const timeDiff = now - (lastAttempt || 0);
+
+    if (timeDiff < 60000 && authAttempts >= 3) {
+      setSignError('Too many attempts. Please wait 1 minute.');
+      return false;
+    }
+
+    if (timeDiff > 60000) {
+      setAuthAttempts(0);
+    }
+
+    return true;
+  };
+
+  const checkSignatureCache = (documentId) => {
+    const cached = signatureCache[documentId || 'default'];
+    if (cached && Date.now() < cached.expiry) {
+      return cached.url;
+    }
+    return null;
+  };
+
+  const formatTimeRemaining = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const signDocument = () => {
+    const cachedUrl = checkSignatureCache('default');
+    if (cachedUrl) {
+      setSupervisorSignUrl(cachedUrl);
+      setIsDocumentSigned(true);
+      setShowSuccessModal(true);
+      return;
+    }
+
+    setShowPasswordModal(true);
+    setSixDigitPassword('');
+    setOtpCode('');
+    setSignError('');
+  };
+
+  const handleSixDigitVerification = async () => {
+    if (sixDigitPassword.length !== 6) {
+      setSignError('Please enter a 6-digit password');
+      return;
+    }
+
+    setSignLoading(true);
+    setSignError('');
+
+    if (!checkRateLimit()) {
+      setSignLoading(false);
+      return;
+    }
+
+    try {
+      setShowPasswordModal(false);
+      setShowLoadingModal(true);
+      setLoadingMessage('Verifying password...');
+
+      const passwordResponse = await apiRequest(
+        `${END_POINT}/users/six-digit-auth/verify`,
+        'POST',
+        { password: sixDigitPassword }
+      );
+
+      if (!passwordResponse.ok) {
+        throw new Error('Invalid 6-digit password');
+      }
+
+      setDocAUTHmiddle(sixDigitPassword);
+      setLoadingMessage('Sending OTP to authorized email...');
+
+      const otpResponse = await apiRequest(
+        `${END_POINT}/otp/request`,
+        'POST',
+        { email: 'DOCUMENT_VERIFIER_AUTH_MAIL' }
+      );
+
+      if (!otpResponse.ok) {
+        throw new Error('Failed to send OTP');
+      }
+
+      setShowLoadingModal(false);
+      setShowOtpModal(true);
+      setSignLoading(false);
+      setSignError('');
+    } catch (error) {
+      console.error('Six-digit verification error:', error);
+      setAuthAttempts(prev => prev + 1);
+      setLastAttempt(Date.now());
+      setSignError(error.message || 'Authentication failed. Please try again.');
+      setShowLoadingModal(false);
+      setShowPasswordModal(true);
+      setSignLoading(false);
+    }
+  };
+
+  const handleOtpVerification = async () => {
+    if (otpCode.length !== 6) {
+      setSignError('Please enter the 6-digit OTP');
+      return;
+    }
+
+    setSignLoading(true);
+    setSignError('');
+
+    try {
+      setShowOtpModal(false);
+      setShowLoadingModal(true);
+      setLoadingMessage('Verifying OTP code...');
+
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+
+      const otpResponse = await apiRequest(
+        `${END_POINT}/otp/verify`,
+        'POST',
+        {
+          email: 'DOCUMENT_VERIFIER_AUTH_MAIL',
+          otp: otpCode,
+          userId: userData._id
+        }
+      );
+
+      if (!otpResponse.ok) {
+        throw new Error('Invalid OTP code. Please check and try again.');
+      }
+
+      setLoadingMessage('Generating signature key...');
+
+      const keyResponse = await apiRequest(
+        `${END_POINT}/users/doc-0auth-sign-key`,
+        'POST',
+        { password: docAUTHmiddle }
+      );
+
+      if (!keyResponse.ok) {
+        throw new Error('Failed to generate signature key');
+      }
+
+      setDocAUTHmiddle('');
+      const keyData = await keyResponse.json();
+
+      setLoadingMessage('Applying digital signature...');
+
+      const body = { key: keyData.data.sign_key, isLong: false, isAuthSign: true };
+      const s3response = await apiRequest(
+        `${END_POINT}/s3Config/get-pre-signed-url`,
+        'POST',
+        body
+      );
+
+      if (!s3response.ok) {
+        throw new Error('Failed to generate signature URL');
+      }
+
+      const s3URL = await s3response.json();
+      const fullUrl = s3URL.dataUrl;
+
+      const expiryTime = Date.now() + 10000;
+      setSignatureCache(prev => ({
+        ...prev,
+        'default': { url: fullUrl, expiry: expiryTime }
+      }));
+
+      setSupervisorSignUrl(fullUrl);
+      setIsDocumentSigned(true);
+      setSignExpiryTime(expiryTime);
+      setTimeRemaining(10);
+
+      setSixDigitPassword('');
+      setOtpCode('');
+      setSignLoading(false);
+      setAuthAttempts(0);
+      setSignError('');
+
+      setShowLoadingModal(false);
+      setShowSuccessModal(true);
+
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      setSignError(error.message || 'Verification failed. Please try again.');
+      setShowLoadingModal(false);
+      setShowOtpModal(true);
+      setSignLoading(false);
+    }
   };
 
   const handleApplyFilters = () => {
@@ -952,7 +1185,7 @@ const ServiceHistory = () => {
     if (item.serviceType === 'oil') {
       return `Filters: Fuel Filter: ${item.fuelFilter}, Water Sep: ${item.waterSeparator}\nAir Filter: ${item.airFilter}${item.acFilter ? `, A/C Filter: ${item.acFilter}` : ''}`;
     }
-    return item.workRemarks || '-';
+    return item.workRemarks?.toUpperCase() || '-';
   };
 
   // Helper function for PDF-friendly work description (no newlines)
@@ -960,21 +1193,26 @@ const ServiceHistory = () => {
     if (item.serviceType === 'oil' || item.serviceType === 'normal') {
       return `Filters: Fuel Filter: ${item.fuelFilter || '-'}, Water Sep: ${item.waterSeparator || '-'}, Air Filter: ${item.airFilter || '-'}${item.acFilter ? `, A/C Filter: ${item.acFilter}` : ''}`;
     }
-    return item.workRemarks || '-';
+    return item.workRemarks?.toUpperCase() || '-';
   };
 
   const getRemarksText = (item) => {
     if (item.serviceType === 'oil' || item.serviceType === 'normal') {
-      return item.remarks || '';
+      return item.remarks?.toUpperCase() || '';
     } else if (item.serviceType === 'maintenance') {
-      return item.majorRemarks || item.workRemarks || '';
+      return item.majorRemarks.toUpperCase() || item.workRemarks.toUpperCase() || '';
     } else if (item.serviceType === 'tyre' || item.serviceType === 'battery') {
-      return item.remarks || '';
+      return item.remarks?.toUpperCase() || '';
     }
     return '';
   };
 
   const handlePrint = () => {
+    if (!isDocumentSigned) {
+      setShowWarningModal(true);
+      return;
+    }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -1018,7 +1256,7 @@ const ServiceHistory = () => {
             table th, 
             table td {
               padding: 4px 8px !important;
-              font-size: 11px !important;
+              font-size: 12px !important;
               line-height: 1.2 !important;
               white-space: nowrap;
             }
@@ -1031,13 +1269,13 @@ const ServiceHistory = () => {
               white-space: normal !important;
               word-wrap: break-word !important;
               overflow: hidden !important;
-              font-size: 10px !important;
+              font-size: 12px !important;
             }
             
             table th:nth-child(4), table td:nth-child(4){
               max-width: 70px !important;
               width: 70px !important;
-              font-size: 9px !important;
+              font-size: 12px !important;
               padding: 2px 4px !important;
               word-wrap: break-word !important;
               overflow: hidden !important;
@@ -1052,7 +1290,7 @@ const ServiceHistory = () => {
             table th:nth-child(9), table td:nth-child(9){
               max-width: 50px !important;
               width: 50px !important;
-              font-size: 9px !important;
+              font-size: 12px !important;
               padding: 2px 4px !important
               word-wrap: break-word !important;
               overflow: hidden !important;
@@ -1060,12 +1298,12 @@ const ServiceHistory = () => {
             }
             
             table th:nth-child(10), table td:nth-child(10) {
-              max-width: 190px !important;
-              width: 190px !important;
+              max-width: 230px !important;
+              width: 230px !important;
               white-space: normal !important;
               word-wrap: break-word !important;
               overflow: hidden !important;
-              font-size: 9px !important;
+              font-size: 12px !important;
               padding: 2px 3px !important;
               text-overflow: ellipsis !important;
             }
@@ -1085,16 +1323,22 @@ const ServiceHistory = () => {
               overflow-x: auto;
               max-width: 100%;
             }
+
+            .view-more-btn {
+              display: none
+            }
           </style>
         </head>
         <body>
-          <div class="header-container" style="display:flex; justify-content: space-between; padding-inline: 2rem; align-items: center;">
-            <img style="width: 15rem; max-height: 6rem;" src=${logoImage} alt="Company Logo" />
-            <img style="width: 24rem; max-height: 6rem;" src=${alAnsariText} alt="Company Logo" />
+          <div class="header-container" style="display:flex; justify-content: space-between; padding-inline: 1rem; align-items: center;">
+            <img style="width: 10rem; max-height: 6rem;" src=${logoImage} alt="Company Logo" />
+            <img style="width: 18rem; max-height: 6rem;" src=${alAnsariText} alt="Company Logo" />
           </div>
-          <h1>${tabName} History</h1>
-          <h2>${equipmentData ? `${equipmentData.machine} - ${regNo}` : `Equipment: ${regNo}`}</h2>
-          <p>Date Range: ${getDateRangeText()}</p>
+          <div style="display: flex; width: 100%; gap:1rem; justify-content: center; align-items: center">
+            <h2 style="font-weight: 700; text-align: center">${tabName} History -</h2>
+            <h3 style="font-weight: 500; text-align: center">${equipmentData ? `${equipmentData.machine} - ${regNo}` : `Equipment: ${regNo}`} -</h3>
+            <p>Date Range: ${getDateRangeText()}</p>
+          </div>
           ${searchTerm ? `<p>Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
           <div class="table-container">
             ${tableRef.current?.outerHTML}
@@ -1102,6 +1346,12 @@ const ServiceHistory = () => {
           <div style="margin-top: 10px; text-align: center;">
             Showing ${filteredData.length} ${searchTerm ? 'matching entries' : 'entries'}
           </div>
+         <div style="display:flex; gap: 0.5rem; justify-content: center; align-items: start; flex-direction: column; margin-top: 1rem;">
+            ${supervisorSignUrl ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="max-width: 150px; max-height: 60px;" />` : '<span style="font-style: italic; color: #999;">Not Signed</span>'}
+            <p style="font-size: 18px; font-weight: 400; margin: 0;">Firoz Khan</p>
+            <p style="font-size: 18px; font-weight: 400; margin: 0;">Workshop Manager</p>
+            <p style="font-size: 18px; font-weight: 400; margin: 0;">+974 5170 0481</p>
+         </div>
         </body>
       </html>
     `;
@@ -1425,7 +1675,7 @@ const ServiceHistory = () => {
                         {(item.serviceType === 'oil' || item.serviceType === 'normal') && item.remarks && (
                           <div className="remarks-content">
                             <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.remarks.toUpperCase()}
+                              {item.remarks?.toUpperCase()}
                             </div>
                             {item.remarks.length > 100 && (
                               <button
@@ -1443,7 +1693,7 @@ const ServiceHistory = () => {
                         {item.serviceType === 'maintenance' && (item.majorRemarks || item.workRemarks) && (
                           <div className="remarks-content">
                             <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.majorRemarks.toUpperCase() || item.workRemarks.toUpperCase()}
+                              {item.majorRemarks?.toUpperCase() || item.workRemarks?.toUpperCase()}
                             </div>
                             {(item.majorRemarks?.length > 100 || item.workRemarks?.length > 100) && (
                               <button
@@ -1461,7 +1711,7 @@ const ServiceHistory = () => {
                         {(item.serviceType === 'tyre' || item.serviceType === 'battery') && item.remarks && (
                           <div className="remarks-content">
                             <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.remarks.toUpperCase()}
+                              {item.remarks?.toUpperCase()}
                             </div>
                             {item.remarks.length > 100 && (
                               <button
@@ -1525,6 +1775,92 @@ const ServiceHistory = () => {
           </table>
         </div>
       )}
+      <DevModal
+        isOpen={showPasswordModal}
+        onClose={() => {
+          setShowPasswordModal(false);
+          setSixDigitPassword('');
+          setSignError('');
+        }}
+        type="authentication"
+        title="Document Signature Authentication"
+        message="Step 1: Enter your 6-digit password"
+        showInput={true}
+        inputValue={sixDigitPassword}
+        onInputChange={(value) => setSixDigitPassword(value.replace(/\D/g, ''))}
+        inputPlaceholder="Enter 6-digit password"
+        inputMaxLength={6}
+        inputError={signError}
+        buttonText={signLoading ? "Verifying..." : "Verify & Send OTP"}
+        onButtonClick={handleSixDigitVerification}
+        preventClose={signLoading}
+      />
+
+      <DevModal
+        isOpen={showOtpModal}
+        onClose={() => {
+          setShowOtpModal(false);
+          setOtpCode('');
+          setSignError('');
+        }}
+        type="otp"
+        title="Enter OTP Code"
+        message="OTP has been sent to the authorized email"
+        showInput={true}
+        inputValue={otpCode}
+        onInputChange={(value) => setOtpCode(value.replace(/\D/g, ''))}
+        inputPlaceholder="Enter 6-digit OTP"
+        inputMaxLength={6}
+        inputError={signError}
+        buttonText={signLoading ? "Signing..." : "Sign Document"}
+        secondaryButtonText="Back"
+        onSecondaryClick={() => {
+          setShowOtpModal(false);
+          setShowPasswordModal(true);
+        }}
+        onButtonClick={handleOtpVerification}
+        preventClose={signLoading}
+      />
+
+      <DevModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        type="warning"
+        title="!Document Not Signed"
+        message="You must sign the document before printing! This ensures document authenticity and compliance."
+        buttonText="Sign Document Now"
+        secondaryButtonText="Cancel"
+        onButtonClick={() => {
+          setShowWarningModal(false);
+          signDocument();
+        }}
+        onSecondaryClick={() => setShowWarningModal(false)}
+      />
+
+      <DevModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        type="success"
+        title="Document Signed Successfully!"
+        message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
+        buttonText="Print Now"
+        secondaryButtonText="Close"
+        onButtonClick={() => {
+          setShowSuccessModal(false);
+          handlePrint();
+        }}
+        onSecondaryClick={() => setShowSuccessModal(false)}
+      />
+
+      <DevModal
+        isOpen={showLoadingModal}
+        onClose={() => { }}
+        type="progress"
+        title="Processing..."
+        message={loadingMessage}
+        progress={100}
+        preventClose={true}
+      />
     </div>
   );
 };
