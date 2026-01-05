@@ -343,7 +343,7 @@
   /* ========== PRIMARY GRADIENTS ========== */
   --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f6f1ff 100%);
   --gradient-primary-50: linear-gradient(359deg, #cea56c 0%, #dad6b5 100%);
-  --gradient-primary-100: linear-gradient(295deg, #3b3409 0%, #000000 100%);
+  --gradient-primary-100: linear-gradient(295deg, #b3a652c5 0%, #d8d4adad 100%);
   --gradient-primary-200: linear-gradient(359deg, #cea56c 0%, #dad6b5 100%);
   --gradient-primary-300: linear-gradient(162deg, #000000d1 0%, #000000 70%, #4a5446 100%);
   --gradient-primary-400: linear-gradient(295deg, #b2b66123 0%, #6a6b4e41 100%);

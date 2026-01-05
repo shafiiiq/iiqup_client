@@ -851,7 +851,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
                 variant="gradient"
                 font="md"
                 animation=""
-                rounded="md"
+                squircle="4xl"
                 width="130px"
                 height="46px"
                 type={refreshing ? 'disabled' : 'submit'}
@@ -867,7 +867,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
                 variant="gradient"
                 font="md"
                 animation=""
-                rounded="md"
+                squircle="4xl"
                 width="200px"
                 height="46px"
                 type={unreadCount === 0 ? 'disabled' : 'submit'}
@@ -883,7 +883,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
                 variant="gradient"
                 font="md"
                 animation=""
-                rounded="md"
+                squircle="4xl"
                 width="160px"
                 height="46px"
                 type="submit"

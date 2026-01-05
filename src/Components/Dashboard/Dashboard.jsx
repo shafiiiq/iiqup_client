@@ -32,6 +32,7 @@ import SummaryInsights from './Common/SummaryInsights';
 import './Dashboard.css';
 import { formatDate, formatDateTime, getStatusColor, COLORS } from './utils/dasboard-utils';
 import Notifications from '../Notification/Notification';
+import LiveChat from '../LiveChat/LiveChat';
 
 const Dashboard = () => {
   // Refs for height calculation
@@ -281,6 +282,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <LiveChat/>
       <div
         className="live-auto-monitor-hero"
         style={{

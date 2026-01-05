@@ -45,6 +45,7 @@ import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
 import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
 import BackchargeList from './Components/BackchargeList/BackchargeList'; import Spacer from './Components/Spacer/Spacer';
 import NotFound from './Components/Common/NotFound/NotFound';
+import LiveChat from './Components/LiveChat/LiveChat';
 ;
 
 // Create contexts
@@ -1181,6 +1182,16 @@ function App() {
                     <ProtectedRoute>
                       <CEOGuard>
                         <NotFound />
+                      </CEOGuard>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/live-chat"
+                  element={
+                    <ProtectedRoute>
+                      <CEOGuard>
+                        <LiveChat />
                       </CEOGuard>
                     </ProtectedRoute>
                   }

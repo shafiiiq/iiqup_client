@@ -388,6 +388,10 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
         dataToSave.complaintId = complaintId;
       }
 
+      if (!complaintId) {
+        dataToSave.normalLPO = true;
+      }
+
       if (!isForStock && !isForAllEquipm) {
         if (workingHrsMode === 'WORKING HRS') {
           dataToSave.workingHrs = lpoData.workingHrs;
@@ -726,7 +730,7 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
             variant="gradient"
             font="md"
             animation=""
-            rounded="md"
+            squircle="4xl"
             width="160px"
             height="38px"
             type={isLoading ? 'disabled' : 'submit'}

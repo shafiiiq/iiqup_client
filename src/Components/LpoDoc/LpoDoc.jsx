@@ -773,22 +773,35 @@ const LpoDoc = () => {
       // Convert PDF to blob for S3 upload
       const pdfBlob = pdf.output('blob');
 
-      console.log("lpoData.complaintId", lpoData.complaintId);
+      let uploadResponse
+      if (!complaintId) {
+        uploadResponse = await apiRequest(
+          `${END_POINT}/lpo/upload-lpo`,
+          'POST',
+          {
+            fileName: getFileName() + '.pdf',
+            uploadedBy: 'WORKSHOP_MANAGER',
+            lpoRef: decodeURIComponent(refNo),
+            description: 'LPO document generated from system',
+            isAmendment: lpoData.isAmendment || false
+          },
+          { 'Content-Type': 'application/json' }
+        );
+      } else {
+        uploadResponse = await apiRequest(
+          `${END_POINT}/complaints/upload-lpo/${complaintId || lpoData.complaintId}`,
+          'POST',
+          {
+            fileName: getFileName() + '.pdf',
+            uploadedBy: 'WORKSHOP_MANAGER',
+            lpoRef: lpoData.lpoRef,
+            description: 'LPO document generated from system',
+            isAmendment: lpoData.isAmendment || false
+          },
+          { 'Content-Type': 'application/json' }
+        );
 
-
-      // First get the pre-signed URL from backend
-      const uploadResponse = await apiRequest(
-        `${END_POINT}/complaints/upload-lpo/${complaintId || lpoData.complaintId}`,
-        'POST',
-        {
-          fileName: getFileName() + '.pdf',
-          uploadedBy: 'WORKSHOP_MANAGER',
-          lpoRef: lpoData.lpoRef,
-          description: 'LPO document generated from system',
-          isAmendment: lpoData.isAmendment || false
-        },
-        { 'Content-Type': 'application/json' }
-      );
+      }
 
       const result = await uploadResponse.json();
       console.log('Upload response:', result);
@@ -2075,20 +2088,20 @@ const LpoDoc = () => {
             <div className="status-badge checking">🔄 Checking Status...</div>
           ) : !globalActivation.isActivated ? (
             <Button
-                text="Activate E-Signs"
-                onClick={handleLoadAllSignatures}
-                colorScheme="red-700"
-                variant="gradient"
-                font="md"
-                animation=""
-                rounded="md"
-                width="160px"
-                height="38px"
-                type="submit"
-                textColor="white-200"
-                shadowPosition="to-bottom"
-                shadowColor="white-600"
-              />
+              text="Activate E-Signs"
+              onClick={handleLoadAllSignatures}
+              colorScheme="red-700"
+              variant="gradient"
+              font="md"
+              animation=""
+              squircle="4xl"
+              width="160px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           ) : !globalActivation.isTrusted ? (
             <div className="status-badge not-trusted">
               <Button
@@ -2098,7 +2111,7 @@ const LpoDoc = () => {
                 variant="gradient"
                 font="md"
                 animation=""
-                rounded="md"
+                squircle="4xl"
                 width="160px"
                 height="38px"
                 type="submit"
@@ -2122,7 +2135,7 @@ const LpoDoc = () => {
               variant="gradient"
               font="md"
               animation=""
-              rounded="md"
+              squircle="4xl"
               width="160px"
               height="38px"
               type="submit"
@@ -2137,7 +2150,7 @@ const LpoDoc = () => {
               variant="gradient"
               font="md"
               animation=""
-              rounded="md"
+              squircle="4xl"
               width="160px"
               height="38px"
               type="submit"
@@ -2153,7 +2166,7 @@ const LpoDoc = () => {
             variant="gradient"
             font="md"
             animation=""
-            rounded="md"
+            squircle="4xl"
             width="160px"
             height="38px"
             type="submit"
