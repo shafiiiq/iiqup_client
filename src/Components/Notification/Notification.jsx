@@ -348,7 +348,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
         return;
       }
 
-      showAlert('New Notification Recieved', 'notification', '--color-primary');
+      showAlert('New Notification Recieved', 'notifications_active', '--color-primary');
 
       // Play notification sound
       playNotificationSound();
