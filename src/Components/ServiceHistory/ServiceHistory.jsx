@@ -18,6 +18,7 @@ const ServiceHistory = () => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const tableRef = useRef(null);
 
+  const [pendingAction, setPendingAction] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -680,9 +681,32 @@ const ServiceHistory = () => {
     }
   };
 
+  const loadImageAsDataURL = (imageSrc) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous'; // Handle CORS if needed
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = imageSrc;
+    });
+  };
+
   const handleExportToPDF = async () => {
+    // Check if document is signed before exporting
+    if (!isDocumentSigned) {
+      setPendingAction('pdf');
+      setShowWarningModal(true);
+      return;
+    }
+
     try {
-      // Create a new jsPDF instance
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('landscape', 'mm', 'a4');
 
@@ -691,31 +715,48 @@ const ServiceHistory = () => {
           activeTab === 'maintenance' ? 'Major Works' :
             activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
 
-      // Add title
-      doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
-      doc.text(`${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`, 148, 15, { align: 'center' });
+      let currentY = 10;
 
-      // Add subtitle
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      doc.text(`Date Range: ${getDateRangeText()}`, 148, 22, { align: 'center' });
+      try {
+        const [leftLogoData, rightLogoData] = await Promise.all([
+          loadImageAsDataURL(logoImage),
+          loadImageAsDataURL(alAnsariText)
+        ]);
 
-      // Add search term if applicable
-      let startY = 28;
-      if (searchTerm) {
-        doc.setFontSize(10);
-        doc.text(`Search Term: "${searchTerm}"`, 148, startY, { align: 'center' });
-        startY += 6;
+        // Left logo
+        doc.addImage(leftLogoData, 'PNG', 10, currentY, 40, 24);
+        // Right logo  
+        doc.addImage(rightLogoData, 'PNG', 237, currentY, 50, 24);
+      } catch (error) {
+        console.error('Error adding logos:', error);
       }
 
-      // Add timestamp
+
+      currentY += 30;
+
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`, 148, currentY, { align: 'center' });
+
+      currentY += 7;
+
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Date Range: ${getDateRangeText()}`, 148, currentY, { align: 'center' });
+
+      currentY += 6;
+
+      if (searchTerm) {
+        doc.setFontSize(10);
+        doc.text(`Search Term: "${searchTerm}"`, 148, currentY, { align: 'center' });
+        currentY += 6;
+      }
+
       doc.setFontSize(9);
       doc.setTextColor(128, 128, 128);
-      doc.text(`Report Generated: ${new Date().toLocaleString()}`, 148, startY, { align: 'center' });
-      startY += 10;
+      doc.text(`Report Generated: ${new Date().toLocaleString()}`, 148, currentY, { align: 'center' });
+      currentY += 10;
 
-      // Define table headers based on active tab
       const headers = [
         'Date',
         ...(activeTab === 'all' ? ['Service Type'] : []),
@@ -726,7 +767,6 @@ const ServiceHistory = () => {
         'Remarks'
       ];
 
-      // Prepare table data
       const tableData = filteredData.map((item) => {
         const row = [
           formatDate(item.date),
@@ -749,10 +789,9 @@ const ServiceHistory = () => {
         return row;
       });
 
-      // Define colors based on service type
       const getRowColor = (item) => {
         if (item.fullService || item.replaced) {
-          return [255, 211, 165]; // Orange for full service/replacement
+          return [255, 211, 165];
         }
 
         switch (item.serviceType) {
@@ -770,10 +809,10 @@ const ServiceHistory = () => {
       };
 
       // Generate table using autoTable
-      doc.autoTable({
+      const finalY = doc.autoTable({
         head: [headers],
         body: tableData,
-        startY: startY,
+        startY: currentY,
         theme: 'grid',
         styles: {
           fontSize: 8,
@@ -791,10 +830,8 @@ const ServiceHistory = () => {
         columnStyles: {
           0: { cellWidth: 25 }, // Date
           ...(activeTab === 'all' ? { 1: { cellWidth: 20 } } : {}), // Service Type
-          // Adjust other column widths based on content
         },
         didParseCell: function (data) {
-          // Color rows based on service type
           if (data.row.index >= 0 && data.section === 'body') {
             const item = filteredData[data.row.index];
             if (item) {
@@ -806,7 +843,36 @@ const ServiceHistory = () => {
         margin: { top: 10, left: 10, right: 10 }
       });
 
-      // Generate filename with date filter info
+      const signatureY = doc.lastAutoTable.finalY + 15;
+
+      doc.setTextColor(0, 0, 0);
+
+      if (supervisorSignUrl) {
+        try {
+          const signatureData = await loadImageAsDataURL(supervisorSignUrl);
+          doc.addImage(signatureData, 'PNG', 10, signatureY, 50, 20);
+        } catch (error) {
+          console.error('Error adding signature:', error);
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'italic');
+          doc.setTextColor(150, 150, 150);
+          doc.text('Not Signed', 10, signatureY);
+        }
+      } else {
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.setTextColor(150, 150, 150);
+        doc.text('Not Signed', 10, signatureY);
+      }
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      const detailsY = signatureY + 25;
+      doc.text('Firoz Khan', 10, detailsY);
+      doc.text('Workshop Manager', 10, detailsY + 6);
+      doc.text('+974 5170 0481', 10, detailsY + 12);
+
       const dateFilterSuffix = dateFilter === 'all' ? '' :
         dateFilter === 'lastXmonths' ? `_Last_${lastMonthsCount}_Months` :
           dateFilter === 'thismonth' ? '_This_Month' :
@@ -814,7 +880,6 @@ const ServiceHistory = () => {
 
       const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`;
 
-      // Save the PDF
       doc.save(fileName);
 
     } catch (error) {
@@ -1209,6 +1274,7 @@ const ServiceHistory = () => {
 
   const handlePrint = () => {
     if (!isDocumentSigned) {
+      setPendingAction('print');
       setShowWarningModal(true);
       return;
     }
@@ -1824,34 +1890,50 @@ const ServiceHistory = () => {
 
       <DevModal
         isOpen={showWarningModal}
-        onClose={() => setShowWarningModal(false)}
+        onClose={() => {
+          setShowWarningModal(false);
+          setPendingAction(null);
+        }}
         type="warning"
         title="!Document Not Signed"
-        message="You must sign the document before printing! This ensures document authenticity and compliance."
+        message="You must sign the document before printing/exporting! This ensures document authenticity and compliance."
         buttonText="Sign Document Now"
         secondaryButtonText="Cancel"
         onButtonClick={() => {
           setShowWarningModal(false);
           signDocument();
         }}
-        onSecondaryClick={() => setShowWarningModal(false)}
+        onSecondaryClick={() => {
+          setShowWarningModal(false);
+          setPendingAction(null);
+        }}
       />
 
       <DevModal
         isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setPendingAction(null);
+        }}
         type="success"
         title="Document Signed Successfully!"
-        message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
-        buttonText="Print Now"
+        message={`Your document has been digitally signed! Signature valid for 10 seconds. You can now ${pendingAction === 'pdf' ? 'export to PDF' : 'print'} the document.`}
+        buttonText={pendingAction === 'pdf' ? 'Export to PDF Now' : 'Print Now'}
         secondaryButtonText="Close"
         onButtonClick={() => {
           setShowSuccessModal(false);
-          handlePrint();
+          if (pendingAction === 'pdf') {
+            handleExportToPDF()
+          } else {
+            handlePrint();
+          }
+          setPendingAction(null);
         }}
-        onSecondaryClick={() => setShowSuccessModal(false)}
+        onSecondaryClick={() => {
+          setShowSuccessModal(false);
+          setPendingAction(null);
+        }}
       />
-
       <DevModal
         isOpen={showLoadingModal}
         onClose={() => { }}

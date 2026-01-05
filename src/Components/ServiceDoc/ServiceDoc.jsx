@@ -795,7 +795,7 @@ const ServiceDoc = () => {
           <Button
             text="Sign the Document"
             onClick={signDocument}
-            colorScheme="violet-800"
+            colorScheme={!isDocumentSigned ? 'amber-600' : 'emerald-800'}
             variant="gradient"
             font="md"
             animation=""

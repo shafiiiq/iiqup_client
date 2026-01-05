@@ -5,11 +5,15 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import { useAlert } from '../../context/AlertContext';
+import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 
 function ServiceHistoryForm() {
   const { regNo } = useParams();
   const { normal } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const { showAlert } = useAlert();
+  const { triggerVibration } = useHeaderVibration();
   const navigate = useNavigate();
 
   const [equipmentData, setEquipmentData] = useState(null);
@@ -32,7 +36,7 @@ function ServiceHistoryForm() {
 
   useEffect(() => {
     if (regNo) {
-      const title =  normal ? 'Add Nomal Service Record' : 'Add Oil Service Record'
+      const title = normal ? 'Add Nomal Service Record' : 'Add Oil Service Record'
       const subtitle = `${regNo}`
       setHeaderTitle(title);
       setHeaderSubtitle(subtitle);
@@ -211,7 +215,8 @@ function ServiceHistoryForm() {
         throw new Error(serviceData.error);
       }
 
-      setMessage({ text: 'Service record added successfully!', type: 'success' });
+      showAlert('Service record added successfully', 'done_all', '--color-primary');
+      triggerVibration();
 
       // Navigate to success page after short delay
       setTimeout(() => {
@@ -225,7 +230,8 @@ function ServiceHistoryForm() {
 
     } catch (error) {
       console.error("Error adding service record:", error);
-      setMessage({ text: `${error.message}`, type: 'error' });
+      showAlert(`${error.message}`, 'error', '--color-error-500');
+      triggerVibration();
     } finally {
       setIsLoading(false);
     }

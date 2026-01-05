@@ -280,10 +280,10 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
           {/* Alert Display - PRIORITY - shows for 3 seconds */}
           {alert && !showNav ? (
             <div className="header-alert">
-              <span className="alert-icon material-symbols-rounded" style={{ color: alert.color }}>
+              <span className="alert-icon material-symbols-rounded" style={{ color: `var(${alert.color})` }}>
                 {alert.icon}
               </span>
-              <span className="alert-message" style={{ color: alert.color }}>
+              <span className="alert-message" style={{ color: `var(${alert.color})` }}>
                 {alert.message}
               </span>
             </div>

@@ -6,12 +6,14 @@ import { apiRequest } from '../../utils/0auth';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
 import { useAlert } from '../../context/AlertContext';
+import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
   const { normal } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert } = useAlert();
+  const { triggerVibration } = useHeaderVibration();
 
   const { regNo, date, serviceHrs, nextServiceHrs, oil, oilFilter, fuelFilter, airFilter, acFilter, waterSeparator, id, location, runningHours, tyreForm, mechanics, workRemarks } = useParams();
   const [equipments, setEquipments] = useState([]);
@@ -56,14 +58,26 @@ const ServiceForm = ({ initialData = {} }) => {
           if (data.ok && data.data) {
             const existingData = data.data;
 
-            // Convert date from DD-MM-YYYY to YYYY-MM-DD for input field
-            let formattedDate = existingData[0].date;
-            if (existingData[0].date && existingData[0].date.includes('-')) {
-              const dateParts = existingData[0].date.split('-');
-              if (dateParts.length === 3) {
-                formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+            let formattedDate = '';
+            if (existingData[0].date) {
+              const dateStr = existingData[0].date;
+
+              if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+                const [day, month, year] = dateStr.split('-');
+                formattedDate = `${year}-${month}-${day}`;
+              }
+              else if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                formattedDate = dateStr;
+              }
+              else {
+                const parsedDate = new Date(dateStr);
+                if (!isNaN(parsedDate)) {
+                  formattedDate = parsedDate.toISOString().split('T')[0];
+                }
               }
             }
+            console.log("formattedDate", formattedDate);
 
             setFormData({
               serviceHrs: existingData[0].serviceHrs || '',
@@ -82,11 +96,13 @@ const ServiceForm = ({ initialData = {} }) => {
               setChecklistItems(existingData.checklistItems);
             }
           } else {
-            showAlert('Failed to load service report data', 'error', '--color-primary');
+            showAlert('Failed to load service report data', 'error', '--color-error-500');
+            triggerVibration();
           }
         } catch (error) {
           console.error(`Error fetching service report:`, error);
-          showAlert('Error loading service report data', 'error', '--color-primary');
+          showAlert('Error loading service report data', 'error', '--color-error-500');
+          triggerVibration();
         } finally {
           setIsLoadingData(false);
         }
@@ -145,7 +161,7 @@ const ServiceForm = ({ initialData = {} }) => {
     machine: initialData.machine || '',
     mechanics: mechanics || initialData.mechanics || '',
     location: location ? location : initialData.location || '',
-    date: date || new Date().toISOString().split('T')[0],
+    date: date || initialData.date || new Date().toISOString().split('T')[0],
     operatorName: initialData.operatorName || '',
     remarks: workRemarks || initialData.remarks || '',
   });
@@ -278,13 +294,12 @@ const ServiceForm = ({ initialData = {} }) => {
         : 'Service report added successfully!';
 
       showAlert(`${successMessage}`, 'done_all', '--color-primary');
+      triggerVibration();
 
       setTimeout(() => {
         const responseData = data.data || formData;
 
-        isUpdateMode
-          ? navigate(`/service-doc/${responseData.serviceReport.regNo}/${formatDate(responseData.serviceReport.date)}`)
-          : navigate(`/service-doc/${responseData.regNo}/${formatDate(responseData.date)}`);
+        navigate(`/service-doc/${responseData.regNo}/${formatDate(responseData.date)}`);
       }, 1500);
     } catch (error) {
       console.error(`Error ${isUpdateMode ? 'updating' : 'adding'} service record:`, error);
@@ -292,7 +307,8 @@ const ServiceForm = ({ initialData = {} }) => {
         ? 'Failed to update service record. Please try again.'
         : 'Failed to add service record. Please try again.';
 
-      showAlert(`${errorMessage}`, 'error', '--color-primary');
+      showAlert(`${errorMessage}`, 'error', '--color-error-500');
+      triggerVibration();
     } finally {
       setIsLoading(false);
     }
