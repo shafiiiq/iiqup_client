@@ -10,7 +10,7 @@ import Chairman from '../../assets/images/chairman.png';
 import MD from '../../assets/images/md.jpg';
 import CEO from '../../assets/images/ceo.jpg';
 import Manager from '../../assets/images/manager.jpg';
-import WorkshopManager from '../../assets/images/workshop-manager.png';
+import WorkshopManager from '../../assets/images/workshop-manager.jpeg';
 import SalesManager from '../../assets/images/manager.jpg';
 import ItHead from '../../assets/images/it-head.png';
 import PurchaseManager from '../../assets/images/purchase-manager.jpg';
