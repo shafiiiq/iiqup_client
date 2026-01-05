@@ -5,11 +5,13 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import { useAlert } from '../../context/AlertContext';
 
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
   const { normal } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const { showAlert } = useAlert();
 
   const { regNo, date, serviceHrs, nextServiceHrs, oil, oilFilter, fuelFilter, airFilter, acFilter, waterSeparator, id, location, runningHours, tyreForm, mechanics, workRemarks } = useParams();
   const [equipments, setEquipments] = useState([]);
@@ -80,11 +82,11 @@ const ServiceForm = ({ initialData = {} }) => {
               setChecklistItems(existingData.checklistItems);
             }
           } else {
-            setMessage({ text: 'Failed to load service report data.', type: 'error' });
+            showAlert('Failed to load service report data', 'error', '--color-primary');
           }
         } catch (error) {
           console.error(`Error fetching service report:`, error);
-          setMessage({ text: 'Error loading service report data.', type: 'error' });
+          showAlert('Error loading service report data', 'error', '--color-primary');
         } finally {
           setIsLoadingData(false);
         }
@@ -275,7 +277,7 @@ const ServiceForm = ({ initialData = {} }) => {
         ? 'Service report updated successfully!'
         : 'Service report added successfully!';
 
-      setMessage({ text: successMessage, type: 'success' });
+      showAlert(`${successMessage}`, 'done_all', '--color-primary');
 
       setTimeout(() => {
         const responseData = data.data || formData;
@@ -290,7 +292,7 @@ const ServiceForm = ({ initialData = {} }) => {
         ? 'Failed to update service record. Please try again.'
         : 'Failed to add service record. Please try again.';
 
-      setMessage({ text: errorMessage, type: 'error' });
+      showAlert(`${errorMessage}`, 'error', '--color-primary');
     } finally {
       setIsLoading(false);
     }
@@ -340,7 +342,7 @@ const ServiceForm = ({ initialData = {} }) => {
       )}
 
       <div className="form-container">
-        <form  className="service-form">
+        <form className="service-form">
           <div className="form-section">
             <h3 className="section-title">Service Information</h3>
             <div className="form-grid">

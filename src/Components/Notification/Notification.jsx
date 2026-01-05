@@ -4,8 +4,12 @@ import { END_POINT } from '../../constants';
 import './Notification.css';
 import { apiRequest } from '../../utils/0auth';
 import Button from '../../common/Button/Button';
+import { useAlert } from '../../context/AlertContext';
 
 const Notifications = ({ islivemodeON, scrollContainerRef }) => {
+
+  const { showAlert } = useAlert();
+
   const soundOptions = {
     bell: {
       name: 'Bell 🔔',
@@ -111,7 +115,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     fetchAllNotifications(false);
 
     const refreshInterval = setInterval(() => {
-      fetchAllNotifications(true); 
+      fetchAllNotifications(true);
     }, 30000);
 
     return () => clearInterval(refreshInterval);
@@ -343,6 +347,8 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
         console.error('❌ Notification is null or undefined');
         return;
       }
+
+      showAlert('New Notification Recieved', 'notification', '--color-primary');
 
       // Play notification sound
       playNotificationSound();

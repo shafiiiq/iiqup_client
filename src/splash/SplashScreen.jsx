@@ -32,7 +32,7 @@ function SplashScreen() {
           {!imageError ? (
             <img 
               src={NameSplash} 
-              alt="IIQUP Logo" 
+              alt="Al Ansari Connect" 
               className="iiqup-splash-logo-image"
               onError={handleImageError}
               onLoad={handleImageLoad}
@@ -47,7 +47,7 @@ function SplashScreen() {
                 margin: 0,
                 textShadow: '0 0 20px rgba(74, 144, 226, 0.5)'
               }}>
-                IIQUP
+                Al Ansari Connect
               </h1>
             </div>
           )}

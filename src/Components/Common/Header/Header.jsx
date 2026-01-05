@@ -5,6 +5,7 @@ import { LoginLogic } from '../../../utils/authUtils';
 import { useSearch } from '../../../context/SearchContext';
 import { useHeaderTitle } from '../../../context/HeaderTitleContext';
 import { useHeaderVibration } from '../../../context/HeaderVibrationContext';
+import { useAlert } from '../../../context/AlertContext';
 import '../Header/Header.css';
 
 const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
@@ -13,6 +14,7 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const { searchTerm, setSearchTerm, clearSearch } = useSearch();
   const { headerTitle, headerSubtitle } = useHeaderTitle();
   const { shouldVibrate, resetVibration } = useHeaderVibration();
+  const { alert } = useAlert();
   const searchInputRef = useRef(null);
   const navRef = useRef(null);
   const activeItemRef = useRef(null);
@@ -270,13 +272,23 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
         )}
 
         <nav
-          className={`header-nav ${searchExpanded ? 'shrink' : ''} ${headerTitle ? 'has-title' : ''} ${isVibrating ? 'vibrating' : ''}`}
+          className={`header-nav ${searchExpanded ? 'shrink' : ''} ${headerTitle || alert ? 'has-title' : ''} ${isVibrating ? 'vibrating' : ''}`}
           ref={navRef}
           onMouseEnter={() => setShowNav(true)}
           onMouseLeave={() => setShowNav(false)}
         >
-          {/* Title/Breadcrumb Display */}
-          {headerTitle && !showNav && (
+          {/* Alert Display - PRIORITY - shows for 3 seconds */}
+          {alert && !showNav ? (
+            <div className="header-alert">
+              <span className="alert-icon material-symbols-rounded" style={{ color: alert.color }}>
+                {alert.icon}
+              </span>
+              <span className="alert-message" style={{ color: alert.color }}>
+                {alert.message}
+              </span>
+            </div>
+          ) : headerTitle && !showNav ? (
+            /* Title/Breadcrumb Display - shows only if NO alert */
             <div className="header-breadcrumb">
               <h1 className="breadcrumb-title">{headerTitle}</h1>
               {headerSubtitle && (
@@ -290,10 +302,10 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
                 </>
               )}
             </div>
-          )}
+          ) : null}
 
           {/* Normal Navigation */}
-          <ul className={headerTitle && !showNav ? 'nav-hidden' : ''}>
+          <ul className={(headerTitle || alert) && !showNav ? 'nav-hidden' : ''}>
             {navItems.map((item, index) => (
               <li key={item.path} className={activeLink === item.path ? 'active' : ''}>
                 <Link

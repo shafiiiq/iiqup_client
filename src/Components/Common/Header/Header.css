@@ -704,6 +704,28 @@ input:checked+.slider .moon-icon {
   display: none;
 }
 
+.header-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 2rem;
+  height: 100%;
+  white-space: nowrap;
+  animation: fadeIn 0.3s ease;
+  color: var(--color-primary);
+}
+
+.alert-icon {
+  font-size: 46px;
+  display: flex;
+  align-items: center;
+}
+
+.alert-message {
+  font-size: 30px;
+  font-weight: 500;
+}
+
 
 @media (max-width: 2000px) {
 

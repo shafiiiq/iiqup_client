@@ -11,7 +11,7 @@ import MD from '../../assets/images/md.jpg';
 import CEO from '../../assets/images/ceo.jpg';
 import Manager from '../../assets/images/manager.jpg';
 import WorkshopManager from '../../assets/images/workshop-manager.png';
-import SalesManager from '../../assets/images/manager.jpg';
+import SalesManager from '../../assets/images/sales-manager.JPG';
 import ItHead from '../../assets/images/it-head.png';
 import PurchaseManager from '../../assets/images/purchase-manager.jpg';
 import { LoginLogic } from '../../utils/authUtils';

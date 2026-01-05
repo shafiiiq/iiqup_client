@@ -414,7 +414,7 @@ const ServiceDoc = () => {
             font="md"
             animation=""
             squircle="4xl"
-            width="160px"
+            width="220px"
             height="38px"
             type="submit"
             textColor="white-200"
@@ -443,7 +443,7 @@ const ServiceDoc = () => {
                 font="md"
                 animation=""
                 squircle="4xl"
-                width="160px"
+                width="220px"
                 height="38px"
                 type="submit"
                 textColor="white-200"
@@ -452,7 +452,7 @@ const ServiceDoc = () => {
               />
               <Button
                 text=" Add Report Data"
-                onClick={() => handleAddReport}
+                onClick={handleAddReport}
                 colorScheme="violet-800"
                 variant="gradient"
                 font="md"
@@ -494,7 +494,7 @@ const ServiceDoc = () => {
               font="md"
               animation=""
               squircle="4xl"
-              width="160px"
+              width="220px"
               height="38px"
               type="submit"
               textColor="white-200"
@@ -739,7 +739,7 @@ const ServiceDoc = () => {
           />
           <Button
             text="Add Report Data"
-            onClick={() => handleAddReport}
+            onClick={handleAddReport}
             colorScheme="violet-800"
             variant="gradient"
             font="md"
@@ -769,7 +769,7 @@ const ServiceDoc = () => {
             font="md"
             animation=""
             squircle="4xl"
-            width="160px"
+            width="220px"
             height="38px"
             type="submit"
             textColor="white-200"
@@ -1144,7 +1144,7 @@ const renderChecklistItems = (reportData) => {
           <div className="remarks-box">
             <div className="remarks-text-doc">
               <strong className='remarks-label'>REMARKS : </strong>
-              {reportData.remarks}
+              {reportData.remarks.toUpperCase()}
             </div>
           </div>
           <span className="equipment-fit-to-work">
@@ -1183,15 +1183,15 @@ const renderFooterInfo = (reportData, regNo, supervisorSignUrl) => {
                 : reportData.nextServiceHrs
           }
         </td>
-        <td colSpan="3"><strong>MACHINE:</strong> {reportData.machine}</td>
+        <td colSpan="3"><strong>MACHINE:</strong> {reportData.machine.toUpperCase()}</td>
       </tr>
       <tr>
-        <td colSpan="3"><strong>MECHANICS:</strong> {reportData.mechanics}</td>
-        <td colSpan="3"><strong>LOCATION:</strong> {reportData.location}</td>
+        <td colSpan="3"><strong>MECHANICS:</strong> {reportData.mechanics.toUpperCase()}</td>
+        <td colSpan="3"><strong>LOCATION:</strong> {reportData.location.toUpperCase()}</td>
       </tr>
       <tr>
         <td colSpan="3"><strong>DATE:</strong> {formatDateForDoc(reportData.date)}</td>
-        <td colSpan="3"><strong>OPERATOR NAME:</strong> {reportData.operatorName}</td>
+        <td colSpan="3"><strong>OPERATOR NAME:</strong> {reportData.operatorName.toUpperCase()}</td>
       </tr>
       <tr className='sign-table'>
         <td colSpan="3"><strong>MECHANIC SIGN:</strong>

@@ -1374,7 +1374,7 @@ function Equipments() {
               {sidebarContent.data.map((operator, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
-                  <td>{operator}</td>
+                  <td>{operator.toUpperCase()}</td>
                 </tr>
               ))}
             </tbody>
@@ -1721,7 +1721,7 @@ function Equipments() {
                         <span className="detail-label">Operator</span>
                         <span className="detail-value">
                           {item.certificationBody && item.certificationBody.length > 0
-                            ? item.certificationBody[item.certificationBody.length - 1]
+                            ? item.certificationBody[item.certificationBody.length - 1].toUpperCase()
                             : 'N/A'}
                         </span>
                       </div>

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import ExcelJS from 'exceljs';
 import logoImage from '../../assets/images/al-ansari-color.png';
-import alAnsariText from '../../assets/images/al-ansari-text.png';
+import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import { apiRequest } from '../../utils/0auth';
 import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
@@ -1264,7 +1264,7 @@ const ServiceHistory = () => {
             font="md"
             animation=""
             squircle="4xl"
-            width="160px"
+            width="fit-content"
             height="38px"
             type="submit"
             textColor="white-200"
@@ -1429,7 +1429,7 @@ const ServiceHistory = () => {
                             </div>
                             {item.remarks.length > 100 && (
                               <button
-                                className="view-more-btn"
+                                className="view-more-btn no-print"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleRemarkExpansion(index);
@@ -1447,7 +1447,7 @@ const ServiceHistory = () => {
                             </div>
                             {(item.majorRemarks?.length > 100 || item.workRemarks?.length > 100) && (
                               <button
-                                className="view-more-btn"
+                                className="view-more-btn no-print"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleRemarkExpansion(index);
@@ -1465,7 +1465,7 @@ const ServiceHistory = () => {
                             </div>
                             {item.remarks.length > 100 && (
                               <button
-                                className="view-more-btn"
+                                className="view-more-btn no-print"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleRemarkExpansion(index);
