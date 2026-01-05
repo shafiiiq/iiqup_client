@@ -1090,7 +1090,7 @@ const ServiceHistory = () => {
         <body>
           <div class="header-container" style="display:flex; justify-content: space-between; padding-inline: 2rem; align-items: center;">
             <img style="width: 15rem; max-height: 6rem;" src=${logoImage} alt="Company Logo" />
-            <img style="width: 24rem; max-height: 3rem;" src=${alAnsariText} alt="Company Logo" />
+            <img style="width: 24rem; max-height: 6rem;" src=${alAnsariText} alt="Company Logo" />
           </div>
           <h1>${tabName} History</h1>
           <h2>${equipmentData ? `${equipmentData.machine} - ${regNo}` : `Equipment: ${regNo}`}</h2>
@@ -1425,7 +1425,7 @@ const ServiceHistory = () => {
                         {(item.serviceType === 'oil' || item.serviceType === 'normal') && item.remarks && (
                           <div className="remarks-content">
                             <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.remarks}
+                              {item.remarks.toUpperCase()}
                             </div>
                             {item.remarks.length > 100 && (
                               <button
@@ -1443,7 +1443,7 @@ const ServiceHistory = () => {
                         {item.serviceType === 'maintenance' && (item.majorRemarks || item.workRemarks) && (
                           <div className="remarks-content">
                             <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.majorRemarks || item.workRemarks}
+                              {item.majorRemarks.toUpperCase() || item.workRemarks.toUpperCase()}
                             </div>
                             {(item.majorRemarks?.length > 100 || item.workRemarks?.length > 100) && (
                               <button
@@ -1461,7 +1461,7 @@ const ServiceHistory = () => {
                         {(item.serviceType === 'tyre' || item.serviceType === 'battery') && item.remarks && (
                           <div className="remarks-content">
                             <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.remarks}
+                              {item.remarks.toUpperCase()}
                             </div>
                             {item.remarks.length > 100 && (
                               <button
