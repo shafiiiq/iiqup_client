@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './ServiceForm.css';
 import { END_POINT } from '../../constants';
@@ -14,6 +14,8 @@ const ServiceForm = ({ initialData = {} }) => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert } = useAlert();
   const { triggerVibration } = useHeaderVibration();
+
+  const timeoutRef = useRef(null);
 
   const { regNo, date, serviceHrs, nextServiceHrs, oil, oilFilter, fuelFilter, airFilter, acFilter, waterSeparator, id, location, runningHours, tyreForm, mechanics, workRemarks } = useParams();
   const [equipments, setEquipments] = useState([]);
@@ -232,6 +234,54 @@ const ServiceForm = ({ initialData = {} }) => {
       }
     }
   }, [equipments, formData.regNo, isUpdateMode]);
+
+  const handleRemarksChange = async (e) => {
+    let { value } = e.target;
+
+    // Auto-capitalize first letter
+    if (value.length === 1) {
+      value = value.charAt(0).toUpperCase();
+    }
+    // Capitalize after period
+    value = value.replace(/\.\s+([a-z])/g, (match, letter) => '. ' + letter.toUpperCase());
+
+    setFormData({ ...formData, remarks: value });
+
+    // Clear previous timeout
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    // Check grammar after 1 second of no typing
+    timeoutRef.current = setTimeout(async () => {
+      if (value.trim()) {
+        try {
+          const response = await fetch('https://api.languagetool.org/v2/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `text=${encodeURIComponent(value)}&language=en-US`
+          });
+
+          const result = await response.json();
+
+          // Auto-fix ALL errors immediately
+          let fixed = value;
+          result.matches.reverse().forEach(match => {
+            if (match.replacements.length > 0) {
+              fixed = fixed.substring(0, match.offset) +
+                match.replacements[0].value +
+                fixed.substring(match.offset + match.length);
+            }
+          });
+
+          // Apply fixes automatically
+          if (fixed !== value) {
+            setFormData({ ...formData, remarks: fixed });
+          }
+        } catch (error) {
+          console.error('Grammar check error:', error);
+        }
+      }
+    }, 1500); // Wait 1.5 seconds after typing stops
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -470,10 +520,11 @@ const ServiceForm = ({ initialData = {} }) => {
                 id="remarks"
                 name="remarks"
                 value={formData.remarks}
-                onChange={handleInputChange}
+                onChange={handleRemarksChange}
                 rows="4"
                 placeholder="Enter any additional remarks..."
-              ></textarea>
+                spellCheck="true"
+              />
             </div>
           </div>
 
