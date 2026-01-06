@@ -8,6 +8,7 @@ import { useAlert } from '../../context/AlertContext';
 
 const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
+  const isLoadingRef = useRef(false);
   const { showAlert } = useAlert();
 
   const soundOptions = {
@@ -33,9 +34,15 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     }
   };
 
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 100;
+  const LOAD_THRESHOLD = 0.85;
+  const UNLOAD_THRESHOLD = 0.3;
   const BUFFER_ITEMS = 10;
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [displayedNotifications, setDisplayedNotifications] = useState([]);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [visibleCards, setVisibleCards] = useState(new Set());
@@ -85,18 +92,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     return cleanup;
   }, []);
 
-  useEffect(() => {
-    // Sort notifications by date - newest first
-    const sorted = [...notifications].sort((a, b) => {
-      const dateA = new Date(a.time || a.createdAt || 0);
-      const dateB = new Date(b.time || b.createdAt || 0);
-      return dateB - dateA; // Newest first
-    });
-
-    setFilteredNotifications(sorted);
-    setUnreadCount(notifications.filter(n => !n.read).length);
-  }, [notifications]);
-
   // Live time update effect
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -112,40 +107,24 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
-    fetchAllNotifications(false);
+    fetchAllNotifications(false, 1, false);
 
     const refreshInterval = setInterval(() => {
-      fetchAllNotifications(true);
+      fetchAllNotifications(true, 1, false);
     }, 30000);
 
     return () => clearInterval(refreshInterval);
   }, []);
 
-  // Virtual scrolling - only render visible items
-  useEffect(() => {
-    if (!filteredNotifications || filteredNotifications.length === 0) {
-      setDisplayedNotifications([]);
-      return;
-    }
-
-    const itemsToShow = Math.min(
-      filteredNotifications.length,
-      ITEMS_PER_PAGE + scrollPosition
-    );
-
-    const visibleItems = filteredNotifications.slice(0, itemsToShow);
-    setDisplayedNotifications(visibleItems);
-  }, [filteredNotifications, scrollPosition]);
-
   // Detect scroll and update which items to show
   useEffect(() => {
     let scrollTimeout = null;
+    let lastScrollTop = 0;
 
     const handleScroll = () => {
       if (scrollTimeout) clearTimeout(scrollTimeout);
 
       scrollTimeout = setTimeout(() => {
-        // Use scrollContainerRef if provided (for dashboard), otherwise use window
         const scrollElement = scrollContainerRef?.current || window;
 
         let scrollTop, windowHeight, documentHeight;
@@ -160,18 +139,85 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
           documentHeight = scrollElement.scrollHeight;
         }
 
-        // Load more when near bottom (500px before end)
-        if (scrollTop + windowHeight >= documentHeight - 500) {
-          setScrollPosition(prev => {
-            const newPosition = prev + 10;
-            console.log('📜 Loading more notifications...', newPosition);
-            return newPosition;
-          });
+        const scrollPercentage = (scrollTop + windowHeight) / documentHeight;
+        const isScrollingDown = scrollTop > lastScrollTop;
+
+        console.log('📊 SCROLL DEBUG:', {
+          scrollTop,
+          windowHeight,
+          documentHeight,
+          scrollPercentage: (scrollPercentage * 100).toFixed(2) + '%',
+          isScrollingDown,
+          currentPage,
+          hasMore,
+          isLoadingRefCurrent: isLoadingRef.current,
+          loading,
+          notificationsLength: notifications.length,
+          displayedLength: displayedNotifications.length
+        });
+
+        // SCROLL DOWN - Load more at 85%
+        if (
+          isScrollingDown &&
+          scrollPercentage > LOAD_THRESHOLD &&
+          hasMore &&
+          !isLoadingRef.current &&
+          !loading
+        ) {
+          console.log('🚀 TRIGGERING LOAD MORE');
+          console.log('   Current page:', currentPage);
+          console.log('   Has more:', hasMore);
+          console.log('   Is loading ref:', isLoadingRef.current);
+          console.log('   Loading state:', loading);
+
+          // Show loading alert
+          showAlert('Loading more notifications...', 'sync', '--color-info-600');
+
+          isLoadingRef.current = true;
+          setIsLoadingMore(true);
+
+          const nextPage = currentPage + 1;
+          console.log('   Next page will be:', nextPage);
+          setCurrentPage(nextPage);
+
+          fetchAllNotifications(false, nextPage, true)
+            .then(() => {
+              console.log('✅ FETCH COMPLETED');
+              console.log('   New notifications length:', notifications.length);
+            })
+            .catch((error) => {
+              console.error('❌ FETCH FAILED:', error);
+            })
+            .finally(() => {
+              setTimeout(() => {
+                console.log('🔓 UNLOCKING LOADING');
+                isLoadingRef.current = false;
+                setIsLoadingMore(false);
+
+                // Show success alert
+                showAlert('Loaded successfully', 'check_circle', '--color-success-600');
+              }, 500);
+            });
         }
-      }, 150);
+
+        // SCROLL UP - Remove bottom 100 ONLY when scrolled to very top
+        if (!isScrollingDown && scrollTop < 100 && currentPage > 1 && notifications.length > ITEMS_PER_PAGE) {
+          console.log('⬆️ SCROLL UP - REMOVING NOTIFICATIONS');
+          console.log('   Before removal:', notifications.length);
+          setNotifications(prev => {
+            const itemsToKeep = ITEMS_PER_PAGE;
+            const newArray = prev.slice(0, itemsToKeep);
+            console.log('   After removal:', newArray.length);
+            return newArray;
+          });
+          setCurrentPage(1);
+          console.log('   Reset to page 1');
+        }
+
+        lastScrollTop = scrollTop;
+      }, 200);
     };
 
-    // Attach listener to the correct element
     const scrollElement = scrollContainerRef?.current || window;
     scrollElement.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -179,32 +225,18 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       scrollElement.removeEventListener('scroll', handleScroll);
       if (scrollTimeout) clearTimeout(scrollTimeout);
     };
-  }, [scrollContainerRef]);
+  }, [hasMore, loading, currentPage, notifications.length, scrollContainerRef, showAlert, displayedNotifications.length]);
 
-  // Lazy load cards when they come into view
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const notificationId = entry.target.dataset.notificationId;
-            setVisibleCards(prev => new Set([...prev, notificationId]));
-          }
-        });
-      },
-      {
-        rootMargin: '100px',
-        threshold: 0.1
-      }
-    );
+    const sorted = [...notifications].sort((a, b) => {
+      const dateA = new Date(a.time || a.createdAt || 0);
+      const dateB = new Date(b.time || b.createdAt || 0);
+      return dateB - dateA;
+    });
 
-    const cards = document.querySelectorAll('.ntf-card');
-    cards.forEach(card => observer.observe(card));
-
-    return () => {
-      cards.forEach(card => observer.unobserve(card));
-    };
-  }, [displayedNotifications]);
+    setDisplayedNotifications(sorted);
+    setUnreadCount(notifications.filter(n => !n.read).length);
+  }, [notifications]);
 
   const initializeApp = async () => {
     try {
@@ -407,15 +439,22 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     uniqueCode: uniqueCode
   }
 
-  const fetchNormalNotifications = async () => {
+  const fetchNormalNotifications = async (page = 1) => {
     try {
       const response = await apiRequest(`${END_POINT}/notification/get-all-notification`,
         'POST',
-        body
+        {
+          uniqueCode: uniqueCode,
+          page: page,
+          limit: ITEMS_PER_PAGE
+        }
       );
       const data = await response.json();
 
       if (response.ok && data.status === 200) {
+        setHasMore(data.pagination.hasMore);
+        setTotalCount(data.pagination.totalCount);
+
         return data.data.map((notification) => ({
           ...notification,
           type: 'normal',
@@ -486,9 +525,13 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     }
   };
 
-  const fetchAllNotifications = async (isBackgroundRefresh = false) => {
-    // Only show loading spinner on initial load, not on auto-refresh
-    if (!isBackgroundRefresh) {
+  const fetchAllNotifications = async (isBackgroundRefresh = false, page = 1, append = false) => {
+    console.log('🔄 FETCH ALL NOTIFICATIONS CALLED');
+    console.log('   Background refresh:', isBackgroundRefresh);
+    console.log('   Page:', page);
+    console.log('   Append:', append);
+
+    if (!isBackgroundRefresh && !append) {
       setLoading(true);
     }
 
@@ -496,24 +539,45 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       const userUniqueCode = await getUserUniqueCode();
 
       const [normalNotifications, specialNotifications] = await Promise.all([
-        fetchNormalNotifications(),
-        fetchSpecialNotifications(userUniqueCode)
+        fetchNormalNotifications(page),
+        page === 1 ? fetchSpecialNotifications(userUniqueCode) : []
       ]);
 
-      const allNotifications = [
-        ...specialNotifications,
+      console.log('   Fetched normal:', normalNotifications.length);
+      console.log('   Fetched special:', specialNotifications.length);
+
+      const newNotifications = [
+        ...(page === 1 ? specialNotifications : []),
         ...normalNotifications
       ];
 
-      setNotifications(allNotifications);
+      console.log('   Total new notifications:', newNotifications.length);
+
+      if (append) {
+        console.log('   APPENDING to existing:', notifications.length);
+        setNotifications(prev => {
+          // Filter out duplicates by _id
+          const existingIds = new Set(prev.map(n => n._id));
+          const uniqueNew = newNotifications.filter(n => !existingIds.has(n._id));
+
+          console.log('   Unique new notifications:', uniqueNew.length);
+          console.log('   Duplicates filtered:', newNotifications.length - uniqueNew.length);
+
+          const combined = [...prev, ...uniqueNew];
+          console.log('   After append:', combined.length);
+          return combined;
+        });
+      } else {
+        console.log('   REPLACING all notifications');
+        setNotifications(newNotifications);
+      }
     } catch (error) {
-      console.error('Error fetching all notifications:', error);
-      // Only show alert on initial load failure, not on background refresh
-      if (!isBackgroundRefresh) {
+      console.error('❌ Error fetching all notifications:', error);
+      if (!isBackgroundRefresh && !append) {
         alert('Failed to fetch notifications. Please try again.');
       }
     } finally {
-      if (!isBackgroundRefresh) {
+      if (!isBackgroundRefresh && !append) {
         setLoading(false);
       }
     }
@@ -975,7 +1039,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       }
 
       <div className={islivemodeON ? 'live-table-info' : 'ntf-table-info'}>
-        Showing {displayedNotifications?.length || 0} of {filteredNotifications?.length || 0} notifications
+        Showing {displayedNotifications?.length || 0} notifications
       </div>
 
       <div className={`ntf-grid ${islivemodeON ? 'live-dsh-pad' : 'ntf-pad'}`}>
