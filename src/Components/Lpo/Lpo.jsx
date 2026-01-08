@@ -76,7 +76,7 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
   useEffect(() => {
     if (saveStatus) {
       // Show save status in header
-      const title = saveStatus.includes('Error') ? 'Error' : saveStatus.includes('Please') ? 'Warning': 'Success';
+      const title = saveStatus.includes('Error') ? 'Error' : saveStatus.includes('Please') ? 'Warning' : 'Success';
       setHeaderTitle(title);
       setHeaderSubtitle(saveStatus);
     } else if (lpoCounter) {
@@ -114,7 +114,8 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = now.getFullYear();
-    return `ATE${lpoNumber}/SP/${month}/${year}`;
+    const paddedLpoNumber = String(lpoNumber).padStart(3, '0');
+    return `ATE${paddedLpoNumber}/SP/${month}/${year}`;
   };
 
   const formatDate = (dateString) => {

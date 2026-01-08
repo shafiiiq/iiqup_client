@@ -523,8 +523,6 @@ const ServiceHistory = () => {
     }
   }, [regNo]);
 
-  // Filter and combine data based on active tab and date filter
-  // Filter and combine data based on active tab and date filter
   useEffect(() => {
     const processData = async () => {
       let combinedData = [];

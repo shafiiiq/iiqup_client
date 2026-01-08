@@ -10,6 +10,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
   const isLoadingRef = useRef(false);
   const { showAlert } = useAlert();
+  const pendingPagesRef = useRef(new Set());
 
   const soundOptions = {
     bell: {
@@ -110,7 +111,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     fetchAllNotifications(false, 1, false);
 
     const refreshInterval = setInterval(() => {
-      fetchAllNotifications(true, 1, false);
+      fetchAllNotifications(true, 1, true);
     }, 30000);
 
     return () => clearInterval(refreshInterval);
@@ -164,20 +165,26 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
           !isLoadingRef.current &&
           !loading
         ) {
+          const nextPage = currentPage + 1;
+
+          // Check if this page is already being fetched
+          if (pendingPagesRef.current.has(nextPage)) {
+            console.log('⏸️ Page', nextPage, 'already loading, skipping...');
+            return;
+          }
+
           console.log('🚀 TRIGGERING LOAD MORE');
           console.log('   Current page:', currentPage);
-          console.log('   Has more:', hasMore);
-          console.log('   Is loading ref:', isLoadingRef.current);
-          console.log('   Loading state:', loading);
+          console.log('   Next page will be:', nextPage);
+
+          // Mark this page as pending
+          pendingPagesRef.current.add(nextPage);
 
           // Show loading alert
           showAlert('Loading more notifications...', 'sync', '--color-info-600');
 
           isLoadingRef.current = true;
           setIsLoadingMore(true);
-
-          const nextPage = currentPage + 1;
-          console.log('   Next page will be:', nextPage);
           setCurrentPage(nextPage);
 
           fetchAllNotifications(false, nextPage, true)
@@ -189,14 +196,14 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
               console.error('❌ FETCH FAILED:', error);
             })
             .finally(() => {
-              setTimeout(() => {
-                console.log('🔓 UNLOCKING LOADING');
-                isLoadingRef.current = false;
-                setIsLoadingMore(false);
+              // Remove from pending
+              pendingPagesRef.current.delete(nextPage);
 
-                // Show success alert
-                showAlert('Loaded successfully', 'check_circle', '--color-success-600');
-              }, 500);
+              isLoadingRef.current = false;
+              setIsLoadingMore(false);
+
+              // Show success alert
+              showAlert('Loaded successfully', 'check_circle', '--color-success-600');
             });
         }
 
@@ -211,6 +218,8 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
             return newArray;
           });
           setCurrentPage(1);
+          // Clear pending pages
+          pendingPagesRef.current.clear();
           console.log('   Reset to page 1');
         }
 
@@ -531,7 +540,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     console.log('   Page:', page);
     console.log('   Append:', append);
 
-    if (!isBackgroundRefresh && !append) {
+    if (!isBackgroundRefresh && !append) {  // ← FIX THIS LINE
       setLoading(true);
     }
 
@@ -553,18 +562,20 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
       console.log('   Total new notifications:', newNotifications.length);
 
-      if (append) {
-        console.log('   APPENDING to existing:', notifications.length);
+      if (append || isBackgroundRefresh) {
+        console.log('   MERGING with existing:', notifications.length);
         setNotifications(prev => {
-          // Filter out duplicates by _id
           const existingIds = new Set(prev.map(n => n._id));
           const uniqueNew = newNotifications.filter(n => !existingIds.has(n._id));
 
           console.log('   Unique new notifications:', uniqueNew.length);
           console.log('   Duplicates filtered:', newNotifications.length - uniqueNew.length);
 
-          const combined = [...prev, ...uniqueNew];
-          console.log('   After append:', combined.length);
+          const combined = isBackgroundRefresh
+            ? [...uniqueNew, ...prev]
+            : [...prev, ...uniqueNew];
+
+          console.log('   After merge:', combined.length);
           return combined;
         });
       } else {
