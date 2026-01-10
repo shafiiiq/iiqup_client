@@ -345,42 +345,6 @@ function App() {
     navigate('/equipments')
   };
 
-  const createLPO = (lpoItem = null,) => {
-    console.log(lpoItem);
-
-    const hideUntil = new Date();
-    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
-
-    // Store in sessionStorage instead of component state
-    sessionStorage.setItem('createdLPO', hideUntil.getTime().toString());
-    setisLPOAlert(false);
-
-    // If you need to do something with the lpoItem, do it here
-    if (lpoItem) {
-      console.log('Creating LPO for:', lpoItem.regNo);
-      // Add any specific logic for the LPO item here
-    }
-
-    navigate(`/lpo-form/${lpoItem.regNo}/${lpoItem._id}`);
-  };
-
-  const storeNewWork = (workItem = null,) => {
-    const hideUntil = new Date();
-    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
-
-    // Store in sessionStorage instead of component state
-    sessionStorage.setItem('workNotified', hideUntil.getTime().toString());
-    setisWorkAlert(false);
-
-    // If you need to do something with the lpoItem, do it here
-    if (workItem) {
-      console.log('Creating Work data for:', workItem._id);
-      // Add any specific logic for the LPO item here
-    }
-
-    navigate(`/complaints/${workItem._id}/${workItem.regNo}`);
-  };
-
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
@@ -1032,6 +996,18 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
+                  <Route
+                    path="/lpo-form/:regNo"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <Lpo />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
 
                   <Route path="/lpo-doc/:lpoRef"
                     element={

@@ -119,7 +119,21 @@
 
   /* ========== ABSOLUTE COLORS ========== */
   --color-white: #ffffff;
+  --color-white-100: #f3f3f3;
+  --color-white-200: #dddddd;
+  --color-white-300: #bdbdbd;
+  --color-white-400: #9b9b9b;
+  --color-white-500: #7e7e7e;
+  --color-white-600: #6e6e6e;
+
   --color-black: #000000;
+  --color-black-100: #000000;
+  --color-black-200: #000000;
+  --color-black-300: #000000;
+  --color-black-400: #818181;
+  --color-black-500: #acacac;
+  --color-black-600: #c5c5c5;
+  --color-black-700: #dfdfdf;
   --color-transparent: transparent;
 
   /* ========== BACKGROUND COLORS ========== */

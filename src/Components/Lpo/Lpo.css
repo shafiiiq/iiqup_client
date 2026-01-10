@@ -576,11 +576,12 @@
 }
 
 .equipment-tag {
-  background-color: #f0f0f0;
+  background: #f0f0f0 !important;
   padding: 3px 8px;
   border-radius: 4px;
   display: flex;
   align-items: center;
+  color: var(--text-inverse) !important;
   gap: 5px;
 }
 

@@ -1564,12 +1564,12 @@ const LpoDoc = () => {
                       {signatureStates.pm.url ? (
                         <img className='accounts-sign pm-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   ) : (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
 
@@ -1578,12 +1578,12 @@ const LpoDoc = () => {
                       {signatureStates.manager.url ? (
                         <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   ) : (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
 
@@ -1597,12 +1597,12 @@ const LpoDoc = () => {
                           )}
                         </div>
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   ) : (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
 
@@ -1611,12 +1611,12 @@ const LpoDoc = () => {
                       {signatureStates.accounts.url ? (
                         <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   ) : (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
                   <td></td>
@@ -1771,13 +1771,13 @@ const LpoDoc = () => {
                             {signatureStates.pm.url ? (
                               <img className='accounts-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                             ) : (
-                              <span className="account-no-signature">Not Signed</span>
+                              <span className="account-no-signature"></span>
                             )}
                           </td>
                         )}
                         {!signatureFlags.pmSigned && (
                           <td className='sign-table lpo-signs sign-border-td-r'>
-                            <span className="account-no-signature">Not Signed</span>
+                            <span className="account-no-signature"></span>
                           </td>
                         )}
 
@@ -1787,13 +1787,13 @@ const LpoDoc = () => {
                             {signatureStates.manager.url ? (
                               <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                             ) : (
-                              <span className="account-no-signature">Not Signed</span>
+                              <span className="account-no-signature"></span>
                             )}
                           </td>
                         )}
                         {!signatureFlags.managerSigned && (
                           <td className='sign-table lpo-signs sign-border-td-r'>
-                            <span className="account-no-signature">Not Signed</span>
+                            <span className="account-no-signature"></span>
                           </td>
                         )}
 
@@ -1808,12 +1808,12 @@ const LpoDoc = () => {
                                 )}
                               </div>
                             ) : (
-                              <span className="account-no-signature">Not Signed</span>
+                              <span className="account-no-signature"></span>
                             )}
                           </td>
                         ) : (
                           <td className='sign-table lpo-signs sign-border-td-r'>
-                            <span className="account-no-signature">Not Signed</span>
+                            <span className="account-no-signature"></span>
                           </td>
                         )}
 
@@ -1823,13 +1823,13 @@ const LpoDoc = () => {
                             {signatureStates.accounts.url ? (
                               <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                             ) : (
-                              <span className="account-no-signature">Not Signed</span>
+                              <span className="account-no-signature"></span>
                             )}
                           </td>
                         )}
                         {!signatureFlags.accountsSigned && (
                           <td className='sign-table lpo-signs sign-border-td-r'>
-                            <span className="account-no-signature">Not Signed</span>
+                            <span className="account-no-signature"></span>
                           </td>
                         )}
                         <td></td>
@@ -1985,13 +1985,13 @@ const LpoDoc = () => {
                       {signatureStates.pm.url ? (
                         <img className='accounts-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   )}
                   {!signatureFlags.pmSigned && (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
 
@@ -2001,13 +2001,13 @@ const LpoDoc = () => {
                       {signatureStates.manager.url ? (
                         <img className='accounts-sign' src={signatureStates.manager.url} alt="Manager Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   )}
                   {!signatureFlags.managerSigned && (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
 
@@ -2022,12 +2022,12 @@ const LpoDoc = () => {
                           )}
                         </div>
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   ) : (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
 
@@ -2037,13 +2037,13 @@ const LpoDoc = () => {
                       {signatureStates.accounts.url ? (
                         <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
-                        <span className="account-no-signature">Not Signed</span>
+                        <span className="account-no-signature"></span>
                       )}
                     </td>
                   )}
                   {!signatureFlags.accountsSigned && (
                     <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature">Not Signed</span>
+                      <span className="account-no-signature"></span>
                     </td>
                   )}
                   <td></td>
