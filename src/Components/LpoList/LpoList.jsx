@@ -16,6 +16,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [lpos, setLpos] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedLpo, setSelectedLpo] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
@@ -98,6 +99,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       url = `${END_POINT}/lpo/get-lpo-of-all-equipments`;
     }
 
+    setIsLoading(true);
     try {
       const response = await apiRequest(url, 'GET');
       const data = await response.json()
@@ -106,6 +108,8 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       setFilteredData(data.data);
     } catch (error) {
       console.error(`Error fetching LPO records:`, error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -480,7 +484,13 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
             </tr>
           </thead>
           <tbody>
-            {filteredData && filteredData.length > 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan="6" className="no-results">
+                  Loading LPO data...
+                </td>
+              </tr>
+            ) : filteredData && filteredData.length > 0 ? (
               filteredData.map((lpo) => (
                 <tr
                   key={lpo._id}
@@ -544,7 +554,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
             ) : (
               <tr>
                 <td colSpan="6" className="no-results">
-                  {lpos?.length > 0 ? 'No matching records found' : 'Loading LPO data...'}
+                  No LPO data available
                 </td>
               </tr>
             )}

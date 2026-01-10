@@ -1460,7 +1460,7 @@ const LpoDoc = () => {
                     {data.jobCode && (
                       <div className="detail-item">JOB/COMPLAINT NO : {data.jobCode}</div>
                     )}
-                    <div className="detail-item">
+                    <div className="detail-item" style={{flexDirection: 'row'}}>
                       EQUIPMENT:
                       <ul>
                         {data.equipments.map((item, index) => (
@@ -1653,7 +1653,7 @@ const LpoDoc = () => {
         {data.items.length > 12 && (
           <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
             <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
-              {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
+              {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : ''}
             </div>
 
             {/* Header */}
@@ -1870,7 +1870,7 @@ const LpoDoc = () => {
         {data.items.length > 48 && (
           <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
             <div className={signatureFlags.ceoSigned && signatureStates.seal.url ? 'authorized-watermark' : 'draft-watermark'}>
-              {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : 'DRAFT'}
+              {signatureFlags.ceoSigned && signatureStates.seal.url ? '' : ''}
             </div>
 
             {/* Header */}
@@ -2184,7 +2184,7 @@ const LpoDoc = () => {
           signatureFlags.ceoSigned && signatureStates.seal.url ? '' :
             amendmentData ? '' :
               lpoData.isAmendment ? '' :
-                'DRAFT'
+                ''
         }
         showOriginalLabel={amendmentData !== null}
       />
