@@ -336,9 +336,9 @@
 /* LPO Table Container */
 .lpo-table-container {
   overflow-x: auto;
-  border-radius: 8px;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle
 }
 
 /* LPO Table */
@@ -349,7 +349,7 @@
 }
 
 .lpo-table th {
-  background-color: var(--bg-secondary) !important;
+  background: var(--gradient-primary-900) !important;
   text-align: left;
   padding: 12px 15px;
   font-weight: 600;
@@ -362,19 +362,11 @@
 
 .lpo-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--border-primary) !important;
+  background: var(--gradient-primary-900) !important;
+  border-bottom: 1px solid var(--color-black-200) !important;
   vertical-align: middle;
   color: var(--text-color) !important;
 }
-
-.lpo-table tr:nth-child(odd) {
-  background-color: var(--gradient-primary-500) !important;
-}
-
-.lpo-table tr:nth-child(even) {
-  background: var(--gradient-primary-400) !important;
-}
-
 
 .lpo-table tbody tr {
   transition: background-color 0.2s ease;

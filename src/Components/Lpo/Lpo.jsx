@@ -1175,7 +1175,7 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
             </tr>
             <tr>
               <td className='sign-table-l'>Accounts Dept:</td>
-              <td className='sign-table-l'>Purchasing Manager</td>
+              <td className='sign-table-l'>Purchase Manager</td>
               <td className='sign-table-l'>Operations Manager</td>
               <td className='sign-table-l'>
                 Authorized Signatory<br />

@@ -106,6 +106,9 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
 
       setLpos(data.data);
       setFilteredData(data.data);
+
+      console.log("data.data", data.data);
+      
     } catch (error) {
       console.error(`Error fetching LPO records:`, error);
     } finally {
@@ -479,6 +482,12 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
               <th>Date</th>
               <th>Vendor</th>
               <th>Equipment</th>
+              <th>Working HRS/ Running KM</th>
+              <th>Items</th>
+              <th>Complaint No</th>
+              <th>Workflow Status</th>
+              <th>Sign Status</th>
+              <th>Amenmended</th>
               <th>Total Amount</th>
               <th>Actions</th>
             </tr>
@@ -500,7 +509,13 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   <td>{lpo.lpoRef}</td>
                   <td>{formatDate(lpo.date)}</td>
                   <td>{lpo.company.vendor}</td>
-                  <td>{lpo.equipment}</td>
+                  <td>{lpo.equipments[0]}</td>
+                  <td>{lpo.workingHrs || lpo.runningKM || 'N/A'}</td>
+                  <td>{lpo.items[0].description}</td>
+                  <td>{lpo.complaintId ? lpo.complaintId : 'Normal LPO'}</td>
+                  <td>{lpo.workflowStatus}</td>
+                  <td>{lpo.accoaccountsSignedunts &&  lpo.pmSigned &&  lpo.managerSigned && lpo.ceoSigned ? 'Signed and Approved' : 'Pending'}</td>
+                  <td>{lpo.isAmendmented ? 'YES' : 'NO'}</td>
                   <td>SAR {lpo.totalAmount.toFixed(2)}</td>
                   <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
                     <Button

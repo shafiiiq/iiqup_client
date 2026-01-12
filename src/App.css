@@ -127,9 +127,9 @@
   --color-white-600: #6e6e6e;
 
   --color-black: #000000;
-  --color-black-100: #000000;
-  --color-black-200: #000000;
-  --color-black-300: #000000;
+  --color-black-100: #202020;
+  --color-black-200: #424242;
+  --color-black-300: rgb(141, 141, 141);
   --color-black-400: #818181;
   --color-black-500: #acacac;
   --color-black-600: #c5c5c5;

@@ -269,7 +269,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                                 shadowColor="white-600"
                             />
                             <Button
-                                text="View > Of All"
+                                text="View > All"
                                 onClick={() => handleLpo('view-all-lpo')}
                                 colorScheme="orange-800"
                                 variant="gradient"

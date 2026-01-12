@@ -1317,7 +1317,7 @@ const LpoDoc = () => {
                 </tr>
                 <tr>
                   <td class="sign-table sign-border-td">Accounts Dept:</td>
-                  <td class="sign-table sign-border-td">Purchasing Manager</td>
+                  <td class="sign-table sign-border-td">Purchase Manager</td>
                   <td class="sign-table sign-border-td">Operations Manager</td>
                   <td class="sign-table sign-border-td">
                     Authorized Signatory<br />
@@ -1549,7 +1549,7 @@ const LpoDoc = () => {
                   <td className='sign-table'>Subcontractor OR<br />Service Provider</td>
                 </tr>
                 <tr>
-                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchase Manager</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
                     Authorized Signatory<br />
@@ -1752,7 +1752,7 @@ const LpoDoc = () => {
                         </td>
                       </tr>
                       <tr>
-                        <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
+                        <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchase Manager</td>
                         <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
                         <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
                           Authorized Signatory<br />
@@ -1966,7 +1966,7 @@ const LpoDoc = () => {
                   </td>
                 </tr>
                 <tr>
-                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchasing Manager</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchase Manager</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
                     Authorized Signatory<br />
