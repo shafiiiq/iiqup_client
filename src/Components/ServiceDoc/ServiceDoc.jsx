@@ -1148,7 +1148,7 @@ const renderChecklistItems = (reportData) => {
             </div>
           </div>
           <span className="equipment-fit-to-work">
-            Equipment fit to work
+            EQUIPMENT FIT TO WORK
           </span>
         </td>
       </tr>

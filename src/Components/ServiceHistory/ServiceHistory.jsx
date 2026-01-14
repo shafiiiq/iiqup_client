@@ -1349,11 +1349,20 @@ const ServiceHistory = () => {
             table th:nth-child(2), table td:nth-child(2),
             table th:nth-child(5), table td:nth-child(5),
             table th:nth-child(6), table td:nth-child(6),
-            table th:nth-child(7), table td:nth-child(7),
             table th:nth-child(8), table td:nth-child(8),
             table th:nth-child(9), table td:nth-child(9){
               max-width: 50px !important;
               width: 50px !important;
+              font-size: 12px !important;
+              padding: 2px 4px !important
+              word-wrap: break-word !important;
+              overflow: hidden !important;
+              white-space: normal !important;
+            }
+
+            table th:nth-child(7), table td:nth-child(7) {
+              max-width: 90px !important;
+              width: 90px !important;
               font-size: 12px !important;
               padding: 2px 4px !important
               word-wrap: break-word !important;
