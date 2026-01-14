@@ -1396,6 +1396,7 @@ const ServiceHistory = () => {
         <body>
           <div class="header-container" style="display:flex; justify-content: space-between; padding-inline: 1rem; align-items: center;">
             <img style="width: 10rem; max-height: 6rem;" src=${logoImage} alt="Company Logo" />
+            <img style="width: 18rem; max-height: 6rem;" src=${alAnsariText} alt="Company Logo" />
           </div>
           <div style="display: flex; width: 100%; gap:1rem; justify-content: center; align-items: center">
             <h2 style="font-weight: 700; text-align: center">${tabName} History -</h2>
