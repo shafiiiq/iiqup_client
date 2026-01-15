@@ -540,7 +540,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     console.log('   Page:', page);
     console.log('   Append:', append);
 
-    if (!isBackgroundRefresh && !append) {  // ← FIX THIS LINE
+    if (!isBackgroundRefresh && !append) { 
       setLoading(true);
     }
 

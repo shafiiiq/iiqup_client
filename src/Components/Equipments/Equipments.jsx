@@ -21,7 +21,7 @@ function Equipments() {
   const ITEMS_PER_PAGE = 20; // Show 20 cards at a time
   const BUFFER_ITEMS = 10; // Preload 10 cards above/below viewport
 
-   const [activeTab, setActiveTab] = useState('equipment-based');
+  const [activeTab, setActiveTab] = useState('equipment-based');
   const [displayedSites, setDisplayedSites] = useState([]);
   const [siteScrollPosition, setSiteScrollPosition] = useState(0);
   const [siteGroupedEquipment, setSiteGroupedEquipment] = useState({});
@@ -46,14 +46,11 @@ function Equipments() {
   const [addFormFields, setAddFormFields] = useState([]);
   const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(true);
   const [isLoadingEquipments, setIsLoadingEquipments] = useState(true);
-  const [outsideEquipmentForm, setOutsideEquipmentForm] = useState({
-    machine: '',
-    regNo: '',
-    brand: '',
-    operator: '',
-    company: 'OUTSIDE',
-    outside: true
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [operatorSearchTerm, setOperatorSearchTerm] = useState('');
   const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
   const [filteredOperator, setFilteredOperator] = useState([]);
@@ -68,6 +65,8 @@ function Equipments() {
   const [showNoResultsModal, setShowNoResultsModal] = useState(false);
   const [equipmentProgress, setEquipmentProgress] = useState(0);
   const [completedWorks, setCompletedWorks] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editEquipment, setEditEquipment] = useState(null);
   const [showCompletedWorkAlert, setShowCompletedWorkAlert] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addEquipmentForm, setAddEquipmentForm] = useState({
@@ -85,8 +84,6 @@ function Equipments() {
     status: 'Active',
     site: ''
   });
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editEquipment, setEditEquipment] = useState(null);
   const [editFormData, setEditFormData] = useState({
     machine: '',
     regNo: '',
@@ -97,6 +94,14 @@ function Equipments() {
     brand: '',
     site: '',
     status: ''
+  });
+  const [outsideEquipmentForm, setOutsideEquipmentForm] = useState({
+    machine: '',
+    regNo: '',
+    brand: '',
+    operator: '',
+    company: 'OUTSIDE',
+    outside: true
   });
 
   // Group equipment by site whenever filteredData changes
@@ -531,8 +536,43 @@ function Equipments() {
     fetchCompletedWorks();
   }, []);
 
-  const fetchEquipments = async () => {
-    setIsLoadingEquipments(true);
+  // Infinite scroll for loading more equipment
+  useEffect(() => {
+    if (activeTab !== 'equipment-based') return;
+    if (!hasMore || isLoadingMore || isLoadingEquipments) return;
+
+    let scrollTimeout = null;
+
+    const handleInfiniteScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      scrollTimeout = setTimeout(() => {
+        const scrollTop = window.scrollY + window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // Load more when 80% scrolled
+        if (scrollTop > documentHeight * 0.8) {
+          console.log('Loading more equipment...');
+          fetchEquipments(currentPage + 1, true);
+        }
+      }, 200);
+    };
+
+    window.addEventListener('scroll', handleInfiniteScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleInfiniteScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, [activeTab, hasMore, isLoadingMore, isLoadingEquipments, currentPage]);
+
+
+  const fetchEquipments = async (page = 1, append = false) => {
+    if (page === 1) {
+      setIsLoadingEquipments(true);
+    } else {
+      setIsLoadingMore(true);
+    }
 
     const progressInterval = setInterval(() => {
       setEquipmentProgress(prev => {
@@ -542,125 +582,82 @@ function Equipments() {
     }, 150);
 
     try {
-      // Try to get cached equipment list first
-      let equipmentList = getCachedEquipmentList();
-
-      // If no cache, fetch from server
-      if (!equipmentList) {
-        console.log('Fetching equipment list from server...');
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-        const data = await response.json();
-        equipmentList = data.data;
-
-        // Cache the equipment list
-        setCachedEquipmentList(equipmentList);
-      }
-
-      // Check if we have cached equipment data
-      const cachedEquipmentData = localStorage.getItem(EQUIPMENT_DATA_CACHE_KEY);
-      let equipmentImagesCache = {};
-
-      if (cachedEquipmentData) {
-        try {
-          const parsed = JSON.parse(cachedEquipmentData);
-          const now = new Date().getTime();
-          // Check if cache is still valid
-          if (parsed.timestamp && (now - parsed.timestamp < CACHE_EXPIRY_HOURS * 60 * 60 * 1000)) {
-            equipmentImagesCache = parsed.data;
-            console.log('Using cached equipment images data');
-          }
-        } catch (e) {
-          console.error('Error parsing cached equipment data:', e);
-        }
-      }
-
-      // Separate equipment into cached and non-cached
-      const cachedEquipment = [];
-      const uncachedEquipment = [];
-
-      equipmentList.forEach(equipment => {
-        if (equipmentImagesCache[equipment.regNo]) {
-          cachedEquipment.push({
-            ...equipment,
-            equipmentImage: equipmentImagesCache[equipment.regNo]
-          });
-        } else {
-          uncachedEquipment.push(equipment);
-        }
-      });
-
-      // Fetch ALL uncached equipment images in PARALLEL
-      const uncachedImagePromises = uncachedEquipment.map(equipment =>
-        apiRequest(`${END_POINT}/stocks/equipment/${equipment.regNo}`, 'GET')
-          .then(response => response.json())
-          .then(imageData => ({ regNo: equipment.regNo, imageData }))
-          .catch(error => {
-            console.error(`Error fetching images for ${equipment.regNo}:`, error);
-            return { regNo: equipment.regNo, imageData: null };
-          })
+      // Fetch equipment list with pagination
+      const response = await apiRequest(
+        `${END_POINT}/equipments/get-equipments?page=${page}&limit=20`,
+        'GET'
       );
+      const data = await response.json();
 
-      // Wait for ALL image data fetches to complete
-      const allImageData = await Promise.all(uncachedImagePromises);
+      if (!data.ok) {
+        throw new Error(data.message || 'Failed to fetch equipments');
+      }
 
-      // Now fetch ALL S3 URLs in PARALLEL
-      const equipmentWithImagePromises = allImageData.map(async ({ regNo, imageData }) => {
-        const equipment = uncachedEquipment.find(eq => eq.regNo === regNo);
+      const equipmentList = data.data;
+      setCurrentPage(data.pagination.currentPage);
+      setTotalPages(data.pagination.totalPages);
+      setTotalCount(data.pagination.totalCount);
+      setHasMore(data.pagination.hasMore);
 
-        if (!imageData || !imageData.data?.images) {
+      // Get regNos for bulk image fetch
+      const regNos = equipmentList.map(eq => eq.regNo);
+
+      // Fetch images in bulk (ONE API call instead of 20!)
+      const imageResponse = await apiRequest(
+        `${END_POINT}/equipments/bulk-equipment-images`,
+        'POST',
+        { regNos }
+      );
+      const imageData = await imageResponse.json();
+
+      // Merge equipment with images
+      const equipmentsWithImages = await Promise.all(
+        equipmentList.map(async (equipment) => {
+          const images = imageData.data[equipment.regNo];
+
+          if (!images || !images.success || images.images.length === 0) {
+            return { ...equipment, equipmentImage: [] };
+          }
+
+          // Fetch S3 URLs for images
+          const imagesWithUrls = await Promise.all(
+            images.images.map(async (img) => {
+              const s3Url = await getMediaUrlWithCache(img.path);
+              return {
+                ...img,
+                s3Url: s3Url || `${END_POINT}/${img.path}`
+              };
+            })
+          );
+
           return {
             ...equipment,
-            equipmentImage: []
+            equipmentImage: imagesWithUrls
           };
-        }
-
-        // Fetch ALL S3 URLs for this equipment in PARALLEL
-        const s3UrlPromises = imageData.data.images.map(img =>
-          getMediaUrlWithCache(img.path)
-            .then(s3Url => ({
-              ...img,
-              s3Url: s3Url || `${END_POINT}/${img.path}`
-            }))
-            .catch(() => ({
-              ...img,
-              s3Url: `${END_POINT}/${img.path}`
-            }))
-        );
-
-        const imagesWithUrls = await Promise.all(s3UrlPromises);
-
-        // Cache this equipment's images
-        equipmentImagesCache[equipment.regNo] = imagesWithUrls;
-
-        return {
-          ...equipment,
-          equipmentImage: imagesWithUrls
-        };
-      });
-
-      // Wait for ALL equipment image processing to complete
-      const processedUncachedEquipment = await Promise.all(equipmentWithImagePromises);
-
-      // Combine cached and newly fetched equipment
-      const equipmentsWithImages = [...cachedEquipment, ...processedUncachedEquipment];
-
-      // Save all equipment images to cache
-      localStorage.setItem(EQUIPMENT_DATA_CACHE_KEY, JSON.stringify({
-        data: equipmentImagesCache,
-        timestamp: new Date().getTime()
-      }));
+        })
+      );
 
       setEquipmentProgress(100);
-      setEquipments(equipmentsWithImages);
-      setFilteredData(equipmentsWithImages);
+
+      if (append) {
+        // Add to existing equipment
+        setEquipments(prev => [...prev, ...equipmentsWithImages]);
+        setFilteredData(prev => [...prev, ...equipmentsWithImages]);
+      } else {
+        // Replace all equipment
+        setEquipments(equipmentsWithImages);
+        setFilteredData(equipmentsWithImages);
+      }
 
       setTimeout(() => {
         setIsLoadingEquipments(false);
+        setIsLoadingMore(false);
         setEquipmentProgress(0);
       }, 500);
     } catch (error) {
       console.error('Error fetching equipment records:', error);
       setIsLoadingEquipments(false);
+      setIsLoadingMore(false);
       setEquipmentProgress(0);
     } finally {
       clearInterval(progressInterval);
@@ -697,40 +694,72 @@ function Equipments() {
   };
 
   useEffect(() => {
-    if (equipments && equipments.length > 0) {
-      let results;
-
-      if (activeTab === 'site-based' && searchTerm) {
-        // In site-based view, filter by site name
-        results = equipments.filter(item => {
-          // Handle site as array or string
-          let siteName = item.site;
-          if (Array.isArray(siteName)) {
-            siteName = siteName[siteName.length - 1] || 'Unassigned';
-          } else {
-            siteName = siteName || 'Unassigned';
-          }
-          return String(siteName).toLowerCase().includes(searchTerm.toLowerCase());
-        });
-      } else {
-        // In equipment-based view, search all fields
-        results = equipments.filter(item => {
-          return Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        });
-      }
-
-      setFilteredData(results);
-
-      // Show modal if search term exists but no results found
-      if (searchTerm && results.length === 0) {
-        setShowNoResultsModal(true);
-      } else {
+    const searchEquipments = async () => {
+      if (!searchTerm || searchTerm.trim() === '') {
+        // Search cleared - reload original equipment data
+        fetchEquipments(1, false); // Reset to page 1, don't append
         setShowNoResultsModal(false);
+        return;
       }
-    }
-  }, [searchTerm, equipments, activeTab]);
+
+      try {
+        const response = await apiRequest(
+          `${END_POINT}/equipments/search-equipments`,
+          'POST',
+          {
+            searchTerm: searchTerm.trim(),
+            page: 1,
+            limit: 100,
+            searchField: activeTab === 'site-based' ? 'site' : 'all'
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.ok) {
+          // Fetch images for search results
+          const regNos = data.data.map(eq => eq.regNo);
+          const imageResponse = await apiRequest(
+            `${END_POINT}/equipments/bulk-equipment-images`,
+            'POST',
+            { regNos }
+          );
+          const imageData = await imageResponse.json();
+
+          // Merge with images
+          const resultsWithImages = await Promise.all(
+            data.data.map(async (equipment) => {
+              const images = imageData.data[equipment.regNo];
+
+              if (!images || !images.success || images.images.length === 0) {
+                return { ...equipment, equipmentImage: [] };
+              }
+
+              const imagesWithUrls = await Promise.all(
+                images.images.map(async (img) => {
+                  const s3Url = await getMediaUrlWithCache(img.path);
+                  return { ...img, s3Url: s3Url || `${END_POINT}/${img.path}` };
+                })
+              );
+
+              return { ...equipment, equipmentImage: imagesWithUrls };
+            })
+          );
+
+          setFilteredData(resultsWithImages);
+          setShowNoResultsModal(resultsWithImages.length === 0);
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      searchEquipments();
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm, activeTab]);
 
   const handleNavigateToComplaint = (workItem) => {
     navigate(`/complaints/${workItem._id}/${workItem.regNo}`);

@@ -340,11 +340,11 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             onBlur={handleSearchBlur}
           />
-          {searchTerm && (  /* CHANGED from searchQuery */
+          {searchTerm && (  
             <button
               className="search-clear-btn"
               onClick={() => {
-                clearSearch();  /* CHANGED */
+                clearSearch(); 
                 setSearchExpanded(false);
               }}
             >
