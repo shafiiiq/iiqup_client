@@ -69,6 +69,10 @@ function Equipments() {
   const [editEquipment, setEditEquipment] = useState(null);
   const [showCompletedWorkAlert, setShowCompletedWorkAlert] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const [fullscreenEquipment, setFullscreenEquipment] = useState(null);
+  const [imageClickPosition, setImageClickPosition] = useState({ x: 0, y: 0 });
   const [addEquipmentForm, setAddEquipmentForm] = useState({
     machine: '',
     regNo: '',
@@ -328,6 +332,88 @@ function Equipments() {
       console.error('Error getting media URL:', error);
       return '';
     }
+  };
+
+  const handleImageClick = (e, equipment, imageIndex) => {
+    e.stopPropagation();
+
+    // Get the clicked image position
+    const rect = e.target.getBoundingClientRect();
+    setImageClickPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    });
+
+    setFullscreenEquipment(equipment);
+    setFullscreenImage(equipment.equipmentImage[imageIndex]);
+    setFullscreenImageIndex(imageIndex);
+  };
+
+  const closeFullscreen = () => {
+    const overlay = document.querySelector('.fullscreen-overlay');
+    if (overlay) {
+      overlay.classList.add('closing');
+      setTimeout(() => {
+        setFullscreenImage(null);
+        setFullscreenEquipment(null);
+        setFullscreenImageIndex(0);
+      }, 400);
+    }
+  };
+
+  const navigateFullscreenImage = (direction) => {
+    if (!fullscreenEquipment) return;
+
+    const currentEquipmentIndex = filteredData.findIndex(
+      eq => eq.regNo === fullscreenEquipment.regNo
+    );
+
+    let newIndex = fullscreenImageIndex + direction;
+    let newEquipment = fullscreenEquipment;
+
+    // If exceeded current equipment images, move to next/prev equipment
+    if (newIndex >= fullscreenEquipment.equipmentImage.length) {
+      // Move to next equipment
+      const nextEquipmentIndex = currentEquipmentIndex + 1;
+      if (nextEquipmentIndex < filteredData.length) {
+        newEquipment = filteredData[nextEquipmentIndex];
+        // Skip equipment without images
+        while (newEquipment && (!newEquipment.equipmentImage || newEquipment.equipmentImage.length === 0)) {
+          const skipIndex = filteredData.findIndex(eq => eq.regNo === newEquipment.regNo) + 1;
+          newEquipment = filteredData[skipIndex];
+        }
+        if (newEquipment && newEquipment.equipmentImage && newEquipment.equipmentImage.length > 0) {
+          newIndex = 0;
+          setFullscreenEquipment(newEquipment);
+        } else {
+          return; // No more equipment with images
+        }
+      } else {
+        return; // Last equipment
+      }
+    } else if (newIndex < 0) {
+      // Move to previous equipment
+      const prevEquipmentIndex = currentEquipmentIndex - 1;
+      if (prevEquipmentIndex >= 0) {
+        newEquipment = filteredData[prevEquipmentIndex];
+        // Skip equipment without images
+        while (newEquipment && (!newEquipment.equipmentImage || newEquipment.equipmentImage.length === 0)) {
+          const skipIndex = filteredData.findIndex(eq => eq.regNo === newEquipment.regNo) - 1;
+          newEquipment = filteredData[skipIndex];
+        }
+        if (newEquipment && newEquipment.equipmentImage && newEquipment.equipmentImage.length > 0) {
+          newIndex = newEquipment.equipmentImage.length - 1;
+          setFullscreenEquipment(newEquipment);
+        } else {
+          return; // No more equipment with images
+        }
+      } else {
+        return; // First equipment
+      }
+    }
+
+    setFullscreenImageIndex(newIndex);
+    setFullscreenImage(newEquipment.equipmentImage[newIndex]);
   };
 
   const getCachedImageUrl = (filePath) => {
@@ -1700,6 +1786,7 @@ function Equipments() {
                               alt={img.label || `${item.machine} ${index + 1}`}
                               className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
                               loading="lazy"
+                              onClick={(e) => handleImageClick(e, item, index)}
                             />
                           ))}
                         </div>
@@ -1869,6 +1956,7 @@ function Equipments() {
                                     alt={img.label || `${item.machine} ${index + 1}`}
                                     className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
                                     loading="lazy"
+                                    onClick={(e) => handleImageClick(e, item, index)}
                                   />
                                 ))}
                               </div>
@@ -2249,6 +2337,51 @@ function Equipments() {
         progress={equipmentProgress}
         progressText="Loading..."
       />
+
+      {/* Fullscreen Image Viewer */}
+      {fullscreenImage && fullscreenEquipment && (
+        <div
+          className="fullscreen-overlay"
+          onClick={closeFullscreen}
+          style={{
+            '--click-x': `${imageClickPosition.x}px`,
+            '--click-y': `${imageClickPosition.y}px`
+          }}
+        >
+          <div className="fullscreen-header">
+            <h2>{fullscreenEquipment.machine} - {fullscreenEquipment.regNo}</h2>
+            <span className="image-counter">
+              {fullscreenImageIndex + 1} / {fullscreenEquipment.equipmentImage.length}
+            </span>
+          </div>
+          <div className="fullscreen-content" onClick={(e) => e.stopPropagation()}>
+            <button className="fullscreen-close" onClick={closeFullscreen}>
+              <span className="material-symbols-rounded">close</span>
+            </button>
+
+            <div className="fullscreen-image-container">
+              <img
+                src={fullscreenImage.s3Url || fullscreenImage.url}
+                alt={fullscreenImage.label || `${fullscreenEquipment.machine}`}
+              />
+            </div>
+
+            <button
+              className="fullscreen-nav prev"
+              onClick={() => navigateFullscreenImage(-1)}
+            >
+              <span className="material-symbols-rounded">chevron_left</span>
+            </button>
+
+            <button
+              className="fullscreen-nav next"
+              onClick={() => navigateFullscreenImage(1)}
+            >
+              <span className="material-symbols-rounded">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
