@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -7,7 +7,13 @@ import { AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
 
 // Import API functions
 import {
-  fetchDashboardData,
+  fetchInitialTabData,
+  fetchInitialDashboardData,
+  loadTabDataOnDemand,
+  generateRealTimeAnalytics,
+  getBrandMap,
+  addBrandToData,
+  fetchTabData,
   getComprehensiveStats,
   prepareAnalyticsData,
   prepareStockPerformance,
@@ -49,7 +55,11 @@ const Dashboard = () => {
     realTime: null
   });
 
-  const [activeTab, setActiveTab] = useState('daily');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('dashboardActiveTab') || 'daily';
+  });
+  const [tabLoading, setTabLoading] = useState(false);
+  const [pendingTab, setPendingTab] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
@@ -109,7 +119,7 @@ const Dashboard = () => {
 
     const refreshInterval = setInterval(() => {
       loadDashboardData(true);
-    }, 30000);
+    }, 20000);
 
     return () => clearInterval(refreshInterval);
   }, []);
@@ -211,15 +221,46 @@ const Dashboard = () => {
     ? prepareComparisonChartData(currentComparisonData, currentComparisonData.period)
     : [];
 
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  useEffect(() => {
+    if (pendingTab && dashboardData[pendingTab]) {
+      setActiveTab(pendingTab);
+      setPendingTab(null);
+      setTabLoading(false);
+    }
+  }, [dashboardData, pendingTab]);
+
   // Fetch dashboard data wrapper
   const loadDashboardData = async (showRefresh = false) => {
     try {
       if (showRefresh) setRefreshing(true);
       setLoading(!showRefresh);
 
-      const data = await fetchDashboardData();
+      const currentActiveTab = localStorage.getItem('dashboardActiveTab') || 'daily';
 
-      setDashboardData(data);
+      // Fetch only the current tab's data
+      const tabData = await fetchTabData(currentActiveTab);
+
+      const brandMap = await getBrandMap();
+      if (tabData) {
+        addBrandToData(tabData, brandMap);
+      }
+
+      // Generate fresh realTime analytics from the current tab data
+      const realTimeData = await generateRealTimeAnalytics({
+        [currentActiveTab]: tabData
+      });
+
+      // Update both current tab AND realTime data
+      setDashboardData(prev => ({
+        ...prev,
+        [currentActiveTab]: tabData,
+        realTime: realTimeData  // This was missing!
+      }));
+
       setLoading(false);
       setRefreshing(false);
     } catch (err) {
@@ -230,12 +271,42 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  const handleTabChange = async (newTab) => {
+    localStorage.setItem('dashboardActiveTab', newTab);
+
+    // If data already exists, switch immediately
+    if (dashboardData[newTab]) {
+      setActiveTab(newTab);
+      return;
+    }
+
+    // Set pending tab and loading state
+    setPendingTab(newTab);
+    setTabLoading(true);
+
+    try {
+      const tabData = await fetchTabData(newTab);
+      const brandMap = await getBrandMap();
+      if (tabData) {
+        addBrandToData(tabData, brandMap);
+      }
+
+      // Update data - the useEffect will handle tab switching
+      setDashboardData(prev => ({
+        ...prev,
+        [newTab]: tabData
+      }));
+    } catch (err) {
+      console.error(`Error loading ${newTab} data:`, err);
+      setPendingTab(null);
+      setTabLoading(false);
+    }
+  };
 
   // Manual refresh
   const handleRefresh = () => {
+    console.log("yeahhhhhhhh");
+
     loadDashboardData(true);
   };
 
@@ -244,13 +315,13 @@ const Dashboard = () => {
     return dashboardData[activeTab];
   };
 
-  const currentData = getCurrentData();
-  const currentStats = getComprehensiveStats(currentData);
-  const analyticsData = prepareAnalyticsData(currentData);
-  const stockPerformance = prepareStockPerformance(currentData);
-  const toolkitPerformance = prepareToolkitPerformance(currentData);
-  const barChartData = prepareBarChartData(currentData);
-  const realTimeData = dashboardData.realTime;
+  const currentData = useMemo(() => dashboardData[activeTab], [dashboardData, activeTab]);
+  const currentStats = useMemo(() => getComprehensiveStats(currentData), [currentData]);
+  const analyticsData = useMemo(() => prepareAnalyticsData(currentData), [currentData]);
+  const stockPerformance = useMemo(() => prepareStockPerformance(currentData), [currentData]);
+  const toolkitPerformance = useMemo(() => prepareToolkitPerformance(currentData), [currentData]);
+  const barChartData = useMemo(() => prepareBarChartData(currentData), [currentData]);
+  const realTimeData = useMemo(() => dashboardData.realTime, [dashboardData.realTime]);
 
   if (loading) {
     return (
@@ -282,7 +353,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <LiveChat/>
+      <LiveChat />
       <div
         className="live-auto-monitor-hero"
         style={{
@@ -322,8 +393,9 @@ const Dashboard = () => {
       <div ref={dashboardTabsRef}>
         <DashboardTabs
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
           tabs={['daily', 'weekly', 'monthly', 'yearly']}
+          loading={tabLoading}
         />
       </div>
 

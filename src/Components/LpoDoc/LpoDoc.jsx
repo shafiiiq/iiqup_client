@@ -1460,7 +1460,7 @@ const LpoDoc = () => {
                     {data.jobCode && (
                       <div className="detail-item">JOB/COMPLAINT NO : {data.jobCode}</div>
                     )}
-                    <div className="detail-item" style={{flexDirection: 'row'}}>
+                    <div className="detail-item" style={{ flexDirection: 'row' }}>
                       EQUIPMENT:
                       <ul>
                         {data.equipments.map((item, index) => (
@@ -1550,12 +1550,12 @@ const LpoDoc = () => {
                 </tr>
                 <tr>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Purchase Manager</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Operations Manager</td>
                   <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>
                     Authorized Signatory<br />
                     {data.signatures.authorizedSignatory === 'AHAMMED KAMAL' ? '(CEO)' : '(MANAGING DIRECTOR)'}
                   </td>
-                  <td className='sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center'>Accounts Dept:</td>
                   <td className='sign-table-date sign-border-td-t'>(Date & Sign with Stamp)</td>
                 </tr>
                 <tr className="signature-spaces-large">
@@ -1563,6 +1563,20 @@ const LpoDoc = () => {
                     <td className='sign-table lpo-signs sign-border-td-r'>
                       {signatureStates.pm.url ? (
                         <img className='accounts-sign pm-sign' src={signatureStates.pm.url} alt="PM Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
+                      ) : (
+                        <span className="account-no-signature"></span>
+                      )}
+                    </td>
+                  ) : (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      <span className="account-no-signature"></span>
+                    </td>
+                  )}
+
+                  {signatureFlags.accountsSigned ? (
+                    <td className='sign-table lpo-signs sign-border-td-r'>
+                      {signatureStates.accounts.url ? (
+                        <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
                         <span className="account-no-signature"></span>
                       )}
@@ -1605,27 +1619,13 @@ const LpoDoc = () => {
                       <span className="account-no-signature"></span>
                     </td>
                   )}
-
-                  {signatureFlags.accountsSigned ? (
-                    <td className='sign-table lpo-signs sign-border-td-r'>
-                      {signatureStates.accounts.url ? (
-                        <img className='accounts-sign' src={signatureStates.accounts.url} alt="Accounts Signature" crossOrigin="anonymous" onError={(e) => e.target.style.display = 'none'} />
-                      ) : (
-                        <span className="account-no-signature"></span>
-                      )}
-                    </td>
-                  ) : (
-                    <td className='sign-table lpo-signs sign-border-td-r'>
-                      <span className="account-no-signature"></span>
-                    </td>
-                  )}
                   <td></td>
                 </tr>
                 <tr>
                   <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.purchasingManager}</td>
+                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.accountsDept}</td>
                   <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.operationsManager}</td>
                   <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.authorizedSignatory}</td>
-                  <td className='sign-table sign-border-td-r sign-border-td-t text-align-center'>{data.signatures.accountsDept}</td>
                   <td className='date-no-border'></td>
                 </tr>
               </tbody>

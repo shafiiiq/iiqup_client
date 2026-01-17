@@ -1,73 +1,193 @@
 import { END_POINT } from '../../constants';
 import { COLORS } from './utils/dasboard-utils';
 import { apiRequest } from '../../utils/0auth';
+
+// ============================================================================
+// CACHE MANAGEMENT
+// ============================================================================
 let equipmentCache = null;
 let cacheTime = 0;
+const EQUIPMENT_CACHE_TTL = 30000; // 30 seconds
 
-// Fetch dashboard data from API endpoints
-export const fetchDashboardData = async () => {
-    // Get equipment data (use cache if recent)
+// Tab data cache
+const tabDataCache = {
+    daily: null,
+    weekly: null,
+    monthly: null,
+    yearly: null,
+    timestamps: {
+        daily: 0,
+        weekly: 0,
+        monthly: 0,
+        yearly: 0
+    }
+};
+
+const TAB_CACHE_TTL = 60000; // 1 minute for tab data
+
+// ============================================================================
+// PROGRESSIVE DATA LOADING
+// ============================================================================
+
+/**
+ * STAGE 1: Fetch counts only (SUPER FAST - shows metrics immediately)
+ */
+export const fetchDashboardCounts = async (period = 'daily') => {
+    try {
+        const response = await apiRequest(`${END_POINT}/dashboard/get-${period}-counts`, 'GET');
+        const result = await response.json();
+
+        console.log("Dailyyyyyyyyyy", result);
+        
+        return result.data;
+    } catch (error) {
+        console.error(`Error fetching ${period} counts:`, error);
+        return null;
+    }
+};
+
+/**
+ * STAGE 2: Fetch specific tab data (with caching)
+ */
+export const fetchTabData = async (period = 'daily', forceRefresh = false) => {
     const now = Date.now();
-    if (!equipmentCache || (now - cacheTime) > 30000) {
+
+    // Return cached data if valid and not forcing refresh
+    if (!forceRefresh &&
+        tabDataCache[period] &&
+        (now - tabDataCache.timestamps[period]) < TAB_CACHE_TTL) {
+        return tabDataCache[period];
+    }
+
+    try {
+        const response = await apiRequest(`${END_POINT}/dashboard/get-${period}-updates`, 'GET');
+        const result = await response.json();
+
+        // Cache the result
+        tabDataCache[period] = result.data;
+        tabDataCache.timestamps[period] = now;
+
+        return result.data;
+    } catch (error) {
+        console.error(`Error fetching ${period} data:`, error);
+        return null;
+    }
+};
+
+/**
+ * OPTIMIZED: Fetch only what's needed for initial load
+ */
+export const fetchInitialDashboardData = async () => {
+    // Fetch equipment data once (needed for brand mapping)
+    await getEquipmentData();
+
+    // Only fetch daily counts first (super fast)
+    const dailyCounts = await fetchDashboardCounts('daily');
+
+    // Fetch daily full data in background
+    const dailyData = await fetchTabData('daily');
+
+    // Generate real-time analytics from daily data only
+    const realTimeData = await generateRealTimeAnalytics({
+        daily: dailyData
+    });
+
+    return {
+        daily: dailyData,
+        weekly: null,  // Load on demand
+        monthly: null, // Load on demand
+        yearly: null,  // Load on demand
+        realTime: realTimeData,
+        counts: {
+            daily: dailyCounts,
+            weekly: null,
+            monthly: null,
+            yearly: null
+        }
+    };
+};
+
+/**
+ * Load specific tab data on demand
+ */
+export const loadTabDataOnDemand = async (period, currentData) => {
+    // If already loaded, return existing data
+    if (currentData[period]) {
+        return currentData;
+    }
+
+    // Fetch the specific tab data
+    const tabData = await fetchTabData(period);
+
+    // Add brand mapping
+    const brandMap = await getBrandMap();
+    if (tabData) {
+        addBrandToData(tabData, brandMap);
+    }
+
+    return {
+        ...currentData,
+        [period]: tabData
+    };
+};
+
+// ============================================================================
+// EQUIPMENT & BRAND DATA
+// ============================================================================
+
+/**
+ * Get equipment data with caching
+ */
+const getEquipmentData = async () => {
+    const now = Date.now();
+
+    if (!equipmentCache || (now - cacheTime) > EQUIPMENT_CACHE_TTL) {
         const equipResponse = await apiRequest(`${END_POINT}/equipments/get-equipments`);
         equipmentCache = await equipResponse.json();
         cacheTime = now;
     }
 
-    // Create brand lookup map
+    return equipmentCache;
+};
+
+/**
+ * Get brand map (memoized)
+ */
+export const getBrandMap = async () => {
+    const equipData = await getEquipmentData();
     const brandMap = new Map();
-    equipmentCache.data.forEach(equip => {
+
+    equipData.data.forEach(equip => {
         brandMap.set(equip.regNo.toString(), equip.brand);
     });
 
-    // Fetch dashboard data
-    const endpoints = [
-        `${END_POINT}/dashboard/get-daily-updates`,
-        `${END_POINT}/dashboard/get-weekly-updates`,
-        `${END_POINT}/dashboard/get-monthly-updates`,
-        `${END_POINT}/dashboard/get-yearly-updates`
-    ];
-
-    const responses = await Promise.all(
-        endpoints.map(url =>
-            apiRequest(url, 'GET').then(res => res.json())
-        )
-    );
-
-    const [dailyData, weeklyData, monthlyData, yearlyData] = responses;
-
-    // Add brand to maintenance history and tyre history in each dataset
-    [dailyData, weeklyData, monthlyData, yearlyData].forEach(dataset => {
-        if (dataset.data?.maintenanceHistory) {
-            dataset.data.maintenanceHistory.forEach(maintenance => {
-                maintenance.brand = brandMap.get(maintenance.regNo.toString()) || 'Unknown';
-            });
-        }
-
-        if (dataset.data?.tyreHistory) {
-            dataset.data.tyreHistory.forEach(tyre => {
-                tyre.brand = brandMap.get(tyre.equipmentNo.toString()) || 'Unknown';
-            });
-        }
-    });
-
-    const realTimeData = await generateRealTimeAnalytics({
-        daily: dailyData.data,
-        weekly: weeklyData.data,
-        monthly: monthlyData.data,
-        yearly: yearlyData.data
-    });
-
-    return {
-        daily: dailyData.data,
-        weekly: weeklyData.data,
-        monthly: monthlyData.data,
-        yearly: yearlyData.data,
-        realTime: realTimeData
-    };
+    return brandMap;
 };
 
-// Generate real-time analytics
+/**
+ * Add brand to dataset (optimized)
+ */
+export const addBrandToData = (dataset, brandMap) => {
+    if (dataset.maintenanceHistory) {
+        dataset.maintenanceHistory.forEach(maintenance => {
+            maintenance.brand = brandMap.get(maintenance.regNo.toString()) || 'Unknown';
+        });
+    }
+
+    if (dataset.tyreHistory) {
+        dataset.tyreHistory.forEach(tyre => {
+            tyre.brand = brandMap.get(tyre.equipmentNo.toString()) || 'Unknown';
+        });
+    }
+};
+
+// ============================================================================
+// REAL-TIME ANALYTICS (OPTIMIZED)
+// ============================================================================
+
+/**
+ * Generate real-time analytics - optimized version
+ */
 export const generateRealTimeAnalytics = async (data) => {
     const analytics = {
         totalServices: 0,
@@ -87,45 +207,33 @@ export const generateRealTimeAnalytics = async (data) => {
         performanceMetrics: []
     };
 
-    const complaintRes = await apiRequest(`${END_POINT}/complaints/get-all-complaints`);
-    const equipmentRes = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-    const applicationRes = await apiRequest(`${END_POINT}/applications/get-all-requests`);
-    const stockRes = await apiRequest(`${END_POINT}/stocks/get-all-stocks`);
+    // Fetch all required data in parallel
+    const [complaints, equipData, application, allStocks] = await Promise.all([
+        apiRequest(`${END_POINT}/complaints/get-all-complaints`).then(res => res.json()),
+        getEquipmentData(), // Use cached version
+        apiRequest(`${END_POINT}/applications/get-all-requests`).then(res => res.json()),
+        apiRequest(`${END_POINT}/stocks/get-all-stocks`).then(res => res.json())
+    ]);
 
-    const complaints = await complaintRes.json();
-    const equipData = await equipmentRes.json();
-    const application = await applicationRes.json();
-    const allStocks = await stockRes.json();
+    const allEquipments = equipData.data;
+    const allApplication = application.data;
+    const stocks = allStocks.data;
 
-    const allEquipments = equipData.data
-    const allApplication = application.data
-    const stocks = allStocks.data
-
-
-    // Filter to get only pending complaints
-    const pendingComplaints = complaints.data.filter(complaint => complaint.status === 'pending');
-    analytics.pendingComplaints = pendingComplaints
+    // Calculate metrics
+    const pendingComplaints = complaints.data.filter(c => c.status === 'pending');
+    analytics.pendingComplaints = pendingComplaints;
     analytics.pendingMaintenance = pendingComplaints.length || 0;
 
-    // Filter to get only pending complaints
-    const pendingApplications = allApplication.filter(application => application.status === 'pending');
+    const pendingApplications = allApplication.filter(app => app.status === 'pending');
     analytics.pendingApplications = pendingApplications.length || 0;
 
-    // Filter to get all equipments
     analytics.totalEquipment = allEquipments.length || 0;
+    analytics.activeEquipment = allEquipments.filter(eq => eq.status === 'active').length || 0;
+    analytics.idleEquipment = allEquipments.filter(eq => eq.status === 'idle').length || 0;
 
-    // Filter to get only active equipments
-    const activeEquipment = allEquipments.filter(equipment => equipment.status === 'active');
-    analytics.activeEquipment = activeEquipment.length || 0;
-
-    // Filter to get only active equipments
-    const idleEquipment = allEquipments.filter(equipment => equipment.status === 'idle');
-    analytics.idleEquipment = idleEquipment.length || 0;
-
-    // Filter to get only low_stock equipments
     const lowStocks = stocks.filter(stock => stock.status === 'low_stock');
 
-    // Calculate metrics from all periods
+    // Calculate from available period data
     Object.values(data).forEach(periodData => {
         if (periodData) {
             analytics.totalServices += periodData.serviceHistory?.length || 0;
@@ -134,51 +242,10 @@ export const generateRealTimeAnalytics = async (data) => {
         }
     });
 
-    // Generate trends data
-    analytics.trends = [
-        {
-            period: 'Daily',
-            services: data.daily?.serviceReports?.length || 0,
-            maintenance: data.daily?.maintenanceHistory?.length || 0,
-            battery: data.daily?.batteryHistory?.length || 0,
-            tyre: data.daily?.tyreHistory?.length || 0,
-            stocks: data.daily?.stocks?.length || 0,
-            toolkit: data.daily?.toolkit?.length || 0,
-            complaints: data.daily?.complaints?.length || 0
-        },
-        {
-            period: 'Weekly',
-            services: data.weekly?.serviceReports?.length || 0,
-            maintenance: data.weekly?.maintenanceHistory?.length || 0,
-            battery: data.weekly?.batteryHistory?.length || 0,
-            tyre: data.weekly?.tyreHistory?.length || 0,
-            stocks: data.weekly?.stocks?.length || 0,
-            toolkit: data.weekly?.toolkit?.length || 0,
-            complaints: data.weekly?.complaints?.length || 0
-        },
-        {
-            period: 'Monthly',
-            services: data.monthly?.serviceReports?.length || 0,
-            maintenance: data.monthly?.maintenanceHistory?.length || 0,
-            battery: data.monthly?.batteryHistory?.length || 0,
-            tyre: data.monthly?.tyreHistory?.length || 0,
-            stocks: data.monthly?.stocks?.length || 0,
-            toolkit: data.monthly?.toolkit?.length || 0,
-            complaints: data.monthly?.complaints?.length || 0
-        },
-        {
-            period: 'Yearly',
-            services: data.yearly?.serviceReports?.length || 0,
-            maintenance: data.yearly?.maintenanceHistory?.length || 0,
-            battery: data.yearly?.batteryHistory?.length || 0,
-            tyre: data.yearly?.tyreHistory?.length || 0,
-            stocks: data.yearly?.stocks?.length || 0,
-            toolkit: data.yearly?.toolkit?.length || 0,
-            complaints: data.yearly?.complaints?.length || 0
-        }
-    ];
+    // Generate trends only for available data
+    analytics.trends = generateTrendsData(data);
 
-    // Generate stock health data
+    // Stock health (only from daily if available)
     if (data.daily?.stocks) {
         analytics.stockHealth = data.daily.stocks.slice(0, 10).map(stock => ({
             name: stock.product || 'Unknown Stock',
@@ -190,7 +257,7 @@ export const generateRealTimeAnalytics = async (data) => {
         }));
     }
 
-    // Generate toolkit status data
+    // Toolkit status (only from daily if available)
     if (data.daily?.toolkit) {
         analytics.toolkitStatus = data.daily.toolkit.slice(0, 10).map(toolkit => ({
             name: toolkit.name || 'Unknown Toolkit',
@@ -202,7 +269,9 @@ export const generateRealTimeAnalytics = async (data) => {
 
     // Calculate efficiency
     const totalOperations = analytics.totalServices + analytics.stockItems + analytics.toolkitItems;
-    analytics.efficiency = totalOperations > 0 ? Math.round(((totalOperations - analytics.pendingMaintenance) / totalOperations) * 100) : 95;
+    analytics.efficiency = totalOperations > 0
+        ? Math.round(((totalOperations - analytics.pendingMaintenance) / totalOperations) * 100)
+        : 95;
     analytics.activeServices = Math.round(analytics.totalServices * 0.85);
     analytics.criticalAlerts = Math.round(analytics.pendingMaintenance * 0.3);
 
@@ -226,44 +295,45 @@ export const generateRealTimeAnalytics = async (data) => {
         ) || 0
     };
 
-    // Add performance metrics that include pending maintenance for better visibility
+    // Performance metrics
     analytics.performanceMetrics = [
-        {
-            name: 'Total Services',
-            value: analytics.totalServices,
-            color: COLORS.primary
-        },
-        {
-            name: 'Active Services',
-            value: analytics.activeServices,
-            color: COLORS.success
-        },
-        {
-            name: 'Pending Maintenance',
-            value: analytics.pendingMaintenance,
-            color: COLORS.warning
-        },
-        {
-            name: 'Critical Alerts',
-            value: analytics.criticalAlerts,
-            color: COLORS.danger
-        },
-        {
-            name: 'Stock Items',
-            value: analytics.stockItems,
-            color: COLORS.info
-        },
-        {
-            name: 'Toolkit Items',
-            value: analytics.toolkitItems,
-            color: COLORS.secondary
-        }
+        { name: 'Total Services', value: analytics.totalServices, color: COLORS.primary },
+        { name: 'Active Services', value: analytics.activeServices, color: COLORS.success },
+        { name: 'Pending Maintenance', value: analytics.pendingMaintenance, color: COLORS.warning },
+        { name: 'Critical Alerts', value: analytics.criticalAlerts, color: COLORS.danger },
+        { name: 'Stock Items', value: analytics.stockItems, color: COLORS.info },
+        { name: 'Toolkit Items', value: analytics.toolkitItems, color: COLORS.secondary }
     ];
 
     return analytics;
 };
 
-// Get comprehensive statistics
+/**
+ * Generate trends data helper
+ */
+const generateTrendsData = (data) => {
+    const periods = ['daily', 'weekly', 'monthly', 'yearly'];
+    const labels = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
+
+    return periods.map((period, index) => ({
+        period: labels[index],
+        services: data[period]?.serviceReports?.length || 0,
+        maintenance: data[period]?.maintenanceHistory?.length || 0,
+        battery: data[period]?.batteryHistory?.length || 0,
+        tyre: data[period]?.tyreHistory?.length || 0,
+        stocks: data[period]?.stocks?.length || 0,
+        toolkit: data[period]?.toolkit?.length || 0,
+        complaints: data[period]?.complaints?.length || 0
+    }));
+};
+
+// ============================================================================
+// MEMOIZED DATA PREPARATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Get comprehensive statistics (memoization-ready)
+ */
 export const getComprehensiveStats = (data) => {
     if (!data) return { total: 0, collections: {}, trends: {} };
 
@@ -295,7 +365,9 @@ export const getComprehensiveStats = (data) => {
     };
 };
 
-// Prepare detailed analytics data
+/**
+ * Prepare analytics data (memoization-ready)
+ */
 export const prepareAnalyticsData = (data) => {
     if (!data) return [];
 
@@ -317,7 +389,9 @@ export const prepareAnalyticsData = (data) => {
     })).filter(item => item.value > 0);
 };
 
-// Prepare stock performance data
+/**
+ * Prepare stock performance (memoization-ready)
+ */
 export const prepareStockPerformance = (data) => {
     if (!data?.stocks) return [];
 
@@ -325,12 +399,16 @@ export const prepareStockPerformance = (data) => {
         name: stock.product || 'Unknown',
         currentStock: stock.stockCount || 0,
         minThreshold: stock.minThreshold || 0,
-        utilization: stock.stockCount > 0 ? Math.min((stock.stockCount / (stock.maxThreshold || stock.minThreshold * 2)) * 100, 100) : 0,
+        utilization: stock.stockCount > 0
+            ? Math.min((stock.stockCount / (stock.maxThreshold || stock.minThreshold * 2)) * 100, 100)
+            : 0,
         value: stock.totalValue || 0
     }));
 };
 
-// Prepare toolkit performance data
+/**
+ * Prepare toolkit performance (memoization-ready)
+ */
 export const prepareToolkitPerformance = (data) => {
     if (!data?.toolkit) return [];
 
@@ -343,7 +421,9 @@ export const prepareToolkitPerformance = (data) => {
     }));
 };
 
-// Prepare bar chart data
+/**
+ * Prepare bar chart data (memoization-ready)
+ */
 export const prepareBarChartData = (data) => {
     if (!data) return [];
 
@@ -364,8 +444,9 @@ export const prepareBarChartData = (data) => {
     })).filter(item => item.count > 0);
 };
 
-
-// Get activity content
+/**
+ * Get activity content (pure function)
+ */
 export const getActivityContent = (update) => {
     const contentMap = {
         'tyre-history': `Tyre Replacement: ${update.tyreModel} (${update.tyreNumber}) - ${update.equipment} #${update.equipmentNo}`,
@@ -380,28 +461,41 @@ export const getActivityContent = (update) => {
     return contentMap[update.content] || `System Update: ${update.content}`;
 };
 
-export const fetchBrand = async (regNo) => {
-    const response = await apiRequest(`${END_POINT}/equipments/get-equipments`);
-    const data = await response.json();
+// ============================================================================
+// COMPARISON DATA (LAZY LOADING)
+// ============================================================================
 
-    // Find the equipment that matches the regNo
-    const equipment = data.find(item => item.equipmentNo === regNo);
+const comparisonCache = {
+    last5Days: null,
+    last5Months: null,
+    last5Years: null,
+    timestamps: {
+        last5Days: 0,
+        last5Months: 0,
+        last5Years: 0
+    }
+};
 
-    // Return the brand if found, otherwise return a fallback value
-    return equipment ? equipment.brand : 'N/A';
-}
-
+const COMPARISON_CACHE_TTL = 300000; // 5 minutes
 
 /**
- * Fetch last 5 days comparison data
+ * Fetch comparison data with caching
  */
 export const fetchLast5DaysComparison = async () => {
+    const now = Date.now();
+
+    if (comparisonCache.last5Days && (now - comparisonCache.timestamps.last5Days) < COMPARISON_CACHE_TTL) {
+        return comparisonCache.last5Days;
+    }
+
     try {
         const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-days-comparison`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch last 5 days comparison');
-        }
+        if (!response.ok) throw new Error('Failed to fetch last 5 days comparison');
+
         const result = await response.json();
+        comparisonCache.last5Days = result.data;
+        comparisonCache.timestamps.last5Days = now;
+
         return result.data;
     } catch (error) {
         console.error('Error fetching last 5 days comparison:', error);
@@ -409,16 +503,21 @@ export const fetchLast5DaysComparison = async () => {
     }
 };
 
-/**
- * Fetch last 5 months comparison data
- */
 export const fetchLast5MonthsComparison = async () => {
+    const now = Date.now();
+
+    if (comparisonCache.last5Months && (now - comparisonCache.timestamps.last5Months) < COMPARISON_CACHE_TTL) {
+        return comparisonCache.last5Months;
+    }
+
     try {
         const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-months-comparison`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch last 5 months comparison');
-        }
+        if (!response.ok) throw new Error('Failed to fetch last 5 months comparison');
+
         const result = await response.json();
+        comparisonCache.last5Months = result.data;
+        comparisonCache.timestamps.last5Months = now;
+
         return result.data;
     } catch (error) {
         console.error('Error fetching last 5 months comparison:', error);
@@ -426,16 +525,21 @@ export const fetchLast5MonthsComparison = async () => {
     }
 };
 
-/**
- * Fetch last 5 years comparison data
- */
 export const fetchLast5YearsComparison = async () => {
+    const now = Date.now();
+
+    if (comparisonCache.last5Years && (now - comparisonCache.timestamps.last5Years) < COMPARISON_CACHE_TTL) {
+        return comparisonCache.last5Years;
+    }
+
     try {
         const response = await apiRequest(`${END_POINT}/dashboard/get-last-5-years-comparison`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch last 5 years comparison');
-        }
+        if (!response.ok) throw new Error('Failed to fetch last 5 years comparison');
+
         const result = await response.json();
+        comparisonCache.last5Years = result.data;
+        comparisonCache.timestamps.last5Years = now;
+
         return result.data;
     } catch (error) {
         console.error('Error fetching last 5 years comparison:', error);
@@ -444,18 +548,14 @@ export const fetchLast5YearsComparison = async () => {
 };
 
 /**
- * Prepare comparison chart data for visualization
+ * Prepare comparison chart data
  */
 export const prepareComparisonChartData = (comparisonData, period) => {
-    if (!comparisonData || !comparisonData.comparison) {
-        return [];
-    }
+    if (!comparisonData || !comparisonData.comparison) return [];
 
     return comparisonData.comparison.map(item => {
-        const label = period === 'last-5-days'
-            ? item.date
-            : period === 'last-5-months'
-                ? item.month
+        const label = period === 'last-5-days' ? item.date
+            : period === 'last-5-months' ? item.month
                 : item.year;
 
         return {
@@ -471,5 +571,70 @@ export const prepareComparisonChartData = (comparisonData, period) => {
             'Complaints': item.collections['complaints'] || 0,
             'Total': item.total
         };
+    });
+};
+
+/**
+ * Fetch initial data for a specific tab (for page refresh)
+ */
+export const fetchInitialTabData = async (period = 'daily') => {
+    // Fetch equipment data once (needed for brand mapping)
+    await getEquipmentData();
+
+    // Fetch the specific period's data
+    const tabData = await fetchTabData(period);
+
+    // Add brand mapping
+    const brandMap = await getBrandMap();
+    if (tabData) {
+        addBrandToData(tabData, brandMap);
+    }
+
+    // Generate real-time analytics
+    const realTimeData = await generateRealTimeAnalytics({
+        [period]: tabData
+    });
+
+    return {
+        daily: period === 'daily' ? tabData : null,
+        weekly: period === 'weekly' ? tabData : null,
+        monthly: period === 'monthly' ? tabData : null,
+        yearly: period === 'yearly' ? tabData : null,
+        realTime: realTimeData,
+        counts: {
+            [period]: await fetchDashboardCounts(period)
+        }
+    };
+};
+
+// ============================================================================
+// CACHE MANAGEMENT
+// ============================================================================
+
+/**
+ * Clear all caches
+ */
+export const clearAllCaches = () => {
+    equipmentCache = null;
+    cacheTime = 0;
+
+    Object.keys(tabDataCache).forEach(key => {
+        if (key !== 'timestamps') {
+            tabDataCache[key] = null;
+        }
+    });
+
+    Object.keys(tabDataCache.timestamps).forEach(key => {
+        tabDataCache.timestamps[key] = 0;
+    });
+
+    Object.keys(comparisonCache).forEach(key => {
+        if (key !== 'timestamps') {
+            comparisonCache[key] = null;
+        }
+    });
+
+    Object.keys(comparisonCache.timestamps).forEach(key => {
+        comparisonCache.timestamps[key] = 0;
     });
 };
