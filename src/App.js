@@ -579,8 +579,9 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
                   <Route
-                    path="/service-history/:regNo"
+                    path="/service-history/:regNos"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -589,6 +590,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
                   <Route
                     path="/maintanance-history/:regNo"
                     element={

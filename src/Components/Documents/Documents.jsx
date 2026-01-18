@@ -12,7 +12,16 @@ function DocumentDetails() {
   const { regNo } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState([]);
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [showSplitModal, setShowSplitModal] = useState(false);
+  const [splitDocument, setSplitDocument] = useState(null);
+  const [mergeProgress, setMergeProgress] = useState(0);
+  const [splitProgress, setSplitProgress] = useState(0);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState('add');
+  const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [currentDateTime, setCurrentDateTime] = useState('');
@@ -84,6 +93,170 @@ function DocumentDetails() {
     { value: 'manual', label: 'Manuals' },
     { value: 'warranty', label: 'Warranty' }
   ];
+
+
+  // Navigate to "All Documents" view
+  const navigateToAllDocuments = () => {
+    setCurrentCategory('all'); // Special marker for all docs
+    setCurrentView('allDocsSubfolders');
+    setCurrentPath([
+      { name: 'Documents', view: 'categories' },
+      { name: 'All Documents', view: 'allDocsSubfolders', category: 'all' }
+    ]);
+  };
+
+  // Navigate to Latest/Old in All Documents
+  const navigateToAllDocsFolder = (isLatest) => {
+    setCurrentView('allDocsFiles');
+    setCurrentPath([
+      { name: 'Documents', view: 'categories' },
+      { name: 'All Documents', view: 'allDocsSubfolders', category: 'all' },
+      { name: isLatest ? 'Latest' : 'Old', view: 'allDocsFiles', isLatest }
+    ]);
+  };
+
+  // Toggle selection mode
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedDocuments([]);
+  };
+
+  // Toggle document selection
+  const toggleDocumentSelection = (docId) => {
+    setSelectedDocuments(prev => {
+      if (prev.includes(docId)) {
+        return prev.filter(id => id !== docId);
+      } else {
+        return [...prev, docId];
+      }
+    });
+  };
+
+  // Merge selected PDFs
+  const handleMergePDFs = async () => {
+    if (selectedDocuments.length < 2) {
+      setMessage({ text: 'Please select at least 2 PDFs to merge', type: 'error' });
+      return;
+    }
+
+    setShowMergeModal(true);
+    setMergeProgress(0);
+
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/merge-pdfs`, 'POST', {
+        regNo: regNo,
+        documentIds: selectedDocuments,
+        category: currentCategory === 'all' ? 'merged' : currentCategory,
+        documentType: 'Merged Document'
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message || 'Merge failed');
+
+      setMergeProgress(100);
+      setMessage({ text: 'PDFs merged successfully!', type: 'success' });
+
+      setTimeout(() => {
+        setShowMergeModal(false);
+        setSelectionMode(false);
+        setSelectedDocuments([]);
+        fetchDocuments();
+      }, 2000);
+
+    } catch (error) {
+      console.error("Error merging PDFs:", error);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+      setShowMergeModal(false);
+    }
+  };
+
+  // Split PDF
+  const handleSplitPDF = async (documentId) => {
+    setSplitDocument(documentId);
+    setShowSplitModal(true);
+    setMessage({ text: 'Select split options...', type: 'info' });
+  };
+
+  // Confirm split operation
+  const confirmSplitPDF = async (splitOptions) => {
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', {
+        regNo: regNo,
+        documentId: splitDocument,
+        splitOptions: splitOptions, // e.g., { type: 'pages', pages: [1,2,3] }
+        category: currentCategory === 'all' ? 'split' : currentCategory
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message || 'Split failed');
+
+      setMessage({ text: 'PDF split successfully!', type: 'success' });
+      setShowSplitModal(false);
+      fetchDocuments();
+
+    } catch (error) {
+      console.error("Error splitting PDF:", error);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+
+      try {
+        if (isImageFile(file)) {
+          setMessage({ text: 'Converting image to PDF...', type: 'info' });
+          const convertedFile = await convertImageToPDF(file);
+          setSelectedFile(convertedFile);
+
+          const reader = new FileReader();
+          reader.onloadend = () => setPreviewImage(reader.result);
+          reader.readAsDataURL(file);
+
+          setMessage({ text: 'Image converted to PDF successfully!', type: 'success' });
+        } else {
+          setSelectedFile(file);
+
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onloadend = () => setPreviewImage(reader.result);
+            reader.readAsDataURL(file);
+          } else {
+            setPreviewImage(null);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing dropped file:', error);
+        setMessage({ text: `Error processing file: ${error.message}`, type: 'error' });
+      }
+    }
+  };
 
   const navigateToCategory = (category) => {
     setCurrentCategory(category);
@@ -247,48 +420,45 @@ function DocumentDetails() {
   };
 
   // Fetch all document types from API
-  // const fetchDocumentTypes = async () => {
-  //   try {
-  //     const response = await apiRequest(`${END_POINT}/documents/get-all-documents`);
+  const fetchDocumentTypes = async () => {
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/get-all-documents-types`);
 
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch document types');
-  //     }
+      if (!response.ok) {
+        throw new Error('Failed to fetch document types');
+      }
 
-  //     const data = await response.json();
+      const data = await response.json();
 
-  //     console.log(data);
+      // Extract unique document types from the response
+      const uniqueDocTypes = new Set();
 
+      if (data.documents && data.documents.length > 0) {
+        data.documents.forEach(doc => {
+          if (doc.documentType && doc.documentType.trim()) {
+            uniqueDocTypes.add(doc.documentType.trim());
+          }
+        });
+      }
 
-  //     // Extract unique document types from the response
-  //     const uniqueDocTypes = new Set();
+      // Convert Set to Array and sort alphabetically
+      const docTypesArray = Array.from(uniqueDocTypes).sort();
 
-  //     if (data.documents && data.documents.length > 0) {
-  //       data.documents.forEach(doc => {
-  //         if (doc.documentType && doc.documentType.trim()) {
-  //           uniqueDocTypes.add(doc.documentType.trim());
-  //         }
-  //       });
-  //     }
-
-  //     // Convert Set to Array and sort alphabetically
-  //     const docTypesArray = Array.from(uniqueDocTypes).sort();
-
-  //     // If no document types found, use fallback
-  //     if (docTypesArray.length === 0) {
-  //       setDocumentTypes(fallbackDocumentTypes);
-  //       setFilteredDocTypes(fallbackDocumentTypes);
-  //     } else {
-  //       setDocumentTypes(docTypesArray);
-  //       setFilteredDocTypes(docTypesArray);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching document types:", error);
-  //     // Use fallback document types on error
-  //     setDocumentTypes(fallbackDocumentTypes);
-  //     setFilteredDocTypes(fallbackDocumentTypes);
-  //   }
-  // };
+      // If no document types found, use fallback
+      if (docTypesArray.length === 0) {
+        setDocumentTypes(fallbackDocumentTypes);
+        setFilteredDocTypes(fallbackDocumentTypes);
+      } else {
+        setDocumentTypes(docTypesArray);
+        setFilteredDocTypes(docTypesArray);
+      }
+    } catch (error) {
+      console.error("Error fetching document types:", error);
+      // Use fallback document types on error
+      setDocumentTypes(fallbackDocumentTypes);
+      setFilteredDocTypes(fallbackDocumentTypes);
+    }
+  };
 
   // Handle document type input change (for search/filter)
   const handleDocTypeInputChange = (e) => {
@@ -373,7 +543,7 @@ function DocumentDetails() {
     }
 
     // Fetch document types when component mounts
-    // fetchDocumentTypes();
+    fetchDocumentTypes(); // ← UNCOMMENT THIS LINE
   }, [regNo]);
 
   // Fetch documents when view tab is active
@@ -822,24 +992,51 @@ function DocumentDetails() {
           <form className="doc-details-form">
             <div className="doc-details-form-group">
               <label htmlFor="category">Category</label>
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                required
-              >
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
+              <div className="doc-details-dropdown-container">
+                <input
+                  type="text"
+                  id="category"
+                  name="category"
+                  value={categories.find(cat => cat.value === formData.category)?.label || ''}
+                  onChange={(e) => {
+                    // Optional: allow typing to search
+                    const searchValue = e.target.value.toLowerCase();
+                    const matchedCategory = categories.find(cat =>
+                      cat.label.toLowerCase().includes(searchValue)
+                    );
+                    if (matchedCategory) {
+                      setFormData(prev => ({ ...prev, category: matchedCategory.value }));
+                    }
+                  }}
+                  onFocus={() => setShowCategoryDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
+                  placeholder="Select category"
+                  readOnly // Make it read-only if you don't want typing
+                  required
+                />
+
+                {showCategoryDropdown && (
+                  <div className="doc-details-dropdown-list">
+                    {categories.map((cat) => (
+                      <div
+                        key={cat.value}
+                        className="doc-details-dropdown-item"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, category: cat.value }));
+                          setShowCategoryDropdown(false);
+                        }}
+                      >
+                        {cat.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="doc-details-form-group">
               <label htmlFor="documentType">Document Type</label>
-              <div className="doc-details-dropdown-container" style={{ position: 'relative' }}>
+              <div className="doc-details-dropdown-container">
                 <input
                   type="text"
                   id="documentType"
@@ -848,44 +1045,17 @@ function DocumentDetails() {
                   onChange={handleDocTypeInputChange}
                   onFocus={handleDocTypeInputFocus}
                   onBlur={handleDocTypeInputBlur}
-                  placeholder="Type to search or add new document type..."
+                  placeholder="Type to search or add new document type"
                   required
                 />
 
                 {showDropdown && filteredDocTypes.length > 0 && (
-                  <div
-                    className="doc-details-dropdown-list"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      backgroundColor: 'white',
-                      border: '1px solid #ddd',
-                      borderTop: 'none',
-                      borderRadius: '0 0 4px 4px',
-                      maxHeight: '200px',
-                      overflowY: 'auto',
-                      zIndex: 1000,
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                  >
+                  <div className="doc-details-dropdown-list">
                     {filteredDocTypes.map((type, index) => (
                       <div
                         key={index}
+                        className="doc-details-dropdown-item"
                         onClick={() => handleDocTypeSelect(type)}
-                        style={{
-                          padding: '8px 12px',
-                          cursor: 'pointer',
-                          borderBottom: index < filteredDocTypes.length - 1 ? '1px solid #eee' : 'none',
-                          fontSize: '14px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#f5f5f5';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'white';
-                        }}
                       >
                         {type}
                       </div>
@@ -894,29 +1064,8 @@ function DocumentDetails() {
                 )}
 
                 {showDropdown && filteredDocTypes.length === 0 && docTypeInput.trim() && (
-                  <div
-                    className="doc-details-dropdown-list"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      backgroundColor: 'white',
-                      border: '1px solid #ddd',
-                      borderTop: 'none',
-                      borderRadius: '0 0 4px 4px',
-                      zIndex: 1000,
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '8px 12px',
-                        fontSize: '14px',
-                        color: '#666',
-                        fontStyle: 'italic'
-                      }}
-                    >
+                  <div className="doc-details-dropdown-list">
+                    <div className="doc-details-dropdown-empty">
                       Press Enter to add "{docTypeInput}" as new document type
                     </div>
                   </div>
@@ -962,13 +1111,54 @@ function DocumentDetails() {
 
             <div className="doc-details-form-group doc-details-file-group">
               <label htmlFor="document-file">Select Document</label>
-              <input
-                type="file"
-                id="document-file"
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp" // ADD image formats here
-                required
-              />
+
+              {/* Drag and Drop Zone */}
+              <div
+                className={`doc-details-drop-zone ${isDragging ? 'dragging' : ''}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="doc-details-drop-content">
+                  <div className="doc-details-drop-icon">
+                    <span class="material-symbols-rounded">files</span>
+                  </div>
+                  <p className="doc-details-drop-text">
+                    Drag and drop your file here
+                  </p>
+                  <p className="doc-details-drop-or">or</p>
+
+                  {/* Hidden file input */}
+                  <input
+                    type="file"
+                    id="document-file"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+                    style={{ display: 'none' }}
+                    required
+                  />
+
+                  {/* Custom Button that triggers file input */}
+                  <div onClick={() => document.getElementById('document-file').click()}>
+                    <Button
+                      text="Browse Files"
+                      colorScheme="purple-600"
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      squircle="3xl"
+                      width="auto"
+                      height="44px"
+                      type="button"
+                      textColor="white-900"
+                      shadowPosition="to-bottom"
+                      shadowColor="purple-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {selectedFile && (
                 <div className="doc-details-file-info">
                   Selected: {selectedFile.name}
@@ -1059,6 +1249,22 @@ function DocumentDetails() {
                 {/* Categories View */}
                 {currentView === 'categories' && (
                   <div className="doc-details-grid-container">
+                    {/* ALL DOCUMENTS FOLDER - NEW */}
+                    {Object.keys(groupedDocuments).length > 0 && (
+                      <div
+                        className="doc-details-grid-item doc-details-all-docs-item"
+                        onClick={() => navigateToAllDocuments()}
+                      >
+                        <div className="doc-details-folder-icon">📚</div>
+                        <div className="doc-details-item-name">All Documents</div>
+                        <div className="doc-details-item-info">
+                          {documentsList.length} document{documentsList.length !== 1 ? 's' : ''}
+                        </div>
+                        <div className="doc-details-all-badge">ALL</div>
+                      </div>
+                    )}
+
+                    {/* EXISTING CATEGORY FOLDERS */}
                     {Object.keys(groupedDocuments).length > 0 ? (
                       Object.entries(groupedDocuments).map(([category, documents]) => {
                         const categoryLabel = categories.find(cat => cat.value === category)?.label || category.toUpperCase();
@@ -1184,6 +1390,201 @@ function DocumentDetails() {
                   </div>
                 )}
 
+                {/* All Documents Subfolders View (Latest/Old) */}
+                {currentView === 'allDocsSubfolders' && (
+                  <div className="doc-details-grid-container">
+                    {(() => {
+                      const sortedDocs = [...documentsList].sort((a, b) =>
+                        new Date(b.uploadDate) - new Date(a.uploadDate)
+                      );
+
+                      const folders = [];
+
+                      // Latest folder
+                      if (sortedDocs.length > 0) {
+                        // Get unique document types in latest
+                        const latestDoc = sortedDocs[0];
+                        const latestDocTypes = new Set();
+                        documentsList.forEach(doc => {
+                          if (new Date(doc.uploadDate).getTime() === new Date(latestDoc.uploadDate).getTime()) {
+                            latestDocTypes.add(doc.documentType);
+                          }
+                        });
+
+                        folders.push(
+                          <div
+                            key="all-latest"
+                            className="doc-details-grid-item"
+                            onClick={() => navigateToAllDocsFolder(true)}
+                          >
+                            <div className="doc-details-folder-icon">📁</div>
+                            <div className="doc-details-item-name">Latest</div>
+                            <div className="doc-details-item-info">{latestDocTypes.size} unique document type{latestDocTypes.size !== 1 ? 's' : ''}</div>
+                            <div className="doc-details-latest-badge">LATEST</div>
+                          </div>
+                        );
+                      }
+
+                      // Old folder
+                      if (sortedDocs.length > 1) {
+                        folders.push(
+                          <div
+                            key="all-old"
+                            className="doc-details-grid-item"
+                            onClick={() => navigateToAllDocsFolder(false)}
+                          >
+                            <div className="doc-details-folder-icon">📁</div>
+                            <div className="doc-details-item-name">Old</div>
+                            <div className="doc-details-item-info">{sortedDocs.length - 1} document{sortedDocs.length - 1 !== 1 ? 's' : ''}</div>
+                            <div className="doc-details-old-badge">OLD</div>
+                          </div>
+                        );
+                      }
+
+                      return folders;
+                    })()}
+                  </div>
+                )}
+
+                {/* All Documents Files View with Selection */}
+                {currentView === 'allDocsFiles' && (
+                  <>
+                    {/* Toolbar with selection controls */}
+                    <div className="doc-details-selection-toolbar">
+                      <Button
+                        text={selectionMode ? 'Cancel Selection' : 'Select Multiple'}
+                        onClick={toggleSelectionMode}
+                        colorScheme={selectionMode ? 'red-600' : 'blue-600'}
+                        variant="gradient"
+                        font="sm"
+                        squircle="4xl"
+                        width="auto"
+                        height="40px"
+                        type="button"
+                        textColor="white-900"
+                      />
+
+                      {selectionMode && selectedDocuments.length >= 2 && (
+                        <Button
+                          text={`Merge ${selectedDocuments.length} PDFs`}
+                          onClick={handleMergePDFs}
+                          colorScheme="green-600"
+                          variant="gradient"
+                          font="sm"
+                          squircle="4xl"
+                          width="auto"
+                          height="40px"
+                          type="button"
+                          textColor="white-900"
+                        />
+                      )}
+                    </div>
+
+                    <div className="doc-details-grid-container">
+                      {(() => {
+                        const sortedDocs = [...documentsList].sort((a, b) =>
+                          new Date(b.uploadDate) - new Date(a.uploadDate)
+                        );
+
+                        const pathIsLatest = currentPath[currentPath.length - 1].isLatest;
+                        let docsToShow;
+
+                        if (pathIsLatest) {
+                          // Show only latest uploads
+                          const latestDate = new Date(sortedDocs[0].uploadDate);
+                          docsToShow = sortedDocs.filter(doc =>
+                            new Date(doc.uploadDate).getTime() === latestDate.getTime()
+                          );
+                        } else {
+                          // Show all except latest
+                          const latestDate = new Date(sortedDocs[0].uploadDate);
+                          docsToShow = sortedDocs.filter(doc =>
+                            new Date(doc.uploadDate).getTime() !== latestDate.getTime()
+                          );
+                        }
+
+                        return docsToShow.length > 0 ? docsToShow.map((doc) => (
+                          <div
+                            key={doc._id}
+                            className={`doc-details-grid-item-wrapper ${selectedDocuments.includes(doc._id) ? 'selected' : ''
+                              }`}
+                          >
+                            <div
+                              className="doc-details-grid-item"
+                              onClick={() => selectionMode && toggleDocumentSelection(doc._id)}
+                            >
+                              {selectionMode && (
+                                <div className="doc-details-selection-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedDocuments.includes(doc._id)}
+                                    onChange={() => toggleDocumentSelection(doc._id)}
+                                  />
+                                </div>
+                              )}
+
+                              <div className="doc-details-file-icon">
+                                {getFileIcon(doc.fileName, doc.mimetype)}
+                              </div>
+                              <div className="doc-details-item-name">{doc.fileName}</div>
+                              <div className="doc-details-item-info">Type: {doc.documentType}</div>
+                              <div className="doc-details-item-info">Issued: {doc.date}</div>
+                              <div className="doc-details-item-info">Expiry: {doc.expiry}</div>
+                            </div>
+
+                            {!selectionMode && (
+                              <div className="doc-details-file-actions">
+                                <Button
+                                  text="View"
+                                  onClick={() => handleView(doc._id, doc.fileName)}
+                                  colorScheme="amber-600"
+                                  variant="gradient"
+                                  font="sm"
+                                  squircle="4xl"
+                                  width="33%"
+                                  height="40px"
+                                  type="button"
+                                  textColor="white-900"
+                                />
+                                <Button
+                                  text="Download"
+                                  onClick={() => handleDownload(doc._id, doc.fileName)}
+                                  colorScheme="blue-600"
+                                  variant="gradient"
+                                  font="sm"
+                                  squircle="4xl"
+                                  width="33%"
+                                  height="40px"
+                                  type="button"
+                                  textColor="white-900"
+                                />
+                                <Button
+                                  text="Split"
+                                  onClick={() => handleSplitPDF(doc._id)}
+                                  colorScheme="purple-600"
+                                  variant="gradient"
+                                  font="sm"
+                                  squircle="4xl"
+                                  width="33%"
+                                  height="40px"
+                                  type="button"
+                                  textColor="white-900"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )) : (
+                          <div className="doc-details-empty-state">
+                            <div className="doc-details-empty-icon">📄</div>
+                            <h3>No Files</h3>
+                            <p>No files found.</p>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </>
+                )}
+
                 {/* Files View */}
                 {currentView === 'files' && currentCategory && currentDocType && (
                   <div className="doc-details-grid-container">
@@ -1199,41 +1600,58 @@ function DocumentDetails() {
 
                       let docsToShow;
                       if (currentDocType.isLatest) {
-                        docsToShow = sortedDocs.slice(0, 1); // Only latest
+                        docsToShow = sortedDocs.slice(0, 1);
                       } else {
-                        docsToShow = sortedDocs.slice(1); // All except latest
+                        docsToShow = sortedDocs.slice(1);
                       }
 
                       return docsToShow.length > 0 ? docsToShow.map((doc) => (
-                        <div
-                          key={doc._id}
-                          className="doc-details-grid-item"
-                        >
-                          <div className="doc-details-file-icon">
-                            {getFileIcon(doc.fileName, doc.mimetype)}
+                        <div key={doc._id} className="doc-details-grid-item-wrapper">
+                          <div className="doc-details-grid-item">
+                            <div className="doc-details-file-icon">
+                              {getFileIcon(doc.fileName, doc.mimetype)}
+                            </div>
+                            <div className="doc-details-item-name">{doc.fileName}</div>
+                            <div className="doc-details-item-info">
+                              Issued Date: {doc.date}
+                            </div>
+                            <div className="doc-details-item-info">
+                              Expiry Date: {doc.expiry}
+                            </div>
                           </div>
-                          <div className="doc-details-item-name">{doc.fileName}</div>
-                          <div className="doc-details-item-info">
-                            Issued Date: {doc.date}
-                          </div>
-                          <div className="doc-details-item-info">
-                            Expiry Date: {doc.expiry}
-                          </div>
+
+                          {/* Buttons outside the grid item */}
                           <div className="doc-details-file-actions">
-                            <button
+                            <Button
+                              text="View"
                               onClick={() => handleView(doc._id, doc.fileName)}
-                              className="doc-details-file-action-btn view"
-                              title="View document"
-                            >
-                              View
-                            </button>
-                            <button
+                              colorScheme="amber-600"
+                              variant="gradient"
+                              font="sm"
+                              animation=""
+                              squircle="4xl"
+                              width="50%"
+                              height="40px"
+                              type="button"
+                              textColor="white-900"
+                              shadowPosition="to-bottom"
+                              shadowColor="amber-800"
+                            />
+                            <Button
+                              text="Download"
                               onClick={() => handleDownload(doc._id, doc.fileName)}
-                              className="doc-details-file-action-btn download"
-                              title="Download document"
-                            >
-                              Download
-                            </button>
+                              colorScheme="blue-600"
+                              variant="gradient"
+                              font="sm"
+                              animation=""
+                              squircle="4xl"
+                              width="50%"
+                              height="40px"
+                              type="button"
+                              textColor="white-900"
+                              shadowPosition="to-bottom"
+                              shadowColor="blue-800"
+                            />
                           </div>
                         </div>
                       )) : (

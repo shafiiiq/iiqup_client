@@ -13,6 +13,12 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
     const [currentDateTime, setCurrentDateTime] = useState('');
     const [pendingLpos, setPendingLpos] = useState([]);
     const [showPendingAlert, setShowPendingAlert] = useState(false);
+    const [isLoadingEquipments, setIsLoadingEquipments] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     const navigate = useNavigate();
     const tableRef = useRef(null);
@@ -52,15 +58,76 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
     }, [isLPO]);
 
+    // Infinite scroll for loading more equipment
+    useEffect(() => {
+        if (!hasMore || isLoadingMore || isLoadingEquipments) return;
 
-    const fetchEquipments = async () => {
+        let scrollTimeout = null;
+
+        const handleInfiniteScroll = () => {
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+
+            scrollTimeout = setTimeout(() => {
+                const scrollTop = window.scrollY + window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+
+                // Load more when 80% scrolled
+                if (scrollTop > documentHeight * 0.8) {
+                    console.log('Loading more equipment...');
+                    fetchEquipments(currentPage + 1, true);
+                }
+            }, 200);
+        };
+
+        window.addEventListener('scroll', handleInfiniteScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleInfiniteScroll);
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+        };
+    }, [hasMore, isLoadingMore, isLoadingEquipments, currentPage]);
+
+    const fetchEquipments = async (page = 1, append = false) => {
+        if (page === 1) {
+            setIsLoadingEquipments(true);
+        } else {
+            setIsLoadingMore(true);
+        }
+
         try {
-            const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+            // Fetch equipment list with pagination
+            const response = await apiRequest(
+                `${END_POINT}/equipments/get-equipments?page=${page}&limit=20`,
+                'GET'
+            );
             const data = await response.json();
-            setEquipments(data.data);
-            setFilteredData(data.data);
+
+            if (!data.ok) {
+                throw new Error(data.message || 'Failed to fetch equipments');
+            }
+
+            const equipmentList = data.data;
+            setCurrentPage(data.pagination.currentPage);
+            setTotalPages(data.pagination.totalPages);
+            setTotalCount(data.pagination.totalCount);
+            setHasMore(data.pagination.hasMore);
+
+            if (append) {
+                // Add to existing equipment
+                setEquipments(prev => [...prev, ...equipmentList]);
+                setFilteredData(prev => [...prev, ...equipmentList]);
+            } else {
+                // Replace all equipment
+                setEquipments(equipmentList);
+                setFilteredData(equipmentList);
+            }
+
+            setIsLoadingEquipments(false);
+            setIsLoadingMore(false);
         } catch (error) {
             console.error('Error fetching equipment records:', error);
+            setIsLoadingEquipments(false);
+            setIsLoadingMore(false);
         }
     };
 
@@ -83,16 +150,43 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
     };
 
+    // Search functionality with debounce
     useEffect(() => {
-        if (equipments && equipments.length > 0) {
-            const results = equipments.filter(item => {
-                return Object.values(item).some(value =>
-                    String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        const searchEquipments = async () => {
+            if (!searchTerm || searchTerm.trim() === '') {
+                // Search cleared - reload original equipment data
+                fetchEquipments(1, false); // Reset to page 1, don't append
+                return;
+            }
+
+            try {
+                const response = await apiRequest(
+                    `${END_POINT}/equipments/search-equipments`,
+                    'POST',
+                    {
+                        searchTerm: searchTerm.trim(),
+                        page: 1,
+                        limit: 100,
+                        searchField: 'all'
+                    }
                 );
-            });
-            setFilteredData(results);
-        }
-    }, [searchTerm, equipments]);
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    setFilteredData(data.data);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        };
+
+        const debounceTimer = setTimeout(() => {
+            searchEquipments();
+        }, 500);
+
+        return () => clearTimeout(debounceTimer);
+    }, [searchTerm]);
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
@@ -110,7 +204,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         const foundEquipment = equipments.find(item =>
             item.regNo.toLowerCase() === searchTerm.toLowerCase()
         );
-
     };
 
     const handleRowClick = (regNo) => {
@@ -153,7 +246,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                     <div className="alert-header">
                         <h3 className="alert-title">⚠️ Pending LPO Requests ({pendingLpos.length})</h3>
                         <button className="alert-close-btn" onClick={handleClosePendingAlert}>
-                            <span class="material-symbols-rounded">
+                            <span className="material-symbols-rounded">
                                 close
                             </span>
                         </button>
@@ -183,7 +276,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                                         <span className="info-value">{lpoItem.createdAt || 'N/A'}</span>
                                     </div>
                                     <div className="info-row">
-                                        <span className="info-label">Requsted Time:</span>
+                                        <span className="info-label">Requested Time:</span>
                                         <span className="info-value">{lpoItem.createdAt || 'N/A'}</span>
                                     </div>
                                     <div className="info-row">
@@ -292,7 +385,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                 {searchTerm ? (
                     `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
                 ) : (
-                    `Showing all ${filteredData?.length || 0} entries`
+                    `Showing ${filteredData?.length || 0} of ${totalCount || 0} entries`
                 )}
             </div>
 
@@ -309,24 +402,44 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {
-                            filteredData.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    onClick={() => handleRowClick(item.regNo)}
-                                    className="equipment-row"
-                                >
-                                    <td>{item.id}</td>
-                                    <td>{item.machine}</td>
-                                    <td>{item.regNo}</td>
-                                    <td>{item.brand}</td>
-                                    <td>{item.year}</td>
-                                    <td>{item.company}</td>
-                                </tr>
-                            ))
-                        }
+                        {filteredData.map((item, index) => (
+                            <tr
+                                key={item.id || index}
+                                onClick={() => handleRowClick(item.regNo)}
+                                className="equipment-row"
+                            >
+                                <td>{index + 1}</td>
+                                <td>{item.machine}</td>
+                                <td>{item.regNo}</td>
+                                <td>{item.brand}</td>
+                                <td>{item.year}</td>
+                                <td>{item.company}</td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
+                
+                {/* Loading indicator */}
+                {isLoadingMore && (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '20px',
+                        color: '#666'
+                    }}>
+                        Loading more equipment...
+                    </div>
+                )}
+
+                {/* No more data indicator */}
+                {!hasMore && !isLoadingEquipments && filteredData.length > 0 && (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '20px',
+                        color: '#999'
+                    }}>
+                        All equipment loaded
+                    </div>
+                )}
             </div>
         </div>
     );

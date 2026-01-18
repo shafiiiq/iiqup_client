@@ -235,8 +235,9 @@ body.dark-theme {
 .service-table-container {
     overflow-x: auto;
     background-color: var(--card-bg);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
+    box-shadow: var(--shadow-outer-4xl);
 }
 
 .service-table {
@@ -642,6 +643,16 @@ body.dark-theme {
 /* Ensure table rows expand properly when remarks are expanded */
 .service-table tbody tr {
     transition: height 0.3s ease;
+}
+
+
+.equipment-header-row td {
+    font-size: 25px;
+    font-weight: 500;
+    background: var(--gradient-primary-1000);
+    border-radius: var(--radius-2xl);
+    text-align: center;
+    corner-radius: squircle;
 }
 
 /* Additional responsive styles for missing elements */

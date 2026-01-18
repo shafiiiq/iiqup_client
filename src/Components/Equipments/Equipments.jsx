@@ -21,6 +21,7 @@ function Equipments() {
   const ITEMS_PER_PAGE = 20; // Show 20 cards at a time
   const BUFFER_ITEMS = 10; // Preload 10 cards above/below viewport
 
+  const [isSelectMode, setIsSelectMode] = useState(false);
   const [activeTab, setActiveTab] = useState('equipment-based');
   const [displayedSites, setDisplayedSites] = useState([]);
   const [siteScrollPosition, setSiteScrollPosition] = useState(0);
@@ -31,7 +32,7 @@ function Equipments() {
   const [equipments, setEquipments] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState(null);
+  const [selectedEquipment, setSelectedEquipment] = useState([]);
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showOperatorsModal, setShowOperatorsModal] = useState(false);
@@ -309,6 +310,16 @@ function Equipments() {
     }
   }, [operatorSearchTerm, operator]);
 
+  const toggleEquipmentSelection = (regNo) => {
+    setSelectedEquipment(prev => {
+      if (prev.includes(regNo)) {
+        return prev.filter(r => r !== regNo);
+      } else {
+        return [...prev, regNo];
+      }
+    });
+  };
+
   // Handle mechanic selection
   const handleOperatorSelect = (operator) => {
     setEditFormData({
@@ -539,7 +550,6 @@ function Equipments() {
     // Check cache first
     const cachedUrl = getCachedImageUrl(filePath);
     if (cachedUrl) {
-      console.log('Using cached URL for:', filePath);
       return cachedUrl;
     }
 
@@ -1639,28 +1649,40 @@ function Equipments() {
           </div>
         </div>
       )}
-      {/* <div className="equipment-header">
-        <h1 className='equip-title'>Equipment Inventory</h1>
-        <div className="date-time">{currentDateTime}</div>
-      </div> */}
-
-      {/* <div className="search-container">
-        <input
-          type="text"
-          placeholder="Search equipment..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="search-input"
-        />
-        {searchTerm && (
-          <button onClick={handleClearSearch} className="clear-button">
-            ×
-          </button>
-        )}
-      </div> */}
-
       <div className="controls-container">
         <div className="buttons-container">
+          <Button
+            text={isSelectMode ? "Cancel Selection" : "Select Multiple"}
+            onClick={() => {
+              setIsSelectMode(!isSelectMode);
+              setSelectedEquipment([]); // Clear selections when toggling
+            }}
+            colorScheme={isSelectMode ? "red-600" : "purple-600"}
+            variant="gradient"
+            font="md"
+            squircle="4xl"
+            width="160px"
+            height="38px"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+
+          {isSelectMode && selectedEquipment.length > 0 && (
+            <Button
+              text={`View History (${selectedEquipment.length})`}
+              onClick={() => navigate(`/service-history/${selectedEquipment.join(',')}`)}
+              colorScheme="emerald-600"
+              variant="gradient"
+              font="md"
+              squircle="4xl"
+              width="180px"
+              height="38px"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+          )}
           <Button
             text="Add Equipment"
             onClick={() => handleAdd()}
@@ -1770,9 +1792,11 @@ function Equipments() {
 
               return (
                 <div
-                  className="equipment-card"
+                  className={`equipment-card ${isSelectMode && selectedEquipment.includes(item.regNo) ? 'selected' : ''}`}
                   key={item.id}
                   data-reg-no={item.regNo}
+                  onClick={() => isSelectMode && toggleEquipmentSelection(item.regNo)}
+                  style={{ cursor: isSelectMode ? 'pointer' : 'default' }}
                 >
                   {/* Image Slider */}
                   <div className="card-image-slider">
@@ -1786,7 +1810,7 @@ function Equipments() {
                               alt={img.label || `${item.machine} ${index + 1}`}
                               className={`slider-image ${index === currentImageIndex ? 'active' : ''}`}
                               loading="lazy"
-                              onClick={(e) => handleImageClick(e, item, index)}
+                              onClick={(e) => !isSelectMode && handleImageClick(e, item, index)}
                             />
                           ))}
                         </div>
@@ -1847,68 +1871,74 @@ function Equipments() {
                       </div>
                     </div>
                     <div className="card-footer">
-                      <div className="card-actions">
+                      {!isSelectMode && (
+                        <div className="card-actions">
+                          <Button
+                            iconCenter="edit_square"
+                            onClick={(e) => handleEdit(e, item)}
+                            colorScheme="blue-800"
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            squircle="4xl"
+                            width="45px"
+                            height="45px"
+                            type="submit"
+                            textColor="white-200"
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                          />
+                          <Button
+                            iconCenter="backspace"
+                            onClick={(e) => handleDeleteClick(e, item)}
+                            colorScheme="red-600"
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            squircle="4xl"
+                            width="45px"
+                            height="45px"
+                            type="submit"
+                            textColor="white-200"
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                          />
+                        </div>
+                      )}
+                      {!isSelectMode && (
                         <Button
-                          iconCenter="edit_square"
-                          onClick={(e) => handleEdit(e, item)}
-                          colorScheme="blue-800"
+                          text="Service History"
+                          onClick={() => handleRowClick(item.regNo)}
+                          colorScheme="lime-800"
                           variant="gradient"
                           font="md"
                           animation=""
                           squircle="4xl"
-                          width="45px"
-                          height="45px"
+                          width="160px"
+                          height="38px"
                           type="submit"
                           textColor="white-200"
                           shadowPosition="to-bottom"
                           shadowColor="white-600"
                         />
+                      )}
+                      {!isSelectMode && (
                         <Button
-                          iconCenter="backspace"
-                          onClick={(e) => handleDeleteClick(e, item)}
-                          colorScheme="red-600"
+                          text="View More"
+                          onClick={() => handleViewDetails(item)}
+                          colorScheme="warning-800"
                           variant="gradient"
                           font="md"
                           animation=""
                           squircle="4xl"
-                          width="45px"
-                          height="45px"
+                          width="160px"
+                          height="38px"
                           type="submit"
                           textColor="white-200"
                           shadowPosition="to-bottom"
                           shadowColor="white-600"
                         />
-                      </div>
-                      <Button
-                        text="Service History"
-                        onClick={() => handleRowClick(item.regNo)}
-                        colorScheme="lime-800"
-                        variant="gradient"
-                        font="md"
-                        animation=""
-                        squircle="4xl"
-                        width="160px"
-                        height="38px"
-                        type="submit"
-                        textColor="white-200"
-                        shadowPosition="to-bottom"
-                        shadowColor="white-600"
-                      />
-                      <Button
-                        text="View More"
-                        onClick={() => handleViewDetails(item)}
-                        colorScheme="warning-800"
-                        variant="gradient"
-                        font="md"
-                        animation=""
-                        squircle="4xl"
-                        width="160px"
-                        height="38px"
-                        type="submit"
-                        textColor="white-200"
-                        shadowPosition="to-bottom"
-                        shadowColor="white-600"
-                      />
+                      )}
                     </div>
                   </div>
                 </div>

@@ -12,12 +12,25 @@ import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
 
 const ServiceHistory = () => {
-  // Get the regNo from URL parameters and setup navigation
-  const { regNo } = useParams();
+  const { regNos } = useParams();
+
+  // Better error handling
+  const regNoArray = React.useMemo(() => {
+    if (!regNos) {
+      console.error('No regNos in URL!');
+      return [];
+    }
+    const array = regNos.split(',').map(r => r.trim()).filter(r => r);
+    return array;
+  }, [regNos]);
+
+  const isMultipleEquipment = regNoArray.length > 1;
+
   const navigate = useNavigate();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const tableRef = useRef(null);
 
+  const [groupedData, setGroupedData] = useState({});
   const [pendingAction, setPendingAction] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -41,6 +54,7 @@ const ServiceHistory = () => {
   const { searchTerm, setSearchTerm } = useSearch();
   const [filteredData, setFilteredData] = useState([]);
   const [equipmentData, setEquipmentData] = useState(null);
+  const [multipleEquipmentData, setMultipleEquipmentData] = useState([]);
   const [dateFilter, setDateFilter] = useState('all'); // 'all', 'lastXmonths', 'thismonth', 'custom'
   const [lastMonthsCount, setLastMonthsCount] = useState(6);
   const [customStartDate, setCustomStartDate] = useState('');
@@ -69,8 +83,13 @@ const ServiceHistory = () => {
 
   // Set header title when component mounts or data changes
   useEffect(() => {
-    if (equipmentData) {
-      const subtitle = `${equipmentData.machine} - ${regNo} > ${dateFilter.toLocaleUpperCase()} TIME > ${activeTab.toLocaleUpperCase()} SERVICE`
+    if (isMultipleEquipment && multipleEquipmentData.length > 0) {
+      const equipmentNames = multipleEquipmentData.map(eq => eq.machine).join(', ');
+      const subtitle = `Multiple Equipment (${multipleEquipmentData.length}) > ${dateFilter.toLocaleUpperCase()} TIME > ${activeTab.toLocaleUpperCase()} SERVICE`;
+      setHeaderTitle('Service History');
+      setHeaderSubtitle(subtitle);
+    } else if (equipmentData) {
+      const subtitle = `${equipmentData.machine} - ${regNoArray[0]} > ${dateFilter.toLocaleUpperCase()} TIME > ${activeTab.toLocaleUpperCase()} SERVICE`;
       setHeaderTitle('Service History');
       setHeaderSubtitle(subtitle);
     } else {
@@ -78,12 +97,11 @@ const ServiceHistory = () => {
       setHeaderSubtitle(null);
     }
 
-    // Cleanup - reset when component unmounts
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [equipmentData, regNo, activeTab, dateFilter]);
+  }, [equipmentData, multipleEquipmentData, regNoArray, activeTab, dateFilter, isMultipleEquipment]);
 
   useEffect(() => {
     let interval = null;
@@ -135,6 +153,18 @@ const ServiceHistory = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const groupByEquipment = (data) => {
+    const grouped = {};
+    data.forEach(item => {
+      const regNo = item.regNo;
+      if (!grouped[regNo]) {
+        grouped[regNo] = [];
+      }
+      grouped[regNo].push(item);
+    });
+    return grouped;
+  };
 
   const toggleRemarkExpansion = (index) => {
     setExpandedRemarks(prev => ({
@@ -406,7 +436,7 @@ const ServiceHistory = () => {
       if (item.serviceType === 'maintenance' && item.date) {
         try {
           const formattedDate = formatDate(item.date);
-          const response = await apiRequest(`${END_POINT}/service-report/${regNo}/${formattedDate}`);
+          const response = await apiRequest(`${END_POINT}/service-report/${item.regNo}/${formattedDate}`);
 
           if (response.ok) {
             const remarksData = await response.json();
@@ -436,7 +466,7 @@ const ServiceHistory = () => {
       if (['oil', 'normal', 'tyre', 'battery'].includes(item.serviceType) && item.date) {
         try {
           const formattedDate = formatDate(item.date);
-          const response = await apiRequest(`${END_POINT}/service-report/${regNo}/${formattedDate}`);
+          const response = await apiRequest(`${END_POINT}/service-report/${item.regNo}/${formattedDate}`);
 
           if (response.ok) {
             const remarksData = await response.json();
@@ -467,29 +497,44 @@ const ServiceHistory = () => {
   useEffect(() => {
     setLoading(true);
 
+    if (!regNos || regNoArray.length === 0) {
+      setLoading(false);
+      setError('No equipment registration numbers provided');
+      return;
+    }
+    setLoading(true);
+
     const fetchAllHistories = async () => {
       try {
-        // Fetch all service types in parallel
-        const [serviceRes, maintenanceRes, tyreRes, batteryRes] = await Promise.all([
+        // Fetch histories for ALL regNos in parallel
+        const allPromises = regNoArray.flatMap(regNo => [
           apiRequest(`${END_POINT}/service-history/get-service-history/${regNo}`),
           apiRequest(`${END_POINT}/service-history/get-maintanance-history/${regNo}`),
           apiRequest(`${END_POINT}/service-history/get-tyre-history/${regNo}`),
           apiRequest(`${END_POINT}/service-history/get-battery-history/${regNo}`)
         ]);
 
-        // Parse all responses
-        const [serviceData, maintenanceData, tyreData, batteryData] = await Promise.all([
-          serviceRes.json(),
-          maintenanceRes.json(),
-          tyreRes.json(),
-          batteryRes.json()
-        ]);
+        const responses = await Promise.all(allPromises);
+        const allData = await Promise.all(responses.map(res => res.json()));
 
-        // Set individual histories
-        setServiceHistory(serviceData.data || []);
-        setMaintenanceHistory(maintenanceData.data || []);
-        setTyreHistory(tyreData.data || []);
-        setBatteryHistory(batteryData.data || []);
+        // Combine all service histories
+        const combinedService = [];
+        const combinedMaintenance = [];
+        const combinedTyre = [];
+        const combinedBattery = [];
+
+        regNoArray.forEach((regNo, idx) => {
+          const offset = idx * 4;
+          combinedService.push(...(allData[offset].data || []));
+          combinedMaintenance.push(...(allData[offset + 1].data || []));
+          combinedTyre.push(...(allData[offset + 2].data || []));
+          combinedBattery.push(...(allData[offset + 3].data || []));
+        });
+
+        setServiceHistory(combinedService);
+        setMaintenanceHistory(combinedMaintenance);
+        setTyreHistory(combinedTyre);
+        setBatteryHistory(combinedBattery);
 
         setLoading(false);
       } catch (error) {
@@ -501,27 +546,58 @@ const ServiceHistory = () => {
 
     fetchAllHistories();
 
-    // Try to find equipment details
     const fetchEquipmentDetails = async () => {
       try {
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-        const data = await response.json();
-
-        if (data.data) {
-          const equipment = data.data.find(eq =>
-            eq.regNo.toString().trim() === regNo.toString().trim()
+        if (isMultipleEquipment) {
+          // Fetch each equipment individually
+          const equipmentPromises = regNoArray.map(regNo =>
+            apiRequest(`${END_POINT}/equipments/get-equipment/${regNo}`, 'GET')
           );
-          setEquipmentData(equipment);
+
+          const responses = await Promise.all(equipmentPromises);
+          const equipmentDataArray = await Promise.all(
+            responses.map(res => res.json())
+          );
+
+          // FIXED: The API returns { data: [equipmentObject] }, so we need to access [0]
+          const equipments = equipmentDataArray
+            .map(response => {
+              // Check if data is an array and get first element, or use data directly
+              const equipmentData = Array.isArray(response.data)
+                ? response.data[0]
+                : response.data;
+              return equipmentData;
+            })
+            .filter(eq => eq !== null && eq !== undefined);
+
+          console.log("equipments", equipments);
+
+          setMultipleEquipmentData(equipments);
+          setEquipmentData(equipments[0] || null);
+        } else {
+          // Single equipment - use the specific endpoint
+          const response = await apiRequest(
+            `${END_POINT}/equipments/get-equipment/${regNoArray[0]}`,
+            'GET'
+          );
+          const data = await response.json();
+
+          // Handle both cases: data as array or object
+          const equipmentData = Array.isArray(data.data) ? data.data[0] : data.data;
+
+          if (equipmentData) {
+            setEquipmentData(equipmentData);
+          }
         }
       } catch (err) {
         console.error("Could not load equipment data:", err);
       }
     };
 
-    if (regNo) {
+    if (regNoArray.length > 0) {
       fetchEquipmentDetails();
     }
-  }, [regNo]);
+  }, [regNoArray]);
 
   useEffect(() => {
     const processData = async () => {
@@ -592,7 +668,7 @@ const ServiceHistory = () => {
 
       // Filter for this specific equipment
       const equipmentData = combinedData.filter(item =>
-        item.regNo?.toString().trim() === regNo?.toString().trim()
+        regNoArray.includes(item.regNo?.toString().trim())
       );
 
       // Apply date filter
@@ -659,7 +735,16 @@ const ServiceHistory = () => {
     };
 
     processData();
-  }, [serviceHistory, maintenanceHistory, tyreHistory, batteryHistory, regNo, searchTerm, activeTab, dateFilter, lastMonthsCount, customStartDate, customEndDate, filters]);
+  }, [serviceHistory, maintenanceHistory, tyreHistory, batteryHistory, regNoArray, searchTerm, activeTab, dateFilter, lastMonthsCount, customStartDate, customEndDate, filters]);
+
+  // Group data by equipment after filteredData is set
+  useEffect(() => {
+    if (isMultipleEquipment) {
+      setGroupedData(groupByEquipment(filteredData));
+    } else {
+      setGroupedData({ [regNoArray[0]]: filteredData });
+    }
+  }, [filteredData, isMultipleEquipment, regNoArray]);
 
   // Handle tab change
   const handleTabChange = (tab) => {
@@ -697,7 +782,6 @@ const ServiceHistory = () => {
   };
 
   const handleExportToPDF = async () => {
-    // Check if document is signed before exporting
     if (!isDocumentSigned) {
       setPendingAction('pdf');
       setShowWarningModal(true);
@@ -713,6 +797,10 @@ const ServiceHistory = () => {
           activeTab === 'maintenance' ? 'Major Works' :
             activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
 
+      const equipmentTitle = isMultipleEquipment
+        ? `Multiple Equipment (${regNoArray.join(', ')})`
+        : `${equipmentData ? equipmentData.machine : 'Equipment'} ${regNoArray[0]}`;
+
       let currentY = 10;
 
       try {
@@ -721,20 +809,17 @@ const ServiceHistory = () => {
           loadImageAsDataURL(alAnsariText)
         ]);
 
-        // Left logo
         doc.addImage(leftLogoData, 'PNG', 10, currentY, 40, 24);
-        // Right logo  
         doc.addImage(rightLogoData, 'PNG', 237, currentY, 50, 24);
       } catch (error) {
         console.error('Error adding logos:', error);
       }
 
-
       currentY += 30;
 
       doc.setFontSize(18);
       doc.setFont(undefined, 'bold');
-      doc.text(`${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`, 148, currentY, { align: 'center' });
+      doc.text(`${tabName} History - ${equipmentTitle}`, 148, currentY, { align: 'center' });
 
       currentY += 7;
 
@@ -765,49 +850,77 @@ const ServiceHistory = () => {
         'Remarks'
       ];
 
-      const tableData = filteredData.map((item) => {
-        const row = [
-          formatDate(item.date),
-          ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
-          getWorkDescriptionForPDF(item),
-          ...((activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') ? [
-            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-            ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : [])
-          ] : []),
-          ...((activeTab === 'tyre' || activeTab === 'all') ? [
-            item.serviceType === 'tyre' && item.location ? item.location : '-',
-            item.serviceType === 'tyre' ? item.tyreModel : '-'
-          ] : []),
-          ...((activeTab === 'battery' || activeTab === 'all') ? [
-            item.serviceType === 'battery' ? item.batteryModel : '-'
-          ] : []),
-          getRemarksText(item)
-        ];
-        return row;
+      const tableData = [];
+      Object.entries(groupedData).forEach(([regNo, items]) => {
+        if (isMultipleEquipment) {
+          const equipment = multipleEquipmentData.find(eq => eq.regNo?.toString().trim() === regNo?.toString().trim());
+          tableData.push([{
+            content: `${equipment?.machine || 'Equipment'} - Reg No: ${regNo}`,
+            colSpan: headers.length,
+            styles: { fontStyle: 'bold', fillColor: [211, 211, 211], halign: 'left' }
+          }]);
+        }
+
+        items.forEach(item => {
+          const row = [
+            formatDate(item.date),
+            ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
+            getWorkDescriptionForPDF(item),
+            ...((activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') ? [
+              ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
+              ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
+              ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : [])
+            ] : []),
+            ...((activeTab === 'tyre' || activeTab === 'all') ? [
+              item.serviceType === 'tyre' && item.location ? item.location : '-',
+              item.serviceType === 'tyre' ? item.tyreModel : '-'
+            ] : []),
+            ...((activeTab === 'battery' || activeTab === 'all') ? [
+              item.serviceType === 'battery' ? item.batteryModel : '-'
+            ] : []),
+            getRemarksText(item)
+          ];
+          tableData.push(row);
+        });
       });
 
-      const getRowColor = (item) => {
-        if (item.fullService || item.replaced) {
-          return [255, 211, 165];
+      const getRowColor = (rowIndex) => {
+        let dataIndex = rowIndex;
+        let currentEquipment = null;
+
+        for (const [regNo, items] of Object.entries(groupedData)) {
+          if (isMultipleEquipment) {
+            if (dataIndex === 0) return [211, 211, 211];
+            dataIndex--;
+          }
+
+          if (dataIndex < items.length) {
+            const item = items[dataIndex];
+            if (item.fullService || item.replaced) {
+              return [255, 211, 165];
+            }
+
+            switch (item.serviceType) {
+              case 'oil':
+                return [232, 245, 232];
+              case 'maintenance':
+                return [255, 243, 205];
+              case 'tyre':
+                return [209, 236, 241];
+              case 'battery':
+                return [248, 215, 218];
+              default:
+                return [255, 255, 255];
+            }
+          }
+
+          dataIndex -= items.length;
         }
 
-        switch (item.serviceType) {
-          case 'oil':
-            return [232, 245, 232]; // Light green
-          case 'maintenance':
-            return [255, 243, 205]; // Light yellow
-          case 'tyre':
-            return [209, 236, 241]; // Light blue
-          case 'battery':
-            return [248, 215, 218]; // Light red
-          default:
-            return [255, 255, 255]; // White
-        }
+        return [255, 255, 255];
       };
 
-      // Generate table using autoTable
-      const finalY = doc.autoTable({
+      doc.autoTable({
         head: [headers],
         body: tableData,
         startY: currentY,
@@ -826,16 +939,13 @@ const ServiceHistory = () => {
           halign: 'center'
         },
         columnStyles: {
-          0: { cellWidth: 25 }, // Date
-          ...(activeTab === 'all' ? { 1: { cellWidth: 20 } } : {}), // Service Type
+          0: { cellWidth: 25 },
+          ...(activeTab === 'all' ? { 1: { cellWidth: 20 } } : {}),
         },
         didParseCell: function (data) {
           if (data.row.index >= 0 && data.section === 'body') {
-            const item = filteredData[data.row.index];
-            if (item) {
-              const color = getRowColor(item);
-              data.cell.styles.fillColor = color;
-            }
+            const color = getRowColor(data.row.index);
+            data.cell.styles.fillColor = color;
           }
         },
         margin: { top: 10, left: 10, right: 10 }
@@ -876,7 +986,7 @@ const ServiceHistory = () => {
           dateFilter === 'thismonth' ? '_This_Month' :
             dateFilter === 'custom' && customStartDate && customEndDate ? `_${customStartDate}_to_${customEndDate}` : '';
 
-      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const fileName = `${tabName.replace(/\s+/g, '_')}_${isMultipleEquipment ? 'Multiple_Equipment' : regNoArray[0]}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`;
 
       doc.save(fileName);
 
@@ -890,22 +1000,22 @@ const ServiceHistory = () => {
   const handleAddService = () => {
     switch (activeTab) {
       case 'normal':
-        navigate(`/service-history-form/${regNo}`);
+        navigate(`/service-history-form/${regNoArray[0]}`);
         break;
       case 'oil':
-        navigate(`/service-history-form/${regNo}`);
+        navigate(`/service-history-form/${regNoArray[0]}`);
         break;
       case 'maintenance':
-        navigate(`/maintenance-history-form/${regNo}`);
+        navigate(`/maintenance-history-form/${regNoArray[0]}`);
         break;
       case 'tyre':
-        navigate(`/tyre-history-form/${regNo}`);
+        navigate(`/tyre-history-form/${regNoArray[0]}`);
         break;
       case 'battery':
-        navigate(`/battery-history-form/${regNo}`);
+        navigate(`/battery-history-form/${regNoArray[0]}`);
         break;
       default:
-        navigate(`/service-form-nav/${regNo}`);
+        navigate(`/service-form-nav/${regNoArray[0]}`);
     }
   };
 
@@ -916,31 +1026,31 @@ const ServiceHistory = () => {
     // Determine base path based on active tab
     switch (activeTab) {
       case 'all':
-        basePath = `/all/all-histories/${regNo}`;
+        basePath = `/all/all-histories/${regNoArray[0]}`;
         break;
       case 'oil':
-        basePath = `/all/oil-service/${regNo}`;
+        basePath = `/all/oil-service/${regNoArray[0]}`;
         break;
       case 'maintenance':
-        basePath = `/all/maintenance-service/${regNo}`;
+        basePath = `/all/maintenance-service/${regNoArray[0]}`;
         break;
       case 'tyre':
-        basePath = `/all/tyre-service/${regNo}`;
+        basePath = `/all/tyre-service/${regNoArray[0]}`;
         break;
       case 'battery':
-        basePath = `/all/battery-service/${regNo}`;
+        basePath = `/all/battery-service/${regNoArray[0]}`;
         break;
       default:
-        basePath = `/all/all-histories/${regNo}`;
+        basePath = `/all/all-histories/${regNoArray[0]}`;
     }
 
     // Add date range parameters if custom date filter is selected
     if (dateFilter === 'custom' && customStartDate && customEndDate) {
       const formattedStartDate = formatDate(customStartDate).replace(/-/g, '-');
       const formattedEndDate = formatDate(customEndDate).replace(/-/g, '-');
-      basePath = `/all/date-range/${regNo}/${formattedStartDate}/${formattedEndDate}`;
+      basePath = `/all/date-range/${regNoArray[0]}/${formattedStartDate}/${formattedEndDate}`;
     } else if (dateFilter === 'lastXmonths') {
-      basePath = `/all/last-months/${regNo}/${lastMonthsCount}`;
+      basePath = `/all/last-months/${regNoArray[0]}/${lastMonthsCount}`;
     } else if (dateFilter === 'thismonth') {
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -948,7 +1058,7 @@ const ServiceHistory = () => {
 
       const formattedStartDate = formatDate(firstDay).replace(/-/g, '-');
       const formattedEndDate = formatDate(lastDay).replace(/-/g, '-');
-      basePath = `/all/date-range/${regNo}/${formattedStartDate}/${formattedEndDate}`;
+      basePath = `/all/date-range/${regNoArray[0]}/${formattedStartDate}/${formattedEndDate}`;
     }
 
     navigate(basePath);
@@ -958,22 +1068,22 @@ const ServiceHistory = () => {
     let path;
     switch (serviceType) {
       case 'normal':
-        path = `/service-doc/${regNo}/${date}`;
+        path = `/service-doc/${regNoArray[0]}/${date}`;
         break;
       case 'oil':
-        path = `/service-doc/${regNo}/${date}`;
+        path = `/service-doc/${regNoArray[0]}/${date}`;
         break;
       case 'maintenance':
-        path = `/maintenance-doc/${regNo}/${date}`;
+        path = `/maintenance-doc/${regNoArray[0]}/${date}`;
         break;
       case 'tyre':
-        path = `/tyre-doc/${regNo}/${date}`;
+        path = `/tyre-doc/${regNoArray[0]}/${date}`;
         break;
       case 'battery':
-        path = `/battery-doc/${regNo}/${date}`;
+        path = `/battery-doc/${regNoArray[0]}/${date}`;
         break;
       default:
-        path = `/service-doc/${regNo}/${date}`;
+        path = `/service-doc/${regNoArray[0]}/${date}`;
     }
     navigate(path);
   };
@@ -1036,9 +1146,12 @@ const ServiceHistory = () => {
 
   const handleExportToExcel = async () => {
     try {
-      // Create a workbook and worksheet
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Service History');
+
+      const equipmentTitle = isMultipleEquipment
+        ? `Multiple Equipment (${regNoArray.join(', ')})`
+        : `${equipmentData ? equipmentData.machine : 'Equipment'} ${regNoArray[0]}`;
 
       const tabName = activeTab === 'all' ? 'All Services' :
         activeTab === 'oil' ? 'Oil Service' :
@@ -1047,15 +1160,13 @@ const ServiceHistory = () => {
 
       let currentRow = 1;
 
-      // Add title rows with styling
       const titleCell = worksheet.getCell('A1');
-      titleCell.value = `${tabName} History - ${equipmentData ? equipmentData.machine : 'Equipment'} ${regNo}`;
+      titleCell.value = `${tabName} History - ${equipmentTitle}`;
       titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
       titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
       titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
       worksheet.getRow(1).height = 45;
 
-      // Add subtitle
       currentRow++;
       const subtitleCell = worksheet.getCell(`A${currentRow}`);
       subtitleCell.value = `Date Range: ${getDateRangeText()}`;
@@ -1064,7 +1175,6 @@ const ServiceHistory = () => {
       subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
       worksheet.getRow(currentRow).height = 45;
 
-      // Add search term if applicable
       if (searchTerm) {
         currentRow++;
         const searchCell = worksheet.getCell(`A${currentRow}`);
@@ -1075,11 +1185,9 @@ const ServiceHistory = () => {
         worksheet.getRow(currentRow).height = 45;
       }
 
-      // Empty row
       currentRow++;
       worksheet.getRow(currentRow).height = 20;
 
-      // Add timestamp
       currentRow++;
       const timestampCell = worksheet.getCell(`A${currentRow}`);
       timestampCell.value = `Report Generated: ${new Date().toLocaleString()}`;
@@ -1087,11 +1195,9 @@ const ServiceHistory = () => {
       timestampCell.alignment = { horizontal: 'center', vertical: 'middle' };
       worksheet.getRow(currentRow).height = 45;
 
-      // Empty row
       currentRow++;
       worksheet.getRow(currentRow).height = 20;
 
-      // Define headers
       const headers = [
         'Date',
         ...(activeTab === 'all' ? ['Service Type'] : []),
@@ -1102,7 +1208,6 @@ const ServiceHistory = () => {
         'Remarks'
       ];
 
-      // Add headers
       currentRow++;
       const headerRow = worksheet.getRow(currentRow);
       headers.forEach((header, index) => {
@@ -1120,121 +1225,131 @@ const ServiceHistory = () => {
       });
       headerRow.height = 45;
 
-      // Set column widths
       const colWidths = [
-        15,  // Date
-        ...(activeTab === 'all' ? [15] : []), // Service Type
-        40,  // Work Description
-        ...((activeTab === 'oil' || activeTab === 'all') ? [15, 15, 18] : []), // Oil columns
-        ...((activeTab === 'tyre' || activeTab === 'all') ? [20, 25] : []), // Tyre columns
-        ...((activeTab === 'battery' || activeTab === 'all') ? [25] : []), // Battery column
-        40   // Remarks
+        15,
+        ...(activeTab === 'all' ? [15] : []),
+        40,
+        ...((activeTab === 'oil' || activeTab === 'all') ? [15, 15, 18] : []),
+        ...((activeTab === 'tyre' || activeTab === 'all') ? [20, 25] : []),
+        ...((activeTab === 'battery' || activeTab === 'all') ? [25] : []),
+        40
       ];
 
       colWidths.forEach((width, index) => {
         worksheet.getColumn(index + 1).width = width;
       });
 
-      // Add data rows
-      filteredData.forEach((item, index) => {
-        currentRow++;
-        const dataRow = worksheet.getRow(currentRow);
-
-        const rowData = [
-          formatDate(item.date),
-          ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
-          getWorkDescription(item),
-          ...((activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') ? [
-            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-            ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-            ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : [])
-          ] : []),
-          ...((activeTab === 'tyre' || activeTab === 'all') ? [
-            item.serviceType === 'tyre' && item.location ? item.location : '-',
-            item.serviceType === 'tyre' ? item.tyreModel : '-'
-          ] : []),
-          ...((activeTab === 'battery' || activeTab === 'all') ? [
-            item.serviceType === 'battery' ? item.batteryModel : '-'
-          ] : []),
-          getRemarksText(item)
-        ];
-
-        // Set row data
-        rowData.forEach((value, colIndex) => {
-          dataRow.getCell(colIndex + 1).value = value;
-        });
-
-        // Set row height
-        dataRow.height = 45;
-
-        // Determine background color based on service type
-        let bgColor = 'FFFFFFFF'; // White default
-        switch (item.serviceType) {
-          case 'oil':
-            bgColor = 'FFE8F5E8'; // Light green
-            break;
-          case 'maintenance':
-            bgColor = 'FFFFF3CD'; // Light yellow
-            break;
-          case 'tyre':
-            bgColor = 'FFD1ECF1'; // Light blue
-            break;
-          case 'battery':
-            bgColor = 'FFF8D7DA'; // Light red
-            break;
-        }
-
-        if (item.fullService || item.replaced) {
-          bgColor = 'FFFFD3A5'; // Orange for full service/replacement
-        }
-
-        // Style each cell in the row
-        dataRow.eachCell((cell) => {
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
-          cell.border = {
+      // Add grouped data rows
+      Object.entries(groupedData).forEach(([regNo, items]) => {
+        if (isMultipleEquipment) {
+          currentRow++;
+          const equipment = multipleEquipmentData.find(eq => eq.regNo?.toString().trim() === regNo?.toString().trim());
+          const equipHeaderRow = worksheet.getRow(currentRow);
+          equipHeaderRow.getCell(1).value = `${equipment?.machine || 'Equipment'} - Reg No: ${regNo}`;
+          worksheet.mergeCells(`A${currentRow}:${String.fromCharCode(64 + headers.length)}${currentRow}`);
+          equipHeaderRow.getCell(1).font = { bold: true, size: 12 };
+          equipHeaderRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD3D3D3' } };
+          equipHeaderRow.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+          equipHeaderRow.getCell(1).border = {
             top: { style: 'thin' },
             left: { style: 'thin' },
             bottom: { style: 'thin' },
             right: { style: 'thin' }
           };
-          cell.font = { size: 11 };
+          equipHeaderRow.height = 35;
+        }
+
+        items.forEach((item) => {
+          currentRow++;
+          const dataRow = worksheet.getRow(currentRow);
+
+          const rowData = [
+            formatDate(item.date),
+            ...(activeTab === 'all' ? [getServiceTypeBadge(item.serviceType).text] : []),
+            getWorkDescription(item),
+            ...((activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') ? [
+              ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
+              ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
+              ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : [])
+            ] : []),
+            ...((activeTab === 'tyre' || activeTab === 'all') ? [
+              item.serviceType === 'tyre' && item.location ? item.location : '-',
+              item.serviceType === 'tyre' ? item.tyreModel : '-'
+            ] : []),
+            ...((activeTab === 'battery' || activeTab === 'all') ? [
+              item.serviceType === 'battery' ? item.batteryModel : '-'
+            ] : []),
+            getRemarksText(item)
+          ];
+
+          rowData.forEach((value, colIndex) => {
+            dataRow.getCell(colIndex + 1).value = value;
+          });
+
+          dataRow.height = 45;
+
+          let bgColor = 'FFFFFFFF';
+          switch (item.serviceType) {
+            case 'oil':
+              bgColor = 'FFE8F5E8';
+              break;
+            case 'maintenance':
+              bgColor = 'FFFFF3CD';
+              break;
+            case 'tyre':
+              bgColor = 'FFD1ECF1';
+              break;
+            case 'battery':
+              bgColor = 'FFF8D7DA';
+              break;
+          }
+
+          if (item.fullService || item.replaced) {
+            bgColor = 'FFFFD3A5';
+          }
+
+          dataRow.eachCell((cell) => {
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+            cell.font = { size: 11 };
+          });
         });
       });
 
-      // Merge title cells
-      worksheet.mergeCells(`A1:${String.fromCharCode(64 + headers.length)}1`); // Main title
-      worksheet.mergeCells(`A2:${String.fromCharCode(64 + headers.length)}2`); // Date range
+      worksheet.mergeCells(`A1:${String.fromCharCode(64 + headers.length)}1`);
+      worksheet.mergeCells(`A2:${String.fromCharCode(64 + headers.length)}2`);
 
       if (searchTerm) {
-        worksheet.mergeCells(`A3:${String.fromCharCode(64 + headers.length)}3`); // Search term
-        worksheet.mergeCells(`A5:${String.fromCharCode(64 + headers.length)}5`); // Timestamp
+        worksheet.mergeCells(`A3:${String.fromCharCode(64 + headers.length)}3`);
+        worksheet.mergeCells(`A5:${String.fromCharCode(64 + headers.length)}5`);
       } else {
-        worksheet.mergeCells(`A4:${String.fromCharCode(64 + headers.length)}4`); // Timestamp
+        worksheet.mergeCells(`A4:${String.fromCharCode(64 + headers.length)}4`);
       }
 
-      // Generate filename with date filter info
       const dateFilterSuffix = dateFilter === 'all' ? '' :
         dateFilter === 'lastXmonths' ? `_Last_${lastMonthsCount}_Months` :
           dateFilter === 'thismonth' ? '_This_Month' :
             dateFilter === 'custom' && customStartDate && customEndDate ? `_${customStartDate}_to_${customEndDate}` : '';
 
-      const fileName = `${tabName.replace(/\s+/g, '_')}_${regNo}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const fileName = `${tabName.replace(/\s+/g, '_')}_${isMultipleEquipment ? 'Multiple_Equipment' : regNoArray[0]}${dateFilterSuffix}_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-      // Generate buffer and create blob for download
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
 
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       link.click();
 
-      // Clean up
       window.URL.revokeObjectURL(url);
 
     } catch (error) {
@@ -1263,7 +1378,7 @@ const ServiceHistory = () => {
     if (item.serviceType === 'oil' || item.serviceType === 'normal') {
       return item.remarks?.toUpperCase() || '';
     } else if (item.serviceType === 'maintenance') {
-      return item.majorRemarks.toUpperCase() || item.workRemarks.toUpperCase() || '';
+      return item.majorRemarks?.toUpperCase() || item.workRemarks?.toUpperCase() || '';
     } else if (item.serviceType === 'tyre' || item.serviceType === 'battery') {
       return item.remarks?.toUpperCase() || '';
     }
@@ -1304,6 +1419,10 @@ const ServiceHistory = () => {
       activeTab === 'oil' ? 'Oil Service' :
         activeTab === 'maintenance' ? 'Major Works' :
           activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
+
+    const equipmentTitle = isMultipleEquipment
+      ? `Multiple Equipment (${regNoArray.join(', ')})`
+      : `${equipmentData ? equipmentData.machine : 'Equipment'} ${regNoArray[0]}`;
 
     const content = `
       <html>
@@ -1409,7 +1528,7 @@ const ServiceHistory = () => {
           </div>
           <div style="display: flex; width: 100%; gap:1rem; justify-content: center; align-items: center">
             <h2 style="font-weight: 700; text-align: center">${tabName} History -</h2>
-            <h3 style="font-weight: 500; text-align: center">${equipmentData ? `${equipmentData.machine} - ${regNo}` : `Equipment: ${regNo}`} -</h3>
+            <h3 style="font-weight: 500; text-align: center">${equipmentTitle} -</h3>
             <p>Date Range: ${getDateRangeText()}</p>
           </div>
           ${searchTerm ? `<p>Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
@@ -1703,138 +1822,152 @@ const ServiceHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => {
-                  const badge = getServiceTypeBadge(item.serviceType);
+              {Object.keys(groupedData).length > 0 ? (
+                Object.entries(groupedData).map(([regNo, items]) => {
+                  const equipment = multipleEquipmentData.find(eq => eq.regNo?.toString().trim() === regNo?.toString().trim());
                   return (
-                    <tr key={index} className={`${item.serviceType}-service ${item.fullService ? 'full-service-row' : ''} ${item.replaced ? 'replacement-row' : ''}`}>
-                      <td>{formatDate(item.date)}</td>
-                      {activeTab === 'all' && (
-                        <td>
-                          <span className={`service-badge ${badge.className}`}>
-                            {item.fullService ? 'Full Service' : badge.text}
-                          </span>
-                        </td>
+                    <React.Fragment key={regNo}>
+                      {isMultipleEquipment && (
+                        <tr className="equipment-header-row">
+                          <td colSpan="16">
+                            {equipment?.machine || 'Equipment'} - Reg No: {regNo}
+                          </td>
+                        </tr>
                       )}
-                      <td style={{ textAlign: 'left' }}>
-                        {(item.serviceType === 'oil' || item.serviceType === 'normal') && (
-                          <div>
-                            <div><strong>Fuel Filter: </strong>{item.fuelFilter}, <strong>Water Sep: </strong>{item.waterSeparator}</div>
-                            <div><strong>Air Filter:</strong> {item.airFilter}, <strong>A/C Filter:</strong> {item.acFilter ? item.acFilter : ''}</div>
-                          </div>
-                        )}
-                      </td>
-                      {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') && (
-                        <>
-                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
-                          <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
-                          {(activeTab === 'oil' || activeTab === 'all') && (
-                            <td>{item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'}</td>
-                          )}
-                        </>
-                      )}
-                      {(activeTab === 'tyre' || activeTab === 'all') && (
-                        <>
-                          <td>{item.location ? item.location : '-'}</td>
-                          <td>{item.serviceType === 'tyre' ? item.tyreModel : '-'}</td>
-                        </>
-                      )}
-                      {(activeTab === 'battery' || activeTab === 'all') && (
-                        <>
-                          <td>{item.serviceType === 'battery' ? item.batteryModel : '-'}</td>
-                        </>
-                      )}
-                      <td style={{ textAlign: 'left' }} className="remarks-cell">
-                        {(item.serviceType === 'oil' || item.serviceType === 'normal') && item.remarks && (
-                          <div className="remarks-content">
-                            <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.remarks?.toUpperCase()}
-                            </div>
-                            {item.remarks.length > 100 && (
-                              <button
-                                className="view-more-btn no-print"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleRemarkExpansion(index);
-                                }}
-                              >
-                                {expandedRemarks[index] ? 'View Less' : 'View More'}
-                              </button>
+                      {items.map((item, index) => {
+                        const badge = getServiceTypeBadge(item.serviceType);
+                        return (
+                          <tr key={`${regNo}-${index}`} className={`${item.serviceType}-service ${item.fullService ? 'full-service-row' : ''} ${item.replaced ? 'replacement-row' : ''}`}>
+                            <td>{formatDate(item.date)}</td>
+                            {activeTab === 'all' && (
+                              <td>
+                                <span className={`service-badge ${badge.className}`}>
+                                  {item.fullService ? 'Full Service' : badge.text}
+                                </span>
+                              </td>
                             )}
-                          </div>
-                        )}
-                        {item.serviceType === 'maintenance' && (item.majorRemarks || item.workRemarks) && (
-                          <div className="remarks-content">
-                            <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.majorRemarks?.toUpperCase() || item.workRemarks?.toUpperCase()}
-                            </div>
-                            {(item.majorRemarks?.length > 100 || item.workRemarks?.length > 100) && (
-                              <button
-                                className="view-more-btn no-print"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleRemarkExpansion(index);
-                                }}
-                              >
-                                {expandedRemarks[index] ? 'View Less' : 'View More'}
-                              </button>
+                            <td style={{ textAlign: 'left' }}>
+                              {(item.serviceType === 'oil' || item.serviceType === 'normal') && (
+                                <div>
+                                  <div><strong>Fuel Filter: </strong>{item.fuelFilter}, <strong>Water Sep: </strong>{item.waterSeparator}</div>
+                                  <div><strong>Air Filter:</strong> {item.airFilter}, <strong>A/C Filter:</strong> {item.acFilter ? item.acFilter : ''}</div>
+                                </div>
+                              )}
+                            </td>
+                            {(activeTab === 'oil' || activeTab === 'normal' || activeTab === 'maintenance' || activeTab === 'all') && (
+                              <>
+                                <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-'}</td>
+                                <td>{(item.serviceType === 'oil' || item.serviceType === 'normal' || item.serviceType === 'maintenance') ? (item.nextServiceHrs == 0 ? '' : item.nextServiceHrs) : '-'}</td>
+                                {(activeTab === 'oil' || activeTab === 'all') && (
+                                  <td>{item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'}</td>
+                                )}
+                              </>
                             )}
-                          </div>
-                        )}
-                        {(item.serviceType === 'tyre' || item.serviceType === 'battery') && item.remarks && (
-                          <div className="remarks-content">
-                            <div className={expandedRemarks[index] ? 'remarks-text expanded' : 'remarks-text'}>
-                              {item.remarks?.toUpperCase()}
-                            </div>
-                            {item.remarks.length > 100 && (
-                              <button
-                                className="view-more-btn no-print"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleRemarkExpansion(index);
-                                }}
-                              >
-                                {expandedRemarks[index] ? 'View Less' : 'View More'}
-                              </button>
+                            {(activeTab === 'tyre' || activeTab === 'all') && (
+                              <>
+                                <td>{item.location ? item.location : '-'}</td>
+                                <td>{item.serviceType === 'tyre' ? item.tyreModel : '-'}</td>
+                              </>
                             )}
-                          </div>
-                        )}
-                      </td>
-                      <td className="document-column">
-                        <Button
-                          text=" View Document"
-                          onClick={() => handleRowClick(formatDate(item.date), item.serviceType)}
-                          colorScheme="sky-800"
-                          variant="gradient"
-                          font="md"
-                          animation=""
-                          squircle="4xl"
-                          width="160px"
-                          height="38px"
-                          type="submit"
-                          textColor="white-200"
-                          shadowPosition="to-bottom"
-                          shadowColor="white-600"
-                        />
-                      </td>
-                      <td className="document-column">
-                        <Button
-                          text=" Delete"
-                          onClick={() => handleDeleteReport(item)}
-                          colorScheme="red-700"
-                          variant="gradient"
-                          font="md"
-                          animation=""
-                          squircle="4xl"
-                          width="160px"
-                          height="38px"
-                          type="submit"
-                          textColor="white-200"
-                          shadowPosition="to-bottom"
-                          shadowColor="white-600"
-                        />
-                      </td>
-                    </tr>
+                            {(activeTab === 'battery' || activeTab === 'all') && (
+                              <>
+                                <td>{item.serviceType === 'battery' ? item.batteryModel : '-'}</td>
+                              </>
+                            )}
+                            <td style={{ textAlign: 'left' }} className="remarks-cell">
+                              {(item.serviceType === 'oil' || item.serviceType === 'normal') && item.remarks && (
+                                <div className="remarks-content">
+                                  <div className={expandedRemarks[`${regNo}-${index}`] ? 'remarks-text expanded' : 'remarks-text'}>
+                                    {item.remarks?.toUpperCase()}
+                                  </div>
+                                  {item.remarks.length > 100 && (
+                                    <button
+                                      className="view-more-btn no-print"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleRemarkExpansion(`${regNo}-${index}`);
+                                      }}
+                                    >
+                                      {expandedRemarks[`${regNo}-${index}`] ? 'View Less' : 'View More'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {item.serviceType === 'maintenance' && (item.majorRemarks || item.workRemarks) && (
+                                <div className="remarks-content">
+                                  <div className={expandedRemarks[`${regNo}-${index}`] ? 'remarks-text expanded' : 'remarks-text'}>
+                                    {item.majorRemarks?.toUpperCase() || item.workRemarks?.toUpperCase()}
+                                  </div>
+                                  {(item.majorRemarks?.length > 100 || item.workRemarks?.length > 100) && (
+                                    <button
+                                      className="view-more-btn no-print"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleRemarkExpansion(`${regNo}-${index}`);
+                                      }}
+                                    >
+                                      {expandedRemarks[`${regNo}-${index}`] ? 'View Less' : 'View More'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {(item.serviceType === 'tyre' || item.serviceType === 'battery') && item.remarks && (
+                                <div className="remarks-content">
+                                  <div className={expandedRemarks[`${regNo}-${index}`] ? 'remarks-text expanded' : 'remarks-text'}>
+                                    {item.remarks?.toUpperCase()}
+                                  </div>
+                                  {item.remarks.length > 100 && (
+                                    <button
+                                      className="view-more-btn no-print"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleRemarkExpansion(`${regNo}-${index}`);
+                                      }}
+                                    >
+                                      {expandedRemarks[`${regNo}-${index}`] ? 'View Less' : 'View More'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="document-column">
+                              <Button
+                                text=" View Document"
+                                onClick={() => handleRowClick(formatDate(item.date), item.serviceType)}
+                                colorScheme="sky-800"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                squircle="4xl"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                              />
+                            </td>
+                            <td className="document-column">
+                              <Button
+                                text=" Delete"
+                                onClick={() => handleDeleteReport(item)}
+                                colorScheme="red-700"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                squircle="4xl"
+                                width="160px"
+                                height="38px"
+                                type="submit"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
                   );
                 })
               ) : (
