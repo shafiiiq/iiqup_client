@@ -257,7 +257,7 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
       }));
     } else if (regNo) {
       try {
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipments?page=1&limit=1000`, 'GET');
         const data = await response.json();
         const equipment = data.data?.find(eq => eq.regNo === regNo);
 

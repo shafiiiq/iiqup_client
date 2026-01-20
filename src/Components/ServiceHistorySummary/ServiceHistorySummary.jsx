@@ -10,6 +10,7 @@ import DevModal from '../../common/DevModal';
 import ExcelJS from 'exceljs';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
+import Input from '../../common/Input/Input';
 
 function ServiceHistorySummary() {
     const { searchTerm } = useSearch();
@@ -40,7 +41,7 @@ function ServiceHistorySummary() {
         setIsLoading(true);
         try {
             const response = await apiRequest(
-                `${END_POINT}/service-report/histories/${period}`,
+                `${END_POINT}/service-report/summary/${period}`,
                 'GET'
             );
             const data = await response.json();
@@ -309,14 +310,28 @@ function ServiceHistorySummary() {
             <div className="controls-bar">
                 <div className="action-buttons left">
                     <div className="period-selector">
-                        <label htmlFor="period">Period:</label>
-                        <select id="period" value={selectedPeriod} onChange={handlePeriodChange} className="period-dropdown">
-                            <option value="daily">Today</option>
-                            <option value="yesterday">Yesterday</option>
-                            <option value="weekly">Last Week</option>
-                            <option value="monthly">Last Month</option>
-                            <option value="yearly">Last Year</option>
-                        </select>
+                        <Input
+                            type="select"
+                            value={selectedPeriod}
+                            onChange={(e) => handlePeriodChange(e)}
+                            options={[
+                                { value: 'daily', label: 'Today' },
+                                { value: 'yesterday', label: 'Yesterday' },
+                                { value: 'weekly', label: 'Last Week' },
+                                { value: 'monthly', label: 'Last Month' },
+                                { value: 'yearly', label: 'Last Year' }
+                            ]}
+                            colorScheme="violet-800"
+                            variant="gradient"
+                            font="md"
+                            squircle="4xl"
+                            width="160px"
+                            height="38px"
+                            textColor="white-200"
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                            animation="glow"
+                        />
                     </div>
                 </div>
                 <div className="action-buttons right">

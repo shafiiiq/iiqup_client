@@ -85,7 +85,7 @@ const ServiceHistory = () => {
   useEffect(() => {
     if (isMultipleEquipment && multipleEquipmentData.length > 0) {
       const equipmentNames = multipleEquipmentData.map(eq => eq.machine).join(', ');
-      const subtitle = `Multiple Equipment (${multipleEquipmentData.length}) > ${dateFilter.toLocaleUpperCase()} TIME > ${activeTab.toLocaleUpperCase()} SERVICE`;
+      const subtitle = `Equipments (${multipleEquipmentData.length}) > ${dateFilter.toLocaleUpperCase()} TIME > ${activeTab.toLocaleUpperCase()} SERVICE`;
       setHeaderTitle('Service History');
       setHeaderSubtitle(subtitle);
     } else if (equipmentData) {
@@ -798,7 +798,7 @@ const ServiceHistory = () => {
             activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
 
       const equipmentTitle = isMultipleEquipment
-        ? `Multiple Equipment (${regNoArray.join(', ')})`
+        ? `Equipments (${regNoArray.join(', ')})`
         : `${equipmentData ? equipmentData.machine : 'Equipment'} ${regNoArray[0]}`;
 
       let currentY = 10;
@@ -1150,7 +1150,7 @@ const ServiceHistory = () => {
       const worksheet = workbook.addWorksheet('Service History');
 
       const equipmentTitle = isMultipleEquipment
-        ? `Multiple Equipment (${regNoArray.join(', ')})`
+        ? `Equipments (${regNoArray.join(', ')})`
         : `${equipmentData ? equipmentData.machine : 'Equipment'} ${regNoArray[0]}`;
 
       const tabName = activeTab === 'all' ? 'All Services' :
@@ -1421,7 +1421,7 @@ const ServiceHistory = () => {
           activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service';
 
     const equipmentTitle = isMultipleEquipment
-      ? `Multiple Equipment (${regNoArray.join(', ')})`
+      ? `Equipments (${regNoArray.join(', ')})`
       : `${equipmentData ? equipmentData.machine : 'Equipment'} ${regNoArray[0]}`;
 
     const content = `
