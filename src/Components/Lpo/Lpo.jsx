@@ -302,11 +302,24 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
     }
   };
 
-  async function fetchEquipments() {
+  async function fetchEquipments(searchTerm = '') {
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-      const data = await response.json();
-      setEquipments(data.data || []);
+      let url;
+      if (searchTerm.trim()) {
+        // Use search endpoint
+        const response = await apiRequest(`${END_POINT}/equipments/search-equipments`, 'POST', {
+          searchTerm: searchTerm,
+          page: 1,
+          limit: 1000
+        });
+        const data = await response.json();
+        setEquipments(data.data || []);
+      } else {
+        // Use get endpoint
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipments?page=1&limit=1000`, 'GET');
+        const data = await response.json();
+        setEquipments(data.data || []);
+      }
     } catch (error) {
       console.error('Error fetching equipment records:', error);
     }
@@ -892,7 +905,10 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
                                 type="text"
                                 placeholder="Search equipments..."
                                 value={equipmentSearch}
-                                onChange={(e) => setEquipmentSearch(e.target.value)}
+                                onChange={(e) => {
+                                  setEquipmentSearch(e.target.value);
+                                  fetchEquipments(e.target.value);
+                                }}
                                 className="dropdown-search"
                                 autoFocus
                               />
