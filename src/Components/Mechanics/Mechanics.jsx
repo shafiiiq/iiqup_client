@@ -52,6 +52,8 @@ const Mechanics = () => {
         const data = await response.json();
         setMechanics(data.data);
         if (data.data.length > 0) {
+          console.log("data.data[0]", data.data[0]);
+          
           setSelectedMechanic(data.data[0]);
         }
         setLoading(false);
@@ -455,7 +457,6 @@ const Mechanics = () => {
                   <div className="toolkits-content">
                     <div className="content-header">
                       <h3>Assigned Toolkits</h3>
-                      <button className="add-toolkit-btn">+ Add Toolkit</button>
                     </div>
                     <div className="toolkits-table-wrapper">
                       <table className="toolkits-table">
@@ -485,7 +486,7 @@ const Mechanics = () => {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan="7" className="no-data">No toolkits assigned</td>
+                              <td colSpan="40" className="no-data">No toolkits assigned</td>
                             </tr>
                           )}
                         </tbody>
@@ -590,7 +591,7 @@ const Mechanics = () => {
                               ))
                             ) : (
                               <tr>
-                                <td colSpan="4" className="no-data">No overtime records available</td>
+                                <td colSpan="40" className="no-data">No overtime records available</td>
                               </tr>
                             )}
                           </tbody>
@@ -642,7 +643,7 @@ const Mechanics = () => {
                               })
                             ) : (
                               <tr>
-                                <td colSpan="4" className="no-data">No daily records found for this month</td>
+                                <td colSpan="40" className="no-data">No daily records found for this month</td>
                               </tr>
                             )}
                           </tbody>

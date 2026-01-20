@@ -47,6 +47,7 @@ import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
 import BackchargeList from './Components/BackchargeList/BackchargeList'; import Spacer from './Components/Spacer/Spacer';
 import NotFound from './Components/Common/NotFound/NotFound';
 import LiveChat from './Components/LiveChat/LiveChat';
+import ServiceHistorySummary from './Components/ServiceHistorySummary/ServiceHistorySummary';
 ;
 
 // Create contexts
@@ -586,6 +587,17 @@ function App() {
                       <ProtectedRoute>
                         <CEOGuard>
                           <ServiceHistory />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/service-histoy/summary"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceHistorySummary />
                         </CEOGuard>
                       </ProtectedRoute>
                     }

@@ -560,8 +560,8 @@
   color: var(--doc-details-primary-color);
 }
 
-.doc-details-file-icon {
-  font-size: 40px;
+.doc-details-file-icon span{
+  font-size: 90px;
   margin-bottom: 8px;
   color: var(--doc-details-tab-inactive);
 }

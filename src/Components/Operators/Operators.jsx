@@ -951,7 +951,7 @@ const Operators = () => {
 
               <div className="detail-group">
                 <h4>Assigned Safety Items</h4>
-                <div>
+                <div className='operators-table-container'>
                   <table className="operators-table">
                     <thead>
                       <tr>
@@ -975,7 +975,7 @@ const Operators = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="7" className="no-data">No toolkits assigned</td>
+                          <td colSpan="40" className="no-data">No toolkits assigned</td>
                         </tr>
                       )}
                     </tbody>

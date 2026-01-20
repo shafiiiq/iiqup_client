@@ -1430,7 +1430,7 @@ function StockManage() {
                 <div
                   className={`stock-manage-progress-bar ${calculateStatus(selectedStock.stockCount)}`}
                   style={{
-                    width: `${Math.min(100, (selectedStock.stockCount / 20) * 100)}%`
+                    width: `${Math.min(100, (selectedStock.stockCount / 10) * 100)}%`
                   }}
                 >
                   <span className="stock-manage-progress-text">
@@ -1579,7 +1579,7 @@ function StockManage() {
                           ))
                       ) : (
                         <tr>
-                          <td colSpan="6" className="stock-manage-no-history">
+                          <td colSpan="8" className="stock-manage-no-history">
                             No stock movement history available
                           </td>
                         </tr>

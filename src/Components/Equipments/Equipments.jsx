@@ -760,6 +760,10 @@ function Equipments() {
     }
   };
 
+  const handleQuickServices = () => {
+    navigate(`/service-histoy/summary`);
+  }
+
   const handleClearCache = () => {
     localStorage.removeItem(CACHE_KEY);
     localStorage.removeItem(EQUIPMENT_DATA_CACHE_KEY);
@@ -1715,6 +1719,21 @@ function Equipments() {
           />
         </div>
         <div className="buttons-container">
+          <Button
+            text="Quick Service Histories"
+            onClick={() => handleQuickServices()}
+            colorScheme="lime-400"
+            variant="gradient"
+            font="md"
+            animation=""
+            squircle="4xl"
+            width="fit-content"
+            height="38px"
+            type="submit"
+            textColor="black-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
           <Button
             text="Clear Cache"
             onClick={() => handleClearCache()}

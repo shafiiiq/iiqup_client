@@ -772,8 +772,6 @@ const Toolkits = () => {
     }
   };
 
-  // Reduce stock for a variant
-  // Reduce stock for a variant
   const handleReduceStock = async () => {
     try {
       const response = await apiRequest(`${END_POINT}/toolkits/reduce-stock/${selectedToolkit._id}/${selectedVariant._id}`,
@@ -1207,7 +1205,7 @@ const Toolkits = () => {
                         item.overallStatus === 'low' ? 'Low Stock' : 'Out of Stock'}
                     </span>
                   </td>
-                  <td className="action-buttons">
+                  <td className="toolkit-action-buttons">
                     <Button
                       text="Details"
                       onClick={() => showDetails(item)}
@@ -1236,7 +1234,14 @@ const Toolkits = () => {
         <div className="toolkit-details">
           <div className="details-header">
             <h2>Toolkit Details</h2>
-            <button className="close-btn" onClick={() => setSelectedToolkit(null)}>
+            <button className="close-btn"
+              onClick={() => {
+                setSelectedToolkit(null)
+                setVariantSearchTerm('');
+                setVariantFilterSize('all');
+                setVariantFilterColor('all');
+                setVariantFilterStatus('all');
+              }} >
               <span class="material-symbols-rounded">
                 close
               </span>
@@ -1292,14 +1297,6 @@ const Toolkits = () => {
                       onChange={(e) => setVariantSearchTerm(e.target.value)}
                       className="variant-search-input"
                     />
-                    {variantSearchTerm && (
-                      <button
-                        className="clear-search-btn"
-                        onClick={() => setVariantSearchTerm('')}
-                      >
-                        ×
-                      </button>
-                    )}
                   </div>
 
                   <div className="filter-dropdowns">
@@ -1337,17 +1334,26 @@ const Toolkits = () => {
                     </select>
 
                     {(variantSearchTerm || variantFilterSize !== 'all' || variantFilterColor !== 'all' || variantFilterStatus !== 'all') && (
-                      <button
-                        className="clear-filters-btn"
+                      <Button
+                        text="Clear All"
                         onClick={() => {
                           setVariantSearchTerm('');
                           setVariantFilterSize('all');
                           setVariantFilterColor('all');
                           setVariantFilterStatus('all');
                         }}
-                      >
-                        Clear All
-                      </button>
+                        colorScheme="orange-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        squircle="4xl"
+                        width="160px"
+                        height="38px"
+                        type="submit"
+                        textColor="white-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="white-600"
+                      />
                     )}
                   </div>
                 </div>
@@ -1410,7 +1416,7 @@ const Toolkits = () => {
                                     variant="gradient"
                                     font="md"
                                     animation=""
-                                    rounded="sm"
+                                    squircle="4xl"
                                     width="100px"
                                     height="32px"
                                     type="submit"
@@ -1425,7 +1431,7 @@ const Toolkits = () => {
                                     variant="gradient"
                                     font="md"
                                     animation=""
-                                    rounded="sm"
+                                    squircle="4xl"
                                     width="100px"
                                     height="32px"
                                     type="submit"
@@ -1459,7 +1465,7 @@ const Toolkits = () => {
                   variant="gradient"
                   font="md"
                   animation=""
-                  rounded="sm"
+                  squircle="4xl"
                   width="160px"
                   height="40px"
                   type="submit"
@@ -1474,7 +1480,7 @@ const Toolkits = () => {
                   variant="gradient"
                   font="md"
                   animation=""
-                  rounded="sm"
+                  squircle="4xl"
                   width="160px"
                   height="40px"
                   type="submit"
@@ -1489,7 +1495,7 @@ const Toolkits = () => {
                   variant="gradient"
                   font="md"
                   animation=""
-                  rounded="sm"
+                  squircle="4xl"
                   width="160px"
                   height="40px"
                   type="submit"
@@ -1504,7 +1510,7 @@ const Toolkits = () => {
                   variant="gradient"
                   font="md"
                   animation=""
-                  rounded="sm"
+                  squircle="4xl"
                   width="160px"
                   height="40px"
                   type="submit"
@@ -1525,6 +1531,23 @@ const Toolkits = () => {
                       close
                     </span>
                   </button>
+                </div>
+                <div className="variant-actions reduce">
+                  <Button
+                    text="Reduce Stock"
+                    onClick={openReduceStockModal}
+                    colorScheme="pink-800"
+                    variant="gradient"
+                    font="md"
+                    animation=""
+                    squircle="4xl"
+                    width="fit-content"
+                    height="32px"
+                    type="submit"
+                    textColor="white-200"
+                    shadowPosition="to-bottom"
+                    shadowColor="white-600"
+                  />
                 </div>
                 <div className="details-content">
                   <div className="detail-item detail-item-side-container">
@@ -1607,15 +1630,21 @@ const Toolkits = () => {
                   </div>
 
                   <div className="variant-actions">
-                    <button className="action-btn reduce" onClick={openReduceStockModal}>
-                      Reduce Stock
-                    </button>
-                    <button
-                      className="action-btn history"
+                    <Button
+                      text={showStockHistory ? 'Hide History' : 'Show History'}
                       onClick={() => setShowStockHistory(!showStockHistory)}
-                    >
-                      {showStockHistory ? 'Hide History' : 'Show History'}
-                    </button>
+                      colorScheme={showStockHistory ? 'amber-800' : 'blue-800'}
+                      variant="gradient"
+                      font="md"
+                      animation=""
+                      squircle="4xl"
+                      width="fit-content"
+                      height="32px"
+                      type="submit"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </div>
 
                   {showStockHistory && (
@@ -1692,9 +1721,33 @@ const Toolkits = () => {
           {
             name: 'person',
             label: 'Assigned To',
-            type: 'text',
-            placeholder: 'Enter person name',
-            required: true
+            type: 'searchable-select',
+            placeholder: 'Search for a person...',
+            required: true,
+            allowCustom: true,
+            showDropdown: showUserDropdown,
+            dropdownItems: filteredUsers.map(u => ({
+              value: u.name,
+              label: u.name,
+              subtitle: u.type
+            })),
+            onSearchFocus: () => {
+              setShowUserDropdown(true);
+            },
+            onSearch: (value) => {
+              setUserSearchTerm(value);
+              setShowUserDropdown(value.length > 0);
+            },
+            onSearchBlur: () => {
+              setShowUserDropdown(false);
+            },
+            onItemSelect: (item) => {
+              const selectedUser = allUsers.find(u => u.name === item.value);
+              if (selectedUser) {
+                handleUserSelect(selectedUser);
+              }
+              setShowUserDropdown(false);
+            }
           },
           {
             name: 'reason',

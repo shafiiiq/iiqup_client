@@ -559,7 +559,6 @@ body.dark-theme {
     background: rgba(231, 243, 255, 0.2);
     padding: 10px 15px;
     border-radius: 6px;
-    border-left: 4px solid var(--primary-color);
     font-size: 14px;
     color: var(--primary-color);
 }

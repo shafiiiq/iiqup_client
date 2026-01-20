@@ -33,13 +33,11 @@
 .stock-manage-message.success {
   background-color: rgba(46, 204, 113, 0.1);
   color: var(--color-success);
-  border: 1px solid rgba(46, 204, 113, 0.2);
 }
 
 .stock-manage-message.error {
   background-color: rgba(231, 76, 60, 0.1);
   color: var(--color-error);
-  border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
 .stock-manage-table-container {
@@ -61,7 +59,6 @@
   padding: 12px 15px;
   font-weight: 600;
   color: var(--text-secondary) !important;
-  border-bottom: 2px solid var(--border-primary);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -69,7 +66,6 @@
 
 .stock-manage-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--border-primary) !important;
   color: var(--text-color) !important;
   background: var(--gradient-primary-900);
 }
@@ -117,6 +113,7 @@
   display: flex;
   gap: 8px;
   justify-content: center;
+  padding-block: 17px !important;
 }
 
 .stock-manage-action-btn {
@@ -218,7 +215,6 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid var(--border-primary);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -237,8 +233,12 @@
 
 .stock-manage-detail-item {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  flex-direction: row;
+  justify-content: space-between;
+  background: var(--gradient-glass-700);
+  padding: 1rem 0.5rem;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .stock-manage-label {
@@ -266,14 +266,14 @@
 
 .stock-manage-progress-container {
   height: 20px;
-  background-color: var(--text-disabled);
-  border-radius: 10px;
+  background: var(--gradient-glass-400);
+  border-radius: var(--radius-full);
   overflow: hidden;
   margin-bottom: 5px;
-  border: 1px solid var(--border-primary);
 }
 
 .stock-manage-progress-bar {
+  width: 18.75%;
   height: 100%;
   text-align: right;
   color: white;
@@ -287,15 +287,15 @@
 }
 
 .stock-manage-progress-bar.available {
-  background-color: var(--color-success);
+  background: var(--gradient-radial-success);
 }
 
 .stock-manage-progress-bar.low {
-  background-color: var(--color-warning);
+  background: var(--gradient-radial-warning);
 }
 
 .stock-manage-progress-bar.out {
-  background-color: var(--color-error);
+  background: var(--gradient-radial-error);
 }
 
 .stock-manage-progress-text {
@@ -306,7 +306,6 @@
 .stock-manage-actions-section {
   margin-top: auto;
   padding-top: 20px;
-  border-top: 1px solid var(--border-primary);
 }
 
 .stock-manage-actions-section h3 {
@@ -355,7 +354,6 @@
   background-color: var(--bg-hover);
   border-radius: var(--radius-6xl);
   corner-shape: squircle;
-  border: 1px solid var(--border-primary);
 }
 
 .stock-equipment-details {
@@ -371,7 +369,6 @@
   corner-shape: squircle;
   padding: 12px;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-primary);
 }
 
 .equipment-detail-row {
@@ -401,7 +398,6 @@
 .stock-manage-history-section {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid var(--border-primary);
 }
 
 .stock-manage-history-section h3 {
@@ -432,12 +428,10 @@
   padding: 12px 15px;
   font-weight: 600;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-primary);
 }
 
 .stock-manage-history-table td {
   padding: 12px 15px;
-  border-bottom: 1px solid var(--border-primary);
   color: var(--text-color);
   background: var(--gradient-primary-900);
 }
@@ -519,7 +513,7 @@
 
 .stock-manage-barcode-section h3 {
   margin-bottom: 15px;
-  color: #2c3e50;
+  color: var(--text-color);
   font-size: 16px;
   font-weight: 600;
   text-transform: uppercase;

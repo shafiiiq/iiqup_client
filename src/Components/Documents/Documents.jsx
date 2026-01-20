@@ -327,13 +327,13 @@ function DocumentDetails() {
     const ext = filename.split('.').pop().toLowerCase();
     const mime = mimetype?.toLowerCase() || '';
 
-    if (ext === 'pdf' || mime.includes('pdf')) return '📄';
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext) || mime.includes('image')) return '🖼️';
-    if (['doc', 'docx'].includes(ext) || mime.includes('word')) return '📝';
-    if (['xls', 'xlsx'].includes(ext) || mime.includes('spreadsheet')) return '📊';
-    if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation')) return '📑';
+    if (ext === 'pdf' || mime.includes('pdf')) return 'picture_as_pdf';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext) || mime.includes('image')) return 'image';
+    if (['doc', 'docx'].includes(ext) || mime.includes('word')) return 'docs';
+    if (['xls', 'xlsx'].includes(ext) || mime.includes('spreadsheet')) return 'table';
+    if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation')) return 'monitor';
     if (['zip', 'rar', '7z'].includes(ext)) return '🗜️';
-    if (['txt'].includes(ext) || mime.includes('text')) return '📄';
+    if (['txt'].includes(ext) || mime.includes('text')) return 'text_format';
     return '📎';
   };
 
@@ -1524,10 +1524,12 @@ function DocumentDetails() {
                               )}
 
                               <div className="doc-details-file-icon">
-                                {getFileIcon(doc.fileName, doc.mimetype)}
+                                <span class="material-symbols-rounded">
+                                  {getFileIcon(doc.fileName, doc.mimetype)}
+                                </span>
                               </div>
-                              <div className="doc-details-item-name">{doc.fileName}</div>
-                              <div className="doc-details-item-info">Type: {doc.documentType}</div>
+                              <div className="doc-details-item-name">{doc.documentType}</div>
+                              {/* <div className="doc-details-item-info">Type: {doc.documentType}</div> */}
                               <div className="doc-details-item-info">Issued: {doc.date}</div>
                               <div className="doc-details-item-info">Expiry: {doc.expiry}</div>
                             </div>

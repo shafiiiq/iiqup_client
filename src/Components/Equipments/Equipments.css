@@ -571,7 +571,6 @@ body.dark-theme .status-badge.loading {
 
 .operators-table th,
 .operators-table td {
-  border-bottom: 1px solid var(--border-primary);
   padding: 12px;
   text-align: left;
 }

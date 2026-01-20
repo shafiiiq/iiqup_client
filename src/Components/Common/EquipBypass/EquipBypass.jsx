@@ -19,6 +19,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
     const [totalCount, setTotalCount] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [activeTab, setActiveTab] = useState('equipment-document');
 
     const navigate = useNavigate();
     const tableRef = useRef(null);
@@ -296,7 +297,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                 </div>
             )}
             {
-                isLPO ?
+                isLPO ? (
                     <div className='lpo-cat-btn'>
                         <div className="add-lpos">
                             <Button
@@ -378,7 +379,70 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                             />
                         </div>
                     </div>
-                    : ''
+                ) : (
+                    < div className="doc-details-tabs">
+                        <Button
+                            text="Equipments"
+                            onClick={() => setActiveTab('equipment-document')}
+                            colorScheme={activeTab === 'equipment-document' ? 'amber-300' : 'amber-900'}
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            squircle="4xl"
+                            width="50%"
+                            height="48px"
+                            type="submit"
+                            textColor={activeTab === 'equipment-document' ? 'black-300' : 'white-900'}
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                        />
+                        <Button
+                            text="Operators"
+                            onClick={() => setActiveTab('operator-document')}
+                            colorScheme={activeTab === 'operator-document' ? 'amber-400' : 'amber-900'}
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            squircle="4xl"
+                            width="50%"
+                            height="48px"
+                            type="submit"
+                            textColor={activeTab === 'operator-document' ? 'black-300' : 'white-900'}
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                        />
+                        <Button
+                            text="Mechanics"
+                            onClick={() => setActiveTab('mechanic-document')}
+                            colorScheme={activeTab === 'mechanic-document' ? 'amber-400' : 'amber-900'}
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            squircle="4xl"
+                            width="50%"
+                            height="48px"
+                            type="submit"
+                            textColor={activeTab === 'mechanic-document' ? 'black-300' : 'white-900'}
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                        />
+                        <Button
+                            text="Office Staffs"
+                            onClick={() => setActiveTab('office-staff-document')}
+                            colorScheme={activeTab === 'office-staff-document' ? 'amber-400' : 'amber-900'}
+                            variant="gradient"
+                            font="md"
+                            animation=""
+                            squircle="4xl"
+                            width="50%"
+                            height="48px"
+                            type="submit"
+                            textColor={activeTab === 'office-staff-document' ? 'black-300' : 'white-900'}
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                        />
+                    </div>
+                )
             }
 
             <div className="table-info">
@@ -418,11 +482,11 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                         ))}
                     </tbody>
                 </table>
-                
+
                 {/* Loading indicator */}
                 {isLoadingMore && (
-                    <div style={{ 
-                        textAlign: 'center', 
+                    <div style={{
+                        textAlign: 'center',
                         padding: '20px',
                         color: '#666'
                     }}>
@@ -432,8 +496,8 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
                 {/* No more data indicator */}
                 {!hasMore && !isLoadingEquipments && filteredData.length > 0 && (
-                    <div style={{ 
-                        textAlign: 'center', 
+                    <div style={{
+                        textAlign: 'center',
                         padding: '20px',
                         color: '#999'
                     }}>
@@ -441,7 +505,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 
