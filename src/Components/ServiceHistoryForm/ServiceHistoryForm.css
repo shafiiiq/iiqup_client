@@ -6,6 +6,44 @@
   overflow-x: hidden;
 }
 
+.controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.action-buttons.left {
+  flex: 1;
+}
+
+.action-buttons.right {
+  display: flex;
+  gap: 12px;
+}
+
+.period-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.period-selector>div {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
 .service-header {
   display: flex;
   justify-content: space-between;

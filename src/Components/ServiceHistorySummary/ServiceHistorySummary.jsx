@@ -20,13 +20,16 @@ function ServiceHistorySummary() {
     const [serviceData, setServiceData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedPeriod, setSelectedPeriod] = useState('daily');
+    const [selectedMonthRange, setelectedMonthRange] = useState('1');
     const [deleteReport, setDeleteReport] = useState({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [expandedRemarks, setExpandedRemarks] = useState({});
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [monthsCount, setMonthsCount] = useState('');
 
     useEffect(() => {
         setHeaderTitle('Service History Summary');
-        setHeaderSubtitle(`${selectedPeriod.toUpperCase()} - All Equipment`);
+        setHeaderSubtitle(`${selectedPeriod.toUpperCase() || selectedMonthRange}`);
         return () => {
             setHeaderTitle(null);
             setHeaderSubtitle(null);
@@ -35,16 +38,34 @@ function ServiceHistorySummary() {
 
     useEffect(() => {
         fetchServiceData(selectedPeriod);
-    }, [selectedPeriod]);
+    }, [selectedPeriod, selectedMonthRange]);
 
-    const fetchServiceData = async (period) => {
+    const fetchServiceData = async (period, startDate = null, endDate = null, months = null) => {
         setIsLoading(true);
+        if (period === 'months') {
+            setelectedMonthRange(months)
+        }
         try {
-            const response = await apiRequest(
-                `${END_POINT}/service-report/summary/${period}`,
-                'GET'
-            );
+            let url;
+
+            if (startDate && endDate) {
+                // Format dates from YYYY-MM-DD to DD-MM-YYYY for API
+                const formatForAPI = (date) => {
+                    const [year, month, day] = date.split('-');
+                    return `${day}-${month}-${year}`;
+                };
+                url = `${END_POINT}/service-report/summary/date-range/${formatForAPI(startDate)}/${formatForAPI(endDate)}`;
+            } else if (months) {
+                url = `${END_POINT}/service-report/summary/last-months/${months}`;
+            } else {
+                url = `${END_POINT}/service-report/summary/${period}`;
+            }
+
+            const response = await apiRequest(url, 'GET');
             const data = await response.json();
+
+            console.log("dataaaaa :::::", data);
+
 
             if (data && data.data && data.data.all) {
                 setServiceData(data.data.all);
@@ -309,29 +330,129 @@ function ServiceHistorySummary() {
 
             <div className="controls-bar">
                 <div className="action-buttons left">
-                    <div className="period-selector">
-                        <Input
-                            type="select"
-                            value={selectedPeriod}
-                            onChange={(e) => handlePeriodChange(e)}
-                            options={[
-                                { value: 'daily', label: 'Today' },
-                                { value: 'yesterday', label: 'Yesterday' },
-                                { value: 'weekly', label: 'Last Week' },
-                                { value: 'monthly', label: 'Last Month' },
-                                { value: 'yearly', label: 'Last Year' }
-                            ]}
-                            colorScheme="violet-800"
-                            variant="gradient"
-                            font="md"
-                            squircle="4xl"
-                            width="160px"
-                            height="38px"
-                            textColor="white-200"
-                            shadowPosition="to-bottom"
-                            shadowColor="white-600"
-                            animation="glow"
-                        />
+                    <div className="selectors">
+                        <div className="period-selector">
+                            <Input
+                                type="select"
+                                value={selectedPeriod}
+                                onChange={(e) => handlePeriodChange(e)}
+                                options={[
+                                    { value: 'daily', label: 'Today' },
+                                    { value: 'yesterday', label: 'Yesterday' },
+                                    { value: 'weekly', label: 'Last Week' },
+                                    { value: 'monthly', label: 'Last Month' },
+                                    { value: 'yearly', label: 'Last Year' }
+                                ]}
+                                colorScheme="violet-800"
+                                variant="gradient"
+                                font="md"
+                                squircle="4xl"
+                                width="140px"
+                                height="38px"
+                                textColor="white-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                                animation="none"
+                                fontWeight='500'
+                            />
+
+                        </div>
+                        <div className="last-x-months-selector">
+                            <Input
+                                type="select"
+                                value={selectedMonthRange}
+                                onChange={(e) => fetchServiceData('months', null, null, e.target.value)}
+                                options={[
+                                    { value: '1', label: '1 Month' },
+                                    { value: '2', label: '2 Months' },
+                                    { value: '3', label: '3 Months' },
+                                    { value: '4', label: '4 Months' },
+                                    { value: '5', label: '5 Months' },
+                                    { value: '6', label: '6 Months' },
+                                    { value: '7', label: '7 Months' },
+                                    { value: '8', label: '8 Months' },
+                                    { value: '9', label: '9 Months' },
+                                    { value: '10', label: '10 Months' },
+                                    { value: '11', label: '11 Months' },
+                                    { value: '12', label: '12 Month' },
+                                    { value: '13', label: '13 Months' },
+                                    { value: '14', label: '14 Months' },
+                                    { value: '15', label: '15 Months' },
+                                    { value: '16', label: '16 Months' },
+                                    { value: '17', label: '17 Months' },
+                                    { value: '18', label: '18 Months' },
+                                    { value: '19', label: '19 Months' },
+                                    { value: '20', label: '20 Months' },
+                                    { value: '21', label: '21 Months' },
+                                    { value: '22', label: '22 Months' },
+                                ]}
+                                colorScheme="red-600"
+                                variant="gradient"
+                                font="md"
+                                squircle="4xl"
+                                width="130px"
+                                height="38px"
+                                textColor="white-100"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                                animation="none"
+                                fontWeight='500'
+                            />
+                        </div>
+                        <div className='range-selector'>
+                            <div className="data-range-inputs">
+                                <Input
+                                    type="date"
+                                    name="startDate"
+                                    value={dateRange.start}
+                                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                                    placeholder="Start Date"
+                                    colorScheme="yellow-300"
+                                    variant="gradient"
+                                    squircle="4xl"
+                                    width="240px"
+                                    height="40px"
+                                    textColor="black-100"
+                                    placeholderColor="black-300"
+                                    fontWeight='500'
+                                    paddingInline="4xl"
+                                    inputPaddingBlock="xl"
+                                />
+
+                                <Input
+                                    type="date"
+                                    name="endDate"
+                                    value={dateRange.end}
+                                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                                    placeholder="End Date"
+                                    colorScheme="yellow-300"
+                                    variant="gradient"
+                                    squircle="4xl"
+                                    width="240px"
+                                    height="40px"
+                                    textColor="black-200"
+                                    placeholderColor="black-300"
+                                    paddingInline="4xl"
+                                    inputPaddingBlock="xl"
+                                    fontWeight='500'
+                                />
+                            </div>
+                            <Button
+                                text="Apply"
+                                onClick={() => fetchServiceData('custom', dateRange.start, dateRange.end)}
+                                colorScheme="lime-500"
+                                variant="gradient"
+                                font="md"
+                                animation=""
+                                squircle="xl"
+                                width="140px"
+                                height="38px"
+                                type="submit"
+                                textColor="black-200"
+                                shadowPosition="to-bottom"
+                                shadowColor="white-600"
+                            />
+                        </div>
                     </div>
                 </div>
                 <div className="action-buttons right">

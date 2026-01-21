@@ -48,6 +48,7 @@ import BackchargeList from './Components/BackchargeList/BackchargeList'; import 
 import NotFound from './Components/Common/NotFound/NotFound';
 import LiveChat from './Components/LiveChat/LiveChat';
 import ServiceHistorySummary from './Components/ServiceHistorySummary/ServiceHistorySummary';
+import TestInputs from './Components/TestInputs/TestInputs';
 ;
 
 // Create contexts
@@ -1184,6 +1185,17 @@ function App() {
                       <ProtectedRoute>
                         <CEOGuard>
                           <LiveChat />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/test-inputs"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <TestInputs />
                         </CEOGuard>
                       </ProtectedRoute>
                     }

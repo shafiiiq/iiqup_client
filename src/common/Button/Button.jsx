@@ -124,6 +124,14 @@ const Button = ({
     lg: '14px',
     xl: '18px',
     '2xl': '24px',
+    '3xl': '48px',
+    '4xl': '62px',
+    '5xl': '86px',
+    '6xl': '110px',
+    '7xl': '134px',
+    '8xl': '158px',
+    '9xl': '182px',
+    '10xl': '206px',
     full: '9999px',
   };
 
@@ -137,6 +145,11 @@ const Button = ({
     '3xl': '48px',
     '4xl': '62px',
     '5xl': '86px',
+    '6xl': '110px',
+    '7xl': '134px',
+    '8xl': '158px',
+    '9xl': '182px',
+    '10xl': '206px',
   };
 
   // Font size mapping
