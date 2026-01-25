@@ -366,7 +366,7 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background: var(--gradient-glass-700) !important;
+  background: var(--gradient-glass-700);
 }
 
 @keyframes modal-appear {

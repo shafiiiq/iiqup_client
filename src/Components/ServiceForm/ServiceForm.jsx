@@ -7,10 +7,12 @@ import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
 import { useAlert } from '../../context/AlertContext';
 import { useHeaderVibration } from '../../context/HeaderVibrationContext';
+import Input from '../../common/Input/Input';
+import Toast from '../../common/Toast/Toast';
 
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
-  const { normal } = useParams();
+  const { isNormal, maintenance, tyre, battery, serviceType, historyId } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert } = useAlert();
   const { triggerVibration } = useHeaderVibration();
@@ -24,8 +26,74 @@ const ServiceForm = ({ initialData = {} }) => {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const [originalDate, setOriginalDate] = useState('')
+    ;
+  const [toastConfig, setToastConfig] = useState({
+    isOpen: false,
+    type: 'success',
+    message: '',
+    textColor: '#ffffff'
+  });
+  const [formData, setFormData] = useState({
+    serviceHrs: runningHours || serviceHrs || '',
+    regNo: regNo || '',
+    nextServiceHrs: location || mechanics ? 0 : nextServiceHrs || '',
+    machine: initialData.machine || '',
+    mechanics: mechanics || initialData.mechanics || '',
+    location: location ? location : initialData.location || '',
+    date: date || initialData.date || new Date().toISOString().split('T')[0],
+    operatorName: initialData.operatorName || '',
+    remarks: workRemarks || initialData.remarks || '',
+  });
+  const [checklistItems, setChecklistItems] = useState([
+    {
+      id: 1,
+      description
+        : oilFilter === 'Check' && oil === 'Check'
+          ? 'Check Engine oil & Filter'
+          : oilFilter === 'Check' && oil === 'Change'
+            ? 'Checked Filter & Changed Engine oil'
+            : oilFilter === 'Change' && oil === 'Check'
+              ? 'Checked Engine oil & Changed Filter'
+              : 'Change Engine oil & Filter',
+      status: location ? '' : '✓'
+    },
+    { id: 2, description: fuelFilter === 'Check' ? 'Check Fuel Filter' : 'Change Fuel Filter', status: location ? '' : '✓' },
+    { id: 3, description: airFilter === 'Change' ? 'Check/Change Air Filter' : 'Check/Clean Air Filter', status: location ? '' : '✓' },
+    { id: 4, description: 'Check Transmission Filter', status: location ? '' : '✓' },
+    { id: 5, description: 'Check Power Steering Oil', status: location ? '' : '✓' },
+    { id: 6, description: 'Check Hydraulic Oil', status: location ? '' : '✓' },
+    { id: 7, description: 'Check Brake', status: location ? '' : '✓' },
+    { id: 8, description: 'Check Tyre Air Pressure', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
+    { id: 9, description: 'Check Oil Leak', status: location ? '' : '✓' },
+    { id: 10, description: 'Check Battery Condition', status: location && !tyreForm ? '✓' : location && tyreForm ? '' : '✓' },
+    { id: 11, description: 'Check Wiper & Water', status: location ? '' : '✓' },
+    { id: 12, description: 'Check All Lights', status: location ? '' : '✓' },
+    { id: 13, description: 'Check All Horns', status: location ? '' : '✓' },
+    { id: 14, description: 'Check Parking Brake', status: location ? '' : '✓' },
+    { id: 15, description: 'Check Differential Oil', status: location ? '' : '✓' },
+    { id: 16, description: 'Check Rod Water & Hoses', status: location ? '' : '✓' },
+    { id: 17, description: 'Lubricants All Points', status: location ? '' : '✓' },
+    { id: 18, description: 'Check Gear Shift System', status: location ? '' : '✓' },
+    { id: 19, description: 'Check Clutch System', status: location ? '' : '✓' },
+    { id: 20, description: 'Check Wheel Nut', status: location ? '' : '✓' },
+    { id: 21, description: 'Check Starter & Alternator', status: location ? '' : '✓' },
+    { id: 22, description: 'Check Number Plate both', status: location ? '' : '✓' },
+    { id: 23, description: 'Check Paint', status: location ? '' : '✓' },
+    { id: 24, description: 'Check Tires', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
+    { id: 25, description: 'Check Silencer', status: '' },
+    { id: 26, description: 'Replace Hydraulic Oil- Filter', status: '' },
+    { id: 27, description: 'Replace Transmission Oil', status: '' },
+    { id: 28, description: 'Replace Differential Oil', status: '' },
+    { id: 29, description: 'Replace Steering Box Oil', status: '' },
+    { id: 30, description: 'Check Engine Valve Clearence', status: '' },
+    { id: 31, description: 'Replace clutch fluid', status: '' },
+    { id: 32, description: 'Check Brake Lining', status: '' },
+    { id: 33, description: 'Change Drive Belt', status: '' },
+    { id: 34, description: acFilter === 'Check' ? 'Check A/C filter' : 'Clean A/C filter', status: '' },
+    { id: 35, description: waterSeparator === 'Check' ? 'Check Water Seperator' : 'Change Water Seperator', status: '' },
+  ]);
 
-  // Set header title when component mounts or data changes
   useEffect(() => {
     if (regNo) {
       const title = isUpdateMode ? 'Update Service Report' : 'Service Report Form'
@@ -37,29 +105,24 @@ const ServiceForm = ({ initialData = {} }) => {
       setHeaderSubtitle(null);
     }
 
-    // Cleanup - reset when component unmounts
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
   }, [regNo, isUpdateMode]);
 
-  // Check if we're in update mode
   useEffect(() => {
     if (id) {
       setIsUpdateMode(true);
       setIsLoadingData(true);
 
-      // Fetch existing service report data using apiRequest
       const fetchServiceReport = async () => {
         try {
           const response = await apiRequest(`${END_POINT}/service-report/getwith/${id}`);
-
           const data = await response.json()
 
           if (data.ok && data.data) {
             const existingData = data.data;
-
 
             let formattedDate = '';
             if (existingData[0].date) {
@@ -79,7 +142,9 @@ const ServiceForm = ({ initialData = {} }) => {
                 }
               }
             }
-            console.log("formattedDate", formattedDate);
+
+            // Store original date
+            setOriginalDate(formattedDate);
 
             setFormData({
               serviceHrs: existingData[0].serviceHrs || '',
@@ -93,7 +158,6 @@ const ServiceForm = ({ initialData = {} }) => {
               remarks: existingData[0].remarks || '',
             });
 
-            // Update checklist items if they exist
             if (existingData.checklistItems && existingData.checklistItems.length > 0) {
               setChecklistItems(existingData.checklistItems);
             }
@@ -155,69 +219,6 @@ const ServiceForm = ({ initialData = {} }) => {
     fetchEquipments()
   }, []);
 
-  // Form data state
-  const [formData, setFormData] = useState({
-    serviceHrs: runningHours || serviceHrs || '',
-    regNo: regNo || '',
-    nextServiceHrs: location || mechanics ? 0 : nextServiceHrs || '',
-    machine: initialData.machine || '',
-    mechanics: mechanics || initialData.mechanics || '',
-    location: location ? location : initialData.location || '',
-    date: date || initialData.date || new Date().toISOString().split('T')[0],
-    operatorName: initialData.operatorName || '',
-    remarks: workRemarks || initialData.remarks || '',
-  });
-
-  // Create checklist items array with their status (only if not in update mode)
-  const [checklistItems, setChecklistItems] = useState([
-    {
-      id: 1,
-      description
-        : oilFilter === 'Check' && oil === 'Check'
-          ? 'Check Engine oil & Filter'
-          : oilFilter === 'Check' && oil === 'Change'
-            ? 'Checked Filter & Changed Engine oil'
-            : oilFilter === 'Change' && oil === 'Check'
-              ? 'Checked Engine oil & Changed Filter'
-              : 'Change Engine oil & Filter',
-      status: location ? '' : '✓'
-    },
-    { id: 2, description: fuelFilter === 'Check' ? 'Check Fuel Filter' : 'Change Fuel Filter', status: location ? '' : '✓' },
-    { id: 3, description: airFilter === 'Change' ? 'Check/Change Air Filter' : 'Check/Clean Air Filter', status: location ? '' : '✓' },
-    { id: 4, description: 'Check Transmission Filter', status: location ? '' : '✓' },
-    { id: 5, description: 'Check Power Steering Oil', status: location ? '' : '✓' },
-    { id: 6, description: 'Check Hydraulic Oil', status: location ? '' : '✓' },
-    { id: 7, description: 'Check Brake', status: location ? '' : '✓' },
-    { id: 8, description: 'Check Tyre Air Pressure', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
-    { id: 9, description: 'Check Oil Leak', status: location ? '' : '✓' },
-    { id: 10, description: 'Check Battery Condition', status: location && !tyreForm ? '✓' : location && tyreForm ? '' : '✓' },
-    { id: 11, description: 'Check Wiper & Water', status: location ? '' : '✓' },
-    { id: 12, description: 'Check All Lights', status: location ? '' : '✓' },
-    { id: 13, description: 'Check All Horns', status: location ? '' : '✓' },
-    { id: 14, description: 'Check Parking Brake', status: location ? '' : '✓' },
-    { id: 15, description: 'Check Differential Oil', status: location ? '' : '✓' },
-    { id: 16, description: 'Check Rod Water & Hoses', status: location ? '' : '✓' },
-    { id: 17, description: 'Lubricants All Points', status: location ? '' : '✓' },
-    { id: 18, description: 'Check Gear Shift System', status: location ? '' : '✓' },
-    { id: 19, description: 'Check Clutch System', status: location ? '' : '✓' },
-    { id: 20, description: 'Check Wheel Nut', status: location ? '' : '✓' },
-    { id: 21, description: 'Check Starter & Alternator', status: location ? '' : '✓' },
-    { id: 22, description: 'Check Number Plate both', status: location ? '' : '✓' },
-    { id: 23, description: 'Check Paint', status: location ? '' : '✓' },
-    { id: 24, description: 'Check Tires', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
-    { id: 25, description: 'Check Silencer', status: '' },
-    { id: 26, description: 'Replace Hydraulic Oil- Filter', status: '' },
-    { id: 27, description: 'Replace Transmission Oil', status: '' },
-    { id: 28, description: 'Replace Differential Oil', status: '' },
-    { id: 29, description: 'Replace Steering Box Oil', status: '' },
-    { id: 30, description: 'Check Engine Valve Clearence', status: '' },
-    { id: 31, description: 'Replace clutch fluid', status: '' },
-    { id: 32, description: 'Check Brake Lining', status: '' },
-    { id: 33, description: 'Change Drive Belt', status: '' },
-    { id: 34, description: acFilter === 'Check' ? 'Check A/C filter' : 'Clean A/C filter', status: '' },
-    { id: 35, description: waterSeparator === 'Check' ? 'Check Water Seperator' : 'Change Water Seperator', status: '' },
-  ]);
-
   useEffect(() => {
     if (equipments.length > 0 && formData.regNo && !isUpdateMode) {
       const regNoValue = formData.regNo.trim();
@@ -235,8 +236,53 @@ const ServiceForm = ({ initialData = {} }) => {
     }
   }, [equipments, formData.regNo, isUpdateMode]);
 
+  const showToast = (message, type = 'success', textColor = '#ffffff') => {
+    setToastConfig({
+      isOpen: true,
+      type,
+      message,
+      textColor
+    });
+  };
+
+  const validateForm = () => {
+    // Check required fields
+    if (!formData.serviceHrs) {
+      showToast('Service Hrs/Km is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.regNo) {
+      showToast('Registration Number is required', 'error', '#ffffff');
+      return false;
+    }
+    if (formData.nextServiceHrs == null) {
+      showToast('Next Service Hrs/Km is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.machine) {
+      showToast('Machine name is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.mechanics) {
+      showToast('Mechanics name is required', 'warning', '#000000');
+      return false;
+    }
+    if (!formData.location) {
+      showToast('Location is required', 'warning', '#000000');
+      return false;
+    }
+    if (!formData.operatorName) {
+      showToast('Operator Name is required', 'error', '#ffffff');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleRemarksChange = async (e) => {
+
     let { value } = e.target;
+    console.log("value", value);
 
     // Auto-capitalize first letter
     if (value.length === 1) {
@@ -317,6 +363,11 @@ const ServiceForm = ({ initialData = {} }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
     setMessage({ text: '', type: '' });
 
@@ -325,9 +376,31 @@ const ServiceForm = ({ initialData = {} }) => {
       checklistItems
     };
 
-    if (normal) {
-      console.log("yes here also normal");
+    if (isUpdateMode && id) {
+      completeData.previousDate = originalDate;
+    }
+
+    console.log("serviceType", serviceType);
+
+    if (isNormal === 'true' || serviceType === 'normal') {
       completeData.serviceType = 'normal'
+      console.log("1");
+    } else if (maintenance || serviceType === 'maintenance') {
+      completeData.serviceType = 'maintenance'
+      console.log("2");
+    } else if (battery || serviceType === 'battery') {
+      completeData.serviceType = 'battery'
+      console.log("3");
+    } else if (tyre || serviceType === 'tyre') {
+      completeData.serviceType = 'tyre'
+      console.log("4");
+    } else {
+      completeData.serviceType = 'oil'
+      console.log("5");
+    }
+
+    if (historyId) {
+      completeData.historyId = historyId
     }
 
     const url = isUpdateMode
@@ -337,6 +410,8 @@ const ServiceForm = ({ initialData = {} }) => {
     const method = isUpdateMode ? 'PUT' : 'POST';
 
     try {
+      console.log("completeData", completeData);
+
       const data = await apiRequest(url, method, completeData);
 
       const successMessage = isUpdateMode
@@ -413,101 +488,210 @@ const ServiceForm = ({ initialData = {} }) => {
             <h3 className="section-title">Service Information</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="serviceHrs">Service Hours</label>
-                <input
+                <Input
                   type="text"
                   id="serviceHrs"
                   name="serviceHrs"
                   value={formData.serviceHrs}
                   onChange={handleInputChange}
-                  required
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Service Hrs/ Km'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
                   placeholder="Enter service hrs"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="regNo">Equipment No</label>
-                <input
+                <Input
                   type="text"
                   id="regNo"
                   name="regNo"
                   value={formData.regNo}
                   onChange={handleInputChange}
-                  required
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Reg No'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
                   placeholder="Enter equipment registration number"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="nextServiceHrs">Next Service Hours</label>
-                <input
+                <Input
                   type="text"
                   id="nextServiceHrs"
                   name="nextServiceHrs"
                   value={formData.nextServiceHrs}
                   onChange={handleInputChange}
-                  required
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Next Service Hrs/ Km'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
                   placeholder="Enter next service hrs"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="machine">Machine</label>
-                <input
+                <Input
                   type="text"
                   id="machine"
                   name="machine"
                   value={formData.machine}
                   onChange={handleInputChange}
-                  required
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Machine'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholder="Enter equipment name"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="mechanics">Mechanics</label>
-                <input
-                  type="text"
-                  id="mechanics"
-                  name="mechanics"
-                  value={formData.mechanics}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="location">Location</label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="date">Date</label>
-                <input
+                <Input
                   type="date"
                   id="date"
                   name="date"
                   value={formData.date}
                   onChange={handleInputChange}
-                  required
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Date'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholder="Enter equipment name"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="10xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="operatorName">Operator Name</label>
-                <input
+                <Input
+                  type="text"
+                  id="mechanics"
+                  name="mechanics"
+                  value={formData.mechanics}
+                  onChange={handleInputChange}
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Mechanics'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholder="Enter equipment name"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
+                />
+              </div>
+
+              <div className="form-group">
+                <Input
+                  type="text"
+                  id="location"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Location'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholder="Enter equipment name"
+                  placeholderColor="black-100"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
+                />
+              </div>
+
+              <div className="form-group">
+                <Input
                   type="text"
                   id="operatorName"
                   name="operatorName"
                   value={formData.operatorName}
                   onChange={handleInputChange}
-                  required
+                  required="true"
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Operator Name'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholder="Enter equipment name"
+                  placeholderColor="black-300"
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
               </div>
             </div>
@@ -516,14 +700,29 @@ const ServiceForm = ({ initialData = {} }) => {
           <div className="form-section">
             <h3 className="section-title">Remarks</h3>
             <div className="form-group">
-              <textarea
+              <Input
+                type="textarea"
                 id="remarks"
                 name="remarks"
                 value={formData.remarks}
                 onChange={handleRemarksChange}
-                rows="4"
-                placeholder="Enter any additional remarks..."
+                required="true"
+                colorScheme="yellow-300"
+                textColor="black-100"
+                labelBgColor='transparent'
+                placeholder="Enter any additional remarks"
+                placeholderColor="black-300"
+                variant="gradient"
+                width="100%"
+                fullWidth="true"
+                height="157px"
+                squircle="30xl"
+                fontSize='6xl'
+                fontWeight='500'
+                inputPaddingInline="2xl"
+                inputPaddingBlock="xl"
                 spellCheck="true"
+                rows={10}
               />
             </div>
           </div>
@@ -536,27 +735,48 @@ const ServiceForm = ({ initialData = {} }) => {
                 <div className="checklist-actions">
                   <span>Items 1-24</span>
                   <div className="checklist-buttons">
-                    <button
-                      type="button"
-                      className="checklist-button"
+                    <Button
+                      text="YES"
                       onClick={() => checkAllInRange(1, 24, '✓')}
-                    >
-                      All ✓
-                    </button>
-                    <button
+                      colorScheme="lime-300"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="80px"
+                      height="45px"
                       type="button"
-                      className="checklist-button"
+                      textColor="black-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="NO"
                       onClick={() => checkAllInRange(1, 24, '✗')}
-                    >
-                      All ✗
-                    </button>
-                    <button
+                      colorScheme="red-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="80px"
+                      height="45px"
                       type="button"
-                      className="checklist-button"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="BLANK"
                       onClick={() => checkAllInRange(1, 24, '--')}
-                    >
-                      All --
-                    </button>
+                      colorScheme="gray-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="80px"
+                      height="45px"
+                      type="button"
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </div>
                 </div>
 
@@ -566,33 +786,58 @@ const ServiceForm = ({ initialData = {} }) => {
                       <div className="item-number">{item.id}.</div>
                       <div className="item-description">{item.description}</div>
                       <div className="item-status">
-                        <label>
-                          <input
-                            type="radio"
-                            name={`status-${item.id}`}
-                            checked={item.status === '✓'}
-                            onChange={() => handleStatusChange(item.id, '✓')}
-                          />
-                          <span className="status-yes">✓</span>
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            name={`status-${item.id}`}
-                            checked={item.status === '✗'}
-                            onChange={() => handleStatusChange(item.id, '✗')}
-                          />
-                          <span className="status-no">✗</span>
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            name={`status-${item.id}`}
-                            checked={item.status === '--'}
-                            onChange={() => handleStatusChange(item.id, '--')}
-                          />
-                          <span className="status-na">--</span>
-                        </label>
+                        <Input
+                          type="radio"
+                          id="yes"
+                          name={`status-${item.id}`}
+                          checked={item.status === '✓'}
+                          onChange={(e) => handleStatusChange(item.id, '✓')}
+                          required="true"
+                          colorScheme="lime-700"
+                          textColor="black-100"
+                          labelBgColor='transparent'
+                          size='xs'
+                          variant="gradient"
+                          borderWidth='2'
+                          borderColor='lime-300'
+                          onCheckedColor="lime-100"
+                          onCheckedSize="sm"
+                          rounded="4xl"
+                        />
+                        <Input
+                          type="radio"
+                          id="no"
+                          name={`status-${item.id}`}
+                          checked={item.status === '✗'}
+                          onChange={(e) => handleStatusChange(item.id, '✗')}
+                          colorScheme="red-700"
+                          textColor="black-100"
+                          labelBgColor='transparent'
+                          size='xs'
+                          variant="gradient"
+                          borderWidth='2'
+                          borderColor='red-500'
+                          onCheckedColor="red-100"
+                          onCheckedSize="sm"
+                          rounded="4xl"
+                        />
+                        <Input
+                          type="radio"
+                          id="no"
+                          name={`status-${item.id}`}
+                          checked={item.status === '--'}
+                          onChange={() => handleStatusChange(item.id, '--')}
+                          required="true"
+                          colorScheme="gray-700"
+                          textColor="black-100"
+                          labelBgColor='transparent'
+                          size='xs'
+                          variant="gradient"
+                          borderWidth='2'
+                          onCheckedColor="gray-100"
+                          onCheckedSize="sm"
+                          rounded="4xl"
+                        />
                       </div>
                     </div>
                   ))}
@@ -601,29 +846,50 @@ const ServiceForm = ({ initialData = {} }) => {
 
               <div className="checklist-column">
                 <div className="checklist-actions">
-                  <span>Items 25-33</span>
+                  <span>Items 25-35</span>
                   <div className="checklist-buttons">
-                    <button
+                    <Button
+                      text="YES"
+                      onClick={() => checkAllInRange(25, 35, '✓')}
+                      colorScheme="lime-300"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="80px"
+                      height="45px"
                       type="button"
-                      className="checklist-button"
-                      onClick={() => checkAllInRange(25, 33, '✓')}
-                    >
-                      All ✓
-                    </button>
-                    <button
+                      textColor="black-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="NO"
+                      onClick={() => checkAllInRange(25, 35, '✗')}
+                      colorScheme="red-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="80px"
+                      height="45px"
                       type="button"
-                      className="checklist-button"
-                      onClick={() => checkAllInRange(25, 33, '✗')}
-                    >
-                      All ✗
-                    </button>
-                    <button
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
+                    <Button
+                      text="BLANK"
+                      onClick={() => checkAllInRange(25, 35, '--')}
+                      colorScheme="gray-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="80px"
+                      height="45px"
                       type="button"
-                      className="checklist-button"
-                      onClick={() => checkAllInRange(25, 33, '--')}
-                    >
-                      All --
-                    </button>
+                      textColor="white-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="white-600"
+                    />
                   </div>
                 </div>
 
@@ -633,33 +899,58 @@ const ServiceForm = ({ initialData = {} }) => {
                       <div className="item-number">{item.id}.</div>
                       <div className="item-description">{item.description}</div>
                       <div className="item-status">
-                        <label>
-                          <input
-                            type="radio"
-                            name={`status-${item.id}`}
-                            checked={item.status === '✓'}
-                            onChange={() => handleStatusChange(item.id, '✓')}
-                          />
-                          <span className="status-yes">✓</span>
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            name={`status-${item.id}`}
-                            checked={item.status === '✗'}
-                            onChange={() => handleStatusChange(item.id, '✗')}
-                          />
-                          <span className="status-no">✗</span>
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            name={`status-${item.id}`}
-                            checked={item.status === '--'}
-                            onChange={() => handleStatusChange(item.id, '--')}
-                          />
-                          <span className="status-na">--</span>
-                        </label>
+                        <Input
+                          type="radio"
+                          id="yes"
+                          name={`status-${item.id}`}
+                          checked={item.status === '✓'}
+                          onChange={(e) => handleStatusChange(item.id, '✓')}
+                          required="true"
+                          colorScheme="lime-700"
+                          textColor="black-100"
+                          labelBgColor='transparent'
+                          size='xs'
+                          variant="gradient"
+                          borderWidth='2'
+                          borderColor='lime-300'
+                          onCheckedColor="lime-100"
+                          onCheckedSize="sm"
+                          rounded="4xl"
+                        />
+                        <Input
+                          type="radio"
+                          id="no"
+                          name={`status-${item.id}`}
+                          checked={item.status === '✗'}
+                          onChange={(e) => handleStatusChange(item.id, '✗')}
+                          colorScheme="red-700"
+                          textColor="black-100"
+                          labelBgColor='transparent'
+                          size='xs'
+                          variant="gradient"
+                          borderWidth='2'
+                          borderColor='red-500'
+                          onCheckedColor="red-100"
+                          onCheckedSize="sm"
+                          rounded="4xl"
+                        />
+                        <Input
+                          type="radio"
+                          id="no"
+                          name={`status-${item.id}`}
+                          checked={item.status === '--'}
+                          onChange={() => handleStatusChange(item.id, '--')}
+                          required="true"
+                          colorScheme="gray-700"
+                          textColor="black-100"
+                          labelBgColor='transparent'
+                          size='xs'
+                          variant="gradient"
+                          borderWidth='2'
+                          onCheckedColor="gray-100"
+                          onCheckedSize="sm"
+                          rounded="4xl"
+                        />
                       </div>
                     </div>
                   ))}
@@ -679,7 +970,7 @@ const ServiceForm = ({ initialData = {} }) => {
               squircle="4xl"
               width="160px"
               height="38px"
-              type="submit"
+              type="button"
               textColor="white-200"
               shadowPosition="to-bottom"
               shadowColor="white-600"
@@ -696,15 +987,24 @@ const ServiceForm = ({ initialData = {} }) => {
               squircle="4xl"
               width="160px"
               height="38px"
-              type={!isLoading ? 'disabled' : 'submit'}
+              type="button"
               textColor="white-200"
               shadowPosition="to-bottom"
               shadowColor="white-600"
             />
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+      <Toast
+        isOpen={toastConfig.isOpen}
+        onClose={() => setToastConfig({ ...toastConfig, isOpen: false })}
+        type={toastConfig.type}
+        message={toastConfig.message}
+        textColor={toastConfig.textColor}
+        duration={4000}
+        position="top-center"
+      />
+    </div >
   );
 };
 

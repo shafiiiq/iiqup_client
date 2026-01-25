@@ -10,6 +10,7 @@ import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import Toast from '../../common/Toast/Toast';
 
 const ServiceHistory = () => {
   const { regNos } = useParams();
@@ -1587,7 +1588,7 @@ const ServiceHistory = () => {
 
 
   return (
-    <div className="service-history-container">
+    <div className="service-history-container-cnt">
       {/* Delete Confirmation Modal */}
       <DevModal
         isOpen={showDeleteModal}

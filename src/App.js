@@ -498,7 +498,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator"
+                    path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:historyId/:isNormal"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -508,7 +508,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:normal"
+                    path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:historyId/:isNormal"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -518,7 +518,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/:regNo/:date/:location"
+                    path="/service-form/:regNo/:date/:location/:battery/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -528,7 +528,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/:regNo/:date/:mechanics/:workRemarks"
+                    path="/service-form/:regNo/:date/:mechanics/:workRemarks/:maintenance/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -538,7 +538,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/:regNo/:date/:location/:runningHours/:tyreForm"
+                    path="/service-form/tyre-report/:regNo/:date/:location/:runningHours/:tyre/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -548,7 +548,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/update/:id"
+                    path="/service-form/update/:serviceType/:id"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -1201,7 +1201,7 @@ function App() {
                     }
                   />
                   {/* Fallback Route */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="/not-found" element={<Navigate to="/not-found" replace />} />
                 </Routes>
                 <SpacerWrapper />
               </HeaderVibrationProvider>

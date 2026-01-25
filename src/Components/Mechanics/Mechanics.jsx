@@ -3,6 +3,7 @@ import './Mechanics.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import Button from '../../common/Button/Button';
+import Input from '../../common/Input/Input';
 
 const Mechanics = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -17,6 +18,9 @@ const Mechanics = () => {
   const [editForm, setEditForm] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [overtimeView, setOvertimeView] = useState('monthly'); // 'monthly' or 'daily'
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   // Get current date and time
   useEffect(() => {
@@ -53,7 +57,7 @@ const Mechanics = () => {
         setMechanics(data.data);
         if (data.data.length > 0) {
           console.log("data.data[0]", data.data[0]);
-          
+
           setSelectedMechanic(data.data[0]);
         }
         setLoading(false);
@@ -100,9 +104,15 @@ const Mechanics = () => {
   // Format time to AM/PM
   const formatTime = (date) => {
     if (!date) return 'N/A';
+
     const time = new Date(date);
-    let hours = time.getHours();
-    const minutes = String(time.getMinutes()).padStart(2, '0');
+
+    // The time in DB is already in Qatar time but stored as UTC
+    // So we need to subtract 3 hours to get back to Qatar local time
+    const qatarTime = new Date(time.getTime() - (3 * 60 * 60 * 1000));
+
+    let hours = qatarTime.getHours();
+    const minutes = String(qatarTime.getMinutes()).padStart(2, '0');
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
     hours = hours ? hours : 12;
@@ -142,6 +152,51 @@ const Mechanics = () => {
       name: selectedMechanic.name,
       userId: selectedMechanic.userId || ''
     });
+  };
+
+  const fetchAttendanceData = async (filterType, startDate = null, endDate = null) => {
+    if (!selectedMechanic?.zktecoPin) return;
+
+    setAttendanceLoading(true);
+    try {
+      let url;
+
+      if (filterType === 'date-range' && startDate && endDate) {
+        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/date-range?startDate=${startDate}&endDate=${endDate}`;
+      } else if (filterType === 'daily') {
+        const today = new Date().toISOString().split('T')[0];
+        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`;
+      } else if (filterType === 'weekly') {
+        const now = new Date();
+        const year = now.getFullYear();
+        const week = Math.ceil((now - new Date(year, 0, 1)) / (7 * 24 * 60 * 60 * 1000));
+        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/weekly/${year}/${week}`;
+      } else if (filterType === 'monthly') {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/monthly/${year}/${month}`;
+      } else if (filterType === 'yearly') {
+        const year = new Date().getFullYear();
+        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/yearly/${year}`;
+      } else if (filterType === 'all') {
+        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/all`;
+      }
+
+      const response = await apiRequest(url);
+      const data = await response.json();
+
+      if (data.status === 200) {
+        setAttendanceData(data.data.records || []);
+      } else {
+        setAttendanceData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      setAttendanceData([]);
+    } finally {
+      setAttendanceLoading(false);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -499,14 +554,86 @@ const Mechanics = () => {
                   <div className="attendance-content">
                     <div className="content-header">
                       <h3>Attendance Records</h3>
-                      <select
+                      {attendanceFilter === 'date-range' && (
+                        <div className='range-selector' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <Input
+                            type="date"
+                            name="startDate"
+                            value={dateRange.start}
+                            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                            placeholder="Start Date"
+                            colorScheme="yellow-300"
+                            variant="gradient"
+                            squircle="4xl"
+                            width="220px"
+                            height="44px"
+                            textColor="black-100"
+                            placeholderColor="black-300"
+                            fontWeight='500'
+                            inputPaddingInline="xl"
+                          />
+                          <Input
+                            type="date"
+                            name="endDate"
+                            value={dateRange.end}
+                            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                            placeholder="End Date"
+                            colorScheme="yellow-300"
+                            variant="gradient"
+                            squircle="4xl"
+                            width="220px"
+                            height="44px"
+                            textColor="black-100"
+                            placeholderColor="black-300"
+                            inputPaddingInline="xl"
+                            fontWeight='500'
+                          />
+                          <Button
+                            text="Apply"
+                            onClick={() => fetchAttendanceData('date-range', dateRange.start, dateRange.end)}
+                            colorScheme="lime-500"
+                            variant="gradient"
+                            font="md"
+                            squircle="xl"
+                            width="100px"
+                            height="44px"
+                            textColor="black-200"
+                            shadowPosition="to-bottom"
+                            shadowColor="white-600"
+                          />
+                        </div>
+                      )}
+                      <Input
+                        type="select"
                         value={attendanceFilter}
-                        onChange={(e) => setAttendanceFilter(e.target.value)}
-                        className="filter-select"
-                      >
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                      </select>
+                        onChange={(e) => {
+                          setAttendanceFilter(e.target.value);
+                          if (e.target.value !== 'date-range') {
+                            fetchAttendanceData(e.target.value);
+                          }
+                        }}
+                        options={[
+                          { value: 'daily', label: 'Today' },
+                          { value: 'yesterday', label: 'Yesterday' },
+                          { value: 'weekly', label: 'This Week' },
+                          { value: 'monthly', label: 'This Month' },
+                          { value: 'yearly', label: 'This Year' },
+                          { value: 'date-range', label: 'Date Range' },
+                          { value: 'all', label: 'All Records' }
+                        ]}
+                        colorScheme="lime-500"
+                        variant="gradient"
+                        font="md"
+                        squircle="4xl"
+                        width="130px"
+                        height="44px"
+                        textColor="black-200"
+                        shadowPosition="to-bottom"
+                        shadowColor="black-600"
+                        animation="none"
+                        fontWeight='500'
+                        inputPaddingInline="xl"
+                      />
                     </div>
                     <div className="attendance-table-wrapper">
                       <table className="attendance-table">
@@ -521,20 +648,65 @@ const Mechanics = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedMechanic.attendance?.length > 0 ? (
-                            selectedMechanic.attendance.map(record => (
-                              <tr key={record._id}>
-                                <td>{new Date(record.date).toLocaleDateString()}</td>
-                                <td>{formatTime(record.in)}</td>
-                                <td>{formatTime(record.breakOut)}</td>
-                                <td>{formatTime(record.breakIn)}</td>
-                                <td>{formatTime(record.out)}</td>
-                                <td>{formatTotalTime(record.totalTime)}</td>
-                              </tr>
-                            ))
+                          {attendanceLoading ? (
+                            <tr>
+                              <td colSpan="6" className="no-data">Loading attendance data...</td>
+                            </tr>
+                          ) : attendanceData.length > 0 ? (
+                            (() => {
+                              // Group attendance records by date
+                              const groupedByDate = attendanceData.reduce((acc, record) => {
+                                const date = record.dateOnly;
+                                if (!acc[date]) {
+                                  acc[date] = [];
+                                }
+                                acc[date].push(record);
+                                return acc;
+                              }, {});
+
+                              // Process each date's records
+                              return Object.entries(groupedByDate).map(([date, records]) => {
+                                // Sort records by time
+                                const sortedRecords = records.sort((a, b) =>
+                                  new Date(a.punchDateTime) - new Date(b.punchDateTime)
+                                );
+
+                                const checkIn = sortedRecords[0]; // First punch
+                                const checkOut = sortedRecords[sortedRecords.length - 1]; // Last punch
+                                const breakOut = sortedRecords[1]; // Second punch (if exists)
+                                const breakIn = sortedRecords[2]; // Third punch (if exists)
+
+                                // Calculate total hours
+                                let totalMinutes = 0;
+                                if (checkIn && checkOut) {
+                                  const start = new Date(checkIn.punchDateTime);
+                                  const end = new Date(checkOut.punchDateTime);
+                                  totalMinutes = Math.floor((end - start) / (1000 * 60));
+
+                                  // Subtract break time if exists
+                                  if (breakOut && breakIn) {
+                                    const breakStart = new Date(breakOut.punchDateTime);
+                                    const breakEnd = new Date(breakIn.punchDateTime);
+                                    const breakMinutes = Math.floor((breakEnd - breakStart) / (1000 * 60));
+                                    totalMinutes -= breakMinutes;
+                                  }
+                                }
+
+                                return (
+                                  <tr key={date}>
+                                    <td>{date}</td>
+                                    <td>{checkIn ? formatTime(checkIn.punchDateTime) : '-'}</td>
+                                    <td>{breakOut ? formatTime(breakOut.punchDateTime) : '-'}</td>
+                                    <td>{breakIn ? formatTime(breakIn.punchDateTime) : '-'}</td>
+                                    <td>{checkOut && sortedRecords.length > 1 ? formatTime(checkOut.punchDateTime) : '-'}</td>
+                                    <td>{formatTotalTime(totalMinutes)}</td>
+                                  </tr>
+                                );
+                              });
+                            })()
                           ) : (
                             <tr>
-                              <td colSpan="40" className="no-data">No attendance records</td>
+                              <td colSpan="6" className="no-data">No attendance records found</td>
                             </tr>
                           )}
                         </tbody>

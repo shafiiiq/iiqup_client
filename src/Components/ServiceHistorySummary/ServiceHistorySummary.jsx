@@ -315,7 +315,7 @@ function ServiceHistorySummary() {
     });
 
     return (
-        <div className="service-history-container">
+        <div className="service-history-container-cnt">
             <DevModal
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
@@ -354,6 +354,7 @@ function ServiceHistorySummary() {
                                 shadowColor="white-600"
                                 animation="none"
                                 fontWeight='500'
+                                inputPaddingInline="xl"
                             />
 
                         </div>
@@ -396,6 +397,7 @@ function ServiceHistorySummary() {
                                 shadowPosition="to-bottom"
                                 shadowColor="white-600"
                                 animation="none"
+                                inputPaddingInline="xl"
                                 fontWeight='500'
                             />
                         </div>
@@ -415,7 +417,7 @@ function ServiceHistorySummary() {
                                     textColor="black-100"
                                     placeholderColor="black-300"
                                     fontWeight='500'
-                                    paddingInline="4xl"
+                                    inputPaddingInline="2xl"
                                     inputPaddingBlock="xl"
                                 />
 
@@ -432,7 +434,7 @@ function ServiceHistorySummary() {
                                     height="40px"
                                     textColor="black-200"
                                     placeholderColor="black-300"
-                                    paddingInline="4xl"
+                                    inputPaddingInline="4xl"
                                     inputPaddingBlock="xl"
                                     fontWeight='500'
                                 />

@@ -5,12 +5,23 @@ import { useNavigate, useParams } from 'react-router';
 import { apiRequest } from '../../utils/0auth';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import BatteryService from '../../assets/images/battery-service.png';
+import Input from '../../common/Input/Input';
+import Toast from '../../common/Toast/Toast';
+import { useAlert } from '../../context/AlertContext';
+import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 
 const BatteryHistoryForm = () => {
   const { regNo } = useParams()
   const navigate = useNavigate();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+  const { showAlert } = useAlert();
+  const { triggerVibration } = useHeaderVibration();
 
+  const [equipments, setEquipments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [currentDateTime, setCurrentDateTime] = useState('');
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     batteryModel: '',
@@ -18,12 +29,13 @@ const BatteryHistoryForm = () => {
     equipmentNo: regNo || '',
     location: '',
     operator: '',
-    runningHours: ''
   });
-  const [equipments, setEquipments] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
-  const [currentDateTime, setCurrentDateTime] = useState('');
+  const [toastConfig, setToastConfig] = useState({
+    isOpen: false,
+    type: 'success',
+    message: '',
+    textColor: '#ffffff'
+  });
 
   useEffect(() => {
     if (regNo) {
@@ -104,6 +116,43 @@ const BatteryHistoryForm = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const showToast = (message, type = 'success', textColor = '#ffffff') => {
+    setToastConfig({
+      isOpen: true,
+      type,
+      message,
+      textColor
+    });
+  };
+
+  const validateForm = () => {
+    if (!formData.date) {
+      showToast('Service Date is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.batteryModel) {
+      showToast('Battery Model is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.equipment) {
+      showToast('Equipment Name is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.equipmentNo) {
+      showToast('Equipment Reg No is required', 'error', '#ffffff');
+      return false;
+    }
+    if (!formData.location) {
+      showToast('Location is required', 'warning', '#000000');
+      return false;
+    }
+    if (!formData.operator) {
+      showToast('Operator is required', 'error', '#ffffff');
+      return false;
+    }
+    return true;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
@@ -114,11 +163,15 @@ const BatteryHistoryForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
     setMessage({ text: '', type: '' });
 
     try {
-      // Replace with your actual API endpoint
       const response = await apiRequest(`${END_POINT}/service-history/add-batery-history`,
         'POST',
         formData
@@ -128,23 +181,18 @@ const BatteryHistoryForm = () => {
         throw new Error('Failed to submit form');
       }
 
-
       const result = await response.json();
-      setMessage({ text: 'Tyre history record added successfully!', type: 'success' });
-      navigate(`/service-form/${formData.equipmentNo}/${formData.date}/${formData.location}`);
 
-      // Reset form after successful submission
-      setFormData({
-        date: '',
-        batteryModel: '',
-        equipment: '',
-        equipmentNo: '',
-        location: '',
-        operator: '',
-      });
+      showAlert('Battery history record added successfully!', 'done_all', '--color-primary');
+      triggerVibration();
+
+      setTimeout(() => {
+        navigate(`/service-form/${formData.equipmentNo}/${formData.date}/${formData.location}/${formData.runningHours}/battery/${result.data?._id}`);
+      }, 1500);
 
     } catch (error) {
-      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+      showAlert(`Error: ${error.message}`, 'error', '--color-error-500');
+      triggerVibration();
     } finally {
       setIsLoading(false);
     }
@@ -170,82 +218,165 @@ const BatteryHistoryForm = () => {
         </div>
       )}
 
-      <div className="form-container">
+      <div className="form-overlay-cnt-img">
+        <img src={BatteryService} alt="Battery Service" className="overlay-img" />
+      </div>
+
+      <div className="form-container form-container-hst">
         <form className="tyre-history-form">
           <div className="form-group">
-            <label htmlFor="date">Date</label>
-            <input
+            <Input
               type="date"
               id="date"
               name="date"
               value={formData.date}
               onChange={handleChange}
-              required
+              label='Service Date'
+              labelBgColor='transparent'
+              labelSize='3xl'
+              required="true"
+              labelColor='yellow-300'
+              placeholder="Start Date"
+              colorScheme="yellow-300"
+              variant="gradient"
+              squircle="4xl"
+              width="100%"
+              height="57px"
+              textColor="black-100"
+              placeholderColor="black-300"
+              fontWeight='500'
+              inputPaddingInline="2xl"
+              inputPaddingBlock="xl"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="tyreModel">Battery Model</label>
-            <input
+            <Input
               type="text"
               id="batteryModel"
               name="batteryModel"
               value={formData.batteryModel}
               onChange={handleChange}
-              required
-              placeholder="Enter tyre model"
+              placeholder="Enter battery model"
+              placeholderColor="black-300"
+              label='Battery Model'
+              labelBgColor='transparent'
+              labelSize='3xl'
+              required="true"
+              labelColor='yellow-300'
+              colorScheme="yellow-300"
+              variant="gradient"
+              width="100%"
+              height="57px"
+              squircle="4xl"
+              textColor="black-100"
+              fontWeight='500'
+              inputPaddingInline="2xl"
+              inputPaddingBlock="xl"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="equipment">Equipment</label>
-            <input
+            <Input
               type="text"
               id="equipment"
               name="equipment"
               value={formData.equipment}
               onChange={handleChange}
-              required
-              placeholder="Enter equipment type"
+              placeholder="Enter equipment name"
+              placeholderColor="black-300"
+              label='Equipment Name'
+              labelBgColor='transparent'
+              labelSize='3xl'
+              required="true"
+              labelColor='yellow-300'
+              colorScheme="yellow-300"
+              variant="gradient"
+              width="100%"
+              height="57px"
+              squircle="4xl"
+              textColor="black-100"
+              fontWeight='500'
+              inputPaddingInline="2xl"
+              inputPaddingBlock="xl"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="equipmentNo">Equipment No</label>
-            <input
+            <Input
               type="text"
               id="equipmentNo"
               name="equipmentNo"
               value={formData.equipmentNo}
               onChange={handleChange}
-              required
               placeholder="Enter equipment number"
+              placeholderColor="black-300"
+              label='Equipment Reg No'
+              labelBgColor='transparent'
+              labelSize='3xl'
+              required="true"
+              labelColor='yellow-300'
+              colorScheme="yellow-300"
+              variant="gradient"
+              width="100%"
+              height="57px"
+              squircle="4xl"
+              textColor="black-100"
+              fontWeight='500'
+              inputPaddingInline="2xl"
+              inputPaddingBlock="xl"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="location">Location</label>
-            <input
+            <Input
               type="text"
               id="location"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              required
               placeholder="Enter location"
+              placeholderColor="black-300"
+              label='Location'
+              labelBgColor='transparent'
+              labelSize='3xl'
+              required="true"
+              labelColor='yellow-300'
+              colorScheme="yellow-300"
+              variant="gradient"
+              width="100%"
+              height="57px"
+              squircle="4xl"
+              textColor="black-100"
+              fontWeight='500'
+              inputPaddingInline="2xl"
+              inputPaddingBlock="xl"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="operator">Operator</label>
-            <input
+            <Input
               type="text"
               id="operator"
               name="operator"
               value={formData.operator}
               onChange={handleChange}
-              required
               placeholder="Enter operator name"
+              placeholderColor="black-300"
+              label='Operator'
+              labelBgColor='transparent'
+              labelSize='3xl'
+              required="true"
+              labelColor='yellow-300'
+              colorScheme="yellow-300"
+              variant="gradient"
+              width="100%"
+              height="57px"
+              squircle="4xl"
+              textColor="black-100"
+              fontWeight='500'
+              inputPaddingInline="2xl"
+              inputPaddingBlock="xl"
             />
           </div>
 
@@ -258,8 +389,8 @@ const BatteryHistoryForm = () => {
               font="md"
               animation=""
               squircle="4xl"
-              width="160px"
-              height="38px"
+              width="200px"
+              height="57px"
               type="submit"
               textColor="white-200"
               shadowPosition="to-bottom"
@@ -273,8 +404,8 @@ const BatteryHistoryForm = () => {
               font="md"
               animation=""
               squircle="4xl"
-              width="160px"
-              height="38px"
+              width="200px"
+              height="57px"
               type={!isLoading ? 'disabled' : 'submit'}
               textColor="white-200"
               shadowPosition="to-bottom"
@@ -283,6 +414,15 @@ const BatteryHistoryForm = () => {
           </div>
         </form>
       </div>
+      <Toast
+        isOpen={toastConfig.isOpen}
+        onClose={() => setToastConfig({ ...toastConfig, isOpen: false })}
+        type={toastConfig.type}
+        message={toastConfig.message}
+        textColor={toastConfig.textColor}
+        duration={4000}
+        position="top-center"
+      />
     </div>
   );
 };

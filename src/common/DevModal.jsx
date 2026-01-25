@@ -282,9 +282,9 @@ const DevModal = ({
     filters: {
       primary: '#2c2904be',
       secondary: '#96955a7a',
-      accent: '#38c4ceff',
+      accent: 'rgb(255, 251, 0)',
       textColor: '#ffffffff',
-      ctaColor: '#12a1acff',
+      ctaColor: 'rgb(117, 124, 11)',
       svg: 'filter'
     },
   }[type] || palette.success;

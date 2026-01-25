@@ -335,6 +335,7 @@
   /* ========== DEV MODAL GRADIENTS ========== */
   --gradient-dev-filter-100: linear-gradient(280deg, #2c2904be 0%, #232c04be 100%);
   --gradient-dev-filter-200: linear-gradient(280deg, #cfd1612d 0%, #232c04be 100%);
+  --gradient-dev-filter-300: linear-gradient(280deg, #eef129d8 0%, #89a71ebe 100%);
 
   /* ========== TEXT GRADIENT PRIMARY ========== */
   --text-gradiant-color: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
@@ -362,7 +363,8 @@
   --gradient-primary-300: linear-gradient(162deg, #000000d1 0%, #000000 70%, #4a5446 100%);
   --gradient-primary-400: linear-gradient(295deg, #b2b66123 0%, #6a6b4e41 100%);
   --gradient-primary-500: linear-gradient(66deg, #d8c0788f 0%, #afafa1 100%);
-  --gradient-primary-600: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);;
+  --gradient-primary-600: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
+  ;
   --gradient-primary-700: linear-gradient(359deg, #bdbb73 0%, #b3b39b 100%);
   --gradient-primary-800: linear-gradient(295deg, #e2dea269 0%, #7c804a 100%);
   --gradient-primary-900: linear-gradient(295deg, #8f8d65 0%, #c7bf76 100%);
@@ -1028,7 +1030,8 @@ body.dark-theme {
 
   /* ========== DEV MODAL GRADIENTS ========== */
   --gradient-dev-filter-100: linear-gradient(280deg, #2c2904be 0%, #232c04be 100%);
-  --gradient-dev-filter-200: linear-gradient(280deg, #cfd1612d 0%, #232c04be 100%);
+  --gradient-dev-filter-200: linear-gradient(280deg, #fdffa180 0%, #5e6c2dbe 100%);
+  --gradient-dev-filter-300: linear-gradient(280deg, #eef129d8 0%, #89a71ebe 100%);
 
   /* ========== TEXT GRADIENT PRIMARY ========== */
   --text-gradiant-color: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);

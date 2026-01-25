@@ -5,22 +5,36 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import MajorWork from '../../assets/images/major-service.jpg';
+import Input from '../../common/Input/Input';
+import Toast from '../../common/Toast/Toast';
+import { useAlert } from '../../context/AlertContext';
+import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 
 const MaintanceHistoryForm = () => {
     const navigate = useNavigate();
     const { regNo } = useParams();
     const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
+    const { showAlert } = useAlert();
+    const { triggerVibration } = useHeaderVibration();
 
     const [equipments, setEquipments] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
     const [currentDateTime, setCurrentDateTime] = useState('');
+
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         equipment: '',
         regNo: regNo || '',
         workRemarks: '',
         mechanics: ''
+    });
+    const [toastConfig, setToastConfig] = useState({
+        isOpen: false,
+        type: 'success',
+        message: '',
+        textColor: '#ffffff'
     });
 
     useEffect(() => {
@@ -100,6 +114,39 @@ const MaintanceHistoryForm = () => {
         }
     }, [equipments, formData.regNo]);
 
+    const showToast = (message, type = 'success', textColor = '#ffffff') => {
+        setToastConfig({
+            isOpen: true,
+            type,
+            message,
+            textColor
+        });
+    };
+
+    const validateForm = () => {
+        if (!formData.date) {
+            showToast('Service Date is required', 'error', '#ffffff');
+            return false;
+        }
+        if (!formData.equipment) {
+            showToast('Equipment Name is required', 'error', '#ffffff');
+            return false;
+        }
+        if (!formData.regNo) {
+            showToast('Equipment Reg No is required', 'error', '#ffffff');
+            return false;
+        }
+        if (!formData.mechanics) {
+            showToast('Mechanics name is required', 'warning', '#000000');
+            return false;
+        }
+        if (!formData.workRemarks) {
+            showToast('Work Remarks is required', 'error', '#ffffff');
+            return false;
+        }
+        return true;
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -121,6 +168,11 @@ const MaintanceHistoryForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         setIsSubmitting(true);
         setMessage({ text: '', type: '' });
 
@@ -135,11 +187,17 @@ const MaintanceHistoryForm = () => {
             }
 
             const result = await response.json();
-            setMessage({ text: 'Maintenance record submitted successfully!', type: 'success' });
-            navigate(`/service-form/${formData.regNo}/${formData.date}/${formData.mechanics}/${formData.workRemarks}`);
+
+            showAlert('Maintenance record submitted successfully!', 'done_all', '--color-primary');
+            triggerVibration();
+
+            setTimeout(() => {
+                navigate(`/service-form/${formData.regNo}/${formData.date}/${formData.mechanics}/${formData.workRemarks}/maintenance/${result.data?._id}`);
+            }, 1500);
 
         } catch (error) {
-            setMessage({ text: `Error: ${error.message}`, type: 'error' });
+            showAlert(`Error: ${error.message}`, 'error', '--color-error-500');
+            triggerVibration();
         } finally {
             setIsSubmitting(false);
         }
@@ -153,69 +211,141 @@ const MaintanceHistoryForm = () => {
                 </div>
             )}
 
-            <div className="form-container">
+            <div className="form-overlay-cnt-img">
+                <img src={MajorWork} alt="Major Service" className="overlay-img" />
+            </div>
+
+            <div className="form-container form-container-hst">
                 <form className="maintenance-history-form">
-                    <div className="form-group">
-                        <label htmlFor="date">Date</label>
-                        <input
-                            type="date"
-                            id="date"
-                            name="date"
-                            value={formData.date}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                    <Input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleChange}
+                        label='Service Date'
+                        labelBgColor='transparent'
+                        labelSize='3xl'
+                        required="true"
+                        labelColor='yellow-300'
+                        placeholder="Start Date"
+                        colorScheme="yellow-300"
+                        variant="gradient"
+                        squircle="4xl"
+                        width="100%"
+                        height="57px"
+                        textColor="black-100"
+                        placeholderColor="black-300"
+                        fontWeight='500'
+                        inputPaddingInline="2xl"
+                        inputPaddingBlock="xl"
+                    />
 
                     <div className="form-group">
-                        <label htmlFor="equipment">Equipment</label>
-                        <input
+                        <Input
                             type="text"
                             id="equipment"
                             name="equipment"
                             value={formData.equipment}
                             onChange={handleChange}
                             placeholder="Enter equipment name"
-                            required
+                            placeholderColor="black-300"
+                            label='Equipment Name'
+                            labelBgColor='transparent'
+                            labelSize='3xl'
+                            required="true"
+                            labelColor='yellow-300'
+                            colorScheme="yellow-300"
+                            variant="gradient"
+                            width="100%"
+                            height="57px"
+                            squircle="4xl"
+                            textColor="black-100"
+                            fontWeight='500'
+                            inputPaddingInline="2xl"
+                            inputPaddingBlock="xl"
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="regNo">Equipment No</label>
-                        <input
+                        <Input
                             type="text"
                             id="regNo"
                             name="regNo"
                             value={formData.regNo}
                             onChange={handleChange}
                             placeholder="Enter equipment number"
-                            required
+                            placeholderColor="black-300"
+                            label='Equipment Reg No'
+                            labelBgColor='transparent'
+                            labelSize='3xl'
+                            required="true"
+                            labelColor='yellow-300'
+                            colorScheme="yellow-300"
+                            variant="gradient"
+                            width="100%"
+                            height="57px"
+                            squircle="4xl"
+                            textColor="black-100"
+                            fontWeight='500'
+                            inputPaddingInline="2xl"
+                            inputPaddingBlock="xl"
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="mechanics">Mechanics</label>
-                        <input
+                        <Input
                             type="text"
                             id="mechanics"
                             name="mechanics"
                             value={formData.mechanics}
                             onChange={handleChange}
                             placeholder="Enter mechanic's name"
-                            required
+                            placeholderColor="black-300"
+                            label='Mechanics'
+                            labelBgColor='transparent'
+                            labelSize='3xl'
+                            required="true"
+                            labelColor='yellow-300'
+                            colorScheme="yellow-300"
+                            variant="gradient"
+                            width="100%"
+                            height="57px"
+                            squircle="4xl"
+                            textColor="black-100"
+                            fontWeight='500'
+                            inputPaddingInline="2xl"
+                            inputPaddingBlock="xl"
                         />
                     </div>
 
                     <div className="form-group full-width">
-                        <label htmlFor="workRemarks">Work Remarks</label>
-                        <textarea
+                        <Input
+                            type="textarea"
                             id="workRemarks"
                             name="workRemarks"
                             value={formData.workRemarks}
                             onChange={handleChange}
+                            required="true"
+                            colorScheme="yellow-300"
+                            textColor="black-100"
+                            label='Work Remarks'
+                            labelColor='yellow-300'
+                            labelBgColor='transparent'
+                            labelSize='3xl'
                             placeholder="Enter work remarks and details"
-                            rows="5"
-                            required
+                            placeholderColor="black-300"
+                            variant="gradient"
+                            width="100%"
+                            fullWidth="true"
+                            height="157px"
+                            squircle="30xl"
+                            fontSize='6xl'
+                            fontWeight='500'
+                            inputPaddingInline="2xl"
+                            inputPaddingBlock="xl"
+                            spellCheck="true"
+                            rows={5}
                         />
                     </div>
 
@@ -229,23 +359,23 @@ const MaintanceHistoryForm = () => {
                             animation=""
                             squircle="4xl"
                             width="160px"
-                            height="38px"
+                            height="57px"
                             type="submit"
                             textColor="white-200"
                             shadowPosition="to-bottom"
                             shadowColor="white-600"
                         />
                         <Button
-                            text='Submit'
+                            text={isSubmitting ? 'Submitting...' : 'Submit'}
                             onClick={handleSubmit}
-                            colorScheme='lime-600'
+                            colorScheme={!isSubmitting ? 'lime-600' : 'lime-800'}
                             variant="gradient"
                             font="md"
                             animation=""
                             squircle="4xl"
                             width="160px"
-                            height="38px"
-                            type='submit'
+                            height="57px"
+                            type="submit"
                             textColor="white-200"
                             shadowPosition="to-bottom"
                             shadowColor="white-600"
@@ -253,6 +383,15 @@ const MaintanceHistoryForm = () => {
                     </div>
                 </form>
             </div>
+            <Toast
+                isOpen={toastConfig.isOpen}
+                onClose={() => setToastConfig({ ...toastConfig, isOpen: false })}
+                type={toastConfig.type}
+                message={toastConfig.message}
+                textColor={toastConfig.textColor}
+                duration={4000}
+                position="top-center"
+            />
         </div>
     );
 };

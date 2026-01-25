@@ -320,14 +320,14 @@
     width: 100%;
     height: 8px;
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     position: relative;
 }
 
 .dm-progress-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: var(--radius-lg);
     transition: width 300ms ease-out;
     position: relative;
     background: linear-gradient(90deg, currentColor, rgba(255, 255, 255, 0.9));
@@ -471,11 +471,10 @@
 .dm-input {
     width: 100%;
     padding: 20px 16px;
-    border-radius: var(--radius-5xl);
+    border-radius: var(--radius-6xl);
     corner-shape: squircle;
-    border: 2px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.95);
-    color: #1f2937;
+    color: var(--color-black-200);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 1.5rem;
     font-weight: 500;
@@ -502,7 +501,7 @@
     color: #fee;
     background: rgba(220, 38, 38, 0.2);
     padding: 8px 12px;
-    border-radius: var(--radius-5xl);
+    border-radius: var(--radius-6xl);
     corner-shape: squircle;
     font-size: 0.875rem;
     font-weight: 500;
@@ -541,11 +540,10 @@
     width: 48px;
     height: 48px;
     padding: 0;
-    border-radius: var(--radius-5xl);
+    border-radius: var(--radius-6xl);
     corner-shape: squircle;
-    border: 2px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.95);
-    color: #1f2937;
+    color: var(--color-black-200);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
@@ -641,9 +639,8 @@
     padding: 10px 12px;
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
-    border: 2px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.95);
-    color: #1f2937;
+    color: var(--color-black-200);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.9rem;
     transition: all 200ms ease;
@@ -685,7 +682,7 @@
     color: #fee;
     background: rgba(220, 38, 38, 0.25);
     padding: 6px 10px;
-    border-radius: var(--radius-5xl);
+    border-radius: var(--radius-6xl);
     corner-shape: squircle;
     font-size: 0.75rem;
     font-weight: 500;
@@ -897,16 +894,16 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-5xl);
+    padding: 13px 14px;
+    background: var(--gradient-dev-filter-200);
+    border-radius: var(--radius-6xl);
     corner-shape: squircle;
     transition: all 200ms ease;
     backdrop-filter: blur(8px);
 }
 
 .dm-filter-checkbox-label:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--gradient-dev-filter-300);
 }
 
 .dm-filter-checkbox {
@@ -926,8 +923,8 @@
 .dm-filter-select {
     width: 100%;
     padding: 10px 12px;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     background: var(--gradient-dev-filter-200);
     color: var(--text-color);
     font-family: 'Inter', system-ui, sans-serif;
@@ -958,9 +955,9 @@
 
 .dm-filter-range-input {
     flex: 1;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 13px 12px;
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     background: var(--gradient-dev-filter-200);
     color: var(--text-color);
     font-family: 'Inter', system-ui, sans-serif;
@@ -976,8 +973,8 @@
 .dm-filter-range-input:focus {
     outline: none;
     border-color: rgba(255, 255, 255, 0.397);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-    background: linear-gradient(280deg, rgba(13, 94, 94, 0.808) 0%, rgba(4, 117, 74, 0.247) 100%);
+    box-shadow: var(--shadow-outer-xl);
+    background: var(--gradient-dev-filter-300);
 }
 
 .dm-filter-range-separator {
@@ -1032,8 +1029,8 @@
 .dm-checkbox-custom {
     width: 20px;
     height: 20px;
-    border: 2px solid;
-    border-radius: 4px;
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1067,7 +1064,7 @@
 }
 
 .dm-filter-radio-label:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--gradient-dev-filter-300);
 }
 
 .dm-custom-radio {
@@ -1125,7 +1122,6 @@
     padding: 12px 44px 12px 16px;
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
-    border: 2px solid rgba(255, 255, 255, 0.2);
     background: var(--gradient-dev-filter-200);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.95rem;
@@ -1142,14 +1138,12 @@
 
 .dm-filter-select-custom:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--gradient-dev-filter-300);
 }
 
 .dm-filter-select-custom:focus,
 .dm-filter-select-custom:active {
-    border-color: rgba(255, 255, 255, 0.397);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-    background: linear-gradient(280deg, rgba(13, 94, 94, 0.808) 0%, rgba(4, 117, 74, 0.247) 100%) !important;
+    background: var(--gradient-dev-filter-300) !important;
 }
 
 .dm-select-selected-text {
@@ -1187,7 +1181,6 @@
     left: 0;
     right: 0;
     background: var(--gradient-dev-filter-200);
-    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
     max-height: 0;
@@ -1196,7 +1189,7 @@
     transition: all 200ms ease;
     z-index: 1000;
     backdrop-filter: blur(12px);
-    box-shadow: 0 8px 24px rgba(2, 63, 35, 0.151);
+    box-shadow: var(--shadow-outer-xl);
 }
 
 .dm-select-dropdown-open {
@@ -1213,7 +1206,6 @@
     font-size: 0.9rem;
     font-weight: 500;
     background: var(--gradient-dev-filter-200);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dm-select-option:last-child {
@@ -1221,12 +1213,12 @@
 }
 
 .dm-select-option:hover {
-    background: var(--gradient-dev-filter-100) !important;
+    background: var(--gradient-dev-filter-300) !important;
     transform: translateX(4px);
 }
 
 .dm-select-option:active {
-    background: linear-gradient(280deg, rgba(13, 94, 94, 1) 0%, rgba(4, 117, 74, 0.5) 100%) !important;
+    background: var(--gradient-dev-filter-300) !important;
 }
 
 /* Scrollbar for dropdown */
@@ -1258,9 +1250,8 @@
     padding: 10px 40px 10px 12px;
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
-    border: 2px solid;
     background: rgba(255, 255, 255, 0.95);
-    color: #1f2937;
+    color: var(--color-black-200);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.9rem;
     transition: all 200ms ease;
@@ -1293,9 +1284,8 @@
     width: 100%;
     padding: 10px 12px;
     border-radius: 8px;
-    border: 2px solid;
     background: rgba(255, 255, 255, 0.95);
-    color: #1f2937;
+    color: var(--color-black-200);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.9rem;
     transition: all 200ms ease;
@@ -1321,7 +1311,6 @@
     max-height: 200px;
     overflow-y: auto;
     background-color: white;
-    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
     margin-top: 4px;

@@ -34,30 +34,33 @@ function TestInputs() {
             height: '100vh'
         }}>
             <Input
-                type="text"
+                type="search"
                 name="text"
                 value={formData.text}
                 onChange={handleChange}
-                placeholder="Enter your full name here"
+                placeholder='Search Here..'
                 label="Full Name"
-                iconLeft="person"
-                iconMarginLeft="3xl"
+                iconRight="search"
+                iconMarginRight="6xl"
+                labelPosition='top'
+                required="true"
                 iconToggle="search"
                 iconFontSize='33xl'
                 labelBgColor='transparent'
-                inputPaddingLeft="40xl"
+                inputPaddingLeft="xl"
                 fontWeight='400'
                 labelFontWeight='500'
-                labelColor='white-200'
+                labelColor='yellow-200'
                 labelMarginLeft="2xl"
                 labelSize='10xl'
                 fontSize='10xl'
+                size='30xl'
                 placeholderColor='black-100'
                 squircle="10xl"
-                width='1200px'
-                colorScheme='lime-600'
-                variant='filled'
-                height='100px'
+                width='700px'
+                colorScheme='yellow-300'
+                variant='gradient'
+                height='50px'
                 textColor='black'
             />
         </div>

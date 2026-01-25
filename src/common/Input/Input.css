@@ -354,10 +354,16 @@
   line-height: 1.5;
   transition: var(--db-transition-smooth);
   cursor: text;
-  outline: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.custom-input-field {
+  display: block;
+}
+
+.custom-input-field::placeholder,
+.custom-input-textarea::placeholder {
+  color: var(--placeholder-color) !important;
+  opacity: 1;
 }
 
 .custom-input-textarea {
@@ -370,7 +376,7 @@
 .custom-input-field:empty:before,
 .custom-input-textarea:empty:before {
   content: attr(data-placeholder);
-  color: var(--placeholder-color, rgba(0, 0, 0, 0.4));
+  color: var(--placeholder-color);
   pointer-events: none;
 }
 
@@ -557,7 +563,8 @@
 
 .custom-input-select-search-field:empty:before {
   content: attr(data-placeholder);
-  color: var(--placeholder-color, rgba(0, 0, 0, 0.4));
+  color: var(--placeholder-color) !important;
+  opacity: 1;
 }
 
 .custom-input-select-options {
@@ -618,6 +625,16 @@
   position: relative;
 }
 
+.custom-input-radio-outline {
+  display: flex;
+  padding: 5px;
+}
+
+.custom-input-radio {
+  width: 100%;
+  height: 100%;
+}
+
 .custom-input-checkbox,
 .custom-input-radio {
   display: flex;
@@ -625,10 +642,6 @@
   justify-content: center;
   transition: var(--db-transition-bounce);
   cursor: pointer;
-}
-
-.custom-input-radio {
-  border-radius: 50%;
 }
 
 .custom-input-checkbox svg {
@@ -741,7 +754,9 @@
   left: 0;
   right: 0;
   max-height: 400px;
-  overflow: hidden;
+  padding: clamp(8px, 2%, 16px);
+  overflow: visible;
+  max-height: none;
   z-index: 1000;
   animation: custom-input-dropdown-open 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -819,7 +834,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 14px);
   font-weight: 500;
   cursor: pointer;
   transition: var(--db-transition);

@@ -373,8 +373,8 @@ const ServiceDoc = () => {
     navigate(`/service-history/${regNo}`);
   };
 
-  const handleEditReport = (reportId) => {
-    navigate(`/service-form/update/${reportId}`);
+  const handleEditReport = (reportId, serviceType) => {
+    navigate(`/service-form/update/${serviceType}/${reportId}`);
   };
 
   const handleDeleteReport = (reportId) => {
@@ -541,7 +541,7 @@ const ServiceDoc = () => {
             <div className="report-actions no-print">
               <Button
                 text="Edit"
-                onClick={() => handleEditReport(report._id)}
+                onClick={() => handleEditReport(report._id, report.serviceType)}
                 colorScheme="lime-800"
                 variant="gradient"
                 font="md"
@@ -816,7 +816,7 @@ const ServiceDoc = () => {
         <div className="report-actions no-print single-report-actions">
           <Button
             text="Edit"
-            onClick={() => handleEditReport(reportData._id)}
+            onClick={() => handleEditReport(reportData._id, reportData.serviceType)}
             colorScheme="lime-800"
             variant="gradient"
             font="md"

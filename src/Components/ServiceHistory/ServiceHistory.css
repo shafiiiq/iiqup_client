@@ -49,7 +49,7 @@ body.dark-theme {
     --full-service-color-dark: #fd7e14;
 }
 
-.service-history-container {
+.service-history-container-cnt {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding: 20px;
     min-height: 100vh;

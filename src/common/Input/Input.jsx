@@ -33,9 +33,11 @@ const Input = ({
     placeholder = '',
     name = '',
     id = '',
+    ref = null,
     disabled = false,
     readOnly = false,
     required = false,
+    spellCheck = false,
 
     label = '',
     labelPosition = 'top',
@@ -46,7 +48,7 @@ const Input = ({
 
     colorScheme = 'gray-500',
     bgColor = '',
-    placeholderColor = 'gray-400',
+    placeholderColor = 'gray-200',
     textColor = 'gray-900',
     variant = 'filled',
     size = 'md',
@@ -90,8 +92,8 @@ const Input = ({
     inputPadding = null,
     inputPaddingRight = null,
     inputPaddingLeft = null,
-    inputPaddingInline = 'md',
-    inputPaddingBlock = 'md',
+    inputPaddingInline = null,
+    inputPaddingBlock = null,
 
     borderWidth = '0',
     borderColor = 'gray-300',
@@ -111,6 +113,9 @@ const Input = ({
     iconHover = null,
     iconClick = null,
     iconToggle = false,
+
+    onCheckedColor = null,
+    onCheckedSize = null,
 
     error = false,
     errorMessage = '',
@@ -235,11 +240,11 @@ const Input = ({
         if ((variant === 'gradient' || variant === 'filled')) {
             const { shade } = parseColorScheme(colorScheme);
             if (parseInt(shade) >= 500) {
-                return 'rgba(255, 255, 255, 0.7)';
+                return 'rgb(92, 92, 92)';
             }
         }
 
-        return 'var(--gray-400)';
+        return 'var(--gray-200)';
     };
 
     const getBorderColor = () => {
@@ -293,8 +298,6 @@ const Input = ({
     };
 
     const getBaseStyles = () => {
-        console.log("yeahhhhhhh", inputPaddingBlock ? paddingBlockMap[inputPaddingBlock] : undefined);
-        
         return {
             width: fullWidth ? '100%' : width,
             height: height !== 'auto' ? height : (sizeMap[size]?.height || heightMap[size]),
@@ -338,43 +341,6 @@ const Input = ({
             cornerShape: getCornerShape(),
             '--placeholder-color': getPlaceholderColor(),
         };
-    };
-
-    const handleKeyDown = (e) => {
-        if (disabled || readOnly) return;
-
-        if (type === 'text' || type === 'email' || type === 'password' || type === 'search' || type === 'url' || type === 'tel') {
-            if (e.key === 'Backspace') {
-                e.preventDefault();
-                const newValue = displayValue.slice(0, -1);
-                setDisplayValue(newValue);
-                setInputValue(newValue);
-                onChange({ target: { name, value: newValue } });
-            } else if (e.key.length === 1) {
-                e.preventDefault();
-                if (maxLength && displayValue.length >= maxLength) return;
-                const newValue = displayValue + e.key;
-                setDisplayValue(newValue);
-                setInputValue(newValue);
-                onChange({ target: { name, value: newValue } });
-            }
-        }
-
-        if (type === 'number') {
-            if (e.key === 'Backspace') {
-                e.preventDefault();
-                const newValue = displayValue.slice(0, -1);
-                setDisplayValue(newValue);
-                setInputValue(newValue);
-                onChange({ target: { name, value: newValue } });
-            } else if (/^[0-9.-]$/.test(e.key)) {
-                e.preventDefault();
-                const newValue = displayValue + e.key;
-                setDisplayValue(newValue);
-                setInputValue(newValue);
-                onChange({ target: { name, value: newValue } });
-            }
-        }
     };
 
     const handleClick = () => {
@@ -465,7 +431,14 @@ const Input = ({
                 style={labelStyles}
             >
                 {label}
-                {required && <span className="custom-input-required">*</span>}
+                {required &&
+                    <span
+                        className="custom-input-required"
+                        style={{
+                            color: parseColor(labelColor)
+                        }}>
+                        *
+                    </span>}
             </div>
         );
     };
@@ -596,8 +569,7 @@ const Input = ({
 
     const renderCheckbox = () => {
         const checkboxSize = sizeMap[size]?.height || '44px';
-        const numSize = parseInt(checkboxSize);
-        const boxSize = `${Math.min(numSize - 12, 28)}px`;
+        const boxSize = parseInt(checkboxSize)
 
         return (
             <div
@@ -650,26 +622,34 @@ const Input = ({
                         )
                     )}
                 </div>
-                {label && <span className="custom-input-checkbox-label" style={{
-                    color: parseColor(labelColor) || getTextColor(),
-                    fontSize: fontMap[labelSize] || fontMap.sm,
-                }}>{label}</span>}
             </div>
         );
     };
 
     const renderRadio = () => {
-        const radioSize = sizeMap[size]?.height || '44px';
-        const numSize = parseInt(radioSize);
-        const boxSize = `${Math.min(numSize - 12, 28)}px`;
+        const checkboxSize = sizeMap[size]?.height || '44px';
+        const boxSize = parseInt(checkboxSize);
+
+        const getCheckedDotColor = () => {
+            if (checked && onCheckedColor) {
+                return parseColor(onCheckedColor);
+            }
+            return mainColor;
+        };
+
+        const getCheckedDotSize = () => {
+            if (checked && onCheckedSize) {
+                const checkedBoxSize = parseInt(sizeMap[onCheckedSize]?.height || boxSize);
+                return `calc(${checkedBoxSize}px * 0.5)`;
+            }
+            return `calc(${boxSize}px * 0.5)`;
+        };
 
         return (
             <div
                 className="custom-input-radio-wrapper"
                 onClick={() => {
                     if (disabled) return;
-                    setInputValue(true);
-                    setIsClicked(true);
                     onChange({ target: { name, value: true, checked: true } });
                 }}
                 onMouseEnter={() => setIsHovered(true)}
@@ -677,40 +657,48 @@ const Input = ({
             >
                 <input
                     type="radio"
-                    checked={inputValue}
+                    checked={checked}
                     onChange={() => { }}
                     style={{ display: 'none' }}
                     name={name}
                     id={id}
                 />
                 <div
-                    className={`custom-input-radio ${inputValue ? 'custom-input-radio-checked' : ''}`}
+                    className='custom-input-radio-outline'
                     style={{
                         width: boxSize,
                         height: boxSize,
                         minWidth: boxSize,
                         minHeight: boxSize,
                         borderColor: getBorderColor(),
-                        background: getBgColor(),
+                        borderRadius: getBorderRadius(),
+                        cornerShape: getCornerShape(),
                         border: showBorder ? `${borderWidth}px solid ${getBorderColor()}` : 'none',
                         boxShadow: (isFocused && showFocus) ? getShadow() : 'none',
                     }}
                 >
-                    {inputValue && (
-                        <span
-                            className="custom-input-radio-dot"
-                            style={{
-                                background: mainColor,
-                                width: `calc(${boxSize} * 0.5)`,
-                                height: `calc(${boxSize} * 0.5)`,
-                            }}
-                        />
-                    )}
+                    <div
+                        className={`custom-input-radio ${checked ? 'custom-input-radio-checked' : ''}`}
+                        style={{
+                            borderColor: getBorderColor(),
+                            background: getBgColor(),
+                            borderRadius: getBorderRadius(),
+                            cornerShape: getCornerShape(),
+                            boxShadow: (isFocused && showFocus) ? getShadow() : 'none',
+                        }}
+                    >
+                        {checked && (
+                            <span
+                                className="custom-input-radio-dot"
+                                style={{
+                                    background: getCheckedDotColor(),
+                                    width: getCheckedDotSize(),
+                                    height: getCheckedDotSize(),
+                                }}
+                            />
+                        )}
+                    </div>
                 </div>
-                {label && <span className="custom-input-radio-label" style={{
-                    color: parseColor(labelColor) || getTextColor(),
-                    fontSize: fontMap[labelSize] || fontMap.sm,
-                }}>{label}</span>}
             </div>
         );
     };
@@ -841,7 +829,7 @@ const Input = ({
                     <div className="custom-input-date-picker" style={{
                         ...getBaseStyles(),
                         height: 'auto',
-                        padding: '16px',
+                        padding: 'clamp(8px, 2%, 16px)',
                     }}>
                         <div className="custom-input-date-year-nav">
                             <div
@@ -922,74 +910,55 @@ const Input = ({
 
     const renderTextarea = () => {
         return (
-            <div className="custom-input-textarea-wrapper">
-                <input
+            <div className="custom-input-textarea-wrapper" style={{ width: width }}>
+                <textarea
                     ref={hiddenInputRef}
-                    type="text"
                     value={inputValue}
-                    onChange={() => { }}
-                    style={{ display: 'none' }}
-                    name={name}
-                    id={id}
-                />
-                <div
-                    className="custom-input-textarea"
-                    contentEditable={!disabled && !readOnly}
-                    suppressContentEditableWarning
-                    onKeyDown={handleKeyDown}
-                    onClick={handleClick}
+                    onChange={(e) => {
+                        const newValue = e.target.value;
+                        setInputValue(newValue);
+                        setDisplayValue(newValue);
+                        onChange(e);
+                    }}
                     onFocus={() => {
                         setIsFocused(true);
                         onFocus({ target: { name, value: inputValue } });
                     }}
                     onBlur={handleBlurEvent}
-                    onInput={(e) => {
-                        const newValue = e.currentTarget.textContent;
-                        setDisplayValue(newValue);
-                        setInputValue(newValue);
-                        onChange({ target: { name, value: newValue } });
-                    }}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
+                    onClick={handleClick}
+                    name={name}
+                    id={id}
+                    disabled={disabled}
+                    readOnly={readOnly}
+                    placeholder={placeholder}
+                    rows={rows}
+                    spellCheck={spellCheck}
+                    className="custom-input-textarea"
                     style={{
                         ...getBaseStyles(),
                         minHeight: `${rows * 24}px`,
-                        whiteSpace: 'pre-wrap',
-                        overflowY: 'auto',
+                        resize: 'vertical',
                     }}
-                    data-placeholder={placeholder}
-                >
-                    {displayValue}
-                </div>
+                />
             </div>
         );
     };
 
     const renderTextInput = () => {
-        const showValue = type === 'password' && !showPassword
-            ? '•'.repeat(displayValue.length)
-            : displayValue;
-
         return (
             <>
                 <input
-                    ref={hiddenInputRef}
+                    ref={ref ? ref : hiddenInputRef}
                     type={type}
                     value={inputValue}
-                    onChange={() => { }}
-                    min={min}
-                    max={max}
-                    step={step}
-                    style={{ display: 'none' }}
-                    name={name}
-                    id={id}
-                />
-                <div
-                    className="custom-input-field"
-                    contentEditable={!disabled && !readOnly}
-                    suppressContentEditableWarning
-                    onKeyDown={handleKeyDown}
-                    onClick={handleClick}
+                    onChange={(e) => {
+                        const newValue = e.target.value;
+                        setInputValue(newValue);
+                        setDisplayValue(newValue);
+                        onChange(e);
+                    }}
                     onFocus={() => {
                         setIsFocused(true);
                         onFocus({ target: { name, value: inputValue } });
@@ -997,13 +966,19 @@ const Input = ({
                     onBlur={handleBlurEvent}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
-                    style={{
-                        ...getBaseStyles(),
-                    }}
-                    data-placeholder={placeholder}
-                >
-                    {showValue}
-                </div>
+                    onClick={handleClick}
+                    min={min}
+                    max={max}
+                    step={step}
+                    name={name}
+                    id={id}
+                    disabled={disabled}
+                    readOnly={readOnly}
+                    placeholder={placeholder}
+                    maxLength={maxLength}
+                    className="custom-input-field"
+                    style={getBaseStyles()}
+                />
             </>
         );
     };

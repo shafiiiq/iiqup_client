@@ -7,6 +7,7 @@ import Barcode from 'react-barcode';
 import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
 import Button from '../../common/Button/Button';
+import Input from '../../common/Input/Input';
 
 const Toolkits = () => {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -341,9 +342,15 @@ const Toolkits = () => {
   // Get unique sizes and colors for filter dropdowns
   const getUniqueValues = (variants, key) => {
     if (!variants || variants.length === 0) return [];
-    return [...new Set(variants.map(v => v[key]))].sort();
-  };
+    const values = [...new Set(variants.map(v => v[key]))].sort();
+    values.unshift(`All ${key}`);
 
+    // Transform to objects with value and label
+    return values.map(v => ({
+      value: v === `All ${key}` ? 'all' : v,
+      label: v
+    }));
+  };
   // Handle clicks outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1290,49 +1297,88 @@ const Toolkits = () => {
                 {/* Search and Filter Controls */}
                 <div className="variants-filters">
                   <div className="filter-search">
-                    <input
-                      type="text"
-                      placeholder="Search size or color..."
+                    <Input
+                      type="search"
+                      name="text"
                       value={variantSearchTerm}
                       onChange={(e) => setVariantSearchTerm(e.target.value)}
-                      className="variant-search-input"
+                      placeholder='Search size or color'
+                      iconRight="search"
+                      iconMarginRight="sm"
+                      iconFontSize='6xl'
+                      inputPaddingLeft="xl"
+                      fontWeight='400'
+                      fontSize='4xl'
+                      placeholderColor='black-100'
+                      squircle="10xl"
+                      width='760px'
+                      colorScheme='yellow-300'
+                      variant='gradient'
+                      height='44px'
+                      textColor='black-200'
                     />
                   </div>
 
                   <div className="filter-dropdowns">
-                    <select
+                    <Input
+                      type="select"
                       value={variantFilterSize}
                       onChange={(e) => setVariantFilterSize(e.target.value)}
-                      className="filter-select"
-                    >
-                      <option value="all">All Sizes</option>
-                      {getUniqueValues(selectedToolkit.variants, 'size').map(size => (
-                        <option key={size} value={size}>{size}</option>
-                      ))}
-                    </select>
-
-                    <select
+                      options={getUniqueValues(selectedToolkit.variants, 'size')}
+                      colorScheme="lime-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="180px"
+                      height="38px"
+                      textColor="black-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="black-600"
+                      animation="none"
+                      fontWeight='500'
+                      inputPaddingInline="xl"
+                    />
+                    <Input
+                      type="select"
                       value={variantFilterColor}
                       onChange={(e) => setVariantFilterColor(e.target.value)}
-                      className="filter-select"
-                    >
-                      <option value="all">All Colors</option>
-                      {getUniqueValues(selectedToolkit.variants, 'color').map(color => (
-                        <option key={color} value={color}>{color}</option>
-                      ))}
-                    </select>
-
-                    <select
+                      options={getUniqueValues(selectedToolkit.variants, 'color')}
+                      colorScheme="lime-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="150px"
+                      height="38px"
+                      textColor="black-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="black-600"
+                      animation="none"
+                      fontWeight='500'
+                      inputPaddingInline="xl"
+                    />
+                    <Input
+                      type="select"
                       value={variantFilterStatus}
                       onChange={(e) => setVariantFilterStatus(e.target.value)}
-                      className="filter-select"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="available">In Stock</option>
-                      <option value="low">Low Stock</option>
-                      <option value="out">Out of Stock</option>
-                    </select>
-
+                      options={[
+                        { value: 'all', label: 'All Status' },
+                        { value: 'available', label: 'In Stock' },
+                        { value: 'low', label: 'Low Stock' },
+                        { value: 'out', label: 'Out of Stock' },
+                      ]}
+                      colorScheme="lime-500"
+                      variant="gradient"
+                      font="md"
+                      squircle="4xl"
+                      width="150px"
+                      height="38px"
+                      textColor="black-200"
+                      shadowPosition="to-bottom"
+                      shadowColor="black-600"
+                      animation="none"
+                      fontWeight='500'
+                      inputPaddingInline="xl"
+                    />
                     {(variantSearchTerm || variantFilterSize !== 'all' || variantFilterColor !== 'all' || variantFilterStatus !== 'all') && (
                       <Button
                         text="Clear All"

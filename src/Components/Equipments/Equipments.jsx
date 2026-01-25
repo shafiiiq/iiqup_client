@@ -7,6 +7,7 @@ import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
 import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 import Button from '../../common/Button/Button';
+import * as XLSX from 'xlsx';
 
 function Equipments() {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -74,6 +75,20 @@ function Equipments() {
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
   const [fullscreenEquipment, setFullscreenEquipment] = useState(null);
   const [imageClickPosition, setImageClickPosition] = useState({ x: 0, y: 0 });
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportColumns, setExportColumns] = useState({
+    machine: true,
+    regNo: true,
+    brand: true,
+    year: true,
+    company: true,
+    operator: true,
+    site: true,
+    status: true,
+    istimaraExpiry: false,
+    insuranceExpiry: false,
+    tpcExpiry: false
+  });
   const [addEquipmentForm, setAddEquipmentForm] = useState({
     machine: '',
     regNo: '',
@@ -897,6 +912,87 @@ function Equipments() {
     navigate(`/service-history/${regNo}`);
   };
 
+  const exportToExcel = () => {
+    if (!filteredData || filteredData.length === 0) {
+      setDeleteStatus({
+        message: 'No data available to export.',
+        isError: true
+      });
+      setShowStatusModal(true);
+      return;
+    }
+
+    // Show export modal to select columns
+    setShowExportModal(true);
+  };
+
+  const handleExportConfirm = () => {
+    // Get selected columns
+    const selectedColumns = Object.entries(exportColumns)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([col, _]) => col);
+
+    if (selectedColumns.length === 0) {
+      setDeleteStatus({
+        message: 'Please select at least one column to export.',
+        isError: true
+      });
+      setShowStatusModal(true);
+      return;
+    }
+
+    // Column headers mapping
+    const columnHeaders = {
+      machine: 'Machine',
+      regNo: 'Reg No',
+      brand: 'Brand',
+      year: 'Year',
+      company: 'Company',
+      operator: 'Operator',
+      site: 'Site',
+      status: 'Status',
+      istimaraExpiry: 'Istimara Expiry',
+      insuranceExpiry: 'Insurance Expiry',
+      tpcExpiry: 'TPC Expiry'
+    };
+
+    // Prepare data for export
+    const exportData = filteredData.map(item => {
+      const row = {};
+      selectedColumns.forEach(col => {
+        if (col === 'operator') {
+          row[columnHeaders[col]] = item.certificationBody?.[item.certificationBody.length - 1] || 'N/A';
+        } else if (col === 'istimaraExpiry' || col === 'insuranceExpiry' || col === 'tpcExpiry') {
+          row[columnHeaders[col]] = formatDateWithExpiry(item[col]).formattedDate || 'N/A';
+        } else {
+          row[columnHeaders[col]] = item[col] || 'N/A';
+        }
+      });
+      return row;
+    });
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Equipment Inventory');
+
+    // Generate filename with date
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `Equipment_Inventory_${date}.xlsx`;
+
+    // Download
+    XLSX.writeFile(wb, filename);
+
+    setShowExportModal(false);
+    setDeleteStatus({
+      message: 'Excel file exported successfully!',
+      isError: false
+    });
+    setShowStatusModal(true);
+  };
+
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -1717,6 +1813,21 @@ function Equipments() {
             shadowPosition="to-bottom"
             shadowColor="white-600"
           />
+          <Button
+            text="Export as Excel"
+            onClick={() => exportToExcel()}
+            colorScheme="lime-800"
+            variant="gradient"
+            font="md"
+            animation=""
+            squircle="4xl"
+            width="160px"
+            height="38px"
+            type="submit"
+            textColor="white-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
         </div>
         <div className="buttons-container">
           <Button
@@ -2266,6 +2377,66 @@ function Equipments() {
         onButtonClick={handleUpdateEquipment}
         secondaryButtonText="Cancel"
         onSecondaryClick={closeEditModal}
+      />
+
+      {/* Export Columns Selection Modal */}
+      <DevModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        type="filters"
+        title="Select Columns to Export"
+        message="Choose which columns you want to include in the Excel file"
+        filterGroups={[
+          {
+            name: 'columns',
+            label: 'Available Columns',
+            type: 'checkbox',
+            options: [
+              { value: 'machine', label: 'Machine' },
+              { value: 'regNo', label: 'Registration No' },
+              { value: 'brand', label: 'Brand' },
+              { value: 'year', label: 'Year' },
+              { value: 'company', label: 'Company' },
+              { value: 'operator', label: 'Operator' },
+              { value: 'site', label: 'Site' },
+              { value: 'status', label: 'Status' },
+              { value: 'istimaraExpiry', label: 'Istimara Expiry' },
+              { value: 'insuranceExpiry', label: 'Insurance Expiry' },
+              { value: 'tpcExpiry', label: 'TPC Expiry' }
+            ]
+          }
+        ]}
+        filterValues={{
+          columns: Object.entries(exportColumns)
+            .filter(([_, isSelected]) => isSelected)
+            .map(([col, _]) => col)
+        }}
+        onFilterChange={(filterName, value) => {
+          const newExportColumns = { ...exportColumns };
+          Object.keys(newExportColumns).forEach(key => {
+            newExportColumns[key] = value.includes(key);
+          });
+          setExportColumns(newExportColumns);
+        }}
+        onApplyFilters={handleExportConfirm}
+        onResetFilters={() => {
+          setExportColumns({
+            machine: true,
+            regNo: true,
+            brand: true,
+            year: true,
+            company: true,
+            operator: true,
+            site: true,
+            status: true,
+            istimaraExpiry: false,
+            insuranceExpiry: false,
+            tpcExpiry: false
+          });
+        }}
+        buttonText="Export to Excel"
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowExportModal(false)}
       />
 
       {/* Add Outside Equipment Modal */}

@@ -1,5 +1,4 @@
 .form-nav-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--form-nav-bg-color);
   padding: 20px;
   min-height: 100vh;
@@ -22,18 +21,18 @@
 
 .form-nav-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, minmax(300px, 1fr));
   gap: 20px;
   max-width: 100%;
   margin: 0 auto;
 }
 
 .form-nav-card {
-  background: var(--gradient-primary-300);
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: -8px -8px 20px #b1ae0734;
-  border: 3px solid #eff77b71;
+  background: var(--gradient-glass-700);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  padding: 120px 25px;
+  box-shadow: var(--shadow-outer-xxl);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -42,24 +41,11 @@
 
 .form-nav-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border-color: var(--card-color);
+  box-shadow: var(--shadow-inner-xxl);
 }
 
 .form-nav-card:hover .form-nav-card-arrow {
   transform: translateX(5px);
-}
-
-.form-nav-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background-color: var(--card-color);
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
 .form-nav-card:hover::before {
@@ -72,48 +58,58 @@
   margin-bottom: 15px;
 }
 
-.form-nav-icon {
-  font-size: 32px;
-  margin-right: 15px;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-body.dark-theme .form-nav-icon {
-  background-color: rgba(255, 255, 255, 0.1);
-}
 
 .form-nav-card-title {
   color: var(--text-color);
-  font-size: 30px;
+  font-size: 37px;
   font-weight: 400;
   margin: 0;
 }
 
 .form-nav-card-description {
-  color: var(--color-primary-light);
-  font-size: 20px;
+  color: var(--text-color-400);
+  font-size: 23px;
   line-height: 1.5;
   margin-bottom: 20px;
 }
 
 body.dark-theme .form-nav-card-description {
-  color: #a0aec0;
+  color: var(--text-color-400);
 }
 
 .form-nav-card-arrow {
   position: absolute;
-  bottom: 20px;
+  bottom: 25px;
   right: 25px;
-  font-size: 20px;
-  color: var(--card-color);
+  font-size: 50px;
+  color: var(--color-primary);
   font-weight: bold;
   transition: transform 0.3s ease;
+}
+
+.form-nav-card-image-wrapper {
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 370px;
+  height: 320px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  overflow: hidden;
+  transform: rotate(25deg);
+  opacity: 0.3;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.form-nav-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.form-nav-card:hover .form-nav-card-image-wrapper {
+  opacity: 0.65;
+  transform: rotate(15deg) scale(1.1);
 }
 
 /* Responsive design */
@@ -181,6 +177,7 @@ body.dark-theme .form-nav-card-description {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

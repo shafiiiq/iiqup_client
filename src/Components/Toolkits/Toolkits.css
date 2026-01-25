@@ -203,8 +203,7 @@
 
 .variants-table-container {
   overflow-x: auto;
-  border-radius: var(--radius-6xl);
-  corner-shape: squircle;
+  border-radius: 0 !important;
 }
 
 .variants-table {
