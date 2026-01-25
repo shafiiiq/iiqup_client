@@ -134,24 +134,24 @@ function ServiceHistorySummary() {
         }
     };
 
-    const handleRowClick = (date, serviceType) => {
+    const handleRowClick = (date, serviceType, regNo) => {
         let path;
         switch (serviceType) {
             case 'normal':
             case 'oil':
-                path = `/service-doc/${date}`;
+                path = `/service-doc/${regNo}/${date}`;
                 break;
             case 'maintenance':
-                path = `/maintenance-doc/${date}`;
+                path = `/maintenance-doc/${regNo}/${date}`;
                 break;
             case 'tyre':
-                path = `/tyre-doc/${date}`;
+                path = `/tyre-doc/${regNo}/${date}`;
                 break;
             case 'battery':
-                path = `/battery-doc/${date}`;
+                path = `/battery-doc/${regNo}/${date}`;
                 break;
             default:
-                path = `/service-doc/${date}`;
+                path = `/service-doc/${regNo}/${date}`;
         }
         navigate(path);
     };
@@ -550,7 +550,7 @@ function ServiceHistorySummary() {
                                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                                 <Button
                                                     text="View Document"
-                                                    onClick={() => handleRowClick(formatDate(service.date), service.serviceType)}
+                                                    onClick={() => handleRowClick(formatDate(service.date), service.serviceType, service.regNo)}
                                                     colorScheme="sky-800"
                                                     variant="gradient"
                                                     font="sm"
