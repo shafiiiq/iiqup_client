@@ -20,6 +20,9 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
     const [hasMore, setHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [activeTab, setActiveTab] = useState('equipment-document');
+    const [operators, setOperators] = useState([]);
+    const [mechanics, setMechanics] = useState([]);
+    const [officeStaffs, setOfficeStaffs] = useState([]);
 
     const navigate = useNavigate();
     const tableRef = useRef(null);
@@ -87,6 +90,93 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
             if (scrollTimeout) clearTimeout(scrollTimeout);
         };
     }, [hasMore, isLoadingMore, isLoadingEquipments, currentPage]);
+
+    useEffect(() => {
+        fetchEquipments();
+        if (documents) {
+            fetchOperators();
+            fetchMechanics();
+            fetchOfficeStaffs();
+        }
+        if (isLPO) {
+            fetchPendingLpos();
+        }
+    }, [isLPO, documents]);
+
+    useEffect(() => {
+        if (!documents) return;
+
+        switch (activeTab) {
+            case 'equipment-document':
+                setFilteredData(equipments);
+                break;
+            case 'operator-document':
+                setFilteredData(operators);
+                break;
+            case 'mechanic-document':
+                setFilteredData(mechanics);
+                break;
+            case 'office-staff-document':
+                setFilteredData(officeStaffs);
+                break;
+            default:
+                setFilteredData(equipments);
+        }
+    }, [activeTab, equipments, operators, mechanics, officeStaffs]);
+
+    const fetchOperators = async () => {
+        try {
+            const response = await apiRequest(`${END_POINT}/operators/get-all-operators`, 'GET');
+            const data = await response.json();
+
+            // Extract the actual array from the response
+            const operatorList = data.data || [];
+
+            setOperators(operatorList);
+            if (activeTab === 'operator-document') {
+                setFilteredData(operatorList);
+            }
+        } catch (error) {
+            console.error('Error fetching operators:', error);
+            setOperators([]);
+        }
+    };
+
+    const fetchMechanics = async () => {
+        try {
+            const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`, 'GET');
+            const data = await response.json();
+
+            // Extract the actual array from the response
+            const mechanicList = data.data || [];
+
+            setMechanics(mechanicList);
+            if (activeTab === 'mechanic-document') {
+                setFilteredData(mechanicList);
+            }
+        } catch (error) {
+            console.error('Error fetching mechanics:', error);
+            setMechanics([]);
+        }
+    };
+
+    const fetchOfficeStaffs = async () => {
+        try {
+            const response = await apiRequest(`${END_POINT}/users/get-all-users`, 'GET');
+            const data = await response.json();
+
+            // Extract the actual array from the response - note it's nested in data.office
+            const userList = data.data?.office || [];
+
+            setOfficeStaffs(userList);
+            if (activeTab === 'office-staff-document') {
+                setFilteredData(userList);
+            }
+        } catch (error) {
+            console.error('Error fetching office staffs:', error);
+            setOfficeStaffs([]);
+        }
+    };
 
     const fetchEquipments = async (page = 1, append = false) => {
         if (page === 1) {
@@ -207,13 +297,35 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         );
     };
 
-    const handleRowClick = (regNo) => {
+    const handleRowClick = (item) => {
         if (equipStocks) {
-            navigate(`/stocks/equipment-stocks/images/${regNo}`)
+            navigate(`/stocks/equipment-stocks/images/${item.regNo}`);
         } else if (documents) {
-            navigate(`/documents/${regNo}`)
+            let type, id;
+            switch (activeTab) {
+                case 'equipment-document':
+                    type = 'equipment';
+                    id = item.regNo;
+                    break;
+                case 'operator-document':
+                    type = 'operator';
+                    id = item._id;
+                    break;
+                case 'mechanic-document':
+                    type = 'mechanic';
+                    id = item._id;
+                    break;
+                case 'office-staff-document':
+                    type = 'office-staff';
+                    id = item._id;
+                    break;
+                default:
+                    type = 'equipment';
+                    id = item.regNo;
+            }
+            navigate(`/documents/${type}/${id}`);
         } else if (isLPO) {
-            navigate(`/lpo-list/${regNo}`)
+            navigate(`/lpo-list/${item.regNo}`);
         }
     };
 
@@ -457,27 +569,55 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                 <table className="equipment-table" ref={tableRef}>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Machine</th>
-                            <th>Reg No</th>
-                            <th>Brand</th>
-                            <th>Year</th>
-                            <th>Company</th>
+                            {activeTab === 'equipment-document' ? (
+                                <>
+                                    <th>ID</th>
+                                    <th>Machine</th>
+                                    <th>Reg No</th>
+                                    <th>Brand</th>
+                                    <th>Year</th>
+                                    <th>Company</th>
+                                </>
+                            ) : (
+                                <>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Contact</th>
+                                    {activeTab === 'operator-document' && <th>QID</th>}
+                                    {activeTab === 'mechanic-document' && <th>Status</th>}
+                                    {activeTab === 'office-staff-document' && <th>Role</th>}
+                                </>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
                         {filteredData.map((item, index) => (
                             <tr
-                                key={item.id || index}
-                                onClick={() => handleRowClick(item.regNo)}
+                                key={item._id || item.id || index}
+                                onClick={() => handleRowClick(item)}
                                 className="equipment-row"
                             >
-                                <td>{index + 1}</td>
-                                <td>{item.machine}</td>
-                                <td>{item.regNo}</td>
-                                <td>{item.brand}</td>
-                                <td>{item.year}</td>
-                                <td>{item.company}</td>
+                                {activeTab === 'equipment-document' ? (
+                                    <>
+                                        <td>{index + 1}</td>
+                                        <td>{item.machine}</td>
+                                        <td>{item.regNo}</td>
+                                        <td>{item.brand}</td>
+                                        <td>{item.year}</td>
+                                        <td>{item.company}</td>
+                                    </>
+                                ) : (
+                                    <>
+                                        <td>{index + 1}</td>
+                                        <td>{item.name}</td>
+                                        <td>{item.email || 'N/A'}</td>
+                                        <td>{item.contactNo || item.authMail || 'N/A'}</td>
+                                        {activeTab === 'operator-document' && <td>{item.qatarId || 'N/A'}</td>}
+                                        {activeTab === 'mechanic-document' && <td>{item.status || 'Active'}</td>}
+                                        {activeTab === 'office-staff-document' && <td>{item.role || 'N/A'}</td>}
+                                    </>
+                                )}
                             </tr>
                         ))}
                     </tbody>

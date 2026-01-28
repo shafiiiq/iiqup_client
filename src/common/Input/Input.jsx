@@ -38,6 +38,7 @@ const Input = ({
     readOnly = false,
     required = false,
     spellCheck = false,
+    autoFocus = false,
 
     label = '',
     labelPosition = 'top',
@@ -150,6 +151,7 @@ const Input = ({
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [isHovered, setIsHovered] = useState(false);
     const [isClicked, setIsClicked] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const hiddenInputRef = useRef(null);
     const dropdownRef = useRef(null);
     const hiddenFileInput = useRef(null);
@@ -567,6 +569,96 @@ const Input = ({
         );
     };
 
+    const renderSearchSelect = () => {
+        const filteredSuggestions = inputValue && options
+            ? options.filter(opt =>
+                (typeof opt === 'string' ? opt : opt.label)
+                    .toLowerCase()
+                    .includes(inputValue.toLowerCase())
+            )
+            : options;
+
+        return (
+            <div className="custom-input-search-select-wrapper" ref={dropdownRef}
+                style={{ width: width }}
+            >
+                <div className="custom-input-search-select-inner">
+                    {iconLeft && renderIcon(iconLeft, 'left')}
+
+                    <input
+                        ref={hiddenInputRef}
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => {
+                            const newValue = e.target.value;
+                            setInputValue(newValue);
+                            onChange({ target: { name, value: newValue } });
+                            setShowSuggestions(true);
+                        }}
+                        onFocus={() => {
+                            setIsFocused(true);
+                            setShowSuggestions(true);
+                            onFocus({ target: { name, value: inputValue } });
+                        }}
+                        onBlur={() => {
+                            setTimeout(() => {
+                                setShowSuggestions(false);
+                                setIsFocused(false);
+                            }, 200);
+                            onBlur({ target: { name, value: inputValue } });
+                        }}
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
+                        name={name}
+                        id={id}
+                        disabled={disabled}
+                        readOnly={readOnly}
+                        placeholder={placeholder}
+                        className="custom-input-field"
+                        style={getBaseStyles()}
+                    />
+
+                    {iconRight && renderIcon(iconRight, 'right')}
+                </div>
+
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="custom-input-select-dropdown" style={{
+                        ...getBaseListStyles(),
+                        height: 'auto',
+                        maxHeight: '300px',
+                        overflow: 'hidden',
+                        marginTop: '4px',
+                    }}>
+                        <div className="custom-input-select-options">
+                            {filteredSuggestions.map((option, index) => {
+                                const optValue = typeof option === 'string' ? option : option.value;
+                                const optLabel = typeof option === 'string' ? option : option.label;
+                                return (
+                                    <div
+                                        key={index}
+                                        className="custom-input-select-option"
+                                        onClick={() => {
+                                            setInputValue(optValue);
+                                            onChange({ target: { name, value: optValue } });
+                                            setShowSuggestions(false);
+                                        }}
+                                        style={{
+                                            color: getTextColor(),
+                                            background: 'transparent',
+                                            borderRadius: getBorderRadius(),
+                                        }}
+                                    >
+                                        {optLabel}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const renderCheckbox = () => {
         const checkboxSize = sizeMap[size]?.height || '44px';
         const boxSize = parseInt(checkboxSize)
@@ -935,6 +1027,7 @@ const Input = ({
                     placeholder={placeholder}
                     rows={rows}
                     spellCheck={spellCheck}
+                    autoFocus={autoFocus}
                     className="custom-input-textarea"
                     style={{
                         ...getBaseStyles(),
@@ -976,6 +1069,7 @@ const Input = ({
                     readOnly={readOnly}
                     placeholder={placeholder}
                     maxLength={maxLength}
+                    autoFocus={autoFocus}
                     className="custom-input-field"
                     style={getBaseStyles()}
                 />
@@ -985,6 +1079,7 @@ const Input = ({
 
     const renderInput = () => {
         if (type === 'select' || type === 'dropdown') return renderSelect();
+        if (type === 'search-select') return renderSearchSelect();
         if (type === 'checkbox') return renderCheckbox();
         if (type === 'radio') return renderRadio();
         if (type === 'file') return renderFile();
@@ -993,7 +1088,6 @@ const Input = ({
 
         return renderTextInput();
     };
-
     const containerClasses = [
         'custom-input-container',
         `custom-input-${size}`,
@@ -1023,7 +1117,7 @@ const Input = ({
                 <div className="custom-input-inner">
                     {(labelPosition === 'inside' || labelPosition === 'floating') && renderLabel()}
 
-                    {iconLeft && !['checkbox', 'radio', 'file', 'select', 'dropdown', 'date'].includes(type) && (
+                    {iconLeft && !['checkbox', 'radio', 'file', 'select', 'dropdown', 'date', 'search-select'].includes(type) && (
                         renderIcon(iconLeft, 'left')
                     )}
 
@@ -1045,7 +1139,7 @@ const Input = ({
                         </span>
                     )}
 
-                    {iconRight && type !== 'password' && !['checkbox', 'radio', 'file', 'select', 'dropdown', 'date'].includes(type) && (
+                    {iconRight && type !== 'password' && !['checkbox', 'radio', 'file', 'select', 'dropdown', 'date', 'search-select'].includes(type) && (
                         renderIcon(iconRight, 'right')
                     )}
                 </div>

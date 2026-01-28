@@ -1343,6 +1343,117 @@
     min-height: 32px;
 }
 
+/* Split PDF modal styles */
+.dm-card-split {
+    height: auto;
+    min-height: 420px;
+    max-width: 600px;
+    padding: 32px 28px 24px;
+}
+
+.dm-card-split .dm-content {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+}
+
+.dm-split-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dm-split-message {
+    margin-bottom: 8px !important;
+    font-size: 0.95rem !important;
+    text-align: center;
+}
+
+.dm-split-options {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.dm-split-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
+    cursor: pointer;
+    transition: all 200ms ease;
+    backdrop-filter: blur(8px);
+}
+
+.dm-split-radio-label:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dm-split-radio-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: white;
+}
+
+.dm-split-radio-label span {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.9rem;
+    user-select: none;
+}
+
+.dm-split-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-black-200);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 200ms ease;
+    backdrop-filter: blur(8px);
+}
+
+.dm-split-input::placeholder {
+    color: rgba(31, 41, 55, 0.5);
+}
+
+.dm-split-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    background: white;
+}
+
+.dm-split-error {
+    color: #fee;
+    background: rgba(220, 38, 38, 0.25);
+    padding: 8px 12px;
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
+    font-size: 0.85rem;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    text-align: center;
+}
+
+.dm-card-split .dm-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 28px;
+    right: 28px;
+    display: flex;
+    gap: 12px;
+}
+
 /* Mobile adjustments */
 @media (max-width: 900px) {
     .dm-card-filters {

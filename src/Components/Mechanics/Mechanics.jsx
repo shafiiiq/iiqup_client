@@ -19,6 +19,8 @@ const Mechanics = () => {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [overtimeView, setOvertimeView] = useState('monthly'); // 'monthly' or 'daily'
   const [attendanceData, setAttendanceData] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [recentActivityLoading, setRecentActivityLoading] = useState([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
@@ -56,7 +58,6 @@ const Mechanics = () => {
         const data = await response.json();
         setMechanics(data.data);
         if (data.data.length > 0) {
-          console.log("data.data[0]", data.data[0]);
 
           setSelectedMechanic(data.data[0]);
         }
@@ -70,6 +71,38 @@ const Mechanics = () => {
 
     fetchMechanics();
   }, []);
+
+  useEffect(() => {
+    const fetchRecentActivity = async () => {
+      console.log("Hiiiiiiiiiiiiiiiii");
+      
+      if (!selectedMechanic?.zktecoPin) return;
+
+      setRecentActivityLoading(true);
+      try {
+        const today = new Date().toISOString().split('T')[0];
+
+        const response = await apiRequest(`${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`);
+        const data = await response.json();
+
+        console.log("dataaaaaaaaaaaaa", data.data.records);
+
+
+        if (data.status === 200) {
+          setRecentActivity(data.data.records || []);
+        } else {
+          setRecentActivity([]);
+        }
+      } catch (error) {
+        console.error('Error fetching attendance:', error);
+        setRecentActivity([]);
+      } finally {
+        setRecentActivityLoading(false);
+      }
+    };
+
+    fetchRecentActivity()
+  }, [recentActivity, selectedMechanic])
 
   // Generate avatar with initials
   const generateAvatar = (name) => {
@@ -129,8 +162,6 @@ const Mechanics = () => {
 
   // Format month display
   const formatMonthYear = (monthData) => {
-    console.log(monthData);
-
     if (!monthData.month || !monthData.year) return 'Unknown';
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
@@ -454,6 +485,12 @@ const Mechanics = () => {
                 >
                   Overtime
                 </button>
+                <button
+                  className={`detail-tab ${activeTab === 'documents' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('documents')}
+                >
+                  Documents
+                </button>
               </div>
 
               {/* Tab Content */}
@@ -490,17 +527,18 @@ const Mechanics = () => {
                     <div className="recent-activity">
                       <h3>Recent Activity</h3>
                       <div className="activity-list">
-                        {selectedMechanic.attendance?.slice(-5).map((record, index) => (
-                          <div key={index} className="activity-item">
-                            <div className="activity-content">
-                              <p>Checked in at {formatTime(record.in)}</p>
-                              <span className="activity-date">
-                                {new Date(record.date).toLocaleDateString()}
-                              </span>
+                        {
+                          recentActivity?.map((record, index) => (
+                            <div key={index} className="activity-item">
+                              <div className="activity-content">
+                                <p>Checked {record.punchType} at {record.punchTime}</p>
+                                <span className="activity-date">
+                                  {new Date(record.date).toLocaleDateString()}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                        {(!selectedMechanic.attendance || selectedMechanic.attendance.length === 0) && (
+                          ))}
+                        {(!recentActivity || recentActivity.length === 0) && (
                           <p className="no-activity">No recent activity</p>
                         )}
                       </div>

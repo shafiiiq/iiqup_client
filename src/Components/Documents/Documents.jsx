@@ -7,11 +7,20 @@ import jsPDF from 'jspdf';
 import DevModal from '../../common/DevModal';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import Input from '../../common/Input/Input';
+import PDFPreviewModal from '../../common/PDFPreviewModal/PDFPreviewModal';
 
 function DocumentDetails() {
-  const { regNo } = useParams();
+  const { type, id } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteDocumentId, setDeleteDocumentId] = useState(null);
+  const [deleteDocumentName, setDeleteDocumentName] = useState('');
+  const [renamingDocId, setRenamingDocId] = useState(null);
+  const [newFileName, setNewFileName] = useState('');
+  const [sourceType, setSourceType] = useState(''); // 'equipment', 'operator', 'mechanic', 'office-staff'
+  const [sourceData, setSourceData] = useState(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState([]);
   const [showMergeModal, setShowMergeModal] = useState(false);
@@ -41,6 +50,8 @@ function DocumentDetails() {
   const [docTypeInput, setDocTypeInput] = useState('');
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [splitDocumentUrl, setSplitDocumentUrl] = useState(null);
+  const [splitDocumentName, setSplitDocumentName] = useState('');
   const [uploadStatus, setUploadStatus] = useState(''); // 'uploading', 'success', 'error'
   const [uploadError, setUploadError] = useState('');
   const [formData, setFormData] = useState({
@@ -56,7 +67,7 @@ function DocumentDetails() {
   useEffect(() => {
     if (equipmentData) {
       const title = activeTab === 'add' ? 'Upload Document' : 'View Document'
-      const subtitle = `${equipmentData.machine} - ${regNo}`
+      const subtitle = `${equipmentData.machine}`
       setHeaderTitle(title);
       setHeaderSubtitle(subtitle);
     } else {
@@ -69,7 +80,76 @@ function DocumentDetails() {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [equipmentData, regNo, activeTab]);
+  }, [equipmentData, activeTab]);
+
+  useEffect(() => {
+    // Add drag handlers to the entire document when on 'add' tab
+    if (activeTab === 'add') {
+      const handleDocumentDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+      };
+
+      const handleDocumentDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Only set to false if we're leaving the document entirely
+        if (e.target === document.body || !document.body.contains(e.relatedTarget)) {
+          setIsDragging(false);
+        }
+      };
+
+      const handleDocumentDrop = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          const file = files[0];
+
+          try {
+            if (isImageFile(file)) {
+              setMessage({ text: 'Converting image to PDF...', type: 'info' });
+              const convertedFile = await convertImageToPDF(file);
+              setSelectedFile(convertedFile);
+
+              const reader = new FileReader();
+              reader.onloadend = () => setPreviewImage(reader.result);
+              reader.readAsDataURL(file);
+
+              setMessage({ text: 'Image converted to PDF successfully!', type: 'success' });
+            } else {
+              setSelectedFile(file);
+
+              if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => setPreviewImage(reader.result);
+                reader.readAsDataURL(file);
+              } else {
+                setPreviewImage(null);
+              }
+            }
+          } catch (error) {
+            console.error('Error processing dropped file:', error);
+            setMessage({ text: `Error processing file: ${error.message}`, type: 'error' });
+          }
+        }
+      };
+
+      document.addEventListener('dragover', handleDocumentDragOver);
+      document.addEventListener('dragleave', handleDocumentDragLeave);
+      document.addEventListener('drop', handleDocumentDrop);
+
+      return () => {
+        document.removeEventListener('dragover', handleDocumentDragOver);
+        document.removeEventListener('dragleave', handleDocumentDragLeave);
+        document.removeEventListener('drop', handleDocumentDrop);
+        setIsDragging(false);
+      };
+    }
+  }, [activeTab]);
 
   // Static fallback document types (in case API fails)
   const fallbackDocumentTypes = [
@@ -94,24 +174,51 @@ function DocumentDetails() {
     { value: 'warranty', label: 'Warranty' }
   ];
 
-
-  // Navigate to "All Documents" view
-  const navigateToAllDocuments = () => {
-    setCurrentCategory('all'); // Special marker for all docs
-    setCurrentView('allDocsSubfolders');
-    setCurrentPath([
-      { name: 'Documents', view: 'categories' },
-      { name: 'All Documents', view: 'allDocsSubfolders', category: 'all' }
-    ]);
+  const handleStartRename = (docId, currentFileName) => {
+    setRenamingDocId(docId);
+    // Remove extension for editing
+    const nameWithoutExt = currentFileName.replace(/\.[^/.]+$/, '');
+    setNewFileName(nameWithoutExt);
   };
 
-  // Navigate to Latest/Old in All Documents
-  const navigateToAllDocsFolder = (isLatest) => {
-    setCurrentView('allDocsFiles');
+  const handleCancelRename = () => {
+    setRenamingDocId(null);
+    setNewFileName('');
+  };
+
+  const handleSaveRename = async (docId) => {
+    if (!newFileName.trim()) {
+      setMessage({ text: 'File name cannot be empty', type: 'error' });
+      return;
+    }
+
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/documents/rename-file/${docId}`,
+        'PUT',
+        { newFileName: newFileName.trim() }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message || 'Rename failed');
+
+      setMessage({ text: 'File renamed successfully!', type: 'success' });
+      setRenamingDocId(null);
+      setNewFileName('');
+      fetchDocuments(); // Refresh the list
+    } catch (error) {
+      console.error('Error renaming file:', error);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    }
+  };
+
+  const navigateToAllDocuments = () => {
+    setCurrentCategory('all');
+    setCurrentView('allDocsFiles'); // Changed from 'allDocsSubfolders' to 'allDocsFiles'
     setCurrentPath([
       { name: 'Documents', view: 'categories' },
-      { name: 'All Documents', view: 'allDocsSubfolders', category: 'all' },
-      { name: isLatest ? 'Latest' : 'Old', view: 'allDocsFiles', isLatest }
+      { name: 'All Documents', view: 'allDocsFiles', category: 'all' } // Changed view
     ]);
   };
 
@@ -144,7 +251,8 @@ function DocumentDetails() {
 
     try {
       const response = await apiRequest(`${END_POINT}/documents/merge-pdfs`, 'POST', {
-        regNo: regNo,
+        sourceId: id,
+        sourceType: sourceType,
         documentIds: selectedDocuments,
         category: currentCategory === 'all' ? 'merged' : currentCategory,
         documentType: 'Merged Document'
@@ -172,19 +280,88 @@ function DocumentDetails() {
   };
 
   // Split PDF
-  const handleSplitPDF = async (documentId) => {
-    setSplitDocument(documentId);
-    setShowSplitModal(true);
-    setMessage({ text: 'Select split options...', type: 'info' });
+  const handleSplitPDF = async (documentId, fileName, filePath) => {
+    try {
+      // Get S3 URL for the PDF
+      const body = { key: filePath, isLong: false };
+      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+      const s3URL = await s3response.json();
+
+      setSplitDocument(documentId);
+      setSplitDocumentUrl(s3URL.dataUrl);
+      setSplitDocumentName(fileName);
+      setShowSplitModal(true);
+    } catch (error) {
+      console.error('Error loading PDF:', error);
+      setMessage({ text: 'Failed to load PDF preview', type: 'error' });
+    }
+  };
+
+  // Merge selected pages from same PDF
+  const handleMergePages = async (documentId, pageNumbers) => {
+    try {
+      const response = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', {
+        sourceId: id,
+        sourceType: sourceType,
+        documentId: documentId,
+        splitOptions: {
+          pages: pageNumbers,
+          splitType: 'specific'
+        },
+        category: currentCategory === 'all' ? 'merged' : currentCategory
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Merge failed');
+
+      setMessage({ text: `Merged ${pageNumbers.length} pages successfully!`, type: 'success' });
+      setShowSplitModal(false);
+      fetchDocuments();
+    } catch (error) {
+      console.error('Error merging pages:', error);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    }
+  };
+
+  // Split all pages individually
+  const handleSplitAllPages = async (documentId, totalPages) => {
+    try {
+      const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+      const response = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', {
+        sourceId: id,
+        sourceType: sourceType,
+        documentId: documentId,
+        splitOptions: {
+          pages: [1], // Use "every 1 page" to split all
+          splitType: 'every'
+        },
+        category: currentCategory === 'all' ? 'split' : currentCategory
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Split failed');
+
+      setMessage({ text: `Split all ${totalPages} pages successfully!`, type: 'success' });
+      setShowSplitModal(false);
+      fetchDocuments();
+    } catch (error) {
+      console.error('Error splitting pages:', error);
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    }
   };
 
   // Confirm split operation
   const confirmSplitPDF = async (splitOptions) => {
     try {
       const response = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', {
-        regNo: regNo,
+        sourceId: id,
+        sourceType: sourceType,
         documentId: splitDocument,
-        splitOptions: splitOptions, // e.g., { type: 'pages', pages: [1,2,3] }
+        splitOptions: {
+          pages: splitOptions.pages, // Array of page numbers or ranges
+          splitType: splitOptions.splitType // 'specific', 'range', or 'every'
+        },
         category: currentCategory === 'all' ? 'split' : currentCategory
       });
 
@@ -345,11 +522,11 @@ function DocumentDetails() {
       setCurrentCategory(null);
       setCurrentDocType(null);
       setSelectedItems([]);
-      if (regNo) {
+      if (type && id) {
         fetchDocuments();
       }
     }
-  }, [activeTab, regNo]);
+  }, [activeTab, type, id]);
 
   // Function to toggle old documents visibility
   const toggleOldDocuments = (categoryDocTypeKey) => {
@@ -531,29 +708,54 @@ function DocumentDetails() {
     return () => clearInterval(interval);
   }, []);
 
-  // Load equipment data and fetch document types
   useEffect(() => {
-    if (regNo) {
-      import('../../equipments').then(module => {
-        const equipment = module.default.find(eq => eq.regNo.trim() === regNo.trim());
-        setEquipmentData(equipment);
-      }).catch(err => {
-        console.error("Could not load equipment data:", err);
-      });
-    }
-
-    // Fetch document types when component mounts
-    fetchDocumentTypes(); // ← UNCOMMENT THIS LINE
-  }, [regNo]);
-
-  // Fetch documents when view tab is active
-  useEffect(() => {
-    if (activeTab === 'view' && regNo) {
+    if (activeTab === 'view' && type && id) {
       fetchDocuments();
     }
-  }, [activeTab, regNo]);
+  }, [activeTab, type, id]);
 
-  // Handle form input changes
+  useEffect(() => {
+    if (type && id) {
+      fetchSourceData();
+    }
+    fetchDocumentTypes();
+  }, [type, id]);
+
+  useEffect(() => {
+    if (sourceData) {
+      const title = activeTab === 'add' ? 'Upload Document' : 'View Document';
+      let subtitle = '';
+
+      switch (sourceType) {
+        case 'equipment':
+          subtitle = `${sourceData.machine || 'Equipment'} - ${sourceData.regNo || id}`;
+          break;
+        case 'operator':
+          subtitle = `${sourceData.name || 'Operator'} - ${sourceData.qatarId || id}`;
+          break;
+        case 'mechanic':
+          subtitle = `${sourceData.name || 'Mechanic'} - ${id}`;
+          break;
+        case 'office-staff':
+          subtitle = `${sourceData.name || 'Office Staff'} - ${sourceData.email || id}`;
+          break;
+        default:
+          subtitle = id;
+      }
+
+      setHeaderTitle(title);
+      setHeaderSubtitle(subtitle);
+    } else {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    }
+
+    return () => {
+      setHeaderTitle(null);
+      setHeaderSubtitle(null);
+    };
+  }, [sourceData, sourceType, id, activeTab]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -562,8 +764,54 @@ function DocumentDetails() {
     }));
   };
 
-  // Handle file selection
-  // REPLACE your existing handleFileChange function with this:
+  const fetchSourceData = async () => {
+    try {
+      setSourceType(type);
+
+      let response, data;
+
+      switch (type) {
+        case 'equipment':
+          // Try fetching from API or use local import
+          try {
+            response = await apiRequest(`${END_POINT}/equipments/get-equipment/${id}`, 'GET');
+            data = await response.json();
+            setSourceData(data);
+          } catch (err) {
+            // Fallback to local import
+            import('../../equipments').then(module => {
+              const equipment = module.default.find(eq => eq._id === id || eq.regNo === id);
+              setSourceData(equipment);
+            });
+          }
+          break;
+
+        case 'operator':
+          response = await apiRequest(`${END_POINT}/operators/get-operator/${id}`, 'GET');
+          data = await response.json();
+          setSourceData(data.data || data);
+          break;
+
+        case 'mechanic':
+          response = await apiRequest(`${END_POINT}/mechanics/get-mechanic/${id}`, 'GET');
+          data = await response.json();
+          setSourceData(data.data || data);
+          break;
+
+        case 'office-staff':
+          response = await apiRequest(`${END_POINT}/users/get-user/${id}`, 'GET');
+          data = await response.json();
+          setSourceData(data.data || data);
+          break;
+
+        default:
+          console.error('Invalid source type');
+      }
+    } catch (error) {
+      console.error('Error fetching source data:', error);
+    }
+  };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -600,11 +848,10 @@ function DocumentDetails() {
     }
   };
 
-  // Handle form submission with progress modal
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedFile || !regNo || !formData.documentType) {
+    if (!selectedFile || !id || !sourceType || !formData.documentType) {
       setMessage({ text: 'Please fill all required fields and select a file', type: 'error' });
       return;
     }
@@ -621,16 +868,19 @@ function DocumentDetails() {
     // Animate progress from 0 to 90% while uploading
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
-        if (prev >= 90) return prev; // Stop at 90% until completion
-        return prev + Math.random() * 15; // Random increments for smooth animation
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
       });
     }, 150);
 
     try {
-      const response = await apiRequest(`${END_POINT}/documents/upload-document`,
+      // Step 1: Get presigned URL from backend
+      const response = await apiRequest(
+        `${END_POINT}/documents/upload-document`,
         'POST',
         {
-          regNo: regNo,
+          sourceId: id,
+          sourceType: sourceType,
           documentType: formData.documentType,
           fileName: selectedFile.name,
           mimeType: selectedFile.type,
@@ -638,18 +888,32 @@ function DocumentDetails() {
           category: formData.category,
           date: formData.date,
           expiry: formData.expiry,
-        },
-        {}, // customHeaders
-        selectedFile // the actual file
+        }
       );
 
       const result = await response.json();
+      console.log('Backend response:', result);
 
-      console.log(result);
+      if (result.status !== 200) {
+        throw new Error(result.message || 'Upload failed');
+      }
+
+      // Step 2: Upload actual file to S3 using presigned URL
+      const s3UploadResponse = await fetch(result.uploadUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type
+        }
+      });
+
+      if (!s3UploadResponse.ok) {
+        console.log('S3 upload failed:', await s3UploadResponse.json());
+
+        throw new Error(`S3 upload failed: ${s3UploadResponse.status}`);
+      }
 
       clearInterval(progressInterval);
-
-      if (!result.status == 200) throw new Error(result.message || 'Upload failed');
 
       // Complete progress and show success
       setUploadProgress(100);
@@ -696,30 +960,28 @@ function DocumentDetails() {
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      const response = await apiRequest(`${END_POINT}/documents/get-documents/${regNo}`, 'GET');
+      const response = await apiRequest(`${END_POINT}/documents/get-documents/${sourceType}/${id}`, 'GET');
 
       if (!response.ok) {
         throw new Error('Failed to fetch documents');
       }
 
       const data = await response.json();
-
       console.log(data);
 
-
-      // Process the documents to flatten the files array
       const processedDocuments = [];
 
       if (data.documents && data.documents.length > 0) {
         data.documents.forEach(doc => {
-          // Each document can have multiple files
           if (doc.files && doc.files.length > 0) {
             doc.files.forEach(file => {
               processedDocuments.push({
                 _id: file._id,
-                regNo: doc.regNo,
+                sourceId: doc.SourceId,
+                sourceType: doc.documentSource[0]?.source,
                 documentType: doc.documentType,
                 fileName: file.filename,
+                displayFileName: file.displayFileName,
                 filePath: file.path,
                 mimetype: file.mimetype,
                 date: file.date,
@@ -727,7 +989,6 @@ function DocumentDetails() {
                 uploadDate: file.uploadedAt || file.createdAt,
                 createdAt: file.createdAt,
                 updatedAt: file.updatedAt,
-                // Add default values for missing fields
                 description: doc.description || '',
                 category: doc.category || 'other'
               });
@@ -804,7 +1065,60 @@ function DocumentDetails() {
     }
   };
 
-  // iOS-compatible view handler with direct URL approach
+  // Show delete confirmation modal
+  const showDeleteConfirmation = (documentId, fileName) => {
+    setDeleteDocumentId(documentId);
+    setDeleteDocumentName(fileName);
+    setShowDeleteModal(true);
+  };
+
+  // Delete document handler
+  const handleDelete = async () => {
+    if (!deleteDocumentId) return;
+
+    try {
+      setMessage({ text: 'Deleting document...', type: 'info' });
+      setShowDeleteModal(false);
+
+      const response = await apiRequest(
+        `${END_POINT}/documents/delete/${deleteDocumentId}`,
+        'DELETE'
+      );
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || 'Delete failed');
+      }
+
+      const result = await response.json();
+
+      setMessage({ text: 'Document deleted successfully!', type: 'success' });
+
+      // Reset delete states
+      setDeleteDocumentId(null);
+      setDeleteDocumentName('');
+
+      // Refresh the documents list
+      fetchDocuments();
+
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 3000);
+
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      setMessage({ text: `Error deleting: ${error.message}`, type: 'error' });
+    }
+  };
+
+  // Cancel delete
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteDocumentId(null);
+    setDeleteDocumentName('');
+  };
+
   const handleView = async (documentId, fileName) => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
@@ -935,7 +1249,7 @@ function DocumentDetails() {
   }, {});
 
   return (
-    <div className="doc-details-container">
+    <div className={`doc-details-container ${isDragging ? 'dragging-active' : ''}`}>
       {/* Tab Navigation */}
       <div className="doc-details-tabs">
         <Button
@@ -989,189 +1303,219 @@ function DocumentDetails() {
       {/* Add Document Tab */}
       {activeTab === 'add' && (
         <div className="doc-details-form-container">
-          <form className="doc-details-form">
-            <div className="doc-details-form-group">
-              <label htmlFor="category">Category</label>
-              <div className="doc-details-dropdown-container">
-                <input
-                  type="text"
+          <form className="doc-details-form-split">
+            {/* LEFT SECTION - Input Fields Grid (3 columns) */}
+            <div className="doc-details-form-left">
+              {/* Category Input */}
+              <div className="doc-details-form-group">
+                <Input
+                  type="select"
                   id="category"
                   name="category"
-                  value={categories.find(cat => cat.value === formData.category)?.label || ''}
+                  value={formData.category}
                   onChange={(e) => {
-                    // Optional: allow typing to search
-                    const searchValue = e.target.value.toLowerCase();
-                    const matchedCategory = categories.find(cat =>
-                      cat.label.toLowerCase().includes(searchValue)
-                    );
-                    if (matchedCategory) {
-                      setFormData(prev => ({ ...prev, category: matchedCategory.value }));
-                    }
+                    setFormData(prev => ({ ...prev, category: e.target.value }));
                   }}
-                  onFocus={() => setShowCategoryDropdown(true)}
-                  onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
                   placeholder="Select category"
-                  readOnly // Make it read-only if you don't want typing
-                  required
+                  required={true}
+                  options={categories.map((cat) => ({
+                    value: cat.value,
+                    label: cat.label
+                  }))}
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Category'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
-
-                {showCategoryDropdown && (
-                  <div className="doc-details-dropdown-list">
-                    {categories.map((cat) => (
-                      <div
-                        key={cat.value}
-                        className="doc-details-dropdown-item"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, category: cat.value }));
-                          setShowCategoryDropdown(false);
-                        }}
-                      >
-                        {cat.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-            </div>
 
-            <div className="doc-details-form-group">
-              <label htmlFor="documentType">Document Type</label>
-              <div className="doc-details-dropdown-container">
-                <input
-                  type="text"
+              {/* Document Type Input */}
+              <div className="doc-details-form-group">
+                <Input
+                  type="search-select"
                   id="documentType"
                   name="documentType"
                   value={docTypeInput}
-                  onChange={handleDocTypeInputChange}
-                  onFocus={handleDocTypeInputFocus}
-                  onBlur={handleDocTypeInputBlur}
+                  onChange={(e) => {
+                    handleDocTypeInputChange(e);
+                  }}
                   placeholder="Type to search or add new document type"
-                  required
+                  required={true}
+                  options={documentTypes.map((type) => ({
+                    value: type,
+                    label: type
+                  }))}
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Document Type'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholderColor='black-100'
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
                 />
+              </div>
 
-                {showDropdown && filteredDocTypes.length > 0 && (
-                  <div className="doc-details-dropdown-list">
-                    {filteredDocTypes.map((type, index) => (
-                      <div
-                        key={index}
-                        className="doc-details-dropdown-item"
-                        onClick={() => handleDocTypeSelect(type)}
-                      >
-                        {type}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              {/* Date of Issue */}
+              <div className="doc-details-form-group">
+                <Input
+                  type="date"
+                  id="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  placeholder="Select issue date"
+                  required={true}
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Date of Issue'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
+                  iconRight="calendar_today"
+                />
+              </div>
 
-                {showDropdown && filteredDocTypes.length === 0 && docTypeInput.trim() && (
-                  <div className="doc-details-dropdown-list">
-                    <div className="doc-details-dropdown-empty">
-                      Press Enter to add "{docTypeInput}" as new document type
+              {/* Date of Expiry */}
+              <div className="doc-details-form-group">
+                <Input
+                  type="date"
+                  id="expiry"
+                  name="expiry"
+                  value={formData.expiry}
+                  onChange={handleInputChange}
+                  placeholder="Select expiry date"
+                  required={true}
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Date of Expiry'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  variant="gradient"
+                  width="100%"
+                  height="57px"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
+                  iconRight="event"
+                />
+              </div>
+
+              {/* Description Textarea - Spans 2 columns */}
+              <div className="doc-details-form-group doc-details-form-group-wide">
+                <Input
+                  type="textarea"
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Enter document description (optional)"
+                  rows={10}
+                  colorScheme="yellow-300"
+                  textColor="black-100"
+                  label='Description'
+                  labelBgColor='transparent'
+                  labelSize='3xl'
+                  labelColor='yellow-300'
+                  placeholderColor='black-100'
+                  variant="gradient"
+                  width="100%"
+                  squircle="4xl"
+                  fontWeight='500'
+                  inputPaddingInline="2xl"
+                  inputPaddingBlock="xl"
+                />
+              </div>
+            </div>
+
+            {/* RIGHT SECTION - File Upload (Full Height) */}
+            <div className="doc-details-form-right">
+              <div className="doc-details-file-upload-section">
+                {/* Drag and Drop Zone */}
+                <div
+                  className={`doc-details-drop-zone ${isDragging ? 'dragging' : ''}`}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <div className="doc-details-drop-content">
+                    <div className="doc-details-drop-icon">
+                      <span className="material-symbols-rounded">files</span>
+                    </div>
+                    <p className="doc-details-drop-text">
+                      Drag and drop your file here
+                    </p>
+                    <p className="doc-details-drop-or">or</p>
+
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      id="document-file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+                      style={{ display: 'none' }}
+                      required
+                    />
+
+                    {/* Custom Button that triggers file input */}
+                    <div onClick={() => document.getElementById('document-file').click()}>
+                      <Button
+                        text="Browse Files"
+                        colorScheme="purple-600"
+                        variant="gradient"
+                        font="md"
+                        animation=""
+                        squircle="3xl"
+                        width="auto"
+                        height="44px"
+                        type="button"
+                        textColor="white-900"
+                        shadowPosition="to-bottom"
+                        shadowColor="purple-800"
+                      />
                     </div>
                   </div>
+                  {previewImage && (
+                    <div className="doc-details-preview">
+                      <img src={previewImage} alt="Preview" />
+                    </div>
+                  )}
+                </div>
+
+                {selectedFile && (
+                  <div className="doc-details-file-info">
+                    Selected: {selectedFile.name}
+                  </div>
                 )}
               </div>
             </div>
 
-            <div className="doc-details-form-group">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Enter document description (optional)"
-                rows="3"
-              />
-            </div>
-
-            <div className="doc-details-form-group">
-              <label htmlFor="date">Date of Issue</label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="doc-details-form-group">
-              <label htmlFor="date">Date of Expiry</label>
-              <input
-                type="date"
-                id="expiry"
-                name="expiry"
-                value={formData.expiry}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="doc-details-form-group doc-details-file-group">
-              <label htmlFor="document-file">Select Document</label>
-
-              {/* Drag and Drop Zone */}
-              <div
-                className={`doc-details-drop-zone ${isDragging ? 'dragging' : ''}`}
-                onDragEnter={handleDragEnter}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <div className="doc-details-drop-content">
-                  <div className="doc-details-drop-icon">
-                    <span class="material-symbols-rounded">files</span>
-                  </div>
-                  <p className="doc-details-drop-text">
-                    Drag and drop your file here
-                  </p>
-                  <p className="doc-details-drop-or">or</p>
-
-                  {/* Hidden file input */}
-                  <input
-                    type="file"
-                    id="document-file"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp"
-                    style={{ display: 'none' }}
-                    required
-                  />
-
-                  {/* Custom Button that triggers file input */}
-                  <div onClick={() => document.getElementById('document-file').click()}>
-                    <Button
-                      text="Browse Files"
-                      colorScheme="purple-600"
-                      variant="gradient"
-                      font="md"
-                      animation=""
-                      squircle="3xl"
-                      width="auto"
-                      height="44px"
-                      type="button"
-                      textColor="white-900"
-                      shadowPosition="to-bottom"
-                      shadowColor="purple-800"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {selectedFile && (
-                <div className="doc-details-file-info">
-                  Selected: {selectedFile.name}
-                </div>
-              )}
-            </div>
-
-            {previewImage && (
-              <div className="doc-details-preview">
-                <img src={previewImage} alt="Preview" />
-              </div>
-            )}
-
+            {/* BOTTOM SECTION - Action Buttons (Centered) */}
             <div className="doc-details-form-actions">
               <Button
                 text="Reset"
@@ -1181,9 +1525,9 @@ function DocumentDetails() {
                 font="md"
                 animation=""
                 squircle="4xl"
-                width="50%"
+                width="200px"
                 height="48px"
-                type="submit"
+                type="button"
                 textColor="white-900"
                 shadowPosition="to-bottom"
                 shadowColor="white-600"
@@ -1196,10 +1540,10 @@ function DocumentDetails() {
                 font="md"
                 animation=""
                 squircle="4xl"
-                width="50%"
+                width="200px"
                 height="48px"
                 type={isLoading ? 'disabled' : 'submit'}
-                textColor={activeTab === 'view' ? 'black-300' : 'white-900'}
+                textColor="white-900"
                 shadowPosition="to-bottom"
                 shadowColor="white-600"
               />
@@ -1341,9 +1685,11 @@ function DocumentDetails() {
                         (doc.documentType || 'Unknown') === currentDocType.name
                       );
 
-                      const sortedDocs = docTypeDocuments.sort((a, b) =>
-                        new Date(b.uploadDate) - new Date(a.uploadDate)
-                      );
+                      const sortedDocs = docTypeDocuments.sort((a, b) => {
+                        const dateA = a?.uploadDate ? new Date(a.uploadDate) : new Date(0);
+                        const dateB = b?.uploadDate ? new Date(b.uploadDate) : new Date(0);
+                        return dateB - dateA;
+                      });
 
                       const folders = [];
 
@@ -1390,62 +1736,6 @@ function DocumentDetails() {
                   </div>
                 )}
 
-                {/* All Documents Subfolders View (Latest/Old) */}
-                {currentView === 'allDocsSubfolders' && (
-                  <div className="doc-details-grid-container">
-                    {(() => {
-                      const sortedDocs = [...documentsList].sort((a, b) =>
-                        new Date(b.uploadDate) - new Date(a.uploadDate)
-                      );
-
-                      const folders = [];
-
-                      // Latest folder
-                      if (sortedDocs.length > 0) {
-                        // Get unique document types in latest
-                        const latestDoc = sortedDocs[0];
-                        const latestDocTypes = new Set();
-                        documentsList.forEach(doc => {
-                          if (new Date(doc.uploadDate).getTime() === new Date(latestDoc.uploadDate).getTime()) {
-                            latestDocTypes.add(doc.documentType);
-                          }
-                        });
-
-                        folders.push(
-                          <div
-                            key="all-latest"
-                            className="doc-details-grid-item"
-                            onClick={() => navigateToAllDocsFolder(true)}
-                          >
-                            <div className="doc-details-folder-icon">📁</div>
-                            <div className="doc-details-item-name">Latest</div>
-                            <div className="doc-details-item-info">{latestDocTypes.size} unique document type{latestDocTypes.size !== 1 ? 's' : ''}</div>
-                            <div className="doc-details-latest-badge">LATEST</div>
-                          </div>
-                        );
-                      }
-
-                      // Old folder
-                      if (sortedDocs.length > 1) {
-                        folders.push(
-                          <div
-                            key="all-old"
-                            className="doc-details-grid-item"
-                            onClick={() => navigateToAllDocsFolder(false)}
-                          >
-                            <div className="doc-details-folder-icon">📁</div>
-                            <div className="doc-details-item-name">Old</div>
-                            <div className="doc-details-item-info">{sortedDocs.length - 1} document{sortedDocs.length - 1 !== 1 ? 's' : ''}</div>
-                            <div className="doc-details-old-badge">OLD</div>
-                          </div>
-                        );
-                      }
-
-                      return folders;
-                    })()}
-                  </div>
-                )}
-
                 {/* All Documents Files View with Selection */}
                 {currentView === 'allDocsFiles' && (
                   <>
@@ -1482,33 +1772,46 @@ function DocumentDetails() {
 
                     <div className="doc-details-grid-container">
                       {(() => {
-                        const sortedDocs = [...documentsList].sort((a, b) =>
-                          new Date(b.uploadDate) - new Date(a.uploadDate)
-                        );
+                        // Sort all documents by upload date (newest first)
+                        const sortedDocs = [...documentsList].sort((a, b) => {
+                          const dateA = a?.uploadDate ? new Date(a.uploadDate) : new Date(0);
+                          const dateB = b?.uploadDate ? new Date(b.uploadDate) : new Date(0);
+                          return dateB - dateA;
+                        });
 
-                        const pathIsLatest = currentPath[currentPath.length - 1].isLatest;
-                        let docsToShow;
-
-                        if (pathIsLatest) {
-                          // Show only latest uploads
-                          const latestDate = new Date(sortedDocs[0].uploadDate);
-                          docsToShow = sortedDocs.filter(doc =>
-                            new Date(doc.uploadDate).getTime() === latestDate.getTime()
-                          );
-                        } else {
-                          // Show all except latest
-                          const latestDate = new Date(sortedDocs[0].uploadDate);
-                          docsToShow = sortedDocs.filter(doc =>
-                            new Date(doc.uploadDate).getTime() !== latestDate.getTime()
-                          );
-                        }
-
-                        return docsToShow.length > 0 ? docsToShow.map((doc) => (
+                        return sortedDocs.length > 0 ? sortedDocs.map((doc) => (
                           <div
                             key={doc._id}
-                            className={`doc-details-grid-item-wrapper ${selectedDocuments.includes(doc._id) ? 'selected' : ''
-                              }`}
+                            className={`doc-details-grid-item-wrapper ${selectedDocuments.includes(doc._id) ? 'selected' : ''}`}
                           >
+                            <div className="doc-details-file-actions">
+                              <>
+                                <Button
+                                  text="Rename"
+                                  onClick={() => handleStartRename(doc._id, doc.displayFileName || doc.fileName)}
+                                  colorScheme="orange-600"
+                                  variant="gradient"
+                                  font="lg"
+                                  squircle="6xl"
+                                  width="33%"
+                                  height="40px"
+                                  type="button"
+                                  textColor="white-900"
+                                />
+                                <Button
+                                  text="Delete"
+                                  onClick={() => showDeleteConfirmation(doc._id, doc.displayFileName || doc.fileName)}
+                                  colorScheme="red-600"
+                                  variant="gradient"
+                                  font="lg"
+                                  squircle="6xl"
+                                  width="33%"
+                                  height="40px"
+                                  type="button"
+                                  textColor="white-900"
+                                />
+                              </>
+                            </div>
                             <div
                               className="doc-details-grid-item"
                               onClick={() => selectionMode && toggleDocumentSelection(doc._id)}
@@ -1528,52 +1831,75 @@ function DocumentDetails() {
                                   {getFileIcon(doc.fileName, doc.mimetype)}
                                 </span>
                               </div>
-                              <div className="doc-details-item-name">{doc.documentType}</div>
-                              {/* <div className="doc-details-item-info">Type: {doc.documentType}</div> */}
+                              <div className="doc-details-item-name">{doc.displayFileName || doc.documentType}</div>
                               <div className="doc-details-item-info">Issued: {doc.date}</div>
                               <div className="doc-details-item-info">Expiry: {doc.expiry}</div>
                             </div>
 
                             {!selectionMode && (
                               <div className="doc-details-file-actions">
-                                <Button
-                                  text="View"
-                                  onClick={() => handleView(doc._id, doc.fileName)}
-                                  colorScheme="amber-600"
-                                  variant="gradient"
-                                  font="sm"
-                                  squircle="4xl"
-                                  width="33%"
-                                  height="40px"
-                                  type="button"
-                                  textColor="white-900"
-                                />
-                                <Button
-                                  text="Download"
-                                  onClick={() => handleDownload(doc._id, doc.fileName)}
-                                  colorScheme="blue-600"
-                                  variant="gradient"
-                                  font="sm"
-                                  squircle="4xl"
-                                  width="33%"
-                                  height="40px"
-                                  type="button"
-                                  textColor="white-900"
-                                />
-                                <Button
-                                  text="Split"
-                                  onClick={() => handleSplitPDF(doc._id)}
-                                  colorScheme="purple-600"
-                                  variant="gradient"
-                                  font="sm"
-                                  squircle="4xl"
-                                  width="33%"
-                                  height="40px"
-                                  type="button"
-                                  textColor="white-900"
-                                />
+                                <>
+                                  <Button
+                                    text="View"
+                                    onClick={() => handleView(doc._id, doc.fileName)}
+                                    colorScheme="amber-600"
+                                    variant="gradient"
+                                    font="lg"
+                                    squircle="4xl"
+                                    width="100px"
+                                    height="40px"
+                                    type="button"
+                                    textColor="white-900"
+                                  />
+                                  <Button
+                                    text="Download"
+                                    onClick={() => handleDownload(doc._id, doc.fileName)}
+                                    colorScheme="blue-600"
+                                    variant="gradient"
+                                    font="lg"
+                                    squircle="4xl"
+                                    width="190px"
+                                    height="40px"
+                                    type="button"
+                                    textColor="white-900"
+                                  />
+                                  <Button
+                                    text="Split"
+                                    onClick={() => handleSplitPDF(doc._id, doc.fileName, doc.filePath)}
+                                    colorScheme="purple-600"
+                                    variant="gradient"
+                                    font="lg"
+                                    squircle="4xl"
+                                    width="100px"
+                                    height="40px"
+                                    type="button"
+                                    textColor="white-900"
+                                  />
+                                </>
                               </div>
                             )}
+
+                            <DevModal
+                              isOpen={renamingDocId === doc._id}
+                              type="form"
+                              title="Rename File"
+                              message="Enter a new name for this file"
+                              buttonText="Save"
+                              secondaryButtonText="Cancel"
+                              onButtonClick={() => handleSaveRename(doc._id)}
+                              onSecondaryClick={handleCancelRename}
+                              formFields={[
+                                {
+                                  name: 'fileName',
+                                  label: 'File Name',
+                                  type: 'text',
+                                  placeholder: 'Enter new file name',
+                                  required: true
+                                }
+                              ]}
+                              formValues={{ fileName: newFileName }}
+                              onFormChange={(fieldName, value) => setNewFileName(value)}
+                            />
                           </div>
                         )) : (
                           <div className="doc-details-empty-state">
@@ -1596,9 +1922,11 @@ function DocumentDetails() {
                         (doc.documentType || 'Unknown') === currentDocType.name
                       );
 
-                      const sortedDocs = docTypeDocuments.sort((a, b) =>
-                        new Date(b.uploadDate) - new Date(a.uploadDate)
-                      );
+                      const sortedDocs = docTypeDocuments.sort((a, b) => {
+                        const dateA = a?.uploadDate ? new Date(a.uploadDate) : new Date(0);
+                        const dateB = b?.uploadDate ? new Date(b.uploadDate) : new Date(0);
+                        return dateB - dateA;
+                      });
 
                       let docsToShow;
                       if (currentDocType.isLatest) {
@@ -1609,11 +1937,41 @@ function DocumentDetails() {
 
                       return docsToShow.length > 0 ? docsToShow.map((doc) => (
                         <div key={doc._id} className="doc-details-grid-item-wrapper">
+                          <div className="doc-details-file-actions">
+                            <>
+                              <Button
+                                text="Rename"
+                                onClick={() => handleStartRename(doc._id, doc.displayFileName || doc.fileName)}
+                                colorScheme="orange-600"
+                                variant="gradient"
+                                font="lg"
+                                squircle="6xl"
+                                width="33%"
+                                height="40px"
+                                type="button"
+                                textColor="white-900"
+                              />
+                              <Button
+                                text="Delete"
+                                onClick={() => showDeleteConfirmation(doc._id, doc.displayFileName || doc.fileName)}
+                                colorScheme="red-600"
+                                variant="gradient"
+                                font="lg"
+                                squircle="6xl"
+                                width="33%"
+                                height="40px"
+                                type="button"
+                                textColor="white-900"
+                              />
+                            </>
+                          </div>
                           <div className="doc-details-grid-item">
                             <div className="doc-details-file-icon">
-                              {getFileIcon(doc.fileName, doc.mimetype)}
+                              <span class="material-symbols-rounded">
+                                {getFileIcon(doc.fileName, doc.mimetype)}
+                              </span>
                             </div>
-                            <div className="doc-details-item-name">{doc.fileName}</div>
+                            <div className="doc-details-item-name">{doc.displayFileName || doc.documentType}</div>
                             <div className="doc-details-item-info">
                               Issued Date: {doc.date}
                             </div>
@@ -1622,39 +1980,56 @@ function DocumentDetails() {
                             </div>
                           </div>
 
-                          {/* Buttons outside the grid item */}
                           <div className="doc-details-file-actions">
-                            <Button
-                              text="View"
-                              onClick={() => handleView(doc._id, doc.fileName)}
-                              colorScheme="amber-600"
-                              variant="gradient"
-                              font="sm"
-                              animation=""
-                              squircle="4xl"
-                              width="50%"
-                              height="40px"
-                              type="button"
-                              textColor="white-900"
-                              shadowPosition="to-bottom"
-                              shadowColor="amber-800"
-                            />
-                            <Button
-                              text="Download"
-                              onClick={() => handleDownload(doc._id, doc.fileName)}
-                              colorScheme="blue-600"
-                              variant="gradient"
-                              font="sm"
-                              animation=""
-                              squircle="4xl"
-                              width="50%"
-                              height="40px"
-                              type="button"
-                              textColor="white-900"
-                              shadowPosition="to-bottom"
-                              shadowColor="blue-800"
-                            />
+                            <>
+                              <Button
+                                text="View"
+                                onClick={() => handleView(doc._id, doc.fileName)}
+                                colorScheme="amber-600"
+                                variant="gradient"
+                                font="lg"
+                                squircle="4xl"
+                                width="190px"
+                                height="40px"
+                                type="button"
+                                textColor="white-900"
+                              />
+                              <Button
+                                text="Download"
+                                onClick={() => handleDownload(doc._id, doc.fileName)}
+                                colorScheme="blue-600"
+                                variant="gradient"
+                                font="lg"
+                                squircle="4xl"
+                                width="190px"
+                                height="40px"
+                                type="button"
+                                textColor="white-900"
+                              />
+                            </>
                           </div>
+
+                          <DevModal
+                            isOpen={renamingDocId === doc._id}
+                            type="form"
+                            title="Rename File"
+                            message="Enter a new name for this file"
+                            buttonText="Save"
+                            secondaryButtonText="Cancel"
+                            onButtonClick={() => handleSaveRename(doc._id)}
+                            onSecondaryClick={handleCancelRename}
+                            formFields={[
+                              {
+                                name: 'fileName',
+                                label: 'File Name',
+                                type: 'text',
+                                placeholder: 'Enter new file name',
+                                required: true
+                              }
+                            ]}
+                            formValues={{ fileName: newFileName }}
+                            onFormChange={(fieldName, value) => setNewFileName(value)}
+                          />
                         </div>
                       )) : (
                         <div className="doc-details-empty-state">
@@ -1671,6 +2046,28 @@ function DocumentDetails() {
           )}
         </div>
       )}
+      {showSplitModal && (
+        <PDFPreviewModal
+          isOpen={showSplitModal}
+          onClose={() => setShowSplitModal(false)}
+          documentId={splitDocument}
+          documentUrl={splitDocumentUrl}
+          fileName={splitDocumentName}
+          onMergePages={handleMergePages}
+          onSplitAll={handleSplitAllPages}
+        />
+      )}
+      {/* Delete Confirmation Modal */}
+      <DevModal
+        isOpen={showDeleteModal}
+        type="error"
+        title="Delete Document"
+        message={`Are you sure you want to delete "${deleteDocumentName}"? This action cannot be undone.`}
+        buttonText="Delete"
+        secondaryButtonText="Cancel"
+        onButtonClick={handleDelete}
+        onSecondaryClick={handleCancelDelete}
+      />
     </div>
   );
 }

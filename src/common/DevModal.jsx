@@ -38,6 +38,9 @@ const DevModal = ({
   onResetFilters = () => { }, // When Reset is clicked
 }) => {
   const [visible, setVisible] = React.useState(false);
+  const [splitType, setSplitType] = React.useState('specific');
+  const [pageInput, setPageInput] = React.useState('');
+  const [splitError, setSplitError] = React.useState('');
   const modalRef = React.useRef(null);
   const autoCloseRef = React.useRef(null);
   const lastActive = React.useRef(null);
@@ -130,13 +133,53 @@ const DevModal = ({
   const stop = (e) => e.stopPropagation();
 
   const handleCTA = () => {
-    // Don't proceed if there's an input error
     if (showInput && inputError) {
       return;
     }
 
-    if (onButtonClick) onButtonClick();
-    // Don't auto-close - let parent component control modal state
+    // Handle split modal confirmation
+    if (type === 'split' && onButtonClick) {
+      if (!pageInput.trim()) {
+        setSplitError('Please enter page numbers');
+        return;
+      }
+
+      let pages = [];
+
+      try {
+        if (splitType === 'specific') {
+          pages = pageInput.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p) && p > 0);
+          if (pages.length === 0) {
+            setSplitError('Invalid page numbers');
+            return;
+          }
+        } else if (splitType === 'range') {
+          const ranges = pageInput.split(',');
+          pages = ranges.map(range => {
+            const [start, end] = range.split('-').map(p => parseInt(p.trim()));
+            if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
+              throw new Error('Invalid range');
+            }
+            return [start, end];
+          });
+        } else if (splitType === 'every') {
+          const interval = parseInt(pageInput.trim());
+          if (isNaN(interval) || interval < 1) {
+            setSplitError('Invalid interval');
+            return;
+          }
+          pages = [interval];
+        }
+
+        onButtonClick({ splitType, pages });
+
+      } catch (error) {
+        setSplitError('Invalid input format');
+        return;
+      }
+    } else if (onButtonClick) {
+      onButtonClick();
+    }
   };
 
   const handleSecondary = () => {
@@ -255,6 +298,14 @@ const DevModal = ({
       ctaColor: '#6e7509ff',
       svg: 'key'
     },
+    split: {
+      primary: '#a4c725ff',
+      secondary: '#959e17ff',
+      accent: '#8daf2fff',
+      textColor: '#ffffff',
+      ctaColor: '#6e7509ff',
+      svg: 'sync'
+    },
     otp: {
       primary: '#f19763ff',
       secondary: '#c06418ff',
@@ -287,7 +338,14 @@ const DevModal = ({
       ctaColor: 'rgb(117, 124, 11)',
       svg: 'filter'
     },
-  }[type] || palette.success;
+  }[type] || {
+    primary: '#10b981',
+    secondary: '#059669',
+    accent: '#34d399',
+    textColor: '#ffffff',
+    ctaColor: '#065f46',
+    svg: 'check'
+  };
 
   const renderIcon = () => {
     const iconProps = {
@@ -420,7 +478,9 @@ const DevModal = ({
       >
         <div className='dm-modal-wrapper'>
           <div
-            className={`dm-card dm-card-${type} ${visible ? 'dm-enter' : ''} ${showInput ? 'dm-card-input' : ''} ${useCellInput ? 'dm-card-cells' : ''}`}
+            className={`dm-card dm-card-${type} ${visible ? 'dm-enter' : ''} 
+              ${showInput ? 'dm-card-input' : ''} 
+             ${useCellInput ? 'dm-card-cells' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-label={title || 'Notification'}
@@ -524,6 +584,79 @@ const DevModal = ({
                   {inputError && (
                     <div className="dm-input-error">{inputError}</div>
                   )}
+                </div>
+              )}
+
+              {type === 'split' && (
+                <div className="dm-split-section">
+                  {message && (
+                    <p className="dm-message dm-split-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+
+                  <div className="dm-split-options">
+                    <label className="dm-split-radio-label">
+                      <input
+                        type="radio"
+                        value="specific"
+                        checked={splitType === 'specific'}
+                        onChange={(e) => {
+                          setSplitType(e.target.value);
+                          setPageInput('');
+                          setSplitError('');
+                        }}
+                      />
+                      <span>Specific Pages (e.g., 1,3,5)</span>
+                    </label>
+
+                    <label className="dm-split-radio-label">
+                      <input
+                        type="radio"
+                        value="range"
+                        checked={splitType === 'range'}
+                        onChange={(e) => {
+                          setSplitType(e.target.value);
+                          setPageInput('');
+                          setSplitError('');
+                        }}
+                      />
+                      <span>Page Range (e.g., 1-5,7-10)</span>
+                    </label>
+
+                    <label className="dm-split-radio-label">
+                      <input
+                        type="radio"
+                        value="every"
+                        checked={splitType === 'every'}
+                        onChange={(e) => {
+                          setSplitType(e.target.value);
+                          setPageInput('');
+                          setSplitError('');
+                        }}
+                      />
+                      <span>Every N Pages (e.g., 2)</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      className="dm-split-input"
+                      placeholder={
+                        splitType === 'specific' ? 'Enter pages: 1,3,5' :
+                          splitType === 'range' ? 'Enter ranges: 1-5,7-10' :
+                            'Enter interval: 2'
+                      }
+                      value={pageInput}
+                      onChange={(e) => {
+                        setPageInput(e.target.value);
+                        setSplitError('');
+                      }}
+                    />
+
+                    {splitError && (
+                      <div className="dm-split-error">{splitError}</div>
+                    )}
+                  </div>
                 </div>
               )}
 

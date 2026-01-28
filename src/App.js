@@ -835,7 +835,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/documents/:regNo"
+                    path="/documents/:type/:id"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
