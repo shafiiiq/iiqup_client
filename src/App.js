@@ -488,57 +488,7 @@ function App() {
 
                   {/* Service Form Routes */}
                   <Route
-                    path="/service-form"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceForm />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:historyId/:isNormal"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceForm />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/service-form/:regNo/:date/:serviceHrs/:nextServiceHrs/:oil/:oilFilter/:fuelFilter/:airFilter/:acFilter/:waterSeparator/:historyId/:isNormal"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceForm />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/service-form/:regNo/:date/:location/:battery/:historyId"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceForm />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/service-form/:regNo/:date/:mechanics/:workRemarks/:maintenance/:historyId"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceForm />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/service-form/tyre-report/:regNo/:date/:location/:runningHours/:tyre/:historyId"
+                    path="/service-form/:serviceType/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>

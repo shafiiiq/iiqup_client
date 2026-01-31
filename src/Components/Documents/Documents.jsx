@@ -445,15 +445,32 @@ function DocumentDetails() {
   };
 
   const navigateToDocType = (docType) => {
-    setCurrentDocType({ name: docType });
-    setCurrentView('subfolders');
-    const categoryLabel = categories.find(cat => cat.value === currentCategory)?.label || currentCategory;
+    // Check if this is a Split or Merged document type
+    const isSplitOrMerged = docType.includes('(Split)') || docType.includes('(Merged)');
 
-    setCurrentPath([
-      { name: 'Documents', view: 'categories' },
-      { name: categoryLabel, view: 'docTypes', category: currentCategory },
-      { name: docType, view: 'subfolders', category: currentCategory, docType: docType }
-    ]);
+    if (isSplitOrMerged) {
+      // Go directly to files view, skip subfolders
+      setCurrentDocType({ name: docType });
+      setCurrentView('files');
+      const categoryLabel = categories.find(cat => cat.value === currentCategory)?.label || currentCategory;
+
+      setCurrentPath([
+        { name: 'Documents', view: 'categories' },
+        { name: categoryLabel, view: 'docTypes', category: currentCategory },
+        { name: docType, view: 'files', category: currentCategory, docType: docType }
+      ]);
+    } else {
+      // Normal flow with subfolders
+      setCurrentDocType({ name: docType });
+      setCurrentView('subfolders');
+      const categoryLabel = categories.find(cat => cat.value === currentCategory)?.label || currentCategory;
+
+      setCurrentPath([
+        { name: 'Documents', view: 'categories' },
+        { name: categoryLabel, view: 'docTypes', category: currentCategory },
+        { name: docType, view: 'subfolders', category: currentCategory, docType: docType }
+      ]);
+    }
   };
 
   const navigateToSubfolder = (docType, isLatest) => {
@@ -1929,7 +1946,15 @@ function DocumentDetails() {
                       });
 
                       let docsToShow;
-                      if (currentDocType.isLatest) {
+
+                      // Check if this is a Split or Merged document type
+                      const isSplitOrMerged = currentDocType.name.includes('(Split)') ||
+                        currentDocType.name.includes('(Merged)');
+
+                      if (isSplitOrMerged) {
+                        // Show all documents for Split/Merged
+                        docsToShow = sortedDocs;
+                      } else if (currentDocType.isLatest) {
                         docsToShow = sortedDocs.slice(0, 1);
                       } else {
                         docsToShow = sortedDocs.slice(1);

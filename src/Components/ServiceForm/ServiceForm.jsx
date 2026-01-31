@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import './ServiceForm.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
@@ -12,22 +12,38 @@ import Toast from '../../common/Toast/Toast';
 
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
-  const { isNormal, maintenance, tyre, battery, serviceType, historyId } = useParams();
+  const locationState = useLocation();
+  const { serviceType, historyId } = useParams();
+
+  const regNo = locationState.state?.regNo || '';
+  const date = locationState.state?.date || '';
+  const serviceHrs = locationState.state?.serviceHrs || '';
+  const nextServiceHrs = locationState.state?.nextServiceHrs || '';
+  const oil = locationState.state?.oil || '';
+  const oilFilter = locationState.state?.oilFilter || '';
+  const fuelFilter = locationState.state?.fuelFilter || '';
+  const airFilter = locationState.state?.airFilter || '';
+  const acFilter = locationState.state?.acFilter || '';
+  const waterSeparator = locationState.state?.waterSeparator || '';
+  const location = locationState.state?.location || '';
+  const runningHours = locationState.state?.runningHours || '';
+  const tyreForm = locationState.state?.tyreForm || false;
+  const mechanics = locationState.state?.mechanics || '';
+  const workRemarks = locationState.state?.workRemarks || '';
+  const id = locationState.state?.id || '';
+
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert } = useAlert();
   const { triggerVibration } = useHeaderVibration();
-
   const timeoutRef = useRef(null);
 
-  const { regNo, date, serviceHrs, nextServiceHrs, oil, oilFilter, fuelFilter, airFilter, acFilter, waterSeparator, id, location, runningHours, tyreForm, mechanics, workRemarks } = useParams();
-  const [equipments, setEquipments] = useState([]);
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isUpdateMode, setIsUpdateMode] = useState(false);
-  const [originalDate, setOriginalDate] = useState('')
-    ;
+  const [originalDate, setOriginalDate] = useState('');
+
   const [toastConfig, setToastConfig] = useState({
     isOpen: false,
     type: 'success',
@@ -206,35 +222,36 @@ const ServiceForm = ({ initialData = {} }) => {
   }, []);
 
   useEffect(() => {
-    async function fetchEquipments() {
+    async function fetchEquipmentByRegNo() {
+      if (!regNo || isUpdateMode) return;
+
       try {
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+        console.log('Fetching equipment for regNo:', regNo);
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipment/${regNo}`, 'GET');
         const data = await response.json();
-        setEquipments(data.data);
+        console.log('Equipment data received:', data);
+
+        if (data && data.data && data.data.length > 0) {
+          const equipment = data.data[0];
+
+          console.log('Setting formData with:', {
+            machine: equipment.machine,
+            operatorName: equipment.certificationBody?.[equipment.certificationBody.length - 1]
+          });
+
+          setFormData(prevData => ({
+            ...prevData,
+            machine: equipment.machine || '',
+            operatorName: equipment.certificationBody?.[equipment.certificationBody.length - 1] || '',
+          }));
+        }
       } catch (error) {
-        console.error('Error fetching equipment records:', error);
+        console.error('Error fetching equipment:', error);
       }
     }
 
-    fetchEquipments()
-  }, []);
-
-  useEffect(() => {
-    if (equipments.length > 0 && formData.regNo && !isUpdateMode) {
-      const regNoValue = formData.regNo.trim();
-      const foundEquipment = equipments.find(
-        (equipment) => equipment.regNo === regNoValue
-      );
-
-      if (foundEquipment) {
-        setFormData(prevData => ({
-          ...prevData,
-          machine: foundEquipment.machine || '',
-          operatorName: foundEquipment.certificationBody[foundEquipment.certificationBody.length - 1] || '',
-        }));
-      }
-    }
-  }, [equipments, formData.regNo, isUpdateMode]);
+    fetchEquipmentByRegNo();
+  }, [regNo, isUpdateMode]);
 
   const showToast = (message, type = 'success', textColor = '#ffffff') => {
     setToastConfig({
@@ -382,22 +399,7 @@ const ServiceForm = ({ initialData = {} }) => {
 
     console.log("serviceType", serviceType);
 
-    if (isNormal === 'true' || serviceType === 'normal') {
-      completeData.serviceType = 'normal'
-      console.log("1");
-    } else if (maintenance || serviceType === 'maintenance') {
-      completeData.serviceType = 'maintenance'
-      console.log("2");
-    } else if (battery || serviceType === 'battery') {
-      completeData.serviceType = 'battery'
-      console.log("3");
-    } else if (tyre || serviceType === 'tyre') {
-      completeData.serviceType = 'tyre'
-      console.log("4");
-    } else {
-      completeData.serviceType = 'oil'
-      console.log("5");
-    }
+    completeData.serviceType = serviceType;
 
     if (historyId) {
       completeData.historyId = historyId
