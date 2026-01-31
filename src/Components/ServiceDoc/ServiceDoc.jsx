@@ -11,7 +11,7 @@ import DevModal from '../../common/DevModal';
 import Button from '../../common/Button/Button';
 
 const ServiceDoc = () => {
-  const { regNo, date, serviceType, startDate, endDate, monthsCount } = useParams();
+  const { regNo, date, serviceType, startDate, endDate, monthsCount, historyId } = useParams();
   const [reportData, setReportData] = useState(null);
   const [multipleReports, setMultipleReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -365,8 +365,8 @@ const ServiceDoc = () => {
     }
   };
 
-  const handleAddReport = () => {
-    navigate('/service-form');
+  const handleAddReport = (historyId) => {
+    navigate(`/service-form/${serviceType}/${historyId}`);
   };
 
   const handleBackToHistory = () => {
@@ -739,7 +739,7 @@ const ServiceDoc = () => {
           />
           <Button
             text="Add Report Data"
-            onClick={handleAddReport}
+            onClick={() => handleAddReport(historyId)}
             colorScheme="violet-800"
             variant="gradient"
             font="md"

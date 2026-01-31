@@ -13,29 +13,13 @@ import Toast from '../../common/Toast/Toast';
 const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
   const locationState = useLocation();
+  const id = locationState.state?.id;
   const { serviceType, historyId } = useParams();
-
-  const regNo = locationState.state?.regNo || '';
-  const date = locationState.state?.date || '';
-  const serviceHrs = locationState.state?.serviceHrs || '';
-  const nextServiceHrs = locationState.state?.nextServiceHrs || '';
-  const oil = locationState.state?.oil || '';
-  const oilFilter = locationState.state?.oilFilter || '';
-  const fuelFilter = locationState.state?.fuelFilter || '';
-  const airFilter = locationState.state?.airFilter || '';
-  const acFilter = locationState.state?.acFilter || '';
-  const waterSeparator = locationState.state?.waterSeparator || '';
-  const location = locationState.state?.location || '';
-  const runningHours = locationState.state?.runningHours || '';
-  const tyreForm = locationState.state?.tyreForm || false;
-  const mechanics = locationState.state?.mechanics || '';
-  const workRemarks = locationState.state?.workRemarks || '';
-  const id = locationState.state?.id || '';
-
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert } = useAlert();
   const { triggerVibration } = useHeaderVibration();
   const timeoutRef = useRef(null);
+  const hasLoadedHistoryRef = useRef(false);
 
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,52 +35,41 @@ const ServiceForm = ({ initialData = {} }) => {
     textColor: '#ffffff'
   });
   const [formData, setFormData] = useState({
-    serviceHrs: runningHours || serviceHrs || '',
-    regNo: regNo || '',
-    nextServiceHrs: location || mechanics ? 0 : nextServiceHrs || '',
+    serviceHrs: '',
+    regNo: '',
+    nextServiceHrs: '',
     machine: initialData.machine || '',
-    mechanics: mechanics || initialData.mechanics || '',
-    location: location ? location : initialData.location || '',
-    date: date || initialData.date || new Date().toISOString().split('T')[0],
+    mechanics: '',
+    location: '',
+    date: new Date().toISOString().split('T')[0],
     operatorName: initialData.operatorName || '',
-    remarks: workRemarks || initialData.remarks || '',
+    remarks: '',
   });
   const [checklistItems, setChecklistItems] = useState([
-    {
-      id: 1,
-      description
-        : oilFilter === 'Check' && oil === 'Check'
-          ? 'Check Engine oil & Filter'
-          : oilFilter === 'Check' && oil === 'Change'
-            ? 'Checked Filter & Changed Engine oil'
-            : oilFilter === 'Change' && oil === 'Check'
-              ? 'Checked Engine oil & Changed Filter'
-              : 'Change Engine oil & Filter',
-      status: location ? '' : '✓'
-    },
-    { id: 2, description: fuelFilter === 'Check' ? 'Check Fuel Filter' : 'Change Fuel Filter', status: location ? '' : '✓' },
-    { id: 3, description: airFilter === 'Change' ? 'Check/Change Air Filter' : 'Check/Clean Air Filter', status: location ? '' : '✓' },
-    { id: 4, description: 'Check Transmission Filter', status: location ? '' : '✓' },
-    { id: 5, description: 'Check Power Steering Oil', status: location ? '' : '✓' },
-    { id: 6, description: 'Check Hydraulic Oil', status: location ? '' : '✓' },
-    { id: 7, description: 'Check Brake', status: location ? '' : '✓' },
-    { id: 8, description: 'Check Tyre Air Pressure', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
-    { id: 9, description: 'Check Oil Leak', status: location ? '' : '✓' },
-    { id: 10, description: 'Check Battery Condition', status: location && !tyreForm ? '✓' : location && tyreForm ? '' : '✓' },
-    { id: 11, description: 'Check Wiper & Water', status: location ? '' : '✓' },
-    { id: 12, description: 'Check All Lights', status: location ? '' : '✓' },
-    { id: 13, description: 'Check All Horns', status: location ? '' : '✓' },
-    { id: 14, description: 'Check Parking Brake', status: location ? '' : '✓' },
-    { id: 15, description: 'Check Differential Oil', status: location ? '' : '✓' },
-    { id: 16, description: 'Check Rod Water & Hoses', status: location ? '' : '✓' },
-    { id: 17, description: 'Lubricants All Points', status: location ? '' : '✓' },
-    { id: 18, description: 'Check Gear Shift System', status: location ? '' : '✓' },
-    { id: 19, description: 'Check Clutch System', status: location ? '' : '✓' },
-    { id: 20, description: 'Check Wheel Nut', status: location ? '' : '✓' },
-    { id: 21, description: 'Check Starter & Alternator', status: location ? '' : '✓' },
-    { id: 22, description: 'Check Number Plate both', status: location ? '' : '✓' },
-    { id: 23, description: 'Check Paint', status: location ? '' : '✓' },
-    { id: 24, description: 'Check Tires', status: location && !tyreForm ? '' : location && tyreForm ? '✓' : '✓' },
+    { id: 1, description: 'Change Engine oil & Filter', status: '' },
+    { id: 2, description: 'Change Fuel Filter', status: '' },
+    { id: 3, description: 'Check/Clean Air Filter', status: '' },
+    { id: 4, description: 'Check Transmission Filter', status: '' },
+    { id: 5, description: 'Check Power Steering Oil', status: '' },
+    { id: 6, description: 'Check Hydraulic Oil', status: '' },
+    { id: 7, description: 'Check Brake', status: '' },
+    { id: 8, description: 'Check Tyre Air Pressure', status: '' },
+    { id: 9, description: 'Check Oil Leak', status: '' },
+    { id: 10, description: 'Check Battery Condition', status: '' },
+    { id: 11, description: 'Check Wiper & Water', status: '' },
+    { id: 12, description: 'Check All Lights', status: '' },
+    { id: 13, description: 'Check All Horns', status: '' },
+    { id: 14, description: 'Check Parking Brake', status: '' },
+    { id: 15, description: 'Check Differential Oil', status: '' },
+    { id: 16, description: 'Check Rod Water & Hoses', status: '' },
+    { id: 17, description: 'Lubricants All Points', status: '' },
+    { id: 18, description: 'Check Gear Shift System', status: '' },
+    { id: 19, description: 'Check Clutch System', status: '' },
+    { id: 20, description: 'Check Wheel Nut', status: '' },
+    { id: 21, description: 'Check Starter & Alternator', status: '' },
+    { id: 22, description: 'Check Number Plate both', status: '' },
+    { id: 23, description: 'Check Paint', status: '' },
+    { id: 24, description: 'Check Tires', status: '' },
     { id: 25, description: 'Check Silencer', status: '' },
     { id: 26, description: 'Replace Hydraulic Oil- Filter', status: '' },
     { id: 27, description: 'Replace Transmission Oil', status: '' },
@@ -106,14 +79,121 @@ const ServiceForm = ({ initialData = {} }) => {
     { id: 31, description: 'Replace clutch fluid', status: '' },
     { id: 32, description: 'Check Brake Lining', status: '' },
     { id: 33, description: 'Change Drive Belt', status: '' },
-    { id: 34, description: acFilter === 'Check' ? 'Check A/C filter' : 'Clean A/C filter', status: '' },
-    { id: 35, description: waterSeparator === 'Check' ? 'Check Water Seperator' : 'Change Water Seperator', status: '' },
+    { id: 34, description: 'Check A/C filter', status: '' },
+    { id: 35, description: 'Check Water Seperator', status: '' },
   ]);
 
   useEffect(() => {
-    if (regNo) {
+    if (historyId && serviceType && !hasLoadedHistoryRef.current) {
+      hasLoadedHistoryRef.current = true;
+      setIsLoadingData(true);
+
+      const fetchServiceHistory = async () => {
+        try {
+          const response = await apiRequest(
+            `${END_POINT}/service-history/get-service-history-by/${serviceType}/${historyId}`
+          );
+          const result = await response.json();
+
+          if (result.ok && result.data) {
+            const historyData = result.data;
+
+            let formattedDate = new Date().toISOString().split('T')[0];
+            if (historyData.date) {
+              if (historyData.date.includes('T')) {
+                formattedDate = historyData.date.split('T')[0];
+              } else if (/^\d{2}-\d{2}-\d{4}$/.test(historyData.date)) {
+                const [day, month, year] = historyData.date.split('-');
+                formattedDate = `${year}-${month}-${day}`;
+              } else if (/^\d{4}-\d{2}-\d{2}$/.test(historyData.date)) {
+                formattedDate = historyData.date;
+              }
+            }
+
+            setFormData(prev => ({
+              ...prev,
+              regNo: historyData.equipmentNo || historyData.regNo || '',
+              date: formattedDate,
+              serviceHrs: historyData.runningHours || historyData.serviceHrs || '',
+              nextServiceHrs: historyData.nextServiceHrs || 0,
+              mechanics: historyData.mechanics || '',
+              location: historyData.location || '',
+              remarks: historyData.workRemarks || historyData.remarks || '',
+            }));
+
+            if (serviceType === 'tyre') {
+              setChecklistItems(prev =>
+                prev.map(item => ({
+                  ...item,
+                  status: (item.id === 8 || item.id === 24) ? '✓' : ''
+                }))
+              );
+            } else if (serviceType === 'battery') {
+              setChecklistItems(prev =>
+                prev.map(item => ({
+                  ...item,
+                  status: item.id === 10 ? '✓' : ''
+                }))
+              );
+            } else if (serviceType === 'normal' || serviceType === 'oil') {
+              const oil = historyData.oil || '';
+              const oilFilter = historyData.oilFilter || '';
+              const fuelFilter = historyData.fuelFilter || '';
+              const airFilter = historyData.airFilter || '';
+              const acFilter = historyData.acFilter || '';
+              const waterSeparator = historyData.waterSeparator || '';
+
+              setChecklistItems(prev =>
+                prev.map(item => {
+                  if (item.id === 1) {
+                    const desc =
+                      oilFilter === 'Check' && oil === 'Check' ? 'Check Engine oil & Filter' :
+                        oilFilter === 'Check' && oil === 'Change' ? 'Checked Filter & Changed Engine oil' :
+                          oilFilter === 'Change' && oil === 'Check' ? 'Checked Engine oil & Changed Filter' :
+                            'Change Engine oil & Filter';
+                    return { ...item, description: desc, status: '✓' };
+                  } else if (item.id === 2) {
+                    return { ...item, description: fuelFilter === 'Check' ? 'Check Fuel Filter' : 'Change Fuel Filter', status: '✓' };
+                  } else if (item.id === 3) {
+                    return { ...item, description: airFilter === 'Change' ? 'Check/Change Air Filter' : 'Check/Clean Air Filter', status: '✓' };
+                  } else if (item.id === 34) {
+                    return { ...item, description: acFilter === 'Check' ? 'Check A/C filter' : 'Clean A/C filter' };
+                  } else if (item.id === 35) {
+                    return { ...item, description: waterSeparator === 'Check' ? 'Check Water Seperator' : 'Change Water Seperator' };
+                  } else if (item.id >= 4 && item.id <= 24) {
+                    return { ...item, status: '✓' };
+                  }
+                  return item;
+                })
+              );
+            } else if (serviceType === 'maintenance') {
+              setChecklistItems(prev =>
+                prev.map(item => ({ ...item, status: '' }))
+              );
+            }
+
+            setIsLoadingData(false);
+          } else {
+            setIsLoadingData(false);
+            showAlert('Failed to load service history data', 'error', '--color-error-500');
+            triggerVibration();
+          }
+        } catch (error) {
+          setIsLoadingData(false);
+          console.error('Error fetching service history:', error);
+          showAlert('Error loading service history data', 'error', '--color-error-500');
+          triggerVibration();
+        }
+      };
+
+      fetchServiceHistory();
+    }
+  }, [historyId, serviceType]);
+
+  useEffect(() => {
+    if (formData.regNo) {
       const title = isUpdateMode ? 'Update Service Report' : 'Service Report Form'
-      const subtitle = `${regNo}`
+      const subtitle = `${formData.regNo}`
       setHeaderTitle(title);
       setHeaderSubtitle(subtitle);
     } else {
@@ -125,7 +205,7 @@ const ServiceForm = ({ initialData = {} }) => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [regNo, isUpdateMode]);
+  }, [formData.regNo, isUpdateMode]);
 
   useEffect(() => {
     if (id) {
@@ -223,21 +303,14 @@ const ServiceForm = ({ initialData = {} }) => {
 
   useEffect(() => {
     async function fetchEquipmentByRegNo() {
-      if (!regNo || isUpdateMode) return;
+      if (!formData.regNo || isUpdateMode) return;
 
       try {
-        console.log('Fetching equipment for regNo:', regNo);
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipment/${regNo}`, 'GET');
+        const response = await apiRequest(`${END_POINT}/equipments/get-equipment/${formData.regNo}`, 'GET');
         const data = await response.json();
-        console.log('Equipment data received:', data);
 
         if (data && data.data && data.data.length > 0) {
           const equipment = data.data[0];
-
-          console.log('Setting formData with:', {
-            machine: equipment.machine,
-            operatorName: equipment.certificationBody?.[equipment.certificationBody.length - 1]
-          });
 
           setFormData(prevData => ({
             ...prevData,
@@ -251,7 +324,7 @@ const ServiceForm = ({ initialData = {} }) => {
     }
 
     fetchEquipmentByRegNo();
-  }, [regNo, isUpdateMode]);
+  }, [formData.regNo, isUpdateMode]);
 
   const showToast = (message, type = 'success', textColor = '#ffffff') => {
     setToastConfig({
@@ -299,21 +372,15 @@ const ServiceForm = ({ initialData = {} }) => {
   const handleRemarksChange = async (e) => {
 
     let { value } = e.target;
-    console.log("value", value);
-
-    // Auto-capitalize first letter
     if (value.length === 1) {
       value = value.charAt(0).toUpperCase();
     }
-    // Capitalize after period
     value = value.replace(/\.\s+([a-z])/g, (match, letter) => '. ' + letter.toUpperCase());
 
     setFormData({ ...formData, remarks: value });
 
-    // Clear previous timeout
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    // Check grammar after 1 second of no typing
     timeoutRef.current = setTimeout(async () => {
       if (value.trim()) {
         try {
@@ -325,7 +392,6 @@ const ServiceForm = ({ initialData = {} }) => {
 
           const result = await response.json();
 
-          // Auto-fix ALL errors immediately
           let fixed = value;
           result.matches.reverse().forEach(match => {
             if (match.replacements.length > 0) {
@@ -335,7 +401,6 @@ const ServiceForm = ({ initialData = {} }) => {
             }
           });
 
-          // Apply fixes automatically
           if (fixed !== value) {
             setFormData({ ...formData, remarks: fixed });
           }
@@ -343,7 +408,7 @@ const ServiceForm = ({ initialData = {} }) => {
           console.error('Grammar check error:', error);
         }
       }
-    }, 1500); // Wait 1.5 seconds after typing stops
+    }, 1500);
   };
 
   const handleInputChange = (e) => {
@@ -397,8 +462,6 @@ const ServiceForm = ({ initialData = {} }) => {
       completeData.previousDate = originalDate;
     }
 
-    console.log("serviceType", serviceType);
-
     completeData.serviceType = serviceType;
 
     if (historyId) {
@@ -412,8 +475,6 @@ const ServiceForm = ({ initialData = {} }) => {
     const method = isUpdateMode ? 'PUT' : 'POST';
 
     try {
-      console.log("completeData", completeData);
-
       const data = await apiRequest(url, method, completeData);
 
       const successMessage = isUpdateMode
@@ -426,7 +487,7 @@ const ServiceForm = ({ initialData = {} }) => {
       setTimeout(() => {
         const responseData = data.data || formData;
 
-        navigate(`/service-doc/${responseData.regNo}/${formatDate(responseData.date)}`);
+        navigate(`/service-doc/${responseData.regNo}/${formatDate(responseData.date)}/${serviceType}/${historyId}`);
       }, 1500);
     } catch (error) {
       console.error(`Error ${isUpdateMode ? 'updating' : 'adding'} service record:`, error);
@@ -443,19 +504,18 @@ const ServiceForm = ({ initialData = {} }) => {
 
   const handleReset = () => {
     if (isUpdateMode) {
-      // In update mode, reset to original values - would need to refetch or store original
       setMessage({ text: 'Reset functionality in update mode would reload original data.', type: 'info' });
       return;
     }
 
     setFormData({
-      serviceHrs: serviceHrs || '',
-      regNo: regNo || '',
-      nextServiceHrs: nextServiceHrs || '',
+      serviceHrs: '',
+      regNo: '',
+      nextServiceHrs: '',
       machine: initialData.machine || '',
       mechanics: '',
       location: '',
-      date: date || new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0],
       operatorName: initialData.operatorName || '',
       remarks: '',
     });
@@ -464,17 +524,6 @@ const ServiceForm = ({ initialData = {} }) => {
     ));
     setMessage({ text: '', type: '' });
   };
-
-  // Show loading spinner while fetching data in update mode
-  if (isLoadingData) {
-    return (
-      <div className="service-form-container">
-        <div className="loading-container">
-          <h2>Loading service report data...</h2>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="service-form-container">

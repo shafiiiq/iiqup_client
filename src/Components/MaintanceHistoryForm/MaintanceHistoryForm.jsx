@@ -192,15 +192,7 @@ const MaintanceHistoryForm = () => {
             triggerVibration();
 
             setTimeout(() => {
-                navigate(`/service-form/maintenance/${result.data?._id}`, {
-                    state: {
-                        regNo: formData.regNo,
-                        date: formData.date,
-                        mechanics: formData.mechanics,
-                        workRemarks: formData.workRemarks,
-                        historyId: result.data?._id
-                    }
-                });
+                navigate(`/service-form/maintenance/${result.data?._id}`);
             }, 1500);
 
         } catch (error) {

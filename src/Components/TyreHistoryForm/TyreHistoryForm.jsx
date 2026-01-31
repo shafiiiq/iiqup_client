@@ -195,16 +195,7 @@ const TyreHistoryForm = () => {
       triggerVibration();
 
       setTimeout(() => {
-        navigate(`/service-form/tyre/${result.data?._id}`, {
-          state: {
-            regNo: formData.equipmentNo,
-            date: formData.date,
-            location: formData.location,
-            runningHours: formData.runningHours,
-            tyreForm: true,
-            historyId: result.data?._id
-          }
-        });
+        navigate(`/service-form/tyre/${result.data?._id}`);
       }, 1500);
 
     } catch (error) {

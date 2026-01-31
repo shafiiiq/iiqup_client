@@ -1065,26 +1065,26 @@ const ServiceHistory = () => {
     navigate(basePath);
   };
 
-  const handleRowClick = (date, serviceType) => {
+  const handleRowClick = (date, serviceType, historyId) => {
     let path;
     switch (serviceType) {
       case 'normal':
-        path = `/service-doc/${regNoArray[0]}/${date}`;
+        path = `/service-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
         break;
       case 'oil':
-        path = `/service-doc/${regNoArray[0]}/${date}`;
+        path = `/service-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
         break;
       case 'maintenance':
-        path = `/maintenance-doc/${regNoArray[0]}/${date}`;
+        path = `/maintenance-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
         break;
       case 'tyre':
-        path = `/tyre-doc/${regNoArray[0]}/${date}`;
+        path = `/tyre-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
         break;
       case 'battery':
-        path = `/battery-doc/${regNoArray[0]}/${date}`;
+        path = `/battery-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
         break;
       default:
-        path = `/service-doc/${regNoArray[0]}/${date}`;
+        path = `/service-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
     }
     navigate(path);
   };
@@ -1114,16 +1114,6 @@ const ServiceHistory = () => {
     if (data.success) {
       window.location.reload()
     }
-  }
-
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  // Clear search
-  const handleClearSearch = () => {
-    setSearchTerm('');
   };
 
   // Get date range display text
@@ -1934,7 +1924,7 @@ const ServiceHistory = () => {
                             <td className="document-column">
                               <Button
                                 text=" View Document"
-                                onClick={() => handleRowClick(formatDate(item.date), item.serviceType)}
+                                onClick={() => handleRowClick(formatDate(item.date), item.serviceType, item._id)}
                                 colorScheme="sky-800"
                                 variant="gradient"
                                 font="md"

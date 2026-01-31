@@ -424,7 +424,7 @@ function App() {
 
                   {/* Service Document Routes */}
                   <Route
-                    path="/service-doc"
+                    path="/service-doc/:regNo/:date/:serviceType/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -434,7 +434,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-doc/:regNo/:date"
+                    path="/maintenance-doc/:regNo/:serviceType/:date/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -444,7 +444,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/maintenance-doc/:regNo/:date"
+                    path="/tyre-doc/:regNo/:date/:serviceType/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -454,17 +454,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/tyre-doc/:regNo/:date"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/battery-doc/:regNo/:date"
+                    path="/battery-doc/:regNo/:date/:serviceType/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>

@@ -275,21 +275,7 @@ function ServiceHistoryForm() {
 
       setTimeout(() => {
         const serviceType = normal === 'normal' ? 'normal' : 'oil';
-        navigate(`/service-form/${serviceType}/${serviceData.data?._id}`, {
-          state: {
-            regNo: formData.regNo,
-            date: formData.date,
-            serviceHrs: formData.serviceHrs,
-            nextServiceHrs: formData.nextServiceHrs,
-            oil: formData.oil,
-            oilFilter: formData.oilFilter,
-            fuelFilter: formData.fuelFilter,
-            airFilter: formData.airFilter,
-            acFilter: formData.acFilter,
-            waterSeparator: formData.waterSeparator,
-            historyId: serviceData.data?._id
-          }
-        });
+        navigate(`/service-form/${serviceType}/${serviceData.data?._id}`);
       }, 1500);
 
     } catch (error) {

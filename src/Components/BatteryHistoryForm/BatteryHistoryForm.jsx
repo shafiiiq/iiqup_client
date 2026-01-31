@@ -187,14 +187,7 @@ const BatteryHistoryForm = () => {
       triggerVibration();
 
       setTimeout(() => {
-        navigate(`/service-form/battery/${result.data?._id}`, {
-          state: {
-            regNo: formData.equipmentNo,
-            date: formData.date,
-            location: formData.location,
-            historyId: result.data?._id
-          }
-        });
+        navigate(`/service-form/battery/${result.data?._id}`);
       }, 1500);
 
     } catch (error) {
