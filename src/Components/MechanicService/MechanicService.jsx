@@ -367,7 +367,7 @@ const MechanicService = (props) => {
             {isTyre ? 'Battery' : 'Tyre'} History
           </button>
           <button onClick={showServiceHistory} className="action-btn service">
-            Service / Maintanance History
+            Service / Maintenance History
           </button>
           <button onClick={handlePrint} className="action-btn print">
             Print

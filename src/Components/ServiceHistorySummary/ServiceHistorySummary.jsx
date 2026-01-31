@@ -122,7 +122,7 @@ function ServiceHistorySummary() {
         } else if (deleteReport.serviceType === 'battery') {
             url = `${END_POINT}/service-history/delete-service-history/battery/${deleteReport._id}`;
         } else {
-            url = `${END_POINT}/service-history/delete-service-history/maintanance/${deleteReport._id}`;
+            url = `${END_POINT}/service-history/delete-service-history/maintenance/${deleteReport._id}`;
         }
 
         const response = await apiRequest(url, 'DELETE');

@@ -1,9 +1,9 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import mechanicSign from '../../assets/images/mechanic-sign.png';
-import { useParams, useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import '../ServiceDoc/ServiceDoc.css'
 import { apiRequest } from '../../utils/0auth';
@@ -11,30 +11,35 @@ import DevModal from '../../common/DevModal';
 import Button from '../../common/Button/Button';
 
 const ServiceDoc = () => {
-  const { regNo, date, serviceType, startDate, endDate, monthsCount, historyId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { historyId } = useParams();
+
+  const stateData = location.state || {};
+  const regNo = stateData.regNo;
+  const date = stateData.date;
+  const serviceType = stateData.serviceType;
+  const startDate = stateData.startDate;
+  const endDate = stateData.endDate;
+  const monthsCount = stateData.monthsCount;
+
   const [reportData, setReportData] = useState(null);
   const [multipleReports, setMultipleReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMultipleView, setIsMultipleView] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [supervisorSignUrl, setSupervisorSignUrl] = useState('');
-
-  // Signature authentication states
   const [sixDigitPassword, setSixDigitPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [signLoading, setSignLoading] = useState(false);
   const [signError, setSignError] = useState('');
   const [docAUTHmiddle, setDocAUTHmiddle] = useState('');
-
-  // Enhanced security states
   const [authAttempts, setAuthAttempts] = useState(0);
   const [lastAttempt, setLastAttempt] = useState(null);
   const [signatureCache, setSignatureCache] = useState({});
   const [isDocumentSigned, setIsDocumentSigned] = useState(false);
   const [signExpiryTime, setSignExpiryTime] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const navigate = useNavigate();
-
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -44,7 +49,6 @@ const ServiceDoc = () => {
   const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
 
-  // Rate limiting check
   const checkRateLimit = () => {
     const now = Date.now();
     const timeDiff = now - (lastAttempt || 0);
@@ -366,6 +370,8 @@ const ServiceDoc = () => {
   };
 
   const handleAddReport = (historyId) => {
+    console.log("serviceType", serviceType);
+
     navigate(`/service-form/${serviceType}/${historyId}`);
   };
 

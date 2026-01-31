@@ -452,7 +452,7 @@ export const getActivityContent = (update) => {
         'tyre-history': `Tyre Replacement: ${update.tyreModel} (${update.tyreNumber}) - ${update.equipment} #${update.equipmentNo}`,
         'battery-history': `Battery Replacement: ${update.batteryModel} - ${update.equipment} #${update.equipmentNo}`,
         'service-history': `Service Completed: Reg #${update.regNo} at ${update.serviceHrs} hours`,
-        'maintanance-history': `Maintenance: Reg #${update.regNo} - ${update.workRemarks?.substring(0, 60)}...`,
+        'maintenance-history': `Maintenance: Reg #${update.regNo} - ${update.workRemarks?.substring(0, 60)}...`,
         'service-report': `<strong style="font-size: 1.2rem; font-weight: bold; color: #91b7ff">${update.machine} - ${update.regNo}</strong><br/>${update.remarks?.replace(/\\n/g, '<br/>')}`,
         'stocks': `Stock Update: ${update.product} - Current: ${update.stockCount} units (${update.status})`,
         'toolkit': `Toolkit Update: ${update.name} - Status: ${update.overallStatus} (${update.totalStock} total items)`
@@ -562,7 +562,7 @@ export const prepareComparisonChartData = (comparisonData, period) => {
             label,
             'Service History': item.collections['service-history'] || 0,
             'Service Reports': item.collections['service-report'] || 0,
-            'Maintenance': item.collections['maintanance-history'] || 0,
+            'Maintenance': item.collections['maintenance-history'] || 0,
             'Tyre History': item.collections['tyre-history'] || 0,
             'Battery History': item.collections['battery-history'] || 0,
             'Equipment': item.collections['equipment'] || 0,

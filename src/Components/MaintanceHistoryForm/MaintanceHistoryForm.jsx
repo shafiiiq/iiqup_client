@@ -177,7 +177,7 @@ const MaintanceHistoryForm = () => {
         setMessage({ text: '', type: '' });
 
         try {
-            const response = await apiRequest(`${END_POINT}/service-history/add-maintanance-history`,
+            const response = await apiRequest(`${END_POINT}/service-history/add-maintenance-history`,
                 'POST',
                 formData
             );

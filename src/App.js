@@ -422,39 +422,81 @@ function App() {
                     }
                   />
 
+                   {/* View All Documents Routes */}
+                  <Route
+                    path="/all/all-histories/:regNo"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/all/oil-service/:regNo"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/all/maintenance-service/:regNo"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/all/tyre-service/:regNo"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/all/battery-service/:regNo"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/all/date-range/:regNo/:startDate/:endDate"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/all/last-months/:regNo/:monthsCount"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <ServiceDoc />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* Service Document Routes */}
                   <Route
-                    path="/service-doc/:regNo/:date/:serviceType/:historyId"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/maintenance-doc/:regNo/:serviceType/:date/:historyId"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/tyre-doc/:regNo/:date/:serviceType/:historyId"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/battery-doc/:regNo/:date/:serviceType/:historyId"
+                    path="/service-document/:historyId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -488,7 +530,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/service-form/update/:serviceType/:id"
+                    path="/service-form/update/:serviceType/:reportId"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -545,11 +587,11 @@ function App() {
                   />
 
                   <Route
-                    path="/maintanance-history/:regNo"
+                    path="/maintenance-history/:regNo"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
-                          <ServiceHistory maintanance={true} />
+                          <ServiceHistory maintenance={true} />
                         </CEOGuard>
                       </ProtectedRoute>
                     }
@@ -622,78 +664,6 @@ function App() {
                       <ProtectedRoute>
                         <CEOGuard>
                           <MaintanceHistoryForm />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* View All Documents Routes */}
-                  <Route
-                    path="/all/all-histories/:regNo"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/all/oil-service/:regNo"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/all/maintenance-service/:regNo"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/all/tyre-service/:regNo"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/all/battery-service/:regNo"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/all/date-range/:regNo/:startDate/:endDate"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/all/last-months/:regNo/:monthsCount"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <ServiceDoc />
                         </CEOGuard>
                       </ProtectedRoute>
                     }

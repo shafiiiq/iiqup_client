@@ -510,7 +510,7 @@ const ServiceHistory = () => {
         // Fetch histories for ALL regNos in parallel
         const allPromises = regNoArray.flatMap(regNo => [
           apiRequest(`${END_POINT}/service-history/get-service-history/${regNo}`),
-          apiRequest(`${END_POINT}/service-history/get-maintanance-history/${regNo}`),
+          apiRequest(`${END_POINT}/service-history/get-maintenance-history/${regNo}`),
           apiRequest(`${END_POINT}/service-history/get-tyre-history/${regNo}`),
           apiRequest(`${END_POINT}/service-history/get-battery-history/${regNo}`)
         ]);
@@ -1066,30 +1066,23 @@ const ServiceHistory = () => {
   };
 
   const handleRowClick = (date, serviceType, historyId) => {
-    let path;
-    switch (serviceType) {
-      case 'normal':
-        path = `/service-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
-        break;
-      case 'oil':
-        path = `/service-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
-        break;
-      case 'maintenance':
-        path = `/maintenance-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
-        break;
-      case 'tyre':
-        path = `/tyre-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
-        break;
-      case 'battery':
-        path = `/battery-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
-        break;
-      default:
-        path = `/service-doc/${regNoArray[0]}/${date}/${serviceType}/${historyId}`;
-    }
-    navigate(path);
+    navigate(`/service-document/${historyId}`, {
+      state: {
+        regNo: regNoArray[0],
+        date: date,
+        serviceType: serviceType,
+        historyId: historyId,
+        docType: serviceType === 'maintenance' ? 'maintenance-doc'
+          : serviceType === 'tyre' ? 'tyre-doc'
+            : serviceType === 'battery' ? 'battery-doc'
+              : 'service-doc'
+      }
+    });
   };
 
   const handleDeleteReport = (item) => {
+    console.log("itemssssssss" , item);
+    
     setDeleteReport(item);
     setShowDeleteModal(true);
   };
@@ -1106,10 +1099,13 @@ const ServiceHistory = () => {
     } else if (deleteReport.serviceType == 'normal') {
       url = `${END_POINT}/service-history/delete-service-history/oil/${deleteReport._id}`
     } else {
-      url = `${END_POINT}/service-history/delete-service-history/maintanance/${deleteReport._id}`
+      url = `${END_POINT}/service-history/delete-service-history/maintenance/${deleteReport._id}`
     }
     const response = await apiRequest(url, 'DELETE')
     const data = await response.json()
+
+    console.log("dataaaaaaaaaaaaaa", data);
+    
 
     if (data.success) {
       window.location.reload()

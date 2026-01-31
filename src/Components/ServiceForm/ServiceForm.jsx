@@ -14,7 +14,7 @@ const ServiceForm = ({ initialData = {} }) => {
   const navigate = useNavigate();
   const locationState = useLocation();
   const id = locationState.state?.id;
-  const { serviceType, historyId } = useParams();
+  const { serviceType, historyId, reportId } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert } = useAlert();
   const { triggerVibration } = useHeaderVibration();
@@ -208,21 +208,24 @@ const ServiceForm = ({ initialData = {} }) => {
   }, [formData.regNo, isUpdateMode]);
 
   useEffect(() => {
-    if (id) {
+    if (reportId) {
       setIsUpdateMode(true);
       setIsLoadingData(true);
 
       const fetchServiceReport = async () => {
         try {
-          const response = await apiRequest(`${END_POINT}/service-report/getwith/${id}`);
-          const data = await response.json()
+          const response = await apiRequest(`${END_POINT}/service-report/get-report/with-id/${reportId}`);
+          const data = await response.json();
+
+          console.log("the data", data.data);
+
 
           if (data.ok && data.data) {
             const existingData = data.data;
 
             let formattedDate = '';
-            if (existingData[0].date) {
-              const dateStr = existingData[0].date;
+            if (existingData.date) {
+              const dateStr = existingData.date;
 
               if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
                 const [day, month, year] = dateStr.split('-');
@@ -243,15 +246,15 @@ const ServiceForm = ({ initialData = {} }) => {
             setOriginalDate(formattedDate);
 
             setFormData({
-              serviceHrs: existingData[0].serviceHrs || '',
-              regNo: existingData[0].regNo || '',
-              nextServiceHrs: existingData[0].nextServiceHrs || '',
-              machine: existingData[0].machine || '',
-              mechanics: existingData[0].mechanics || '',
-              location: existingData[0].location || '',
+              serviceHrs: existingData.serviceHrs || '',
+              regNo: existingData.regNo || '',
+              nextServiceHrs: existingData.nextServiceHrs || '',
+              machine: existingData.machine || '',
+              mechanics: existingData.mechanics || '',
+              location: existingData.location || '',
               date: formattedDate,
-              operatorName: existingData[0].operatorName || '',
-              remarks: existingData[0].remarks || '',
+              operatorName: existingData.operatorName || '',
+              remarks: existingData.remarks || '',
             });
 
             if (existingData.checklistItems && existingData.checklistItems.length > 0) {
@@ -458,7 +461,7 @@ const ServiceForm = ({ initialData = {} }) => {
       checklistItems
     };
 
-    if (isUpdateMode && id) {
+    if (isUpdateMode && reportId) {
       completeData.previousDate = originalDate;
     }
 
@@ -469,13 +472,15 @@ const ServiceForm = ({ initialData = {} }) => {
     }
 
     const url = isUpdateMode
-      ? `${END_POINT}/service-report/updatewith/${id}`
+      ? `${END_POINT}/service-report/updatewith/${reportId}`
       : `${END_POINT}/service-report/add-service-report`;
 
     const method = isUpdateMode ? 'PUT' : 'POST';
 
     try {
-      const data = await apiRequest(url, method, completeData);
+      const response = await apiRequest(url, method, completeData);
+
+      const data = await response.json()
 
       const successMessage = isUpdateMode
         ? 'Service report updated successfully!'
@@ -485,9 +490,21 @@ const ServiceForm = ({ initialData = {} }) => {
       triggerVibration();
 
       setTimeout(() => {
-        const responseData = data.data || formData;
+        const responseData = data.data.serviceReport || formData;
 
-        navigate(`/service-doc/${responseData.regNo}/${formatDate(responseData.date)}/${serviceType}/${historyId}`);
+        console.log("data", data.data);
+        console.log("responseData", responseData);
+
+
+        navigate(`/service-document/${responseData.historyId}`, {
+          state: {
+            regNo: responseData.regNo,
+            date: formatDate(responseData.date),
+            serviceType: serviceType,
+            historyId: responseData.historyId,
+            docType: serviceType
+          }
+        });
       }, 1500);
     } catch (error) {
       console.error(`Error ${isUpdateMode ? 'updating' : 'adding'} service record:`, error);
