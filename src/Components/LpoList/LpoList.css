@@ -376,6 +376,10 @@
   cursor: pointer;
 }
 
+.lpo-row td:nth-child(12) {
+  padding: 20px 15px;
+}
+
 .no-results {
   text-align: center;
   padding: 40px 20px;
