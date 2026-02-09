@@ -5,11 +5,12 @@ import { AuthUtils, LoginLogic } from '../../../utils/authUtils';
 import { END_POINT } from '../../../constants';
 import Button from '../../../common/Button/Button';
 import logoImage from '../../../assets/images/al-ansari.png';
+import Spline from '@splinetool/react-spline';
+import Input from '../../../common/Input/Input';
 
 const Login = ({ setUserLoggedIn }) => {
   const navigate = useNavigate();
 
-  // Form states
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [step, setStep] = useState('login');
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,7 @@ const Login = ({ setUserLoggedIn }) => {
   const [remainingTime, setRemainingTime] = useState(0);
   const [canResend, setCanResend] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   // OTP countdown timer
   useEffect(() => {
@@ -64,12 +66,12 @@ const Login = ({ setUserLoggedIn }) => {
         throw new Error(result.error);
       }
 
-      // If user doesn't have authMail, go to setup
+      setFailedAttempts(0);
+
       if (!result.user.authMail) {
         setUserData(result.user);
         setStep('updateAuthMail');
       } else {
-        // Request OTP
         const otpResult = await requestOTP(result.user.authMail);
         if (otpResult.success) {
           setUserData(result.user);
@@ -81,6 +83,7 @@ const Login = ({ setUserLoggedIn }) => {
         }
       }
     } catch (err) {
+      setFailedAttempts(prev => prev + 1);
       setError(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
@@ -203,266 +206,178 @@ const Login = ({ setUserLoggedIn }) => {
 
   const renderLoginForm = () => (
     <div className="auth-login-form-container">
-      <div className="auth-login-header-content">
-        <p className="auth-login-subtitle">Access your secure workspace</p>
-      </div>
-
       <form className="auth-login-form">
         <div className="auth-form-group">
-          <label htmlFor="email">Email Address</label>
-          <div className="auth-input-container">
-            <div className="auth-input-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+          <Input
+            type="email"
+            id="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            colorScheme="amber-500"
+            textColor="black-100"
+            fontSize='6xl'
+            label='Email Address'
+            labelBgColor='transparent'
+            labelSize='8xl'
+            labelColor='White-100'
+            labelFontWeight='400'
+            placeholder="Enter your email"
+            placeholderColor="black-300"
+            variant="gradient"
+            width="100%"
+            height="70px"
+            squircle="10xl"
+            fontWeight='500'
+            inputPaddingInline="2xl"
+            inputPaddingBlock="xl"
+          />
         </div>
 
         <div className="auth-form-group">
-          <label htmlFor="password">Password</label>
-          <div className="auth-input-container">
-            <div className="auth-input-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
-                <circle cx="12" cy="16" r="1" fill="currentColor" />
-                <path d="M7 11V7A5 5 0 0 1 17 7V11" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="auth-password-toggle"
-            >
-              {showPassword ? (
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C7 20 2.73 16.39 1 12A18.45 18.45 0 0 1 5.06 5.06L17.94 17.94Z" stroke="currentColor" strokeWidth="2" />
-                  <path d="M1 1L23 23" stroke="currentColor" strokeWidth="2" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                </svg>
-              )}
-            </button>
-          </div>
+          <Input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            colorScheme="amber-500"
+            textColor="black-100"
+            fontSize='6xl'
+            label='Password'
+            labelBgColor='transparent'
+            labelSize='8xl'
+            labelColor='White-100'
+            labelFontWeight='400'
+            placeholder="Enter your password"
+            placeholderColor="black-300"
+            variant="gradient"
+            width="100%"
+            height="70px"
+            squircle="10xl"
+            fontWeight='500'
+            inputPaddingInline="2xl"
+            inputPaddingBlock="xl"
+          />
         </div>
 
         <div className="auth-form-group">
-          <label className="auth-checkbox-container">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <span className="auth-checkmark"></span>
-            Remember me for 30 days
-          </label>
+          <Input
+            type="checkbox"
+            name="text"
+            onChange={(e) => setRememberMe(e.target.checked)}
+            checked={rememberMe}
+            label='Remember me for 30 days'
+            labelPosition='right'
+            labelBgColor='transparent'
+            labelSize='2xl'
+            size='md'
+            squircle="10xl"
+            colorScheme='yellow-700'
+            onCheckedColorScheme='yellow-300'
+            onCheckedColor='black-300'
+            variant='gradient'
+          />
         </div>
-
-        <Button
-          text={loading ? "Authenticating..." : "Sign In"}
-          onClick={handleLogin}
-          colorScheme={loading ? 'amber-700' : 'lime-700'}
-          variant="gradient"
-          font="xl"
-          animation=""
-          rounded="full"
-          width="380px"
-          height="70px"
-          type="submit"
-          iconRight="arrow_forward_ios"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
-        <div className="auth-form-footer">
-          <button type="button" className="auth-link-btn">
-            Forgot Password?
-          </button>
-        </div>
-      </form >
-    </div >
+      </form>
+    </div>
   );
 
   const renderAuthMailForm = () => (
     <div className="auth-login-form-container">
-      <div className="auth-login-header-content">
-        <p className="auth-login-subtitle">Set up your authentication email for enhanced security</p>
-        <div className="auth-subtitle-accent"></div>
-      </div>
-
-      <form onSubmit={handleUpdateAuthMail} className="auth-login-form">
+      <form className="auth-login-form">
         <div className="auth-form-group">
-          <label htmlFor="authMail">Authentication Email</label>
-          <div className="auth-input-container">
-            <div className="auth-input-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2" />
-                <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
-            <input
-              type="email"
-              id="authMail"
-              value={authMail}
-              onChange={(e) => setAuthMail(e.target.value)}
-              placeholder="Enter authentication email"
-              required
-            />
-          </div>
+          <Input
+            type="email"
+            id="authMail"
+            name="authMail"
+            value={authMail}
+            onChange={(e) => setAuthMail(e.target.value)}
+            colorScheme="amber-500"
+            textColor="black-100"
+            fontSize='6xl'
+            label='Authentication Email'
+            labelBgColor='transparent'
+            labelSize='8xl'
+            labelColor='White-100'
+            labelFontWeight='400'
+            placeholder="Enter authentication email"
+            placeholderColor="black-300"
+            variant="gradient"
+            width="100%"
+            height="70px"
+            squircle="10xl"
+            fontWeight='500'
+            inputPaddingInline="2xl"
+            inputPaddingBlock="xl"
+          />
         </div>
-
-        <Button
-          text={loading ? 'Setting up...' : 'Set Authentication Email'}
-          onClick={() => setStep('login')}
-          colorScheme={loading ? 'amber-700' : 'lime-800'}
-          variant="gradient"
-          font="xl"
-          animation=""
-          rounded="full"
-          width="380px"
-          height="70px"
-          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
-          iconRight="arrow_forward_ios"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
-
-        <Button
-          text="Back to Login"
-          onClick={() => setStep('login')}
-          colorScheme={loading ? 'amber-700' : 'purple-800'}
-          variant="gradient"
-          font="xl"
-          animation=""
-          rounded="full"
-          width="300px"
-          height="60px"
-          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
-          iconRight="arrow_forward_ios"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
       </form>
     </div>
   );
 
   const renderOTPForm = () => (
     <div className="auth-login-form-container">
-      <div className="auth-login-header-content">
-        <div className="auth-login-icon-container">
-          <div className="auth-icon-glow auth-otp"></div>
-        </div>
-        <p className="auth-login-subtitle">
-          Enter the 6-digit code sent to <strong>{userData?.authMail || authMail}</strong>
-        </p>
-        <div className="auth-subtitle-accent"></div>
-      </div>
-
       <form className="auth-login-form">
         <div className="auth-form-group">
-          <label htmlFor="otp">Verification Code</label>
-          <div className="auth-input-container">
-            <div className="auth-input-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
-                <circle cx="12" cy="16" r="1" fill="currentColor" />
-                <path d="M7 11V7A5 5 0 0 1 17 7V11" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              id="otp"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder="Enter 6-digit OTP"
-              maxLength={6}
-              className="auth-otp-input"
-              required
-            />
+          <div className="auth-otp-inputs">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <Input
+                key={index}
+                type="text"
+                maxLength={1}
+                value={otp[index] || ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  if (value) {
+                    const newOtp = otp.split('');
+                    newOtp[index] = value;
+                    setOtp(newOtp.join(''));
+
+                    if (index < 5) {
+                      const nextInput = document.querySelectorAll('.auth-otp-inputs input')[index + 1];
+                      if (nextInput) nextInput.focus();
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Backspace') {
+                    const newOtp = otp.split('');
+                    if (otp[index]) {
+                      newOtp[index] = '';
+                      setOtp(newOtp.join(''));
+                    } else if (index > 0) {
+                      newOtp[index - 1] = '';
+                      setOtp(newOtp.join(''));
+                      const prevInput = document.querySelectorAll('.auth-otp-inputs input')[index - 1];
+                      if (prevInput) prevInput.focus();
+                    }
+                  }
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                  if (pastedData) {
+                    const newOtp = pastedData.padEnd(6, '').split('');
+                    setOtp(newOtp.join(''));
+                    const lastIndex = Math.min(pastedData.length - 1, 5);
+                    const lastInput = document.querySelectorAll('.auth-otp-inputs input')[lastIndex];
+                    if (lastInput) lastInput.focus();
+                  }
+                }}
+                colorScheme="amber-500"
+                textColor="black-100"
+                fontSize="40xl"
+                variant="gradient"
+                width="100px"
+                height="100px"
+                squircle="10xl"
+                fontWeight="600"
+                inputPaddingInline="null"
+              />
+            ))}
           </div>
         </div>
-
-        <Button
-          text={loading ? "Verifying..." : "Verify & Continue"}
-          onClick={handleOTPVerification}
-          colorScheme={loading ? 'amber-700' : 'lime-700'}
-          variant="gradient"
-          font="xl"
-          animation=""
-          rounded="full"
-          width="690px"
-          height="70px"
-          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
-          cursor={loading || otp.length < 6 ? 'not-allowed' : 'allowed'}
-          iconRight="arrow_forward_ios"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
-
-        <div className="auth-resend-container">
-          {remainingTime > 0 ? (
-            <div className="auth-timer-display">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                <polyline points="12,6 12,12 16,14" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <span>Resend code in {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, '0')}</span>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="auth-resend-btn"
-              onClick={handleResendOTP}
-              disabled={!canResend}
-            >
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polyline points="23,4 23,10 17,10" stroke="currentColor" strokeWidth="2" />
-                <path d="M20.49 15A9 9 0 1 1 5.64 5.64L23 10" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <span>Resend Code</span>
-            </button>
-          )}
-        </div>
-
-        <Button
-          text="Back to Login"
-          onClick={() => setStep('login')}
-          colorScheme={loading ? 'amber-700' : 'purple-800'}
-          variant="gradient"
-          font="xl"
-          animation=""
-          rounded="full"
-          width="300px"
-          height="60px"
-          type={loading || otp.length < 6 ? 'disabled' : 'submit'}
-          iconRight="arrow_forward_ios"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
       </form>
     </div>
   );
@@ -481,50 +396,162 @@ const Login = ({ setUserLoggedIn }) => {
   };
 
   return (
-    <div className="auth-premium-login-container">
+    <div className="auth-login-container">
       <div className="auth-left-section">
-        <div className="auth-left-content">
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-          <div className="auth-left-bar"></div>
-        </div>
-
-        <h1 className="auth-animated-title">
-          {(step === 'login' ? 'WELCOME BACK' :
-            step === 'updateAuthMail' ? 'SECURITY SETUP' :
-              'EMAIL VERIFICATION').split('').map((char, i) => (
-                <span key={i}>{char}</span>
-              ))}
-        </h1>
-        <div className="login-logo-section">
-          <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
+        <div className="auth-left-spt">
+          <Spline
+            scene="https://prod.spline.design/LCYzYZEH1lngG-Tq/scene.splinecode"
+            style={{ width: '100%', height: '105vh' }}
+          />
+          <div className="auth-info">
+            <h1 className={error ? 'auth-title auth-subtitle-error' : 'auth-title'}>
+              {error ? 'Please be here' : (step === 'otp' ? "We've sent an OTP" : (step === 'updateAuthMail' ? "Set up your security" : 'Step forward'))}
+            </h1>
+            <p className={error ? 'auth-subtitle auth-subtitle-error' : 'auth-subtitle'}>
+              {error ? error : (
+                step === 'otp' ? (
+                  <>
+                    Enter the 6-digit code sent to <strong>{userData?.authMail || authMail}</strong>
+                  </>
+                ) : step === 'updateAuthMail' ? (
+                  <>
+                    Set up your authentication email for enhanced security
+                  </>
+                ) : (
+                  <>
+                    New updates include useful features for everyday work tasks users,
+                    <br />
+                    to support normal work needs ease comfort clarity and smooth use across teams daily.
+                  </>
+                )
+              )}
+            </p>
+            <div className="auth-buttons">
+              <Button
+                text={step === 'updateAuthMail' ? "Back to login" : (step === 'otp' ? "Back to login" : "Let's")}
+                onClick={step === 'updateAuthMail' || step === 'otp' ? () => setStep('login') : () => console.log()}
+                colorScheme="white-400"
+                variant="gradient"
+                font="3xl"
+                squircle="4xl"
+                width="300px"
+                height="70px"
+                type="button"
+                cursor={(step === 'updateAuthMail' || step === 'otp') ? 'pointer' : 'not-allowed'}
+                textColor="yellow-800"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+              <Button
+                text={
+                  step === 'updateAuthMail'
+                    ? "Continue"
+                    : step === 'otp'
+                      ? (loading
+                        ? "Verifying..."
+                        : (remainingTime === 0 && canResend ? "Resend Code" : "Continue")
+                      )
+                      : "Continue"
+                }
+                onClick={(e) => {
+                  if (step === 'updateAuthMail') {
+                    handleUpdateAuthMail(e);
+                  } else if (step === 'otp') {
+                    if (remainingTime === 0 && canResend) {
+                      handleResendOTP();
+                    } else {
+                      handleOTPVerification(e);
+                    }
+                  } else {
+                    handleLogin(e);
+                  }
+                }}
+                colorScheme="yellow-400"
+                variant="gradient"
+                font="3xl"
+                squircle="4xl"
+                width="300px"
+                height="70px"
+                type={
+                  step === 'otp' && (loading || (otp.length < 6 && remainingTime > 0))
+                    ? 'disabled'
+                    : 'button'
+                }
+                cursor={
+                  step === 'otp' && (loading || (otp.length < 6 && remainingTime > 0))
+                    ? 'not-allowed'
+                    : 'pointer'
+                }
+                style={{
+                  cursor: step === 'otp' && (loading || (otp.length < 6 && remainingTime > 0))
+                    ? 'not-allowed'
+                    : 'pointer'
+                }}
+                textColor="black-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="auth-right-section">
         <div className="auth-login-card">
-          {error && (
-            <div className="auth-error-alert">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2" />
-                <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
-
           {renderForm()}
         </div>
       </div>
+
+      {step === 'login' && failedAttempts >= 2 && (
+        <div className="auth-form-footer">
+          <button type="button" className="auth-forgot-btn">
+            Oops, looks like lost! Forgot Password?
+          </button>
+        </div>
+      )}
+
+      {step === 'otp' && (
+        <div className="auth-form-footer">
+          <div className="auth-resend-container">
+            {remainingTime > 0 ? (
+              <Button
+                text={`Resend code in ${Math.floor(remainingTime / 60)}:${String(remainingTime % 60).padStart(2, '0')}`}
+                onClick={handleResendOTP}
+                disabled="true"
+                colorScheme='black-900'
+                variant="gradient"
+                font="3xl"
+                animation=""
+                squircle="10xl"
+                width="300px"
+                height="50px"
+                type='disabled'
+                cursor='not-allowed'
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+            ) : (
+              <Button
+                text={` Didn't receive the code? Resend Code`}
+                disabled="true"
+                colorScheme='black-900'
+                variant="gradient"
+                font="3xl"
+                animation=""
+                squircle="10xl"
+                width="580px"
+                height="50px"
+                type='disabled'
+                cursor='not-allowed'
+                textColor="white-200"
+                shadowPosition="to-bottom"
+                shadowColor="white-600"
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@
   --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #ebf1b969 100%);
   --header-bg-primary-800: linear-gradient(90deg, rgba(129, 141, 66, 0.795) 0%, #ebeb8d 100%);
   --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
+  --header-bg-primary-1000: linear-gradient(185deg, rgb(255, 249, 170) 0%, #e8ecc44f 100%);
 
   /* ========== HEADER COLOR ========== */
   --header-color-primary-50: #f0f2ff;
@@ -39,6 +40,20 @@
   --color-primary-800: #2d3000;
   --color-primary-900: #1e2000;
   --color-primary-1000: #131400;
+
+  /* ========== SECONDARY BRAND COLORS ========== */
+  --color-secondary: #ffc400;
+  --color-secondary-50: #e0ae07;
+  --color-secondary-100: #d1a40e;
+  --color-secondary-200: #a0ac00;
+  --color-secondary-300: #8a9400;
+  --color-secondary-700: #757e00;
+  --color-secondary-500: #646b00;
+  --color-secondary-600: #515700;
+  --color-secondary-700: #393d00;
+  --color-secondary-800: #2d3000;
+  --color-secondary-900: #1e2000;
+  --color-secondary-1000: #131400;
 
   /* ========== SUCCESS COLORS ========== */
   --color-success-50: #f0fdf4;
@@ -246,8 +261,11 @@
   --border-disabled: #e9ecef;
   --border-muted: #f3f4f6;
 
-  /* ========== NORMAL SHADOWS ========== */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  /* ========== SHADOW NONE ========== */
+  --shadow-none: none
+
+    /* ========== NORMAL SHADOWS ========== */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -731,6 +749,7 @@ body.dark-theme {
   --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
   --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
   --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
+  --header-bg-primary-1000: linear-gradient(185deg, rgb(135 114 41 / 53%) 0%, #c4ad1a 100%);
 
   /* ========== HEADER BACKGROUND ========== */
   --header-color-primary-50: #f0f2ff;

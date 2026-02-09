@@ -5,9 +5,7 @@ import { SearchProvider } from './context/SearchContext';
 import { HeaderTitleProvider } from './context/HeaderTitleContext';
 import { HeaderVibrationProvider } from './context/HeaderVibrationContext';
 import { AlertProvider } from './context/AlertContext';
-import './App.css'
 
-// All your existing imports
 import Home from './Components/Home/Home';
 import ServiceDoc from './Components/ServiceDoc/ServiceDoc';
 import ServiceForm from './Components/ServiceForm/ServiceForm';
@@ -45,17 +43,58 @@ import DevModal from './common/DevModal';
 import BackchargeForm from './Components/BackchargeForm/BackchargeForm';
 import BackchargeDoc from './Components/BackchargeDoc/BackchargeDoc';
 import BackchargeList from './Components/BackchargeList/BackchargeList'; import Spacer from './Components/Spacer/Spacer';
-import NotFound from './Components/Common/NotFound/NotFound';
+import NotFound from './common/NotFound/NotFound';
 import LiveChat from './Components/LiveChat/LiveChat';
 import ServiceHistorySummary from './Components/ServiceHistorySummary/ServiceHistorySummary';
-import TestInputs from './Components/TestInputs/TestInputs';
-;
+import Intro from './common/Intro/Intro';
+import './App.css'
+  ;
+import Explore from './common/Explore/Explore';
+import { apiRequest } from './utils/0auth';
+import { END_POINT } from './constants';
 
-// Create contexts
 export const ServiceReportContext = createContext();
 export const AuthContext = createContext();
 
-// Protected Route Component with CEO handling
+const HEADERLESS_ROUTES = [
+  '/login',
+  '/',
+  '/not-found',
+  '/splash',
+  '/intro'
+];
+
+const HEADERLESS_PREFIXES = [
+  '/service-doc',
+  '/all',
+  '/battery-doc',
+  '/tyre-doc'
+];
+
+const isValidRoute = (pathname) => {
+  const validRoutes = [
+    '/', '/login', '/dashboard', '/equipments', '/service-history',
+    '/notification', '/stocks', '/equipment-updates', '/stock-manage',
+    '/documents', '/backcharge-form', '/backcharge-list', '/backcharge-doc',
+    '/complaints', '/application-form', '/application-hr', '/toolkits',
+    '/mechanics', '/mechanics-forms', '/operators', '/live-chat',
+    '/splash', '/intro', '/not-found', '/dev-modal',
+    '/stocks/equipment-stocks', '/service-histoy/summary', '/lpo-list'
+  ];
+
+  const validPrefixes = [
+    '/all/', '/service-document/', '/service-form-nav/', '/service-form/',
+    '/service-history/', '/maintenance-history/', '/tyre-history/',
+    '/battery-history/', '/service-history-form/', '/tyre-history-form/',
+    '/battery-history-form/', '/maintenance-history-form/',
+    '/equipment-stocks-form/', '/documents/', '/backcharge-doc/',
+    '/complaints/', '/lpo-form/', '/lpo-doc/', '/lpo-list/'
+  ];
+
+  return validRoutes.includes(pathname) ||
+    validPrefixes.some(prefix => pathname.startsWith(prefix));
+};
+
 function ProtectedRoute({ children, ceoOnly = false }) {
   const { isValid } = AuthUtils.checkUserSession();
   const [isCEO, setIsCEO] = useState(null);
@@ -81,12 +120,10 @@ function ProtectedRoute({ children, ceoOnly = false }) {
     return <div></div>;
   }
 
-  // If this is a CEO-only route and user is not CEO, redirect to home
   if (ceoOnly && !isCEO) {
     return <Navigate to="/" replace />;
   }
 
-  // If user is CEO and trying to access non-dashboard routes, redirect to dashboard
   if (isCEO && !ceoOnly && window.location.pathname !== '/dashboard') {
     return <Navigate to="/dashboard" replace />;
   }
@@ -94,7 +131,6 @@ function ProtectedRoute({ children, ceoOnly = false }) {
   return children;
 }
 
-// Header Wrapper with Authentication and CEO check
 function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
   const location = useLocation();
   const [isCEO, setIsCEO] = useState(null);
@@ -112,14 +148,9 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
     checkCEOStatus();
   }, [userLoggedIn]);
 
-  // Hide header for login, CEO, home page, service-doc routes, and /all routes
-  const hideHeader = location.pathname === '/login' ||
-    location.pathname === '/' ||
-    location.pathname.startsWith('/service-doc') ||
-    location.pathname.startsWith('/all') ||
-    location.pathname.startsWith('/battery-doc') ||
-    location.pathname.startsWith('/tyre-doc') ||
-    location.pathname.startsWith('/not-found') ||
+  const hideHeader = HEADERLESS_ROUTES.includes(location.pathname) ||
+    HEADERLESS_PREFIXES.some(prefix => location.pathname.startsWith(prefix)) ||
+    !isValidRoute(location.pathname) ||
     isCEO;
 
   const currentUser = AuthUtils.getCurrentUser();
@@ -137,7 +168,6 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
   );
 }
 
-// CEO Redirect component for login route
 function CEORedirect() {
   const [isCEO, setIsCEO] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -163,7 +193,6 @@ function CEORedirect() {
   return <Navigate to="/" replace />;
 }
 
-// CEO Route Guard - redirects CEO to dashboard if accessing other routes
 function CEOGuard({ children }) {
   const [isCEO, setIsCEO] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -190,12 +219,10 @@ function CEOGuard({ children }) {
 }
 
 function App() {
-  // State to store the service report data
   const [serviceReportData, setServiceReportData] = useState(null);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Splash screen states
   const [showSplash, setShowSplash] = useState(false);
   const [splashComplete, setSplashComplete] = useState(false);
   const [showDevModalHidden, setShowDevModalHidden] = useState(true);
@@ -208,14 +235,35 @@ function App() {
 
   const navigate = useNavigate();
 
-  // Spacer Wrapper to hide on login and home
   function SpacerWrapper() {
     const location = useLocation();
 
-    const hideSpacer = location.pathname === '/login' || location.pathname === '/' || location.pathname === '/not-found';
+    const hideSpacer = HEADERLESS_ROUTES.includes(location.pathname) ||
+      !isValidRoute(location.pathname);
 
     return !hideSpacer && <Spacer vertical="4rem" horizontal="100%" />;
   }
+
+  useEffect(() => {
+    const checkForNewReleases = async () => {
+      if (userLoggedIn) {
+        try {
+          const response = await apiRequest(`${END_POINT}/explorer/get-latest-release-for-user`, 'GET');
+          const data = await response.json();
+
+          console.log("Release check:", data);
+
+          if (data.status === 200 && data.data && !data.data.hasExploredThisVersion) {
+            navigate('/explorer');
+          }
+        } catch (err) {
+          console.error('Error checking for new releases:', err);
+        }
+      }
+    };
+
+    checkForNewReleases();
+  }, [userLoggedIn]);
 
 
   useEffect(() => {
@@ -225,10 +273,8 @@ function App() {
       const now = new Date().getTime();
 
       if (now < hideUntilTime) {
-        // Still within the "don't show" period
         setShowDevModalHidden(false);
       } else {
-        // Time has expired, remove the storage item
         sessionStorage.removeItem('devModalHidden');
       }
     }
@@ -241,58 +287,56 @@ function App() {
       const now = new Date().getTime();
 
       if (now < hideUntilTime) {
-        // Still within the "don't show" period
         setExplored(false);
       } else {
-        // Time has expired, remove the storage item
         sessionStorage.removeItem('explored');
       }
     }
   }, []);
 
-
-  // set dark theme initialy
   useEffect(() => {
     return () => {
       localStorage.setItem('theme', 'dark');
     };
   }, []);
 
-  // Check if splash has been shown in this session
   useEffect(() => {
     const splashShown = sessionStorage.getItem('splashShown');
 
     if (!splashShown) {
-      // First time loading in this session - show splash
       setShowSplash(true);
       sessionStorage.setItem('splashShown', 'true');
     } else {
-      // Already shown in this session - skip splash
       setSplashComplete(true);
     }
   }, []);
 
-  // Splash screen timing effect (only runs if splash should be shown)
   useEffect(() => {
     if (showSplash) {
       const splashTimer = setTimeout(() => {
         setShowSplash(false);
-        // Wait for fade out animation to complete
+
         setTimeout(() => {
           setSplashComplete(true);
-        }, 800); // 800ms matches the fade-out animation duration
-      }, 3000); // Show splash for 3 seconds
+        }, 800);
+      }, 5000);
 
       return () => clearTimeout(splashTimer);
     }
   }, [showSplash]);
 
-  // Check for existing session on app load
   useEffect(() => {
     const initializeAuth = async () => {
+      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+
+      if (!hasSeenIntro) {
+        navigate('/intro');
+        setLoading(false);
+        return;
+      }
+
       await checkAutoLogin(setUserLoggedIn, navigate);
 
-      // Set theme based on user preference after auth check
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme === 'dark') {
         document.body.classList.add('dark-theme');
@@ -301,18 +345,15 @@ function App() {
       setLoading(false);
     };
 
-    // Only initialize auth after splash screen is complete (or skipped)
     if (splashComplete) {
       initializeAuth();
     }
   }, [navigate, splashComplete]);
 
-  // Show splash screen first (only if it should be shown)
   if (showSplash || (showSplash === false && !splashComplete)) {
     return <SplashScreen />;
   }
 
-  // Show loading while checking session
   if (loading) {
     return (
       <div style={{
@@ -330,18 +371,16 @@ function App() {
 
   const dontShowAgain = () => {
     const hideUntil = new Date();
-    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
+    hideUntil.setDate(hideUntil.getDate() + 1);
 
-    // Store in sessionStorage instead of component state
     sessionStorage.setItem('devModalHidden', hideUntil.getTime().toString());
     setShowDevModalHidden(false);
   };
 
   const explore = () => {
     const hideUntil = new Date();
-    hideUntil.setDate(hideUntil.getDate() + 1); // Add 1 day
+    hideUntil.setDate(hideUntil.getDate() + 1);
 
-    // Store in sessionStorage instead of component state
     sessionStorage.setItem('explored', hideUntil.getTime().toString());
     setExplored(false);
     navigate('/equipments')
@@ -385,6 +424,11 @@ function App() {
                 <Routes>
                   {/* Public Routes */}
                   <Route
+                    path="/intro"
+                    element={<Intro />}
+                  />
+
+                  <Route
                     path="/login"
                     element={
                       userLoggedIn ? (
@@ -422,7 +466,7 @@ function App() {
                     }
                   />
 
-                   {/* View All Documents Routes */}
+                  {/* View All Documents Routes */}
                   <Route
                     path="/all/all-histories/:regNo"
                     element={
@@ -1080,16 +1124,6 @@ function App() {
                     }
                   />
                   <Route
-                    path="/not-found"
-                    element={
-                      <ProtectedRoute>
-                        <CEOGuard>
-                          <NotFound />
-                        </CEOGuard>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
                     path="/live-chat"
                     element={
                       <ProtectedRoute>
@@ -1101,17 +1135,29 @@ function App() {
                   />
 
                   <Route
-                    path="/test-inputs"
+                    path="/explorer"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
-                          <TestInputs />
+                          <Explore />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/splash"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <SplashScreen />
                         </CEOGuard>
                       </ProtectedRoute>
                     }
                   />
                   {/* Fallback Route */}
-                  <Route path="/not-found" element={<Navigate to="/not-found" replace />} />
+                  <Route path="/not-found" element={<NotFound />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
                 <SpacerWrapper />
               </HeaderVibrationProvider>
@@ -1123,7 +1169,6 @@ function App() {
   );
 }
 
-// Wrapper component to provide Router context
 function AppWrapper() {
   return (
     <Router>

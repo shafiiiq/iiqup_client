@@ -116,6 +116,7 @@ const Input = ({
     iconToggle = false,
 
     onCheckedColor = null,
+    onCheckedColorScheme = null,
     onCheckedSize = null,
 
     error = false,
@@ -661,7 +662,22 @@ const Input = ({
 
     const renderCheckbox = () => {
         const checkboxSize = sizeMap[size]?.height || '44px';
-        const boxSize = parseInt(checkboxSize)
+        const boxSize = parseInt(checkboxSize);
+
+        const getCheckedBgColor = () => {
+            if (inputValue && onCheckedColorScheme) {
+                const { color, shade } = parseColorScheme(onCheckedColorScheme);
+                return `var(--${color}-${shade})`;
+            }
+            return inputValue ? mainColor : getBgColor();
+        };
+
+        const getCheckedIconColor = () => {
+            if (inputValue && onCheckedColor) {
+                return parseColor(onCheckedColor);
+            }
+            return parseColor(iconColor) || 'white';
+        };
 
         return (
             <div
@@ -692,7 +708,7 @@ const Input = ({
                         minWidth: boxSize,
                         minHeight: boxSize,
                         borderColor: getBorderColor(),
-                        background: inputValue ? mainColor : getBgColor(),
+                        background: getCheckedBgColor(),
                         border: showBorder ? `${borderWidth}px solid ${getBorderColor()}` : 'none',
                         borderRadius: getBorderRadius(),
                         cornerShape: getCornerShape(),
@@ -702,13 +718,13 @@ const Input = ({
                     {inputValue && (
                         iconClick ? (
                             <span className="material-symbols-rounded" style={{
-                                color: parseColor(iconColor) || getTextColor(),
-                                fontSize: `calc(${boxSize} * 0.7)`,
+                                color: getCheckedIconColor(),
+                                fontSize: `calc(${boxSize}px * 0.7)`,
                             }}>
                                 {getCurrentIcon(iconClick, 'check')}
                             </span>
                         ) : (
-                            <svg viewBox="0 0 24 24" fill="none" stroke={parseColor(iconColor) || 'white'} strokeWidth="3">
+                            <svg viewBox="0 0 24 24" fill="none" stroke={getCheckedIconColor()} strokeWidth="3">
                                 <polyline points="20 6 9 17 4 12" />
                             </svg>
                         )
@@ -1060,6 +1076,8 @@ const Input = ({
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                     onClick={handleClick}
+                    onKeyDown={props.onKeyDown}
+                    onPaste={props.onPaste}
                     min={min}
                     max={max}
                     step={step}
@@ -1123,26 +1141,12 @@ const Input = ({
 
                     {renderInput()}
 
-                    {type === 'password' && (
-                        <span
-                            className="custom-input-icon custom-input-icon-right custom-input-password-toggle"
-                            onClick={() => setShowPassword(!showPassword)}
-                            style={{
-                                color: parseColor(iconColor) || getTextColor(),
-                                fontSize: sizeMap[size]?.iconSize || '20px',
-                                ...getIconPositionStyle(),
-                            }}
-                        >
-                            <span className="material-symbols-rounded">
-                                {showPassword ? 'visibility_off' : 'visibility'}
-                            </span>
-                        </span>
-                    )}
-
                     {iconRight && type !== 'password' && !['checkbox', 'radio', 'file', 'select', 'dropdown', 'date', 'search-select'].includes(type) && (
                         renderIcon(iconRight, 'right')
                     )}
                 </div>
+
+                {labelPosition === 'right' && renderLabel()}
             </div>
 
             {renderMessage()}

@@ -305,7 +305,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
             switch (activeTab) {
                 case 'equipment-document':
                     type = 'equipment';
-                    id = item.regNo;
+                    id = item._id;
                     break;
                 case 'operator-document':
                     type = 'operator';

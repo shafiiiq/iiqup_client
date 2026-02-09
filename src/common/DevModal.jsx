@@ -1,5 +1,6 @@
 import React from 'react';
 import './DevModal.css';
+import Input from './Input/Input';
 
 const DevModal = ({
   isOpen = false,
@@ -543,14 +544,22 @@ const DevModal = ({
                       {message}
                     </p>
                   )}
-                  <input
+                  <Input
                     type="text"
-                    className="dm-input"
                     value={inputValue}
                     onChange={(e) => onInputChange(e.target.value)}
                     placeholder={inputPlaceholder}
                     maxLength={inputMaxLength}
                     autoFocus
+                    colorScheme="white-100"
+                    variant="filled"
+                    height='57px'
+                    fontSize='xl'
+                    placeholderColor='black-100'
+                    inputPaddingInline='2xl'
+                    fontWeight='500'
+                    squircle='10xl'
+                    fullWidth={true}
                   />
                   {inputError && (
                     <div className="dm-input-error">{inputError}</div>
@@ -638,19 +647,27 @@ const DevModal = ({
                       <span>Every N Pages (e.g., 2)</span>
                     </label>
 
-                    <input
+                    <Input
                       type="text"
-                      className="dm-split-input"
-                      placeholder={
-                        splitType === 'specific' ? 'Enter pages: 1,3,5' :
-                          splitType === 'range' ? 'Enter ranges: 1-5,7-10' :
-                            'Enter interval: 2'
-                      }
                       value={pageInput}
                       onChange={(e) => {
                         setPageInput(e.target.value);
                         setSplitError('');
                       }}
+                      placeholder={
+                        splitType === 'specific' ? 'Enter pages: 1,3,5' :
+                          splitType === 'range' ? 'Enter ranges: 1-5,7-10' :
+                            'Enter interval: 2'
+                      }
+                      colorScheme="white-100"
+                      variant="filled"
+                      height='57px'
+                      fontSize='xl'
+                      placeholderColor='black-100'
+                      inputPaddingInline='2xl'
+                      fontWeight='500'
+                      squircle='10xl'
+                      fullWidth={true}
                     />
 
                     {splitError && (
@@ -710,32 +727,44 @@ const DevModal = ({
                         </label>
 
                         {field.type === 'textarea' ? (
-                          <textarea
-                            className="dm-form-textarea"
+                          <Input
+                            type="textarea"
                             value={formValues[field.name] || ''}
                             onChange={(e) => onFormChange(field.name, e.target.value)}
                             placeholder={field.placeholder}
                             rows={field.rows || 3}
+                            colorScheme="white-100"
+                            variant="filled"
+                            height='57px'
+                            fontSize='xl'
+                            placeholderColor='black-100'
+                            inputPaddingInline='2xl'
+                            fontWeight='500'
+                            squircle='10xl'
+                            fullWidth={true}
                           />
                         ) : field.type === 'select' ? (
-                          <select
-                            className="dm-form-select"
+                          <Input
+                            type="select"
                             value={formValues[field.name] || ''}
                             onChange={(e) => onFormChange(field.name, e.target.value)}
-                          >
-                            <option value="">{field.placeholder || 'Select...'}</option>
-                            {field.options?.map((opt, i) => (
-                              <option key={i} value={opt.value || opt}>
-                                {opt.label || opt}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder={field.placeholder || 'Select...'}
+                            options={field.options}
+                            colorScheme="white-100"
+                            variant="filled"
+                            height='57px'
+                            fontSize='xl'
+                            placeholderColor='black-100'
+                            inputPaddingInline='2xl'
+                            fontWeight='500'
+                            squircle='10xl'
+                            fullWidth={true}
+                          />
 
                         ) : field.type === 'searchable-select' ? (
                           <div style={{ position: 'relative' }}>
-                            <input
-                              type="text"
-                              className="dm-form-input"
+                            <Input
+                              type="search-select"
                               value={formValues[field.name] || ''}
                               onChange={(e) => {
                                 onFormChange(field.name, e.target.value);
@@ -748,6 +777,16 @@ const DevModal = ({
                                 }, 200);
                               }}
                               placeholder={field.placeholder || 'Type to search or add new...'}
+                              options={field.dropdownItems || []}
+                              colorScheme="white-100"
+                              variant="filled"
+                              height='57px'
+                              fontSize='xl'
+                              placeholderColor='black-100'
+                              inputPaddingInline='2xl'
+                              fontWeight='500'
+                              squircle='10xl'
+                              fullWidth={true}
                             />
                             {field.showDropdown && field.dropdownItems && field.dropdownItems.length > 0 && (
                               <div className="dm-searchable-dropdown" style={{
@@ -851,21 +890,27 @@ const DevModal = ({
                                 </span>
                               ))}
                             </div>
-                            <input
+                            <Input
                               type="text"
-                              className="dm-form-input"
                               placeholder={field.placeholder || 'Search...'}
-                              onFocus={(e) => {
-                                field.onSearchFocus && field.onSearchFocus();
-                              }}
                               onChange={(e) => {
                                 field.onSearch && field.onSearch(e.target.value);
                               }}
+                              onFocus={() => field.onSearchFocus && field.onSearchFocus()}
                               onBlur={() => {
                                 setTimeout(() => {
                                   field.onSearchBlur && field.onSearchBlur();
                                 }, 200);
                               }}
+                              colorScheme="white-100"
+                              variant="filled"
+                              height='57px'
+                              fontSize='xl'
+                              placeholderColor='black-100'
+                              inputPaddingInline='2xl'
+                              fontWeight='500'
+                              squircle='10xl'
+                              fullWidth={true}
                             />
                             {field.showDropdown && field.dropdownItems && field.dropdownItems.length > 0 && (
                               <div className="dm-searchable-dropdown" style={{
@@ -915,12 +960,20 @@ const DevModal = ({
                             )}
                           </div>
                         ) : (
-                          <input
+                          <Input
                             type={field.type || 'text'}
-                            className="dm-form-input"
                             value={formValues[field.name] || ''}
                             onChange={(e) => onFormChange(field.name, e.target.value)}
                             placeholder={field.placeholder}
+                            colorScheme="white-100"
+                            variant="filled"
+                            height='57px'
+                            fontSize='xl'
+                            placeholderColor='black-100'
+                            inputPaddingInline='2xl'
+                            fontWeight='500'
+                            squircle='10xl'
+                            fullWidth={true}
                           />
                         )}
 
@@ -932,7 +985,6 @@ const DevModal = ({
                   </div>
                 </div>
               )}
-
               {type === 'unauthorized' && (
                 <div className="dm-unauthorized-section">
                   <div className="dm-unauthorized-icon">
@@ -1107,14 +1159,19 @@ const DevModal = ({
 
                         {group.type === 'date' && (
                           <div className="dm-custom-date-wrapper">
-                            <input
+                            <Input
                               type="date"
-                              className="dm-filter-date"
                               value={filterValues[group.name] || ''}
                               onChange={(e) => onFilterChange(group.name, e.target.value)}
-                              style={{
-                                borderColor: `${palette.accent}80`,
-                              }}
+                              colorScheme="white-100"
+                              variant="filled"
+                              height='57px'
+                              fontSize='xl'
+                              placeholderColor='black-100'
+                              inputPaddingInline='2xl'
+                              fontWeight='500'
+                              squircle='10xl'
+                              fullWidth={true}
                             />
                             <div className="dm-date-icon" style={{ color: palette.accent }}>
                               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -1126,46 +1183,59 @@ const DevModal = ({
 
                         {group.type === 'range' && (
                           <div className="dm-filter-range">
-                            <input
+                            <Input
                               type="number"
-                              className="dm-filter-range-input"
                               placeholder="Min"
                               value={filterValues[group.name]?.min || ''}
                               onChange={(e) => onFilterChange(group.name, {
                                 ...filterValues[group.name],
                                 min: e.target.value
                               })}
-                              style={{
-                                borderColor: `${palette.accent}40`
-                              }}
+                              colorScheme="white-100"
+                              variant="filled"
+                              height='57px'
+                              fontSize='xl'
+                              placeholderColor='black-100'
+                              inputPaddingInline='2xl'
+                              fontWeight='500'
+                              squircle='10xl'
                             />
                             <span className="dm-filter-range-separator">-</span>
-                            <input
+                            <Input
                               type="number"
-                              className="dm-filter-range-input"
                               placeholder="Max"
                               value={filterValues[group.name]?.max || ''}
                               onChange={(e) => onFilterChange(group.name, {
                                 ...filterValues[group.name],
                                 max: e.target.value
                               })}
-                              style={{
-                                borderColor: `${palette.accent}40`
-                              }}
+                              colorScheme="white-100"
+                              variant="filled"
+                              height='57px'
+                              fontSize='xl'
+                              placeholderColor='black-100'
+                              inputPaddingInline='2xl'
+                              fontWeight='500'
+                              squircle='10xl'
                             />
                           </div>
                         )}
 
                         {group.type === 'text' && (
-                          <input
+                          <Input
                             type="text"
-                            className="dm-filter-text"
                             placeholder={group.placeholder || ''}
                             value={filterValues[group.name] || ''}
                             onChange={(e) => onFilterChange(group.name, e.target.value)}
-                            style={{
-                              borderColor: `${palette.accent}40`
-                            }}
+                            colorScheme="white-100"
+                            variant="filled"
+                            height='57px'
+                            fontSize='xl'
+                            placeholderColor='black-100'
+                            inputPaddingInline='2xl'
+                            fontWeight='500'
+                            squircle='10xl'
+                            fullWidth={true}
                           />
                         )}
                       </div>

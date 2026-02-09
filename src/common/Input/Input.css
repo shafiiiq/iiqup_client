@@ -335,6 +335,19 @@
   align-items: stretch;
 }
 
+.custom-input-wrapper.custom-input-label-right {
+  flex-direction: row;
+  align-items: center;
+}
+
+.custom-input-wrapper.custom-input-label-right .custom-input-inner {
+  width: auto;
+}
+
+.custom-input-label-right {
+  margin-left: 5px;
+}
+
 .custom-input-inner {
   position: relative;
   display: flex;
@@ -668,7 +681,7 @@
 
 .custom-input-checkbox-wrapper:hover .custom-input-checkbox,
 .custom-input-radio-wrapper:hover .custom-input-radio {
-  transform: scale(1.1);
+  transform: none;
 }
 
 .custom-input-radio-dot {
@@ -757,7 +770,7 @@
   padding: clamp(8px, 2%, 16px);
   overflow: visible;
   max-height: none;
-  z-index: 1000;
+  z-index: 10;
   animation: custom-input-dropdown-open 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 

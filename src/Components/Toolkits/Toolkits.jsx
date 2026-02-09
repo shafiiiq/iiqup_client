@@ -351,7 +351,7 @@ const Toolkits = () => {
       label: v
     }));
   };
-  // Handle clicks outside dropdowns
+  // Handle clicks hired dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (nameDropdownRef.current && !nameDropdownRef.current.contains(event.target)) {
@@ -400,7 +400,7 @@ const Toolkits = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle clicks outside dropdowns
+  // Handle clicks hired dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (nameDropdownRef.current && !nameDropdownRef.current.contains(event.target)) {

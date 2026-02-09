@@ -249,12 +249,38 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
               <span className="user-name">{currentUser?.name}</span>
             </div>
             <div className="user-actions">
-              <label className="theme-switch">
-                <input type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
-                <span className="slider round">
-                  <span className="material-icons sun-icon">wb_sunny</span>
-                  <span className="material-icons moon-icon">nightlight_round</span>
-                </span>
+              <label class="bb8-toggle">
+                <input class="bb8-toggle__checkbox" type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
+                <div class="bb8-toggle__container">
+                  <div class="bb8-toggle__scenery">
+                    <div class="bb8-toggle__star"></div>
+                    <div class="bb8-toggle__star"></div>
+                    <div class="bb8-toggle__star"></div>
+                    <div class="bb8-toggle__star"></div>
+                    <div class="bb8-toggle__star"></div>
+                    <div class="bb8-toggle__star"></div>
+                    <div class="bb8-toggle__star"></div>
+                    <div class="tatto-1"></div>
+                    <div class="tatto-2"></div>
+                    <div class="gomrassen"></div>
+                    <div class="hermes"></div>
+                    <div class="chenini"></div>
+                    <div class="bb8-toggle__cloud"></div>
+                    <div class="bb8-toggle__cloud"></div>
+                    <div class="bb8-toggle__cloud"></div>
+                  </div>
+                  <div class="bb8">
+                    <div class="bb8__head-container">
+                      <div class="bb8__antenna"></div>
+                      <div class="bb8__antenna"></div>
+                      <div class="bb8__head"></div>
+                    </div>
+                    <div class="bb8__body"></div>
+                  </div>
+                  <div class="artificial__hidden">
+                    <div class="bb8__shadow"></div>
+                  </div>
+                </div>
               </label>
               <button
                 onClick={handleLogout}
@@ -340,11 +366,11 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             onBlur={handleSearchBlur}
           />
-          {searchTerm && (  
+          {searchTerm && (
             <button
               className="search-clear-btn"
               onClick={() => {
-                clearSearch(); 
+                clearSearch();
                 setSearchExpanded(false);
               }}
             >

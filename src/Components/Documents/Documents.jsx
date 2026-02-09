@@ -1049,7 +1049,8 @@ function DocumentDetails() {
       // Force download by fetching the file and creating a blob
       setMessage({ text: 'Downloading file...', type: 'info' });
 
-      const fileResponse = await apiRequest(fullUrl);
+      // FIX: Use native fetch instead of apiRequest for the S3 URL
+      const fileResponse = await fetch(fullUrl); // Changed from apiRequest to fetch
 
       if (!fileResponse.ok) {
         throw new Error(`Failed to fetch file: ${fileResponse.status}`);

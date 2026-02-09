@@ -24,8 +24,7 @@ const Operators = () => {
   const [formMode, setFormMode] = useState('add');
   const [profilePicUrls, setProfilePicUrls] = useState({});
   const [fullScreenImage, setFullScreenImage] = useState(null);
-
-  // Sorting states
+  const [activeTab, setActiveTab] = useState('internal');
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
 
@@ -54,7 +53,8 @@ const Operators = () => {
     password: '',
     equipmentNumber: '',
     isVerified: false,
-    toolkits: []
+    toolkits: [],
+    hired: false
   });
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -178,7 +178,6 @@ const Operators = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle clicks outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (nationalityDropdownRef.current && !nationalityDropdownRef.current.contains(event.target)) {
@@ -228,13 +227,21 @@ const Operators = () => {
     fetchOperators();
   }, []);
 
-  // Filter and sort operators
-  const filteredOperators = operators.filter(operator =>
-    operator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    operator.qatarId.includes(searchTerm) ||
-    operator.uniqueCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    operator.nationality.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOperators = operators.filter(operator => {
+    // Filter by tab
+    const tabFilter = activeTab === 'internal'
+      ? !operator.hired || operator.hired === false
+      : operator.hired === true;
+
+    // Filter by search term
+    const searchFilter =
+      operator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      operator.qatarId.includes(searchTerm) ||
+      operator.uniqueCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      operator.nationality.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return tabFilter && searchFilter;
+  });
 
   const sortedAndFilteredOperators = getSortedOperators(filteredOperators);
 
@@ -413,7 +420,8 @@ const Operators = () => {
       password: '',
       equipmentNumber: '',
       isVerified: false,
-      toolkits: []
+      toolkits: [],
+      hired: false
     });
     setNationalitySearchTerm('INDIAN');
     setSponsorshipSearchTerm('ATE');
@@ -452,7 +460,8 @@ const Operators = () => {
       password: operator.password,
       equipmentNumber: operator.equipmentNumber,
       isVerified: operator.isVerified,
-      toolkits: operator.toolkits || []
+      toolkits: operator.toolkits || [],
+      hired: operator.hired || false
     });
     setNationalitySearchTerm(operator.nationality);
     setSponsorshipSearchTerm(operator.sponsorship);
@@ -660,6 +669,39 @@ const Operators = () => {
           height="38px"
           type="submit"
           textColor="white-200"
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+      </div>
+
+      <div className="doc-details-tabs">
+        <Button
+          text="Company Operators"
+          onClick={() => setActiveTab('internal')}
+          colorScheme={activeTab === 'internal' ? 'amber-300' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          squircle="4xl"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'internal' ? 'black-300' : 'white-900'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text="Hired Operators"
+          onClick={() => setActiveTab('hired')}
+          colorScheme={activeTab === 'hired' ? 'amber-400' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          squircle="4xl"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'hired' ? 'black-300' : 'white-900'}
           shadowPosition="to-bottom"
           shadowColor="white-600"
         />

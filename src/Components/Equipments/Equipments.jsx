@@ -100,7 +100,7 @@ function Equipments() {
     tpcExpiry: '',
     operator: '',
     company: 'ATE',
-    outside: false,
+    hired: false,
     status: 'Active',
     site: ''
   });
@@ -121,7 +121,7 @@ function Equipments() {
     brand: '',
     operator: '',
     company: 'OUTSIDE',
-    outside: true
+    hired: true
   });
 
   // Group equipment by site whenever filteredData changes
@@ -1327,12 +1327,12 @@ function Equipments() {
           brand: '',
           operator: '',
           company: 'OUTSIDE',
-          outside: true
+          hired: true
         });
         fetchEquipments();
       } else {
         setDeleteStatus({
-          message: data.message || 'Failed to add outside equipment.',
+          message: data.message || 'Failed to add hired equipment.',
           isError: true
         });
       }
@@ -1341,11 +1341,11 @@ function Equipments() {
     } catch (error) {
       setShowOutsideEquipmentModal(false);
       setDeleteStatus({
-        message: 'Error adding outside equipment: ' + error.message,
+        message: 'Error adding hired equipment: ' + error.message,
         isError: true
       });
       setShowStatusModal(true);
-      console.error('Error adding outside equipment:', error);
+      console.error('Error adding hired equipment:', error);
     }
   };
 
@@ -1398,7 +1398,7 @@ function Equipments() {
           tpcExpiry: '',
           operator: '',
           company: 'ATE',
-          outside: false,
+          hired: false,
           status: 'Active',
           site: ''
         });
@@ -1435,7 +1435,7 @@ function Equipments() {
       tpcExpiry: '',
       operator: '',
       company: 'ATE',
-      outside: false,
+      hired: false,
       status: 'Active',
       site: ''
     });
@@ -1443,7 +1443,7 @@ function Equipments() {
 
   const handleViewDetails = (equipment) => {
     setSidebarContent({ type: 'details', data: equipment });
-    setSidebarTitle(`Equipment Details - ${equipment.regNo}`);
+    setSidebarTitle(`${equipment.machine} - ${equipment.regNo}`);
     setShowSidebar(true);
   };
 
@@ -1516,17 +1516,55 @@ function Equipments() {
 
           <h3>Location & Assignment</h3>
           <div className="details-list">
-            <div className="detail-row">
-              <span className="detail-row-label">Site</span>
-              <span className="detail-row-value">{item.site || 'N/A'}</span>
+            <div className="detail-row-actions">
+              <div className="detail-row">
+                <span className="detail-row-label">Site</span>
+                <span className="detail-row-value">{item.site || 'N/A'}</span>
+              </div>
+              {!isSelectMode && (
+                <Button
+                  text="Replace Site"
+                  onClick={() => handleViewDetails(item)}
+                  colorScheme="rose-700"
+                  variant="gradient"
+                  font="xl"
+                  animation=""
+                  squircle="4xl"
+                  width="170px"
+                  height="58px"
+                  type="submit"
+                  textColor="white-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+              )}
             </div>
-            <div className="detail-row">
-              <span className="detail-row-label">Current Operator</span>
-              <span className="detail-row-value">
-                {item.certificationBody && item.certificationBody.length > 0
-                  ? item.certificationBody[item.certificationBody.length - 1]
-                  : 'N/A'}
-              </span>
+            <div className='detail-row-actions'>
+              <div className="detail-row">
+                <span className="detail-row-label">Current Operator</span>
+                <span className="detail-row-value">
+                  {item.certificationBody && item.certificationBody.length > 0
+                    ? item.certificationBody[item.certificationBody.length - 1]
+                    : 'N/A'}
+                </span>
+              </div>
+              {!isSelectMode && (
+                <Button
+                  text="Replace Operator"
+                  onClick={() => handleViewDetails(item)}
+                  colorScheme="amber-500"
+                  variant="gradient"
+                  font="xl"
+                  animation=""
+                  squircle="4xl"
+                  width="200px"
+                  height="58px"
+                  type="submit"
+                  textColor="black-200"
+                  shadowPosition="to-bottom"
+                  shadowColor="white-600"
+                />
+              )}
             </div>
             {item.certificationBody && item.certificationBody.length > 1 && (
               <div className="detail-row">
@@ -1571,15 +1609,21 @@ function Equipments() {
 
           <h3>Actions</h3>
           <div className="details-list">
-            <div className="detail-row">
-              <button
-                className="view-details-btn"
-                onClick={(e) => handleViewAllFuels(e, item.regNo)}
-                style={{ width: '100%' }}
-              >
-                View Fuel Consumption
-              </button>
-            </div>
+            <Button
+              text="View Fuel Consumption"
+              onClick={(e) => handleViewAllFuels(e, item.regNo)}
+              colorScheme="blue-600"
+              variant="gradient"
+              font="md"
+              animation=""
+              squircle="4xl"
+              width="fit-content"
+              height="58px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
           </div>
         </div>
       );
@@ -1831,6 +1875,21 @@ function Equipments() {
         </div>
         <div className="buttons-container">
           <Button
+            text="Recent Activities"
+            onClick={() => handleQuickServices()}
+            colorScheme="blue-400"
+            variant="gradient"
+            font="md"
+            animation=""
+            squircle="4xl"
+            width="fit-content"
+            height="38px"
+            type="submit"
+            textColor="black-200"
+            shadowPosition="to-bottom"
+            shadowColor="white-600"
+          />
+          <Button
             text="Quick Service Histories"
             onClick={() => handleQuickServices()}
             colorScheme="lime-400"
@@ -1866,7 +1925,7 @@ function Equipments() {
       {/* Tab Navigation */}
       <div className="doc-details-tabs">
         <Button
-          text="View By Equipments"
+          text="Own Equipments"
           onClick={() => setActiveTab('equipment-based')}
           colorScheme={activeTab === 'equipment-based' ? 'amber-300' : 'amber-900'}
           variant="gradient"
@@ -1877,6 +1936,21 @@ function Equipments() {
           height="48px"
           type="submit"
           textColor={activeTab === 'equipment-based' ? 'black-300' : 'white-900'}
+          shadowPosition="to-bottom"
+          shadowColor="white-600"
+        />
+        <Button
+          text="Hired"
+          onClick={() => setActiveTab('hired')}
+          colorScheme={activeTab === 'hired' ? 'amber-400' : 'amber-900'}
+          variant="gradient"
+          font="md"
+          animation=""
+          squircle="4xl"
+          width="50%"
+          height="48px"
+          type="submit"
+          textColor={activeTab === 'hired' ? 'black-300' : 'white-900'}
           shadowPosition="to-bottom"
           shadowColor="white-600"
         />
@@ -2288,7 +2362,8 @@ function Equipments() {
             required: true,
             options: [
               { value: 'ATE', label: 'ATE' },
-              { value: 'OUTSIDE', label: 'OUTSIDE' }
+              { value: 'ASK', label: 'ASK' },
+              { value: 'HIRED', label: 'HIRED' }
             ]
           },
           { name: 'istimaraExpiry', label: 'Istimara Expiry', type: 'date' },
@@ -2442,7 +2517,7 @@ function Equipments() {
       {/* Add Outside Equipment Modal */}
       {showOutsideEquipmentModal && (
         <div className="modal-overlay">
-          <div className="modal-content outside">
+          <div className="modal-content hired">
             <div className="modal-header">
               <h2>Add Outside Equipment</h2>
               <button className="close-btn" onClick={closeOutsideEquipmentModal}>
@@ -2498,8 +2573,8 @@ function Equipments() {
                   />
                 </div>
                 <div className="form-group">
-                  <p className="outside-note">
-                    <strong>Note:</strong> This equipment will be marked as an outside equipment with company "OUTSIDE".
+                  <p className="hired-note">
+                    <strong>Note:</strong> This equipment will be marked as an hired equipment with company "OUTSIDE".
                   </p>
                 </div>
               </form>
@@ -2531,7 +2606,7 @@ function Equipments() {
         }}
         type="warning"
         title="No Equipment Found"
-        message={`No matching records found for "${searchTerm}". Would you like to add this as an outside equipment?`}
+        message={`No matching records found for "${searchTerm}". Would you like to add this as an hired equipment?`}
         buttonText="Add as Outside Equipment"
         onButtonClick={() => {
           setOutsideEquipmentForm({
@@ -2547,8 +2622,6 @@ function Equipments() {
           setSearchTerm('');
         }}
       />
-      {/* Equipment Loading Progress Modal */}
-      {/* Equipment Loading Progress Modal */}
       <DevModal
         isOpen={isLoadingEquipments}
         type="progress"

@@ -312,7 +312,7 @@
 /* Sidebar Styles */
 .ansari-side-panel {
   width: 420px;
-  background: var(--header-bg-primary-200);
+  background: var(--header-bg-primary-1000);
   top: 4rem;
   bottom: 4rem;
   border-radius: var(--radius-7xl);
