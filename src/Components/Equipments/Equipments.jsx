@@ -124,6 +124,13 @@ function Equipments() {
     hired: true
   });
 
+  // Refetch equipment when tab changes
+  useEffect(() => {
+    setSearchTerm(''); // Clear search when switching tabs
+    setCurrentPage(1); // Reset to first page
+    fetchEquipments(1, false); // Fetch fresh data for new tab
+  }, [activeTab]);
+
   // Group equipment by site whenever filteredData changes
   useEffect(() => {
     if (filteredData && filteredData.length > 0) {
@@ -693,11 +700,21 @@ function Equipments() {
     }, 150);
 
     try {
+      // Determine hired filter based on active tab
+      let hiredParam = '';
+      if (activeTab === 'hired') {
+        hiredParam = '&hired=hired';
+      } else if (activeTab === 'equipment-based') {
+        hiredParam = '&hired=own';
+      }
+      // For site-based, fetch all (no hired param)
+
       // Fetch equipment list with pagination
       const response = await apiRequest(
-        `${END_POINT}/equipments/get-equipments?page=${page}&limit=20`,
+        `${END_POINT}/equipments/get-equipments?page=${page}&limit=20${hiredParam}`,
         'GET'
       );
+
       const data = await response.json();
 
       if (!data.ok) {
@@ -750,12 +767,12 @@ function Equipments() {
 
       setEquipmentProgress(100);
 
+
+
       if (append) {
-        // Add to existing equipment
         setEquipments(prev => [...prev, ...equipmentsWithImages]);
         setFilteredData(prev => [...prev, ...equipmentsWithImages]);
       } else {
-        // Replace all equipment
         setEquipments(equipmentsWithImages);
         setFilteredData(equipmentsWithImages);
       }
@@ -796,7 +813,6 @@ function Equipments() {
       const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
       const data = await response.json();
 
-      // Filter complaints where workflowStatus is "completed"
       const completedWorksList = data.filter(item => item.workflowStatus === "completed");
 
       setCompletedWorks(completedWorksList);
@@ -811,13 +827,20 @@ function Equipments() {
   useEffect(() => {
     const searchEquipments = async () => {
       if (!searchTerm || searchTerm.trim() === '') {
-        // Search cleared - reload original equipment data
-        fetchEquipments(1, false); // Reset to page 1, don't append
+        fetchEquipments(1, false);
         setShowNoResultsModal(false);
         return;
       }
 
       try {
+        // Determine hired filter
+        let hiredFilter = null;
+        if (activeTab === 'hired') {
+          hiredFilter = 'hired';
+        } else if (activeTab === 'equipment-based') {
+          hiredFilter = 'own';
+        }
+
         const response = await apiRequest(
           `${END_POINT}/equipments/search-equipments`,
           'POST',
@@ -825,7 +848,8 @@ function Equipments() {
             searchTerm: searchTerm.trim(),
             page: 1,
             limit: 100,
-            searchField: activeTab === 'site-based' ? 'site' : 'all'
+            searchField: activeTab === 'site-based' ? 'site' : 'all',
+            hired: hiredFilter
           }
         );
 
@@ -861,7 +885,7 @@ function Equipments() {
             })
           );
 
-          setFilteredData(resultsWithImages);
+          setFilteredData(resultsWithImages)
           setShowNoResultsModal(resultsWithImages.length === 0);
         }
       } catch (error) {
@@ -1370,7 +1394,8 @@ function Equipments() {
       ...addEquipmentForm,
       year: parseInt(addEquipmentForm.year),
       certificationBody: [addEquipmentForm.operator],
-      site: [addEquipmentForm.site]
+      site: [addEquipmentForm.site],
+      hired: addEquipmentForm.company === 'HIRED'
     };
 
     // Remove operator and site from the object as they're now in arrays
@@ -1987,7 +2012,7 @@ function Equipments() {
         )}
       </div>
 
-      {activeTab === 'equipment-based' ? (
+      {activeTab === 'equipment-based' || activeTab === 'hired' ? (
         <div className="equipment-grid">
           {displayedEquipment && displayedEquipment.length > 0 ? (
             displayedEquipment.map((item) => {
@@ -2143,6 +2168,40 @@ function Equipments() {
                           shadowColor="white-600"
                         />
                       )}
+                      {!isSelectMode && (
+                        <Button
+                          text="Mobilize"
+                          onClick={() => handleViewDetails(item)}
+                          colorScheme="lime-400"
+                          variant="gradient"
+                          font="md"
+                          animation=""
+                          squircle="4xl"
+                          width="225px"
+                          height="38px"
+                          type="submit"
+                          textColor="black-200"
+                          shadowPosition="to-bottom"
+                          shadowColor="white-600"
+                        />
+                      )}
+                      {!isSelectMode && (
+                        <Button
+                          text="Demobilize"
+                          onClick={() => handleViewDetails(item)}
+                          colorScheme="fuchsia-500"
+                          variant="gradient"
+                          font="md"
+                          animation=""
+                          squircle="4xl"
+                          width="225px"
+                          height="38px"
+                          type="submit"
+                          textColor="black-200"
+                          shadowPosition="to-bottom"
+                          shadowColor="white-600"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2287,6 +2346,17 @@ function Equipments() {
                               width="90px"
                               height="36px"
                               textColor="white-200"
+                            />
+                            <Button
+                              text="Replace Equipment"
+                              onClick={() => handleViewDetails(item)}
+                              colorScheme="lime-400"
+                              variant="gradient"
+                              font="sm"
+                              squircle="4xl"
+                              width="fit-content"
+                              height="36px"
+                              textColor="black-200"
                             />
                           </div>
                         </div>
