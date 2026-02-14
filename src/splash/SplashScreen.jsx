@@ -8,14 +8,14 @@ function SplashScreen() {
   const [splineLoaded, setSplineLoaded] = useState(false);
 
   useEffect(() => {
-    const text = "Getting things for you";
+    const text = "Setting things up for you";
     const characters = text.split("");
     const totalChars = characters.length;
 
     if (processingRef.current && splineLoaded) {
       processingRef.current.innerHTML = characters.map((char, index) => {
         const mirrorIndex = Math.min(index, totalChars - 1 - index);
-        const delay = 0.5 + (mirrorIndex * 0.08);
+        const delay = 2.1 + (mirrorIndex * 0.08);
 
         if (char === ' ') {
           return '&nbsp;';
