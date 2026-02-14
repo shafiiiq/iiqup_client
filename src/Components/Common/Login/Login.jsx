@@ -27,7 +27,7 @@ const Login = ({ setUserLoggedIn }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [splineError, setSplineError] = useState(false);
-  const [supportsWebGL, setSupportsWebGL] = useState(true);
+  const [supportsWebGL, setSupportsWebGL] = useState(false);
 
   useEffect(() => {
     setSupportsWebGL(checkWebGLSupport());

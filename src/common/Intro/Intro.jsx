@@ -9,7 +9,7 @@ function Intro() {
     const navigate = useNavigate()
     const [isDisintegrating, setIsDisintegrating] = useState(false)
     const [splineError, setSplineError] = useState(false);
-    const [supportsWebGL, setSupportsWebGL] = useState(true);
+    const [supportsWebGL, setSupportsWebGL] = useState(false);
 
     useEffect(() => {
         const hasWebGL = checkWebGLSupport();

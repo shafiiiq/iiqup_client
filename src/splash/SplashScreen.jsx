@@ -3,34 +3,35 @@ import Button from "../common/Button/Button";
 import "./SplashScreen.css";
 import Spline from '@splinetool/react-spline';
 import { checkWebGLSupport } from "../utils/compatibilty";
+import { useNavigate } from "react-router";
 
 function SplashScreen() {
   const processingRef = useRef(null);
+  const navigate = useNavigate();
   const [splineLoaded, setSplineLoaded] = useState(false);
   const [splineError, setSplineError] = useState(false);
-  const [supportsWebGL, setSupportsWebGL] = useState(true);
+  const [supportsWebGL, setSupportsWebGL] = useState(false);
 
   useEffect(() => {
     const hasWebGL = checkWebGLSupport();
     setSupportsWebGL(hasWebGL);
 
     if (!hasWebGL) {
-      setTimeout(() => {
-        window.location.href = '/login';
+      const timer = setTimeout(() => {
+        navigate('/login', { replace: true });
       }, 2000);
+      return () => clearTimeout(timer); 
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (splineError) {
-      console.log('Auto-redirecting to login from splash');
       const timer = setTimeout(() => {
-        window.location.href = '/login';
+        navigate('/login', { replace: true });
       }, 1000);
-
       return () => clearTimeout(timer);
     }
-  }, [splineError]);
+  }, [splineError, navigate]);
 
   useEffect(() => {
     const text = "Setting things up for you";
