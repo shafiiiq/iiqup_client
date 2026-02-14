@@ -147,7 +147,7 @@
 /* Card Content - 55% width */
 .card-content {
   width: 55%;
-  padding: 28px;
+  padding: 13px 28px;
   display: flex;
   flex-direction: column;
   background: var(--gradient-primary-900);
@@ -216,8 +216,7 @@
 }
 
 .detail-label {
-  font-size: 13px;
-  text-transform: uppercase;
+  text-transform: capitalize;
   letter-spacing: 1px;
   color: var(--text-tertiary) !important;
   font-weight: 400;
@@ -936,13 +935,12 @@ body.dark-theme .status-badge.loading {
   gap: 16px;
   background: var(--gradient-primary-900);
   overflow: hidden;
-  border: 2px solid var(--border-primary);
   transition: all 0.3s ease;
   height: 200px;
 }
 
 .site-equipment-item:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-400);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 

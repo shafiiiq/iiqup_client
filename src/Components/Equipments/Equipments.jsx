@@ -76,6 +76,14 @@ function Equipments() {
   const [fullscreenEquipment, setFullscreenEquipment] = useState(null);
   const [imageClickPosition, setImageClickPosition] = useState({ x: 0, y: 0 });
   const [showExportModal, setShowExportModal] = useState(false);
+  const [siteSearchTerm, setSiteSearchTerm] = useState('');
+  const [showSiteDropdown, setShowSiteDropdown] = useState(false);
+  const [mobilizeOperatorSearchTerm, setMobilizeOperatorSearchTerm] = useState('');
+  const [showMobilizeOperatorDropdown, setShowMobilizeOperatorDropdown] = useState(false);
+  const [replaceEquipmentSearch, setReplaceEquipmentSearch] = useState('');
+  const [replaceEquipmentResults, setReplaceEquipmentResults] = useState([]);
+  const [showReplaceEquipmentDropdown, setShowReplaceEquipmentDropdown] = useState(false);
+  const [sites, setSites] = useState([]);
   const [exportColumns, setExportColumns] = useState({
     machine: true,
     regNo: true,
@@ -111,6 +119,7 @@ function Equipments() {
     year: '',
     company: '',
     operator: '',
+    operatorId: '',
     brand: '',
     site: '',
     status: ''
@@ -123,12 +132,42 @@ function Equipments() {
     company: 'OUTSIDE',
     hired: true
   });
+  // Mobilization/Demobilization states
+  const [showMobilizeModal, setShowMobilizeModal] = useState(false);
+  const [showDemobilizeModal, setShowDemobilizeModal] = useState(false);
+  const [mobilizeForm, setMobilizeForm] = useState({
+    site: '',
+    operator: '',
+    operatorId: '',
+    withOperator: false,
+    remarks: ''
+  });
+
+  // Replace Operator state
+  const [showReplaceOperatorModal, setShowReplaceOperatorModal] = useState(false);
+  const [replaceOperatorForm, setReplaceOperatorForm] = useState({
+    currentOperator: '',
+    currentOperatorId: '',
+    replacedOperator: '',
+    replacedOperatorId: '',
+    remarks: ''
+  });
+
+  const [selectedEquipmentForAction, setSelectedEquipmentForAction] = useState(null);
+  const [showReplaceEquipmentModal, setShowReplaceEquipmentModal] = useState(false);
+  const [replaceEquipmentForm, setReplaceEquipmentForm] = useState({
+    replacedEquipmentId: '',
+    replacedEquipmentRegNo: '',
+    replacedEquipmentMachine: '',
+    newSiteForReplaced: '',
+    remarks: ''
+  });
 
   // Refetch equipment when tab changes
   useEffect(() => {
-    setSearchTerm(''); // Clear search when switching tabs
-    setCurrentPage(1); // Reset to first page
-    fetchEquipments(1, false); // Fetch fresh data for new tab
+    setSearchTerm('');
+    setCurrentPage(1);
+    fetchEquipments(1, false);
   }, [activeTab]);
 
   // Group equipment by site whenever filteredData changes
@@ -331,6 +370,63 @@ function Equipments() {
       setFilteredOperator(filtered);
     }
   }, [operatorSearchTerm, operator]);
+
+  const handleSiteFetchOnFocus = async () => {
+    const fetchedSites = await fetchSitesForDropdown();
+    setSites(fetchedSites);
+  }
+
+  const fetchSitesForDropdown = async () => {
+    try {
+      const response = await apiRequest(`${END_POINT}/equipments/get-sites`, 'GET');
+      const data = await response.json();
+      return data.data || [];
+    } catch (error) {
+      console.error('Error fetching sites:', error);
+      return [];
+    }
+  };
+
+  const handleReplaceEquipmentSearch = async (searchTerm) => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      setReplaceEquipmentResults([]);
+      setShowReplaceEquipmentDropdown(false);
+      return;
+    }
+
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/equipments/search-equipments`,
+        'POST',
+        {
+          searchTerm: searchTerm.trim(),
+          page: 1,
+          limit: 10,
+          searchField: 'all'
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.ok) {
+        setReplaceEquipmentResults(data.data);
+        setShowReplaceEquipmentDropdown(true);
+      }
+    } catch (error) {
+      console.error('Equipment search error:', error);
+    }
+  };
+
+  const handleReplaceEquipmentSelect = (equipment) => {
+    setReplaceEquipmentForm(prev => ({
+      ...prev,
+      replacedEquipmentId: equipment._id,
+      replacedEquipmentRegNo: equipment.regNo,
+      replacedEquipmentMachine: equipment.machine
+    }));
+    setReplaceEquipmentSearch(equipment.regNo);
+    setShowReplaceEquipmentDropdown(false);
+  };
 
   const toggleEquipmentSelection = (regNo) => {
     setSelectedEquipment(prev => {
@@ -656,7 +752,6 @@ function Equipments() {
 
   // Infinite scroll for loading more equipment
   useEffect(() => {
-    if (activeTab !== 'equipment-based') return;
     if (!hasMore || isLoadingMore || isLoadingEquipments) return;
 
     let scrollTimeout = null;
@@ -730,6 +825,9 @@ function Equipments() {
       // Get regNos for bulk image fetch
       const regNos = equipmentList.map(eq => eq.regNo);
 
+      console.log("regNos", regNos);
+
+
       // Fetch images in bulk (ONE API call instead of 20!)
       const imageResponse = await apiRequest(
         `${END_POINT}/equipments/bulk-equipment-images`,
@@ -737,6 +835,9 @@ function Equipments() {
         { regNos }
       );
       const imageData = await imageResponse.json();
+
+      console.log("imageData", imageData);
+
 
       // Merge equipment with images
       const equipmentsWithImages = await Promise.all(
@@ -985,7 +1086,7 @@ function Equipments() {
       const row = {};
       selectedColumns.forEach(col => {
         if (col === 'operator') {
-          row[columnHeaders[col]] = item.certificationBody?.[item.certificationBody.length - 1] || 'N/A';
+          row[columnHeaders[col]] = getOperatorName(item.certificationBody);
         } else if (col === 'istimaraExpiry' || col === 'insuranceExpiry' || col === 'tpcExpiry') {
           row[columnHeaders[col]] = formatDateWithExpiry(item[col]).formattedDate || 'N/A';
         } else {
@@ -1058,9 +1159,7 @@ function Equipments() {
               <td>${item.brand || 'N/A'}</td>
               <td>${item.year || 'N/A'}</td>
               <td>${item.company || 'N/A'}</td>
-              <td>${item.certificationBody && item.certificationBody.length > 0
-            ? item.certificationBody[item.certificationBody.length - 1]
-            : 'N/A'}</td>
+           <td>${getOperatorName(item.certificationBody)}</td>
               <td>${item.site || 'N/A'}</td>
               <td>${item.status || 'N/A'}</td>
             </tr>
@@ -1100,11 +1199,12 @@ function Equipments() {
   };
 
   const handleEdit = (e, equipment) => {
-    e.stopPropagation()
+    e.stopPropagation();
     triggerVibration();
     setEditEquipment(equipment);
 
-    const currentOperator = equipment.certificationBody[equipment.certificationBody.length - 1] || '';
+    const currentOperator = getOperatorName(equipment.certificationBody);
+    const currentOperatorId = getOperatorId(equipment.certificationBody, operator);
 
     setEditFormData({
       machine: equipment.machine,
@@ -1114,12 +1214,13 @@ function Equipments() {
       status: equipment.status,
       year: equipment.year,
       company: equipment.company,
-      operator: currentOperator
+      operator: currentOperator,
+      operatorId: currentOperatorId
     });
 
     // Reset operator search term to current operator
     setOperatorSearchTerm(currentOperator);
-    setShowOperatorDropdown(false); // Make sure dropdown is closed
+    setShowOperatorDropdown(false);
     setShowEditModal(true);
   };
 
@@ -1197,8 +1298,15 @@ function Equipments() {
       status: editFormData.status
     };
 
-    if (editFormData.operator !== editEquipment.certificationBody[editEquipment.certificationBody.length - 1]) {
-      updatedEquipment.certificationBody = [...editEquipment.certificationBody, editFormData.operator];
+    const currentOperatorName = editEquipment.certificationBody?.[editEquipment.certificationBody.length - 1];
+
+    const currentOp = typeof currentOperatorName === 'string'
+      ? currentOperatorName
+      : currentOperatorName?.operatorName;
+
+    if (editFormData.operator !== currentOp) {
+      updatedEquipment.operator = editFormData.operator;
+      updatedEquipment.operatorId = editFormData.operatorId;
     }
 
     try {
@@ -1216,7 +1324,7 @@ function Equipments() {
           message: `Equipment ${editEquipment.regNo} successfully updated.`,
           isError: false
         });
-        fetchEquipments();
+        fetchEquipments(1, false);
       } else {
         setDeleteStatus({
           message: data.message || 'Failed to update equipment.',
@@ -1497,7 +1605,358 @@ function Equipments() {
     };
   }
 
-  // Render sidebar content based on type
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    return { month, year, time };
+  };
+
+  // 1. MOBILIZE EQUIPMENT HANDLER
+  const handleMobilizeClick = (e, equipment) => {
+    e.stopPropagation();
+    triggerVibration();
+    setSelectedEquipmentForAction(equipment);
+    setMobilizeForm({
+      site: '',
+      operator: '',
+      withOperator: false,
+      remarks: ''
+    });
+    setShowMobilizeModal(true);
+  };
+
+  const getOperatorIdByName = (operatorName) => {
+    const found = operator.find(op => op.name === operatorName);
+    return found?._id || found?.id || '';
+  };
+
+  const handleMobilizeSubmit = async (e) => {
+    e?.preventDefault();
+
+    if (!selectedEquipmentForAction) return;
+
+    const { month, year, time } = getCurrentDateTime();
+
+    const mobilizeData = {
+      equipmentId: selectedEquipmentForAction._id,  // ✅ Correct
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
+      site: mobilizeForm.site,
+      operator: mobilizeForm.withOperator ? mobilizeForm.operator : null,
+      operatorId: mobilizeForm.withOperator ? getOperatorIdByName(mobilizeForm.operator) : null,  // ✅ ADD THIS
+      withOperator: mobilizeForm.withOperator,
+      month,
+      year,
+      time,
+      remarks: mobilizeForm.remarks
+    };
+
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/equipments/mobilize-equipment`,
+        'POST',
+        mobilizeData
+      );
+
+      const data = await response.json();
+      setShowMobilizeModal(false);
+
+      if (data.ok) {
+        setDeleteStatus({
+          message: `Equipment ${selectedEquipmentForAction.regNo} successfully mobilized to ${mobilizeForm.site}.`,
+          isError: false
+        });
+        fetchEquipments(1, false);
+      } else {
+        setDeleteStatus({
+          message: data.message || 'Failed to mobilize equipment.',
+          isError: true
+        });
+      }
+      setShowStatusModal(true);
+    } catch (error) {
+      setShowMobilizeModal(false);
+      setDeleteStatus({
+        message: 'Error mobilizing equipment: ' + error.message,
+        isError: true
+      });
+      setShowStatusModal(true);
+      console.error('Error mobilizing equipment:', error);
+    }
+  };
+
+  const closeMobilizeModal = () => {
+    setShowMobilizeModal(false);
+    setSelectedEquipmentForAction(null);
+    setMobilizeForm({
+      site: '',
+      operator: '',
+      operatorId: '',
+      withOperator: false,
+      remarks: ''
+    });
+  };
+
+  // 2. DEMOBILIZE EQUIPMENT HANDLER
+  const handleDemobilizeClick = (e, equipment) => {
+    e.stopPropagation();
+    triggerVibration();
+    setSelectedEquipmentForAction(equipment);
+    setShowDemobilizeModal(true);
+  };
+
+  const handleDemobilizeSubmit = async (e) => {
+    e?.preventDefault();
+
+    if (!selectedEquipmentForAction) return;
+
+    const { month, year, time } = getCurrentDateTime();
+
+    const demobilizeData = {
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
+      month,
+      year,
+      time,
+      remarks: ''
+    };
+
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/equipments/demobilize-equipment`,
+        'POST',
+        demobilizeData
+      );
+
+      const data = await response.json();
+      setShowDemobilizeModal(false);
+
+      if (data.ok) {
+        setDeleteStatus({
+          message: `Equipment ${selectedEquipmentForAction.regNo} successfully demobilized.`,
+          isError: false
+        });
+        fetchEquipments(1, false);
+      } else {
+        setDeleteStatus({
+          message: data.message || 'Failed to demobilize equipment.',
+          isError: true
+        });
+      }
+      setShowStatusModal(true);
+    } catch (error) {
+      setShowDemobilizeModal(false);
+      setDeleteStatus({
+        message: 'Error demobilizing equipment: ' + error.message,
+        isError: true
+      });
+      setShowStatusModal(true);
+      console.error('Error demobilizing equipment:', error);
+    }
+  };
+
+  const closeDemobilizeModal = () => {
+    setShowDemobilizeModal(false);
+    setSelectedEquipmentForAction(null);
+  };
+
+  const handleReplaceOperatorClick = (e, equipment) => {
+    e.stopPropagation();
+    triggerVibration();
+    setSelectedEquipmentForAction(equipment);
+
+    const currentOperatorName = getOperatorName(equipment.certificationBody);
+    const currentOperatorId = getOperatorId(equipment.certificationBody, operator);
+
+    setReplaceOperatorForm({
+      currentOperator: currentOperatorName,
+      currentOperatorId: currentOperatorId,
+      replacedOperator: '',
+      replacedOperatorId: '',
+      remarks: ''
+    });
+    setShowReplaceOperatorModal(true);
+  };
+
+  const handleReplaceOperatorSubmit = async (e) => {
+    e?.preventDefault();
+
+    if (!selectedEquipmentForAction) return;
+
+    const { month, year, time } = getCurrentDateTime();
+
+    const replaceData = {
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
+      currentOperator: replaceOperatorForm.currentOperator,
+      currentOperatorId: replaceOperatorForm.currentOperatorId,
+      replacedOperator: replaceOperatorForm.replacedOperator,
+      replacedOperatorId: replaceOperatorForm.replacedOperatorId,
+      month,
+      year,
+      time,
+      remarks: replaceOperatorForm.remarks
+    };
+
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/equipments/replace-operator`,
+        'POST',
+        replaceData
+      );
+
+      const data = await response.json();
+      setShowReplaceOperatorModal(false);
+
+      if (data.ok) {
+        setDeleteStatus({
+          message: `Operator replaced successfully. New operator: ${replaceOperatorForm.replacedOperator}`,
+          isError: false
+        });
+        fetchEquipments(1, false);
+        closeSidebar();
+      } else {
+        setDeleteStatus({
+          message: data.message || 'Failed to replace operator.',
+          isError: true
+        });
+      }
+      setShowStatusModal(true);
+    } catch (error) {
+      setShowReplaceOperatorModal(false);
+      setDeleteStatus({
+        message: 'Error replacing operator: ' + error.message,
+        isError: true
+      });
+      setShowStatusModal(true);
+      console.error('Error replacing operator:', error);
+    }
+  };
+
+  const closeReplaceOperatorModal = () => {
+    setShowReplaceOperatorModal(false);
+    setSelectedEquipmentForAction(null);
+    setReplaceOperatorForm({
+      currentOperator: '',
+      currentOperatorId: '',
+      replacedOperator: '',
+      replacedOperatorId: '',
+      remarks: ''
+    });
+  };
+
+  // 4. REPLACE EQUIPMENT HANDLER
+  const handleReplaceEquipmentClick = (e, equipment) => {
+    e.stopPropagation();
+    triggerVibration();
+    setSelectedEquipmentForAction(equipment);
+    setReplaceEquipmentForm({
+      replacedEquipmentId: '',
+      replacedEquipmentRegNo: '',
+      replacedEquipmentMachine: '',
+      newSiteForReplaced: '',
+      remarks: ''
+    });
+    setShowReplaceEquipmentModal(true);
+  };
+
+  const handleReplaceEquipmentSubmit = async (e) => {
+    e?.preventDefault();
+
+    if (!selectedEquipmentForAction) return;
+
+    const { month, year, time } = getCurrentDateTime();
+
+    const replaceData = {
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
+      replacedEquipmentId: replaceEquipmentForm.replacedEquipmentId,
+      replacedEquipmentRegNo: replaceEquipmentForm.replacedEquipmentRegNo,
+      replacedEquipmentMachine: replaceEquipmentForm.replacedEquipmentMachine,
+      newSiteForReplaced: replaceEquipmentForm.newSiteForReplaced || null,
+      month,
+      year,
+      time,
+      remarks: replaceEquipmentForm.remarks
+    };
+
+    try {
+      const response = await apiRequest(
+        `${END_POINT}/equipments/replace-equipment`,
+        'POST',
+        replaceData
+      );
+
+      const data = await response.json();
+      setShowReplaceEquipmentModal(false);
+
+      if (data.ok) {
+        setDeleteStatus({
+          message: `Equipment replaced successfully. ${replaceEquipmentForm.replacedEquipmentRegNo} now at site.`,
+          isError: false
+        });
+        fetchEquipments(1, false);
+      } else {
+        setDeleteStatus({
+          message: data.message || 'Failed to replace equipment.',
+          isError: true
+        });
+      }
+      setShowStatusModal(true);
+    } catch (error) {
+      setShowReplaceEquipmentModal(false);
+      setDeleteStatus({
+        message: 'Error replacing equipment: ' + error.message,
+        isError: true
+      });
+      setShowStatusModal(true);
+      console.error('Error replacing equipment:', error);
+    }
+  };
+
+  const closeReplaceEquipmentModal = () => {
+    setShowReplaceEquipmentModal(false);
+    setSelectedEquipmentForAction(null);
+    setReplaceEquipmentForm({
+      replacedEquipmentId: '',
+      replacedEquipmentRegNo: '',
+      replacedEquipmentMachine: '',
+      newSiteForReplaced: '',
+      remarks: ''
+    });
+    setReplaceEquipmentSearch('');
+    setReplaceEquipmentResults([]);
+    setShowReplaceEquipmentDropdown(false);
+  };
+
+  const getOperatorName = (certificationBody) => {
+    if (!Array.isArray(certificationBody) || certificationBody.length === 0) return 'N/A';
+
+    const lastItem = certificationBody[certificationBody.length - 1];
+
+    if (typeof lastItem === 'string') return lastItem.toUpperCase();
+    if (lastItem?.operatorName) return lastItem.operatorName.toUpperCase();
+    return 'N/A';
+  };
+
+  const getOperatorId = (certificationBody, operatorList) => {
+    if (!Array.isArray(certificationBody) || certificationBody.length === 0) return '';
+
+    const lastItem = certificationBody[certificationBody.length - 1];
+    const operatorName = typeof lastItem === 'string' ? lastItem : lastItem?.operatorName;
+
+    if (!operatorName) return '';
+
+    const found = operatorList.find(op => op.name === operatorName);
+    return found?._id || found?.id || '';
+  };
+
   const renderSidebarContent = () => {
     if (!sidebarContent) return null;
 
@@ -1568,23 +2027,19 @@ function Equipments() {
               <div className="detail-row">
                 <span className="detail-row-label">Current Operator</span>
                 <span className="detail-row-value">
-                  {item.certificationBody && item.certificationBody.length > 0
-                    ? item.certificationBody[item.certificationBody.length - 1]
-                    : 'N/A'}
+                  {getOperatorName(item.certificationBody)}
                 </span>
               </div>
               {!isSelectMode && (
                 <Button
                   text="Replace Operator"
-                  onClick={() => handleViewDetails(item)}
-                  colorScheme="amber-500"
+                  onClick={(e) => handleReplaceOperatorClick(e, item)}
+                  colorScheme="violet-500"
                   variant="gradient"
                   font="xl"
-                  animation=""
                   squircle="4xl"
                   width="200px"
                   height="58px"
-                  type="submit"
                   textColor="black-200"
                   shadowPosition="to-bottom"
                   shadowColor="white-600"
@@ -1592,21 +2047,29 @@ function Equipments() {
               )}
             </div>
             {item.certificationBody && item.certificationBody.length > 1 && (
-              <div className="detail-row">
-                <span className="detail-row-label">All Operators</span>
-                <span className="detail-row-value">
-                  <button
-                    className="view-details-btn"
+              <div className="detail-row-actions">
+                <div className="detail-row">
+                  <span className="detail-row-label">All Operators</span>
+                </div>
+                {!isSelectMode && (
+                  <Button
+                    text={`View All (${item.certificationBody.length})`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSidebarContent({ type: 'operators', data: item.certificationBody });
                       setSidebarTitle('All Operators');
                     }}
-                    style={{ padding: '4px 12px', fontSize: '12px' }}
-                  >
-                    View All ({item.certificationBody.length})
-                  </button>
-                </span>
+                    colorScheme="amber-500"
+                    variant="gradient"
+                    font="xl"
+                    squircle="4xl"
+                    width="160px"
+                    height="58px"
+                    textColor="black-200"
+                    shadowPosition="to-bottom"
+                    shadowColor="white-600"
+                  />
+                )}
               </div>
             )}
           </div>
@@ -1668,7 +2131,7 @@ function Equipments() {
               {sidebarContent.data.map((operator, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
-                  <td>{operator.toUpperCase()}</td>
+                  <td>{typeof operator === 'string' ? operator.toUpperCase() : operator?.operatorName?.toUpperCase() || 'N/A'}</td>
                 </tr>
               ))}
             </tbody>
@@ -1901,7 +2364,7 @@ function Equipments() {
         <div className="buttons-container">
           <Button
             text="Recent Activities"
-            onClick={() => handleQuickServices()}
+            onClick={() => navigate('/operations-recent-activities')}
             colorScheme="blue-400"
             variant="gradient"
             font="md"
@@ -2089,10 +2552,9 @@ function Equipments() {
                       <div className="detail-item">
                         <span className="detail-label">Operator</span>
                         <span className="detail-value">
-                          {item.certificationBody && item.certificationBody.length > 0
-                            ? item.certificationBody[item.certificationBody.length - 1].toUpperCase()
-                            : 'N/A'}
+                          {getOperatorName(item.certificationBody)}
                         </span>
+
                       </div>
                       <div className="detail-item">
                         <span className="detail-label">Site</span>
@@ -2171,15 +2633,13 @@ function Equipments() {
                       {!isSelectMode && (
                         <Button
                           text="Mobilize"
-                          onClick={() => handleViewDetails(item)}
+                          onClick={(e) => handleMobilizeClick(e, item)}
                           colorScheme="lime-400"
                           variant="gradient"
                           font="md"
-                          animation=""
                           squircle="4xl"
                           width="225px"
                           height="38px"
-                          type="submit"
                           textColor="black-200"
                           shadowPosition="to-bottom"
                           shadowColor="white-600"
@@ -2188,15 +2648,13 @@ function Equipments() {
                       {!isSelectMode && (
                         <Button
                           text="Demobilize"
-                          onClick={() => handleViewDetails(item)}
+                          onClick={(e) => handleDemobilizeClick(e, item)}
                           colorScheme="fuchsia-500"
                           variant="gradient"
                           font="md"
-                          animation=""
                           squircle="4xl"
                           width="225px"
                           height="38px"
-                          type="submit"
                           textColor="black-200"
                           shadowPosition="to-bottom"
                           shadowColor="white-600"
@@ -2295,9 +2753,7 @@ function Equipments() {
                             <div className="detail-item">
                               <span className="detail-label">Operator</span>
                               <span className="detail-value">
-                                {item.certificationBody && item.certificationBody.length > 0
-                                  ? item.certificationBody[item.certificationBody.length - 1]
-                                  : 'N/A'}
+                                {getOperatorName(item.certificationBody)}
                               </span>
                             </div>
                           </div>
@@ -2349,7 +2805,7 @@ function Equipments() {
                             />
                             <Button
                               text="Replace Equipment"
-                              onClick={() => handleViewDetails(item)}
+                              onClick={(e) => handleReplaceEquipmentClick(e, item)}  // ✅ CORRECT
                               colorScheme="lime-400"
                               variant="gradient"
                               font="sm"
@@ -2500,8 +2956,27 @@ function Equipments() {
           { name: 'brand', label: 'Brand', type: 'text', placeholder: 'Enter brand', required: true },
           { name: 'year', label: 'Year', type: 'text', placeholder: 'Enter year', required: true },
           { name: 'company', label: 'Company', type: 'text', placeholder: 'Enter company', required: true },
-          { name: 'operator', label: 'Operator', type: 'text', placeholder: 'Enter operator name', required: true },
-          { name: 'site', label: 'Site', type: 'text', placeholder: 'Enter site', required: true },
+          {
+            name: 'operator',
+            label: 'Operator',
+            type: 'search-select',
+            placeholder: 'Search operator...',
+            required: true,
+            options: operator.map(op => ({
+              label: op.name,
+              value: op.name,
+              id: op._id || op.id
+            }))
+          },
+          {
+            name: 'site',
+            label: 'Site',
+            type: 'search-select',
+            placeholder: 'Search or add site...',
+            required: true,
+            options: sites.map(s => ({ label: s, value: s })),
+            onSearchFocus: handleSiteFetchOnFocus
+          },
           {
             name: 'status',
             label: 'Status',
@@ -2517,7 +2992,19 @@ function Equipments() {
           }
         ]}
         formValues={editFormData}
-        onFormChange={(field, value) => setEditFormData({ ...editFormData, [field]: value })}
+        onFormChange={(field, value) => {
+          if (field === 'operator') {
+            // Find the selected operator to get their ID
+            const selectedOp = operator.find(op => op.name === value);
+            setEditFormData({
+              ...editFormData,
+              operator: value,
+              operatorId: selectedOp?._id || selectedOp?.id || '' // Store operator ID
+            });
+          } else {
+            setEditFormData({ ...editFormData, [field]: value });
+          }
+        }}
         buttonText="Save Changes"
         onButtonClick={handleUpdateEquipment}
         secondaryButtonText="Cancel"
@@ -2699,6 +3186,200 @@ function Equipments() {
         message="Fetching equipment information, please wait..."
         progress={equipmentProgress}
         progressText="Loading..."
+      />
+
+      <DevModal
+        isOpen={showMobilizeModal}
+        onClose={closeMobilizeModal}
+        type="form"
+        title={`Mobilize Equipment - ${selectedEquipmentForAction?.regNo || ''}`}
+        message="Fill in the mobilization details"
+        formFields={[
+          {
+            name: 'site',
+            label: 'Site',
+            type: 'search-select',
+            placeholder: 'Search or add site...',
+            required: true,
+            options: sites.map(s => ({ label: s, value: s })),
+            onSearchFocus: handleSiteFetchOnFocus
+          },
+          {
+            name: 'remarks',
+            label: 'Remarks (Optional)',
+            type: 'textarea',
+            placeholder: 'Add any additional notes'
+          },
+          {
+            name: 'withOperator',
+            label: 'With Operator',
+            type: 'checkbox',
+            description: 'Check if equipment has an operator'
+          },
+          {
+            name: 'operator',
+            label: 'Operator Name',
+            type: 'search-select',
+            placeholder: 'Search operator...',
+            required: mobilizeForm.withOperator,
+            disabled: !mobilizeForm.withOperator,
+            options: operator.map(op => ({
+              label: op.name,
+              value: op.name,
+              id: op._id || op.id  // ✅ Include ID in options
+            }))
+          },
+        ]}
+        formValues={mobilizeForm}
+        onFormChange={(field, value) => {
+          if (field === 'operator') {
+            // ✅ Find operator and set both name and ID
+            const selectedOp = operator.find(op => op.name === value);
+            setMobilizeForm({
+              ...mobilizeForm,
+              operator: value,
+              operatorId: selectedOp?._id || selectedOp?.id || ''
+            });
+          } else {
+            setMobilizeForm({ ...mobilizeForm, [field]: value });
+          }
+        }}
+        buttonText="Mobilize Equipment"
+        onButtonClick={handleMobilizeSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeMobilizeModal}
+      />
+
+      {/* Demobilize Equipment Modal */}
+      <DevModal
+        isOpen={showDemobilizeModal}
+        onClose={closeDemobilizeModal}
+        type="warning"
+        title={`Demobilize Equipment - ${selectedEquipmentForAction?.regNo || ''}`}
+        message={`Are you sure you want to demobilize ${selectedEquipmentForAction?.machine || 'this equipment'}? This will set the equipment status to IDLE.`}
+        buttonText="Demobilize"
+        onButtonClick={handleDemobilizeSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeDemobilizeModal}
+      />
+
+      {/* Replace Operator Modal */}
+      <DevModal
+        isOpen={showReplaceOperatorModal}
+        onClose={closeReplaceOperatorModal}
+        type="form"
+        title={`Replace Operator - ${selectedEquipmentForAction?.regNo || ''}`}
+        message="Enter the new operator details"
+        formFields={[
+          {
+            name: 'currentOperator',
+            label: 'Current Operator',
+            type: 'text',
+            disabled: true
+          },
+          {
+            name: 'replacedOperator',
+            label: 'New Operator',
+            type: 'search-select',
+            placeholder: 'Search operator...',
+            required: true,
+            options: operator.map(op => ({
+              label: op.name,
+              value: op.name,
+              id: op._id || op.id
+            }))
+          },
+          {
+            name: 'remarks',
+            label: 'Remarks (Optional)',
+            type: 'textarea',
+            placeholder: 'Reason for replacement or notes'
+          }
+        ]}
+        formValues={replaceOperatorForm}
+        onFormChange={(field, value) => {
+          if (field === 'replacedOperator') {
+            const selectedOp = operator.find(op => op.name === value);
+            setReplaceOperatorForm({
+              ...replaceOperatorForm,
+              replacedOperator: value,
+              replacedOperatorId: selectedOp?._id || selectedOp?.id || ''
+            });
+          } else {
+            setReplaceOperatorForm({ ...replaceOperatorForm, [field]: value });
+          }
+        }}
+        buttonText="Replace Operator"
+        onButtonClick={handleReplaceOperatorSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeReplaceOperatorModal}
+      />
+
+      {/* Replace Equipment Modal */}
+      <DevModal
+        isOpen={showReplaceEquipmentModal}
+        onClose={closeReplaceEquipmentModal}
+        type="form"
+        title={`Replace Equipment - ${selectedEquipmentForAction?.regNo || ''}`}
+        message={`Current equipment will be replaced. Current site: ${selectedEquipmentForAction?.site || 'N/A'}`}
+        formFields={[
+          {
+            name: 'replacedEquipmentRegNo',
+            label: 'New Equipment Reg No',
+            type: 'search-select',
+            placeholder: 'Search equipment by reg no...',
+            required: true,
+            options: replaceEquipmentResults.map(eq => ({
+              label: `${eq.regNo} - ${eq.machine}`,
+              value: eq.regNo
+            }))
+          },
+          {
+            name: 'replacedEquipmentMachine',
+            label: 'New Equipment Machine',
+            type: 'text',
+            placeholder: 'Auto-filled',
+            disabled: true  // Auto-filled from search selection
+          },
+          {
+            name: 'newSiteForReplaced',
+            label: 'New Site for Current Equipment (Optional)',
+            type: 'search-select',
+            placeholder: 'Search or add site...',
+            options: sites.map(s => ({ label: s, value: s })),
+            onSearchFocus: handleSiteFetchOnFocus
+          },
+          {
+            name: 'remarks',
+            label: 'Remarks (Optional)',
+            type: 'textarea',
+            placeholder: 'Reason for replacement or notes'
+          }
+        ]}
+        formValues={replaceEquipmentForm}
+        onFormChange={(field, value) => {
+          if (field === 'replacedEquipmentRegNo') {
+            setReplaceEquipmentSearch(value);
+            handleReplaceEquipmentSearch(value);
+            const selected = replaceEquipmentResults.find(eq => eq.regNo === value);
+            if (selected) {
+              handleReplaceEquipmentSelect(selected);
+            } else {
+              setReplaceEquipmentForm(prev => ({
+                ...prev,
+                replacedEquipmentRegNo: value,
+                replacedEquipmentMachine: '',
+                replacedEquipmentId: ''
+              }));
+            }
+          } else {
+            setReplaceEquipmentForm(prev => ({ ...prev, [field]: value }));
+          }
+        }}
+        buttonText="Replace Equipment"
+        onButtonClick={handleReplaceEquipmentSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeReplaceEquipmentModal}
       />
 
       {/* Fullscreen Image Viewer */}

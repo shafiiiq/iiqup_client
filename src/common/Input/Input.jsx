@@ -55,7 +55,7 @@ const Input = ({
     size = 'md',
     fontSize = 'md',
     fontWeight = '300',
-    width = 'auto',
+    width = '100%',
     height = 'auto',
     fullWidth = false,
     rounded = 'md',
@@ -150,6 +150,11 @@ const Input = ({
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [selectedHour, setSelectedHour] = useState(12);
+    const [selectedMinute, setSelectedMinute] = useState(0);
+    const [selectedPeriod, setSelectedPeriod] = useState('AM');
+    const [is24Hour, setIs24Hour] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isClicked, setIsClicked] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -167,11 +172,40 @@ const Input = ({
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsOpen(false);
                 setShowDatePicker(false);
+                setShowTimePicker(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (inputValue && type === 'time') {
+            const [hours, minutes] = inputValue.split(':');
+            const hour24 = parseInt(hours);
+            const minute = parseInt(minutes);
+
+            if (is24Hour) {
+                setSelectedHour(hour24);
+            } else {
+                // Convert 24h to 12h format
+                if (hour24 === 0) {
+                    setSelectedHour(12);
+                    setSelectedPeriod('AM');
+                } else if (hour24 === 12) {
+                    setSelectedHour(12);
+                    setSelectedPeriod('PM');
+                } else if (hour24 > 12) {
+                    setSelectedHour(hour24 - 12);
+                    setSelectedPeriod('PM');
+                } else {
+                    setSelectedHour(hour24);
+                    setSelectedPeriod('AM');
+                }
+            }
+            setSelectedMinute(minute);
+        }
+    }, [inputValue, is24Hour, type]);
 
     const parseColor = (colorStr) => {
         if (!colorStr) return null;
@@ -1016,6 +1050,226 @@ const Input = ({
         );
     };
 
+    const renderTime = () => {
+        const formatTime = (timeStr) => {
+            if (!timeStr) return '';
+            const [hours, minutes] = timeStr.split(':');
+            const hour24 = parseInt(hours);
+            const minute = parseInt(minutes);
+
+            if (is24Hour) {
+                return `${String(hour24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+            } else {
+                const period = hour24 >= 12 ? 'PM' : 'AM';
+                let hour12 = hour24 % 12;
+                if (hour12 === 0) hour12 = 12;
+                return `${String(hour12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`;
+            }
+        };
+
+        const handleTimeSelect = (hour, minute, period) => {
+            let hour24;
+            if (is24Hour) {
+                hour24 = hour;
+            } else {
+                // Convert 12h to 24h format
+                if (period === 'AM') {
+                    hour24 = hour === 12 ? 0 : hour;
+                } else {
+                    hour24 = hour === 12 ? 12 : hour + 12;
+                }
+            }
+
+            const timeStr = `${String(hour24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+            setInputValue(timeStr);
+            setDisplayValue(timeStr);
+            onChange({ target: { name, value: timeStr } });
+        };
+
+        const handleHourSelect = (hour) => {
+            setSelectedHour(hour);
+            handleTimeSelect(hour, selectedMinute, selectedPeriod);
+        };
+
+        const handleMinuteSelect = (minute) => {
+            setSelectedMinute(minute);
+            handleTimeSelect(selectedHour, minute, selectedPeriod);
+        };
+
+        const handleFormatToggle = () => {
+            setIs24Hour(!is24Hour);
+        };
+
+        const hours24 = Array.from({ length: 24 }, (_, i) => i);
+        const hours12 = Array.from({ length: 12 }, (_, i) => i + 1);
+        const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+        return (
+            <div className="custom-input-time-wrapper" ref={dropdownRef} style={{ width: width }}>
+                <input
+                    ref={hiddenInputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={() => { }}
+                    style={{ display: 'none' }}
+                    name={name}
+                    id={id}
+                />
+                <div
+                    className="custom-input-time-trigger"
+                    onClick={() => {
+                        if (!disabled) {
+                            setShowTimePicker(!showTimePicker);
+                            setIsFocused(!showTimePicker);
+                        }
+                    }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    style={getBaseStyles()}
+                >
+                    {iconLeft && renderIcon(iconLeft, 'left')}
+                    <span className="custom-input-time-text">
+                        {inputValue ? (
+                            <span style={{ color: getTextColor() }}>{formatTime(inputValue)}</span>
+                        ) : (
+                            <span style={{ color: getPlaceholderColor() }}>{placeholder || 'Select time...'}</span>
+                        )}
+                    </span>
+                    {renderIcon(iconRight || 'schedule', 'right')}
+                </div>
+
+                {showTimePicker && (
+                    <div className="custom-input-time-picker" style={{
+                        ...getBaseStyles(),
+                        height: 'auto',
+                        padding: 'clamp(12px, 2%, 20px)',
+                    }}>
+                        {/* Format Toggle */}
+                        <div className="custom-input-time-format-toggle">
+                            <button
+                                type="button"
+                                onClick={handleFormatToggle}
+                                className="custom-input-time-format-btn"
+                                style={{
+                                    color: getTextColor(),
+                                    background: `${mainColor}20`,
+                                    borderRadius: getBorderRadius(),
+                                }}
+                            >
+                                {is24Hour ? '24H' : '12H'}
+                            </button>
+                        </div>
+
+                        {/* Time Selection */}
+                        <div className="custom-input-time-selection">
+                            {/* Hours Column */}
+                            <div className="custom-input-time-column">
+                                <div className="custom-input-time-column-label" style={{ color: getTextColor() }}>
+                                    Hours
+                                </div>
+                                <div className="custom-input-time-column-scroll">
+                                    {(is24Hour ? hours24 : hours12).map((hour) => (
+                                        <div
+                                            key={hour}
+                                            className={`custom-input-time-option ${selectedHour === hour ? 'custom-input-time-selected' : ''}`}
+                                            onClick={() => handleHourSelect(hour)}
+                                            style={{
+                                                color: getTextColor(),
+                                                background: selectedHour === hour ? mainColor : 'transparent',
+                                                borderRadius: getBorderRadius(),
+                                            }}
+                                        >
+                                            {String(hour).padStart(2, '0')}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Minutes Column */}
+                            <div className="custom-input-time-column">
+                                <div className="custom-input-time-column-label" style={{ color: getTextColor() }}>
+                                    Minutes
+                                </div>
+                                <div className="custom-input-time-column-scroll">
+                                    {minutes.map((minute) => (
+                                        <div
+                                            key={minute}
+                                            className={`custom-input-time-option ${selectedMinute === minute ? 'custom-input-time-selected' : ''}`}
+                                            onClick={() => handleMinuteSelect(minute)}
+                                            style={{
+                                                color: getTextColor(),
+                                                background: selectedMinute === minute ? mainColor : 'transparent',
+                                                borderRadius: getBorderRadius(),
+                                            }}
+                                        >
+                                            {String(minute).padStart(2, '0')}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* AM/PM Toggle (12-hour format only) */}
+                            {!is24Hour && (
+                                <div className="custom-input-time-column custom-input-time-period-column">
+                                    <div className="custom-input-time-column-label" style={{ color: getTextColor() }}>
+                                        Period
+                                    </div>
+                                    <div className="custom-input-time-period-toggle">
+                                        <div
+                                            className={`custom-input-time-period-option ${selectedPeriod === 'AM' ? 'custom-input-time-period-selected' : ''}`}
+                                            onClick={() => {
+                                                setSelectedPeriod('AM');
+                                                handleTimeSelect(selectedHour, selectedMinute, 'AM');
+                                            }}
+                                            style={{
+                                                color: selectedPeriod === 'AM' ? 'white' : getTextColor(),
+                                                background: selectedPeriod === 'AM' ? mainColor : `${mainColor}20`,
+                                                borderRadius: getBorderRadius(),
+                                            }}
+                                        >
+                                            AM
+                                        </div>
+                                        <div
+                                            className={`custom-input-time-period-option ${selectedPeriod === 'PM' ? 'custom-input-time-period-selected' : ''}`}
+                                            onClick={() => {
+                                                setSelectedPeriod('PM');
+                                                handleTimeSelect(selectedHour, selectedMinute, 'PM');
+                                            }}
+                                            style={{
+                                                color: selectedPeriod === 'PM' ? 'white' : getTextColor(),
+                                                background: selectedPeriod === 'PM' ? mainColor : `${mainColor}20`,
+                                                borderRadius: getBorderRadius(),
+                                            }}
+                                        >
+                                            PM
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Apply Button */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowTimePicker(false);
+                                setIsFocused(false);
+                            }}
+                            className="custom-input-time-apply-btn"
+                            style={{
+                                color: 'white',
+                                background: mainColor,
+                                borderRadius: getBorderRadius(),
+                            }}
+                        >
+                            Apply
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const renderTextarea = () => {
         return (
             <div className="custom-input-textarea-wrapper" style={{ width: width }}>
@@ -1102,10 +1356,12 @@ const Input = ({
         if (type === 'radio') return renderRadio();
         if (type === 'file') return renderFile();
         if (type === 'date') return renderDate();
+        if (type === 'time') return renderTime();
         if (type === 'textarea') return renderTextarea();
 
         return renderTextInput();
     };
+
     const containerClasses = [
         'custom-input-container',
         `custom-input-${size}`,

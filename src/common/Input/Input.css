@@ -945,6 +945,194 @@
   animation: custom-input-shake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
 }
 
+/* Time Input - Custom Picker */
+.custom-input-time-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-input-time-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--db-transition-smooth);
+}
+
+.custom-input-time-trigger:hover {
+  transform: translateY(-2px);
+}
+
+.custom-input-time-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-input-time-picker {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  animation: custom-input-dropdown-open 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.custom-input-time-format-toggle {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.custom-input-time-format-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--db-transition);
+  font-family: inherit;
+}
+
+.custom-input-time-format-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.custom-input-time-selection {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.custom-input-time-column {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-input-time-period-column {
+  flex: 1;
+}
+
+.custom-input-time-column-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+  padding: 8px;
+  opacity: 0.8;
+}
+
+.custom-input-time-column-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.custom-input-time-option {
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--db-transition);
+  border: 2px solid transparent;
+}
+
+.custom-input-time-option:hover {
+  opacity: 0.7;
+  transform: scale(1.05);
+  border-color: currentColor;
+}
+
+.custom-input-time-selected {
+  font-weight: 700;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+.custom-input-time-period-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+}
+
+.custom-input-time-period-option {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--db-transition);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-input-time-period-option:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.custom-input-time-period-selected {
+  transform: scale(1.05);
+}
+
+.custom-input-time-apply-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--db-transition);
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-input-time-apply-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Responsive Time Picker */
+@media (max-width: 768px) {
+  .custom-input-time-picker {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 320px;
+  }
+
+  .custom-input-time-column-scroll {
+    max-height: 150px;
+  }
+
+  .custom-input-time-option {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 768px) {
 
   .custom-input-field,

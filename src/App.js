@@ -5,6 +5,8 @@ import { SearchProvider } from './context/SearchContext';
 import { HeaderTitleProvider } from './context/HeaderTitleContext';
 import { HeaderVibrationProvider } from './context/HeaderVibrationContext';
 import { AlertProvider } from './context/AlertContext';
+import { END_POINT } from './constants';
+import { apiRequest } from './utils/0auth';
 
 import Home from './Components/Home/Home';
 import ServiceDoc from './Components/ServiceDoc/ServiceDoc';
@@ -47,11 +49,9 @@ import NotFound from './common/NotFound/NotFound';
 import LiveChat from './Components/LiveChat/LiveChat';
 import ServiceHistorySummary from './Components/ServiceHistorySummary/ServiceHistorySummary';
 import Intro from './common/Intro/Intro';
-import './App.css'
-  ;
 import Explore from './common/Explore/Explore';
-import { apiRequest } from './utils/0auth';
-import { END_POINT } from './constants';
+import OperationsActivities from './Components/OperationsActivities/OperationsActivities';
+import './App.css';
 
 export const ServiceReportContext = createContext();
 export const AuthContext = createContext();
@@ -61,7 +61,7 @@ const HEADERLESS_ROUTES = [
   '/',
   '/not-found',
   '/splash',
-  '/intro'
+  '/intro',
 ];
 
 const HEADERLESS_PREFIXES = [
@@ -79,7 +79,8 @@ const isValidRoute = (pathname) => {
     '/complaints', '/application-form', '/application-hr', '/toolkits',
     '/mechanics', '/mechanics-forms', '/operators', '/live-chat',
     '/splash', '/intro', '/not-found', '/dev-modal',
-    '/stocks/equipment-stocks', '/service-histoy/summary', '/lpo-list'
+    '/stocks/equipment-stocks', '/service-histoy/summary', '/lpo-list',
+    '/operations-recent-activities'
   ];
 
   const validPrefixes = [
@@ -1123,6 +1124,18 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
+                  <Route
+                    path="/operations-recent-activities"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <OperationsActivities />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
                   <Route
                     path="/live-chat"
                     element={
