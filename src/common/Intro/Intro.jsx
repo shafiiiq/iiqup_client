@@ -7,6 +7,16 @@ import { useNavigate } from 'react-router';
 function Intro() {
     const navigate = useNavigate()
     const [isDisintegrating, setIsDisintegrating] = useState(false)
+    const [splineError, setSplineError] = useState(false);
+
+    useEffect(() => {
+        if (splineError) {
+            localStorage.setItem('hasSeenIntro', 'true');
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+        }
+    }, [splineError, navigate]);
 
     const handleLoginClick = () => {
         localStorage.setItem('hasSeenIntro', 'true')
@@ -128,7 +138,13 @@ function Intro() {
             <Spline
                 scene="https://prod.spline.design/EJOAGj7lECfjI9oi/scene.splinecode"
                 style={{ width: '100%', height: '105vh' }}
+                onError={() => setSplineError(true)}
             />
+            {splineError && (
+                <div className="spline-fallback">
+                    <p>Loading...</p>
+                </div>
+            )}
         </div>
     )
 }

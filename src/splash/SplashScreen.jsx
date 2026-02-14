@@ -6,6 +6,17 @@ import Spline from '@splinetool/react-spline';
 function SplashScreen() {
   const processingRef = useRef(null);
   const [splineLoaded, setSplineLoaded] = useState(false);
+  const [splineError, setSplineError] = useState(false);
+
+  useEffect(() => {
+    if (splineError) {
+      const timer = setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [splineError]);
 
   useEffect(() => {
     const text = "Setting things up for you";
@@ -46,11 +57,17 @@ function SplashScreen() {
           <Spline
             scene="https://prod.spline.design/0yhU6N4dQxKeYrkc/scene.splinecode"
             onLoad={handleSplineLoad}
+            onError={() => setSplineError(true)}
             style={{
               width: '100%',
               height: '105vh',
             }}
           />
+          {splineError && (
+            <div className="spline-fallback">
+              <p>Loading...</p>
+            </div>
+          )}
         </div>
 
         <div className="splash-info-knw-wrapper">
