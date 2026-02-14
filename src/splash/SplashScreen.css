@@ -111,6 +111,7 @@
     font-weight: 300;
     opacity: 0;
     animation: fadeIn 0.8s ease-out 1.5s forwards;
+    color: var(--color-white);
 }
 
 .splash-info-knw .infomation-buttons {

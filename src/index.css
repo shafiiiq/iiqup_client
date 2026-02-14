@@ -17,7 +17,7 @@
 }
 
 body {
-  background: var(--gradient-primary-700);
+  background: var(--color-black);
   min-height: 100vh;
   color: var(--text-color);
   overflow-x: hidden;
