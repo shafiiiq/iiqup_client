@@ -25,6 +25,14 @@ const Login = ({ setUserLoggedIn }) => {
   const [canResend, setCanResend] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
+  const [splineError, setSplineError] = useState(false);
+
+  useEffect(() => {
+    if (splineError) {
+      // Just hide the Spline, don't redirect
+      console.log('Spline failed to load in Login');
+    }
+  }, [splineError]);
 
   // OTP countdown timer
   useEffect(() => {
@@ -402,7 +410,12 @@ const Login = ({ setUserLoggedIn }) => {
           <Spline
             scene="https://prod.spline.design/LCYzYZEH1lngG-Tq/scene.splinecode"
             style={{ width: '100%', height: '105vh' }}
+            onError={() => setSplineError(true)}
           />
+          {splineError && (
+            <div className="spline-fallback">
+            </div>
+          )}
           <div className="auth-info">
             <h1 className={error ? 'auth-title auth-subtitle-error' : 'auth-title'}>
               {error ? 'Please be here' : (step === 'otp' ? "We've sent an OTP" : (step === 'updateAuthMail' ? "Set up your security" : 'Step forward'))}
