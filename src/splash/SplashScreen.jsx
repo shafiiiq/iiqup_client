@@ -2,17 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import Button from "../common/Button/Button";
 import "./SplashScreen.css";
 import Spline from '@splinetool/react-spline';
+import { checkWebGLSupport } from "../utils/compatibilty";
 
 function SplashScreen() {
   const processingRef = useRef(null);
   const [splineLoaded, setSplineLoaded] = useState(false);
   const [splineError, setSplineError] = useState(false);
+  const [supportsWebGL, setSupportsWebGL] = useState(true);
+
+  useEffect(() => {
+    const hasWebGL = checkWebGLSupport();
+    setSupportsWebGL(hasWebGL);
+
+    if (!hasWebGL) {
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+    }
+  }, []);
 
   useEffect(() => {
     if (splineError) {
+      console.log('Auto-redirecting to login from splash');
       const timer = setTimeout(() => {
         window.location.href = '/login';
-      }, 2000);
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
@@ -54,19 +68,18 @@ function SplashScreen() {
       <div className={`splash-content ${splineLoaded ? 'loaded' : ''}`}>
         <div className="splash-heroic">
           <div className="heroic-overlay"></div>
-          <Spline
-            scene="https://prod.spline.design/0yhU6N4dQxKeYrkc/scene.splinecode"
-            onLoad={handleSplineLoad}
-            onError={() => setSplineError(true)}
-            style={{
-              width: '100%',
-              height: '105vh',
-            }}
-          />
-          {splineError && (
-            <div className="spline-fallback">
-              <p>Loading...</p>
-            </div>
+          {supportsWebGL ? (
+            <Spline
+              scene="https://prod.spline.design/0yhU6N4dQxKeYrkc/scene.splinecode"
+              onLoad={handleSplineLoad}
+              onError={() => setSplineError(true)}
+              style={{
+                width: '100%',
+                height: '105vh',
+              }}
+            />
+          ) : (
+            <div className="spline-fallback">  </div>
           )}
         </div>
 

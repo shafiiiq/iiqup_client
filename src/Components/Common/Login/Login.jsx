@@ -7,6 +7,7 @@ import Button from '../../../common/Button/Button';
 import logoImage from '../../../assets/images/al-ansari.png';
 import Spline from '@splinetool/react-spline';
 import Input from '../../../common/Input/Input';
+import { checkWebGLSupport } from '../../../utils/compatibilty';
 
 const Login = ({ setUserLoggedIn }) => {
   const navigate = useNavigate();
@@ -26,10 +27,14 @@ const Login = ({ setUserLoggedIn }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [splineError, setSplineError] = useState(false);
+  const [supportsWebGL, setSupportsWebGL] = useState(true);
+
+  useEffect(() => {
+    setSupportsWebGL(checkWebGLSupport());
+  }, []);
 
   useEffect(() => {
     if (splineError) {
-      // Just hide the Spline, don't redirect
       console.log('Spline failed to load in Login');
     }
   }, [splineError]);
@@ -407,14 +412,14 @@ const Login = ({ setUserLoggedIn }) => {
     <div className="auth-login-container">
       <div className="auth-left-section">
         <div className="auth-left-spt">
-          <Spline
-            scene="https://prod.spline.design/LCYzYZEH1lngG-Tq/scene.splinecode"
-            style={{ width: '100%', height: '105vh' }}
-            onError={() => setSplineError(true)}
-          />
-          {splineError && (
-            <div className="spline-fallback">
-            </div>
+          {supportsWebGL ? (
+            <Spline
+              scene="https://prod.spline.design/LCYzYZEH1lngG-Tq/scene.splinecode"
+              style={{ width: '100%', height: '105vh' }}
+              onError={() => setSplineError(true)}
+            />
+          ) : (
+            <div className="spline-fallback"> </div>
           )}
           <div className="auth-info">
             <h1 className={error ? 'auth-title auth-subtitle-error' : 'auth-title'}>

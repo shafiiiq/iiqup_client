@@ -3,18 +3,33 @@ import Spline from '@splinetool/react-spline';
 import Button from '../Button/Button';
 import './Intro.css'
 import { useNavigate } from 'react-router';
+import { checkWebGLSupport } from '../../utils/compatibilty';
 
 function Intro() {
     const navigate = useNavigate()
     const [isDisintegrating, setIsDisintegrating] = useState(false)
     const [splineError, setSplineError] = useState(false);
+    const [supportsWebGL, setSupportsWebGL] = useState(true);
 
     useEffect(() => {
-        if (splineError) {
+        const hasWebGL = checkWebGLSupport();
+        setSupportsWebGL(hasWebGL);
+
+        if (!hasWebGL) {
             localStorage.setItem('hasSeenIntro', 'true');
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        if (splineError) {
+            console.log('Auto-redirecting to login from intro');
+            localStorage.setItem('hasSeenIntro', 'true');
+            setTimeout(() => {
+                navigate('/login');
+            }, 1000);
         }
     }, [splineError, navigate]);
 
@@ -135,15 +150,14 @@ function Intro() {
                     shadowColor="white-600"
                 />
             </div>
-            <Spline
-                scene="https://prod.spline.design/EJOAGj7lECfjI9oi/scene.splinecode"
-                style={{ width: '100%', height: '105vh' }}
-                onError={() => setSplineError(true)}
-            />
-            {splineError && (
-                <div className="spline-fallback">
-                    <p>Loading...</p>
-                </div>
+            {supportsWebGL ? (
+                <Spline
+                    scene="https://prod.spline.design/EJOAGj7lECfjI9oi/scene.splinecode"
+                    style={{ width: '100%', height: '105vh' }}
+                    onError={() => setSplineError(true)}
+                />
+            ) : (
+                <div className="spline-fallback"> </div>
             )}
         </div>
     )
