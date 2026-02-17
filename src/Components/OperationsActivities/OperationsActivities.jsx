@@ -5,6 +5,7 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
+import Loader from '../../common/Loader/Loader';
 
 function OperationsActivities() {
     const navigate = useNavigate();
@@ -1042,10 +1043,7 @@ function OperationsActivities() {
             </div>
 
             {isLoading ? (
-                <div className="loading-container">
-                    <div className="loading-spinner"></div>
-                    <p>Loading activities...</p>
-                </div>
+                <Loader />
             ) : (
                 <div className="activities-content">
                     {activeTab === 'recent' && (

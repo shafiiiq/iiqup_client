@@ -9,19 +9,20 @@ import '../ServiceDoc/ServiceDoc.css'
 import { apiRequest } from '../../utils/0auth';
 import DevModal from '../../common/DevModal';
 import Button from '../../common/Button/Button';
+import { Loader } from 'lucide-react';
 
 const ServiceDoc = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { historyId } = useParams();
+  const { historyId, regNo: regNoParam, serviceType: serviceTypeParam, startDate: startDateParam, endDate: endDateParam, monthsCount: monthsCountParam } = useParams();
 
   const stateData = location.state || {};
-  const regNo = stateData.regNo;
+  const regNo = stateData.regNo || regNoParam;
   const date = stateData.date;
-  const serviceType = stateData.serviceType;
-  const startDate = stateData.startDate;
-  const endDate = stateData.endDate;
-  const monthsCount = stateData.monthsCount;
+  const serviceType = stateData.serviceType || serviceTypeParam;
+  const startDate = stateData.startDate || startDateParam;
+  const endDate = stateData.endDate || endDateParam;
+  const monthsCount = stateData.monthsCount || monthsCountParam;
 
   const [reportData, setReportData] = useState(null);
   const [multipleReports, setMultipleReports] = useState([]);
@@ -81,7 +82,6 @@ const ServiceDoc = () => {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Existing useEffect for fetching data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -91,26 +91,42 @@ const ServiceDoc = () => {
 
         const currentPath = window.location.pathname;
 
+        // Get serviceTypes from location state
+        const serviceTypes = location.state?.serviceTypes || [];
+
+        console.log("serviceTypes from doc", serviceTypes);
+
         if (currentPath.includes('/all/all-histories/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}`;
-          multipleView = true;
-        } else if (currentPath.includes('/all/oil-service/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}/oil`;
-          multipleView = true;
-        } else if (currentPath.includes('/all/maintenance-service/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}/maintenance`;
-          multipleView = true;
-        } else if (currentPath.includes('/all/tyre-service/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}/tyre`;
-          multipleView = true;
-        } else if (currentPath.includes('/all/battery-service/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}/battery`;
+          // Check if serviceTypes array exists and has items
+          if (serviceTypes.length > 0) {
+            // Convert array to comma-separated string for API
+            const serviceTypesParam = serviceTypes.join(',');
+            url = `${END_POINT}/service-report/histories/${regNo}/all?serviceTypes=${serviceTypesParam}`;
+          } else {
+            url = `${END_POINT}/service-report/histories/${regNo}/all`;
+          }
           multipleView = true;
         } else if (currentPath.includes('/all/date-range/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}/date-range/${startDate}/${endDate}`;
+          const pathParts = currentPath.split('/');
+          const serviceType = pathParts[3];
+
+          if (serviceTypes.length > 0) {
+            const serviceTypesParam = serviceTypes.join(',');
+            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}?serviceTypes=${serviceTypesParam}`;
+          } else {
+            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}`;
+          }
           multipleView = true;
         } else if (currentPath.includes('/all/last-months/')) {
-          url = `${END_POINT}/service-report/histories/${regNo}/last-months/${monthsCount}`;
+          const pathParts = currentPath.split('/');
+          const serviceType = pathParts[3];
+
+          if (serviceTypes.length > 0) {
+            const serviceTypesParam = serviceTypes.join(',');
+            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}?serviceTypes=${serviceTypesParam}`;
+          } else {
+            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}`;
+          }
           multipleView = true;
         } else {
           url = `${END_POINT}/service-report/${regNo}/${date}`;
@@ -143,7 +159,7 @@ const ServiceDoc = () => {
     };
 
     fetchData();
-  }, [regNo, date, startDate, endDate, monthsCount]);
+  }, [regNo, date, startDate, endDate, monthsCount, location.state]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -428,7 +444,9 @@ const ServiceDoc = () => {
             shadowColor="white-600"
           />
         </div>
-        <div>Loading report data...</div>
+        <div className='no-print'>
+          <Loader />
+        </div>
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { END_POINT } from '../../../constants';
 import { apiRequest } from '../../../utils/0auth';
 import { useSearch } from '../../../context/SearchContext';
 import Button from '../../../common/Button/Button';
+import Loader from '../../../common/Loader/Loader';
 
 function EquipBypass({ equipStocks, documents, isLPO }) {
     const { searchTerm, setSearchTerm } = useSearch();
@@ -625,13 +626,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
                 {/* Loading indicator */}
                 {isLoadingMore && (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '20px',
-                        color: '#666'
-                    }}>
-                        Loading more equipment...
-                    </div>
+                    <Loader />
                 )}
 
                 {/* No more data indicator */}

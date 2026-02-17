@@ -4,6 +4,8 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import { useSearch } from '../../context/SearchContext';
 import Button from '../../common/Button/Button';
+import Loader from '../../common/Loader/Loader';
+import DevModal from '../../common/DevModal';
 
 const Operators = () => {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -21,6 +23,8 @@ const Operators = () => {
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [darkMode, setDarkMode] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [devModalOpen, setDevModalOpen] = React.useState(false);
+  const [devModalFileValues, setDevModalFileValues] = React.useState({});
   const [formMode, setFormMode] = useState('add');
   const [profilePicUrls, setProfilePicUrls] = useState({});
   const [fullScreenImage, setFullScreenImage] = useState(null);
@@ -29,11 +33,8 @@ const Operators = () => {
   const [sortDirection, setSortDirection] = useState('asc');
 
   const [formData, setFormData] = useState({
-    id: '',
-    slNo: '',
     name: '',
     userType: 'operator',
-    uniqueCode: '',
     nationality: 'INDIAN',
     sponsorship: 'ATE',
     workingIn: 'ATE',
@@ -54,8 +55,41 @@ const Operators = () => {
     equipmentNumber: '',
     isVerified: false,
     toolkits: [],
-    hired: false
+    hired: false,
+    hiredFrom: ''
   });
+
+  const operatorFormFields = [
+    { name: 'profilePic', label: 'Profile Picture', type: 'file', accept: 'image/*', currentPreview: profilePicUrls[formData.qatarId] || null },
+    { name: 'name', label: 'Full Name', type: 'text', placeholder: 'Full name', required: true },
+    { name: 'qatarId', label: 'Qatar ID', type: 'text', placeholder: 'Qatar ID', required: true },
+    { name: 'contactNo', label: 'Contact Number', type: 'text', placeholder: 'Contact number' },
+    { name: 'email', label: 'Email', type: 'text', placeholder: 'Email' },
+    { name: 'nationality', label: 'Nationality', type: 'allow-add-select', placeholder: 'Select nationality', options: nationalityOptions },
+    { name: 'sponsorship', label: 'Sponsorship', type: 'allow-add-select', placeholder: 'Select sponsorship', options: sponsorshipOptions },
+    ...(formData.sponsorship === 'HIRED' ? [{
+      name: 'hiredFrom',
+      label: 'Hired From',
+      type: 'text',
+      placeholder: 'Enter company/organization name',
+      required: true
+    }] : []),
+    { name: 'workingIn', label: 'Working In', type: 'allow-add-select', placeholder: 'Select location', options: workingInOptions },
+    { name: 'equipmentNumber', label: 'Equipment Number', type: 'text', placeholder: 'Equipment number' },
+    { name: 'workmenCompensationAdded', label: 'Workmen Compensation', type: 'select', options: [{ label: 'No', value: 'no' }, { label: 'Yes', value: 'yes' }] },
+    { name: 'passportNo', label: 'Passport Number', type: 'text', placeholder: 'Passport number' },
+    { name: 'licenceType', label: 'Licence Type', type: 'allow-add-select', placeholder: 'Select licence type', options: licenceTypeOptions },
+    { name: 'dob', label: 'Date of Birth', type: 'date' },
+    { name: 'doj', label: 'Date of Joining', type: 'date' },
+    { name: 'passportExpiry', label: 'Passport Expiry', type: 'date' },
+    { name: 'qidExpiry', label: 'QID Expiry', type: 'date' },
+    { name: 'healthCardExpiry', label: 'Health Card Expiry', type: 'date' },
+    { name: 'licenceExpiry', label: 'Licence Expiry', type: 'date' },
+    { name: 'labourContractExpiry', label: 'Labour Contract Expiry', type: 'date' },
+    { name: 'password', label: 'Password', type: 'password', placeholder: 'Password' },
+    { name: 'isVerified', label: 'Verified Operator', type: 'checkbox' },
+  ];
+
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -392,15 +426,11 @@ const Operators = () => {
     setShowWorkingInDropdown(false);
   };
 
-  // Open add form
   const openAddForm = () => {
     setFormMode('add');
     setFormData({
-      id: '',
-      slNo: '',
       name: '',
       userType: 'operator',
-      uniqueCode: '',
       nationality: 'INDIAN',
       sponsorship: 'ATE',
       workingIn: 'ATE',
@@ -421,14 +451,15 @@ const Operators = () => {
       equipmentNumber: '',
       isVerified: false,
       toolkits: [],
-      hired: false
+      hired: false,
+      hiredFrom: ''
     });
     setNationalitySearchTerm('INDIAN');
     setSponsorshipSearchTerm('ATE');
     setWorkingInSearchTerm('ATE');
     setLicenceTypeSearchTerm('');
     setProfilePicFile(null);
-    setShowForm(true);
+    setDevModalOpen(true);
   };
 
   // Open edit form
@@ -468,7 +499,7 @@ const Operators = () => {
     setWorkingInSearchTerm(operator.workingIn);
     setLicenceTypeSearchTerm(operator.licenceType);
     setProfilePicFile(null);
-    setShowForm(true);
+    setDevModalOpen(true)
   };
 
   // Upload profile picture to S3
@@ -498,7 +529,6 @@ const Operators = () => {
 
   // Form submit handler
   const handleFormSubmit = async (e) => {
-    e.preventDefault()
     try {
       let profilePicUrl = null;
 
@@ -521,7 +551,7 @@ const Operators = () => {
         );
       } else {
         response = await apiRequest(
-          `${END_POINT}/operators/operators/${formData.qatarId}`,
+          `${END_POINT}/operators/update-operator/${selectedOperator._id}`,
           'PUT',
           operatorData
         );
@@ -529,6 +559,9 @@ const Operators = () => {
 
       if (!response.ok) throw new Error(`Failed to ${formMode} operator`);
       const result = await response.json();
+
+      console.log("dataaaaaaaaaa", result);
+
 
       if (formMode === 'add') {
         setOperators([...operators, result.data]);
@@ -541,7 +574,7 @@ const Operators = () => {
         }
       }
 
-      setShowForm(false);
+      setDevModalOpen(false)
       setProfilePicFile(null);
 
     } catch (error) {
@@ -550,13 +583,12 @@ const Operators = () => {
     }
   };
 
-  // Delete operator
   const deleteOperator = async (qatarId) => {
     if (!window.confirm('Are you sure you want to delete this operator?')) return;
 
     try {
       const response = await apiRequest(
-        `${END_POINT}/operators/operators/${qatarId}`,
+        `${END_POINT}/operators/delete-operator/${qatarId}`,
         'DELETE'
       );
 
@@ -566,7 +598,6 @@ const Operators = () => {
       if (selectedOperator && selectedOperator.qatarId === qatarId) {
         setSelectedOperator(null);
       }
-
     } catch (error) {
       console.error('Error deleting operator:', error);
       alert(`Failed to delete operator: ${error.message}`);
@@ -708,7 +739,7 @@ const Operators = () => {
       </div>
 
       {loading ? (
-        <div className="loading">Loading operators...</div>
+        <Loader />
       ) : error ? (
         <div className="error-message">{error}</div>
       ) : (
@@ -1065,532 +1096,33 @@ const Operators = () => {
         </div>
       )}
 
-      {/* Form Modal for Add/Update Operator */}
-      {showForm && (
-        <div className="form-modal-overlay">
-          <div className="form-modal large">
-            <div className="form-header">
-              <h2>{formMode === 'add' ? 'Add New Operator' : 'Edit Operator'}</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}>
-                <span class="material-symbols-rounded">
-                  close
-                </span>
-              </button>
-            </div>
-            <div className="form-content">
-              <form>
-                <div className="form-section">
-                  <h3>Profile Picture</h3>
-                  <div className="profile-upload">
-                    <div className="profile-preview">
-                      {profilePicFile ? (
-                        <img
-                          src={URL.createObjectURL(profilePicFile)}
-                          alt="Preview"
-                          onClick={() => setFullScreenImage(URL.createObjectURL(profilePicFile))}
-                          style={{ cursor: 'pointer' }}
-                        />
-                      ) : profilePicUrls[formData.qatarId] ? (
-                        <img
-                          src={profilePicUrls[formData.qatarId]}
-                          alt="Current"
-                          onClick={() => setFullScreenImage(profilePicUrls[formData.qatarId])}
-                          style={{ cursor: 'pointer' }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="profile-initials-form"
-                        style={{
-                          display: (profilePicFile || profilePicUrls[formData.qatarId]) ? 'none' : 'flex'
-                        }}
-                      >
-                        {getInitials(formData.name)}
-                      </div>
-                    </div>
-                    <label className="file-upload-btn">
-                      Choose File
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
-                    {profilePicFile && (
-                      <span className="file-name">{profilePicFile.name}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h3>Basic Information</h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="name">Full Name *</label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="qatarId">Qatar ID *</label>
-                      <input
-                        type="text"
-                        id="qatarId"
-                        name="qatarId"
-                        value={formData.qatarId}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="id">Employee ID *</label>
-                      <input
-                        type="number"
-                        id="id"
-                        name="id"
-                        value={formData.id}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="slNo">Serial No *</label>
-                      <input
-                        type="number"
-                        id="slNo"
-                        name="slNo"
-                        value={formData.slNo}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="uniqueCode">Unique Code *</label>
-                      <input
-                        type="text"
-                        id="uniqueCode"
-                        name="uniqueCode"
-                        value={formData.uniqueCode}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="dob">Date of Birth</label>
-                      <input
-                        ref={dobRef}
-                        type="date"
-                        id="dob"
-                        name="dob"
-                        value={formData.dob}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(dobRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="contactNo">Contact Number</label>
-                      <input
-                        type="tel"
-                        id="contactNo"
-                        name="contactNo"
-                        value={formData.contactNo}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="email">Email</label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h3>Employment Details</h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="nationality">Nationality</label>
-                      <div className="custom-dropdown" ref={nationalityDropdownRef}>
-                        <div className="dropdown-input-container">
-                          <input
-                            type="text"
-                            id="nationality"
-                            value={nationalitySearchTerm}
-                            onChange={handleNationalitySearchChange}
-                            onClick={toggleNationalityDropdown}
-                            placeholder="Select nationality"
-                            autoComplete="off"
-                            required
-                          />
-                          <button type="button" className="dropdown-toggle" onClick={toggleNationalityDropdown}>
-                            ▼
-                          </button>
-                        </div>
-                        {showNationalityDropdown && (
-                          <div className="dropdown-menu">
-                            {filteredNationalities.length > 0 ? (
-                              filteredNationalities.map((nationality, index) => (
-                                <div
-                                  key={index}
-                                  className="dropdown-item"
-                                  onClick={() => handleNationalitySelect(nationality)}
-                                >
-                                  {nationality}
-                                </div>
-                              ))
-                            ) : nationalitySearchTerm.trim() !== '' ? (
-                              <div className="dropdown-item new-item" onClick={() => handleNationalitySelect(nationalitySearchTerm)}>
-                                Add "{nationalitySearchTerm}"
-                              </div>
-                            ) : (
-                              <div className="no-results">No nationalities found</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="sponsorship">Sponsorship</label>
-                      <div className="custom-dropdown" ref={sponsorshipDropdownRef}>
-                        <div className="dropdown-input-container">
-                          <input
-                            type="text"
-                            id="sponsorship"
-                            value={sponsorshipSearchTerm}
-                            onChange={handleSponsorshipSearchChange}
-                            onClick={toggleSponsorshipDropdown}
-                            placeholder="Select sponsorship"
-                            autoComplete="off"
-                            required
-                          />
-                          <button type="button" className="dropdown-toggle" onClick={toggleSponsorshipDropdown}>
-                            ▼
-                          </button>
-                        </div>
-                        {showSponsorshipDropdown && (
-                          <div className="dropdown-menu">
-                            {filteredSponsorships.length > 0 ? (
-                              filteredSponsorships.map((sponsorship, index) => (
-                                <div
-                                  key={index}
-                                  className="dropdown-item"
-                                  onClick={() => handleSponsorshipSelect(sponsorship)}
-                                >
-                                  {sponsorship}
-                                </div>
-                              ))
-                            ) : sponsorshipSearchTerm.trim() !== '' ? (
-                              <div className="dropdown-item new-item" onClick={() => handleSponsorshipSelect(sponsorshipSearchTerm)}>
-                                Add "{sponsorshipSearchTerm}"
-                              </div>
-                            ) : (
-                              <div className="no-results">No sponsorships found</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="workingIn">Working In</label>
-                      <div className="custom-dropdown" ref={workingInDropdownRef}>
-                        <div className="dropdown-input-container">
-                          <input
-                            type="text"
-                            id="workingIn"
-                            value={workingInSearchTerm}
-                            onChange={handleWorkingInSearchChange}
-                            onClick={toggleWorkingInDropdown}
-                            placeholder="Select working location"
-                            autoComplete="off"
-                          />
-                          <button type="button" className="dropdown-toggle" onClick={toggleWorkingInDropdown}>
-                            ▼
-                          </button>
-                        </div>
-                        {showWorkingInDropdown && (
-                          <div className="dropdown-menu">
-                            {filteredWorkingIn.length > 0 ? (
-                              filteredWorkingIn.map((working, index) => (
-                                <div
-                                  key={index}
-                                  className="dropdown-item"
-                                  onClick={() => handleWorkingInSelect(working)}
-                                >
-                                  {working}
-                                </div>
-                              ))
-                            ) : workingInSearchTerm.trim() !== '' ? (
-                              <div className="dropdown-item new-item" onClick={() => handleWorkingInSelect(workingInSearchTerm)}>
-                                Add "{workingInSearchTerm}"
-                              </div>
-                            ) : (
-                              <div className="no-results">No locations found</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="doj">Date of Joining</label>
-                      <input
-                        ref={dojRef}
-                        type="date"
-                        id="doj"
-                        name="doj"
-                        value={formData.doj}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(dojRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="equipmentNumber">Equipment Number</label>
-                      <input
-                        type="text"
-                        id="equipmentNumber"
-                        name="equipmentNumber"
-                        value={formData.equipmentNumber}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="workmenCompensationAdded">Workmen Compensation</label>
-                      <select
-                        id="workmenCompensationAdded"
-                        name="workmenCompensationAdded"
-                        value={formData.workmenCompensationAdded}
-                        onChange={handleInputChange}
-                      >
-                        <option value="no">No</option>
-                        <option value="yes">Yes</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h3>Document Details</h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="passportNo">Passport Number</label>
-                      <input
-                        type="text"
-                        id="passportNo"
-                        name="passportNo"
-                        value={formData.passportNo}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="passportExpiry">Passport Expiry</label>
-                      <input
-                        ref={passportExpiryRef}
-                        type="date"
-                        id="passportExpiry"
-                        name="passportExpiry"
-                        value={formData.passportExpiry}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(passportExpiryRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="qidExpiry">QID Expiry</label>
-                      <input
-                        ref={qidExpiryRef}
-                        type="date"
-                        id="qidExpiry"
-                        name="qidExpiry"
-                        value={formData.qidExpiry}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(qidExpiryRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="healthCardExpiry">Health Card Expiry</label>
-                      <input
-                        ref={healthCardExpiryRef}
-                        type="date"
-                        id="healthCardExpiry"
-                        name="healthCardExpiry"
-                        value={formData.healthCardExpiry}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(healthCardExpiryRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="licenceType">License Type</label>
-                      <div className="custom-dropdown" ref={licenceTypeDropdownRef}>
-                        <div className="dropdown-input-container">
-                          <input
-                            type="text"
-                            id="licenceType"
-                            value={licenceTypeSearchTerm}
-                            onChange={handleLicenceTypeSearchChange}
-                            onClick={toggleLicenceTypeDropdown}
-                            placeholder="Select license type"
-                            autoComplete="off"
-                          />
-                          <button type="button" className="dropdown-toggle" onClick={toggleLicenceTypeDropdown}>
-                            ▼
-                          </button>
-                        </div>
-                        {showLicenceTypeDropdown && (
-                          <div className="dropdown-menu">
-                            {filteredLicenceTypes.length > 0 ? (
-                              filteredLicenceTypes.map((licence, index) => (
-                                <div
-                                  key={index}
-                                  className="dropdown-item"
-                                  onClick={() => handleLicenceTypeSelect(licence)}
-                                >
-                                  {licence}
-                                </div>
-                              ))
-                            ) : licenceTypeSearchTerm.trim() !== '' ? (
-                              <div className="dropdown-item new-item" onClick={() => handleLicenceTypeSelect(licenceTypeSearchTerm)}>
-                                Add "{licenceTypeSearchTerm}"
-                              </div>
-                            ) : (
-                              <div className="no-results">No license types found</div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="licenceExpiry">License Expiry</label>
-                      <input
-                        ref={licenceExpiryRef}
-                        type="date"
-                        id="licenceExpiry"
-                        name="licenceExpiry"
-                        value={formData.licenceExpiry}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(licenceExpiryRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="labourContractExpiry">Labour Contract Expiry</label>
-                      <input
-                        ref={labourContractExpiryRef}
-                        type="date"
-                        id="labourContractExpiry"
-                        name="labourContractExpiry"
-                        value={formData.labourContractExpiry}
-                        onChange={handleInputChange}
-                        onClick={() => handleDateInputClick(labourContractExpiryRef)}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="password">Password</label>
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h3>System Settings</h3>
-                  <div className="form-group">
-                    <label htmlFor="isVerified">
-                      <input
-                        type="checkbox"
-                        id="isVerified"
-                        name="isVerified"
-                        checked={formData.isVerified}
-                        onChange={handleInputChange}
-                      />
-                      Verified Operator
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-actions">
-                  <Button
-                    text="Cancel"
-                    onClick={() => setShowForm(false)}
-                    colorScheme="red-700"
-                    variant="gradient"
-                    font="md"
-                    animation=""
-                    squircle="4xl"
-                    width="160px"
-                    height="38px"
-                    type="submit"
-                    textColor="white-900"
-                    shadowPosition="to-bottom"
-                    shadowColor="white-600"
-                  />
-                  <Button
-                    text={uploading ? 'Uploading...' : (formMode === 'add' ? 'Add Operator' : 'Update Operator')}
-                    onClick={(e) => handleFormSubmit(e)}
-                    colorScheme={uploading ? 'lime-900' : 'lime-500'}
-                    variant="gradient"
-                    font="md"
-                    animation=""
-                    squircle="4xl"
-                    width="160px"
-                    height="38px"
-                    type={uploading ? 'disabled' : 'submit'}
-                    textColor={uploading ? 'white-900' : 'black-500'}
-                    shadowPosition="to-bottom"
-                    shadowColor="white-600"
-                  />
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <DevModal
+        isOpen={devModalOpen}
+        onClose={() => setDevModalOpen(false)}
+        type="form"
+        title={formMode === 'add' ? 'Add New Operator' : 'Edit Operator'}
+        buttonText={uploading ? 'Uploading...' : formMode === 'add' ? 'Add Operator' : 'Update Operator'}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setDevModalOpen(false)}
+        onButtonClick={handleFormSubmit}
+        formFields={operatorFormFields}
+        formValues={formData}
+        onFormChange={(fieldName, value) => {
+          setFormData(prev => {
+            const updated = { ...prev, [fieldName]: value };
+            if (fieldName === 'sponsorship') {
+              updated.hired = value === 'HIRED';
+              if (value !== 'HIRED') updated.hiredFrom = '';
+            }
+            return updated;
+          });
+        }}
+        fileValues={devModalFileValues}
+        onFileChange={(fieldName, file) => {
+          setDevModalFileValues(prev => ({ ...prev, [fieldName]: file }));
+          setProfilePicFile(file);
+        }}
+      />
       <FullScreenImageViewer />
     </div>
   );

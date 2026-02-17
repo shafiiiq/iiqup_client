@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, RefreshCw } from 'lucide-react';
 import Button from '../../common/Button/Button';
+import Input from '../../common/Input/Input';
 
 const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleRefresh }) => {
   const notificationSoundRef = useRef(null);
@@ -33,7 +34,8 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
     return saved === 'true';
   });
   const [selectedSound, setSelectedSound] = useState(() => {
-    return localStorage.getItem('notificationSound') || 'bell';
+    const saved = localStorage.getItem('notificationSound');
+    return (saved && soundOptions[saved]) ? saved : 'bell';
   });
 
   const enableSound = () => {
@@ -169,26 +171,34 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
           shadowPosition="to-bottom"
           shadowColor="white-600"
         />
-        <select
+        <Input
+          type="select"
           value={selectedSound}
           onChange={(e) => {
             const newSound = e.target.value;
             setSelectedSound(newSound);
             localStorage.setItem('notificationSound', newSound);
-            if (notificationSoundRef.current) {
-              notificationSoundRef.current.src = soundOptions[newSound].url;
-            }
+            notificationSoundRef.current.src = soundOptions[newSound].url;
+            console.log('🎵 Changed sound to:', soundOptions[newSound].name);
             setTimeout(() => playNotificationSound(), 100);
           }}
-          className="ntf-sound-selector"
-          title="Choose notification sound"
-        >
-          {Object.entries(soundOptions).map(([key, sound]) => (
-            <option key={key} value={key}>
-              {sound.name}
-            </option>
-          ))}
-        </select>
+          options={Object.entries(soundOptions).map(([key, sound]) => ({
+            label: sound.name,
+            value: key
+          }))}
+          colorScheme="rose-700"
+          variant="gradient"
+          fontSize="md"
+          squircle="4xl"
+          width="140px"
+          height="46px"
+          textColor="white-200"
+          shadowPosition="bottom"
+          shadowColor="white-200"
+          animation="none"
+          fontWeight="500"
+          inputPaddingInline="xl"
+        />
       </div>
     </div>
   );

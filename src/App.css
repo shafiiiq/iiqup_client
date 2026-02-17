@@ -263,7 +263,6 @@
 
   /* ========== SHADOW NONE ========== */
   --shadow-none: none
-
     /* ========== NORMAL SHADOWS ========== */
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -383,7 +382,7 @@
   --gradient-primary-500: linear-gradient(66deg, #d8c0788f 0%, #afafa1 100%);
   --gradient-primary-600: linear-gradient(295deg, rgba(26, 184, 47, 0.164) 0%, #dae298a6 100%);
   ;
-  --gradient-primary-700: linear-gradient(359deg, #bdbb73 0%, #b3b39b 100%);
+  --gradient-primary-700: linear-gradient(359deg, #bda373 0%, #c9bdaf 100%);
   --gradient-primary-800: linear-gradient(295deg, #e2dea269 0%, #7c804a 100%);
   --gradient-primary-900: linear-gradient(295deg, #8f8d65 0%, #c7bf76 100%);
   --gradient-primary-1000: linear-gradient(295deg, #3c3f18 0%, #fffb00 100%);
@@ -749,7 +748,7 @@ body.dark-theme {
   --header-bg-primary-700: linear-gradient(295deg, rgba(188, 194, 157, 0.164) 0%, #74794c69 100%);
   --header-bg-primary-800: linear-gradient(90deg, rgba(78, 91, 15, 0.164) 0%, #040400 100%);
   --header-bg-primary-900: linear-gradient(90deg, #040400 0%, rgba(233, 230, 57, 0.205) 100%);
-  --header-bg-primary-1000: linear-gradient(185deg, rgb(135 114 41 / 53%) 0%, #c4ad1a 100%);
+  --header-bg-primary-1000: linear-gradient(185deg, rgb(124 115 84 / 84%) 0%, #ffdd875e 100%);
 
   /* ========== HEADER BACKGROUND ========== */
   --header-color-primary-50: #f0f2ff;

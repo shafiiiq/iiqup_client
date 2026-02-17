@@ -33,7 +33,7 @@
 /* Main wrapper - Keep your exact dimensions */
 .bcr-main-wrapper {
     font-family: 'Roboto', 'Arial', sans-serif;
-    background-color: var(--text-color);
+    background-color: var(--text-white);
     width: 260mm !important;
     min-height: 380 !important;
     margin: 0 auto !important;

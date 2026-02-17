@@ -9,6 +9,7 @@ import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
 import PDFPreviewModal from '../../common/PDFPreviewModal/PDFPreviewModal';
+import Loader from '../../common/Loader/Loader';
 
 function DocumentDetails() {
   const { type, id } = useParams();
@@ -1574,7 +1575,7 @@ function DocumentDetails() {
       {activeTab === 'view' && (
         <div className="doc-details-view-container">
           {isLoading ? (
-            <div className="doc-details-loading">Loading documents...</div>
+            <Loader />
           ) : (
             <div className="doc-details-file-explorer">
               {/* Toolbar with breadcrumb and back button */}

@@ -50,6 +50,7 @@ import LiveChat from './Components/LiveChat/LiveChat';
 import ServiceHistorySummary from './Components/ServiceHistorySummary/ServiceHistorySummary';
 import Intro from './common/Intro/Intro';
 import Explore from './common/Explore/Explore';
+import Loader from './common/Loader/Loader';
 import OperationsActivities from './Components/OperationsActivities/OperationsActivities';
 import './App.css';
 
@@ -519,7 +520,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/all/date-range/:regNo/:startDate/:endDate"
+                    path="/all/date-range/:serviceType/:regNo/:startDate/:endDate"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -529,7 +530,7 @@ function App() {
                     }
                   />
                   <Route
-                    path="/all/last-months/:regNo/:monthsCount"
+                    path="/all/last-months/:serviceType/:regNo/:monthsCount"
                     element={
                       <ProtectedRoute>
                         <CEOGuard>
@@ -1164,6 +1165,17 @@ function App() {
                       <ProtectedRoute>
                         <CEOGuard>
                           <SplashScreen />
+                        </CEOGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/loader"
+                    element={
+                      <ProtectedRoute>
+                        <CEOGuard>
+                          <Loader />
                         </CEOGuard>
                       </ProtectedRoute>
                     }

@@ -5,6 +5,8 @@ import './Notification.css';
 import { apiRequest } from '../../utils/0auth';
 import Button from '../../common/Button/Button';
 import { useAlert } from '../../context/AlertContext';
+import Input from '../../common/Input/Input';
+import Loader from '../../common/Loader/Loader';
 
 const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
@@ -62,7 +64,8 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     return saved
   });
   const [selectedSound, setSelectedSound] = useState(() => {
-    return localStorage.getItem('notificationSound') || 'bell';
+    const saved = localStorage.getItem('notificationSound');
+    return (saved && soundOptions[saved]) ? saved : 'bell';
   });
 
   // WebSocket refs
@@ -540,7 +543,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     console.log('   Page:', page);
     console.log('   Append:', append);
 
-    if (!isBackgroundRefresh && !append) { 
+    if (!isBackgroundRefresh && !append) {
       setLoading(true);
     }
 
@@ -892,13 +895,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
   if (loading && !refreshing) {
     return (
       <div className="ntf-loading-container">
-        <div className="ntf-spinner">
-          <div className="ntf-spinner-circle"></div>
-          <div className="ntf-spinner-circle"></div>
-          <div className="ntf-spinner-circle"></div>
-          <div className="ntf-spinner-circle"></div>
-        </div>
-        <p className="ntf-loading-text">Loading Live Updates</p>
+        <Loader />
       </div>
     );
   }
@@ -973,7 +970,8 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
                 shadowPosition="to-bottom"
                 shadowColor="white-600"
               />
-              <select
+              <Input
+                type="select"
                 value={selectedSound}
                 onChange={(e) => {
                   const newSound = e.target.value;
@@ -981,24 +979,31 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
                   localStorage.setItem('notificationSound', newSound);
                   notificationSoundRef.current.src = soundOptions[newSound].url;
                   console.log('🎵 Changed sound to:', soundOptions[newSound].name);
-                  // Play preview
                   setTimeout(() => playNotificationSound(), 100);
                 }}
-                className="ntf-sound-selector"
-                title="Choose notification sound"
-              >
-                {Object.entries(soundOptions).map(([key, sound]) => (
-                  <option key={key} value={key}>
-                    {sound.name}
-                  </option>
-                ))}
-              </select>
+                options={Object.entries(soundOptions).map(([key, sound]) => ({
+                  label: sound.name,
+                  value: key
+                }))}
+                colorScheme="rose-700"
+                variant="gradient"
+                fontSize="md"
+                squircle="4xl"
+                width="140px"
+                height="46px"
+                textColor="white-200"
+                shadowPosition="bottom"
+                shadowColor="white-200"
+                animation="none"
+                fontWeight="500"
+                inputPaddingInline="xl"
+              />
             </div>
           </div>
         )
       }
 
-      {
+      {/* {
         islivemodeON ? null : (
           <div className="ntf-stats-cards">
             <div className="ntf-stat-card ntf-total">
@@ -1047,7 +1052,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
             </div>
           </div>
         )
-      }
+      } */}
 
       <div className={islivemodeON ? 'live-table-info' : 'ntf-table-info'}>
         Showing {displayedNotifications?.length || 0} notifications

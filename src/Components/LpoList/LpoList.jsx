@@ -6,6 +6,7 @@ import { apiRequest } from '../../utils/0auth';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import DevModal from '../../common/DevModal';
 import Button from '../../common/Button/Button';
+import Loader from '../../common/Loader/Loader';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -499,11 +500,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan="6" className="no-results">
-                  Loading LPO data...
-                </td>
-              </tr>
+              <Loader />
             ) : filteredData && filteredData.length > 0 ? (
               filteredData.map((lpo) => (
                 <tr

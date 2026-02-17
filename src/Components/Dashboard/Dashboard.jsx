@@ -5,7 +5,6 @@ import {
 } from 'recharts';
 import { AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
 
-// Import API functions
 import {
   fetchInitialTabData,
   fetchInitialDashboardData,
@@ -25,8 +24,6 @@ import {
   fetchLast5YearsComparison,
   prepareComparisonChartData
 } from './dashboardApi';
-
-// Import components
 import DashboardHeader from './DashboardHeader';
 import StatusBar from './Common/StatusBar';
 import DashboardTabs from './Common/DashboardTabs';
@@ -39,6 +36,7 @@ import './Dashboard.css';
 import { formatDate, formatDateTime, getStatusColor, COLORS } from './utils/dasboard-utils';
 import Notifications from '../Notification/Notification';
 import LiveChat from '../LiveChat/LiveChat';
+import Loader from '../../common/Loader/Loader';
 
 const Dashboard = () => {
   // Refs for height calculation
@@ -327,9 +325,7 @@ const Dashboard = () => {
     return (
       <div className="dashboard-container">
         <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <h2>Loading Fleet Dashboard...</h2>
-          <p>Fetching real-time data from all systems</p>
+          <Loader />
         </div>
       </div>
     );
@@ -577,7 +573,7 @@ const Dashboard = () => {
             {comparisonLoading ? (
               <div className="loading-container" style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div className="loading-spinner"></div>
-                <p>Loading comparison data...</p>
+                <Loader />
               </div>
             ) : comparisonChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={450}>

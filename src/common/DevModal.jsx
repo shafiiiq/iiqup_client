@@ -37,11 +37,15 @@ const DevModal = ({
   filterValues = {}, // Object with current filter values
   onApplyFilters = () => { }, // When Apply is clicked
   onResetFilters = () => { }, // When Reset is clicked
+  onFileChange = () => { },
+  fileValues = {},
 }) => {
   const [visible, setVisible] = React.useState(false);
   const [splitType, setSplitType] = React.useState('specific');
   const [pageInput, setPageInput] = React.useState('');
   const [splitError, setSplitError] = React.useState('');
+  const [filePreviews, setFilePreviews] = React.useState({});
+
   const modalRef = React.useRef(null);
   const autoCloseRef = React.useRef(null);
   const lastActive = React.useRef(null);
@@ -232,6 +236,14 @@ const DevModal = ({
     // Focus the next empty cell or last cell
     const nextIndex = Math.min(newValue.length, cellCount - 1);
     cellRefs.current[nextIndex]?.focus();
+  };
+
+  const handleFileChange = (fieldName, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    setFilePreviews(prev => ({ ...prev, [fieldName]: preview }));
+    onFileChange(fieldName, file);
   };
 
   const palette = {
@@ -891,6 +903,62 @@ const DevModal = ({
                                   </div>
                                 )}
                               </div>
+                            )}
+                          </div>
+                        ) : field.type === 'allow-add-select' ? (
+                          <Input
+                            type="select"
+                            searchable={true}
+                            value={formValues[field.name] || ''}
+                            onChange={(e) => onFormChange(field.name, e.target.value)}
+                            placeholder={field.placeholder || 'Select...'}
+                            options={[
+                              ...(field.options || []).map(o => ({ label: o, value: o })),
+                              ...(formValues[field.name] &&
+                                !(field.options || []).includes(formValues[field.name])
+                                ? [{ label: `Add "${formValues[field.name]}"`, value: formValues[field.name] }]
+                                : [])
+                            ]}
+                            colorScheme="white-100"
+                            variant="filled"
+                            height='57px'
+                            fontSize='xl'
+                            placeholderColor='black-100'
+                            inputPaddingInline='2xl'
+                            fontWeight='500'
+                            squircle='10xl'
+                            fullWidth={true}
+                          />
+                        ) : field.type === 'file' ? (
+                          <div className="dm-file-field">
+                            <div
+                              className="dm-file-preview"
+                              onClick={() => document.getElementById(`dm-file-${field.name}`)?.click()}
+                            >
+                              {(filePreviews[field.name] || field.currentPreview) ? (
+                                <img
+                                  src={filePreviews[field.name] || field.currentPreview}
+                                  alt="preview"
+                                  className="dm-file-preview-img"
+                                />
+                              ) : (
+                                <div className="dm-file-placeholder">
+                                  <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                  </svg>
+                                  <span>Click to upload</span>
+                                </div>
+                              )}
+                            </div>
+                            <input
+                              id={`dm-file-${field.name}`}
+                              type="file"
+                              accept={field.accept || 'image/*'}
+                              style={{ display: 'none' }}
+                              onChange={(e) => handleFileChange(field.name, e)}
+                            />
+                            {(filePreviews[field.name] || field.currentPreview) && (
+                              <span className="dm-file-name">{fileValues[field.name]?.name || 'Current file'}</span>
                             )}
                           </div>
                         ) : (

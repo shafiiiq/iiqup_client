@@ -11,6 +11,7 @@ import ExcelJS from 'exceljs';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import Input from '../../common/Input/Input';
+import Loader from '../../common/Loader/Loader';
 
 function ServiceHistorySummary() {
     const { searchTerm } = useSearch();
@@ -49,7 +50,6 @@ function ServiceHistorySummary() {
             let url;
 
             if (startDate && endDate) {
-                // Format dates from YYYY-MM-DD to DD-MM-YYYY for API
                 const formatForAPI = (date) => {
                     const [year, month, day] = date.split('-');
                     return `${day}-${month}-${year}`;
@@ -81,9 +81,10 @@ function ServiceHistorySummary() {
     };
 
     const handlePeriodChange = (e) => {
-        setSelectedPeriod(e.target.value);
+        const newPeriod = e.target.value;
+        setSelectedPeriod(newPeriod);
+        fetchServiceData(newPeriod);
     };
-
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const [year, month, day] = dateString.split('-');
@@ -356,7 +357,6 @@ function ServiceHistorySummary() {
                                 fontWeight='500'
                                 inputPaddingInline="xl"
                             />
-
                         </div>
                         <div className="last-x-months-selector">
                             <Input
@@ -489,8 +489,7 @@ function ServiceHistorySummary() {
 
             {isLoading ? (
                 <div className="loading-container">
-                    <div className="loading-spinner"></div>
-                    <p>Loading service data...</p>
+                    <Loader />
                 </div>
             ) : (
                 <div className="service-table-container">

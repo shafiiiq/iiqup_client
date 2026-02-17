@@ -407,7 +407,6 @@ const ServiceHistory = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // Function to check if a date falls within the selected filter range
   const isDateInRange = (dateString) => {
     if (!dateString) return false;
     const itemDate = new Date(dateString);
@@ -416,17 +415,30 @@ const ServiceHistory = () => {
     switch (dateFilter) {
       case 'all':
         return true;
+
       case 'lastXmonths':
-        const monthsAgo = new Date();
-        monthsAgo.setMonth(now.getMonth() - lastMonthsCount);
-        return itemDate >= monthsAgo;
+        const monthsAgo = new Date(now.getFullYear(), now.getMonth() - lastMonthsCount, 1);
+        monthsAgo.setHours(0, 0, 0, 0);
+        const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+        itemDateOnly.setHours(0, 0, 0, 0);
+
+        const startOfTargetMonth = new Date(now.getFullYear(), now.getMonth() - lastMonthsCount + 1, 1);
+        startOfTargetMonth.setHours(0, 0, 0, 0);
+
+        return itemDateOnly >= startOfTargetMonth;
+
       case 'thismonth':
-        return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+        return itemDate.getMonth() === now.getMonth() &&
+          itemDate.getFullYear() === now.getFullYear();
+
       case 'custom':
         if (!customStartDate || !customEndDate) return true;
         const startDate = new Date(customStartDate);
         const endDate = new Date(customEndDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
         return itemDate >= startDate && itemDate <= endDate;
+
       default:
         return true;
     }
@@ -1020,49 +1032,59 @@ const ServiceHistory = () => {
     }
   };
 
-  // Navigate to view all documents based on active tab and date filter
   const handleViewAllDocuments = () => {
     let basePath = '';
+    let serviceTypeSegment = '';
 
-    // Determine base path based on active tab
-    switch (activeTab) {
-      case 'all':
-        basePath = `/all/all-histories/${regNoArray[0]}`;
-        break;
-      case 'oil':
-        basePath = `/all/oil-service/${regNoArray[0]}`;
-        break;
-      case 'maintenance':
-        basePath = `/all/maintenance-service/${regNoArray[0]}`;
-        break;
-      case 'tyre':
-        basePath = `/all/tyre-service/${regNoArray[0]}`;
-        break;
-      case 'battery':
-        basePath = `/all/battery-service/${regNoArray[0]}`;
-        break;
-      default:
-        basePath = `/all/all-histories/${regNoArray[0]}`;
+    const selectedTypes = filters.serviceTypes;
+
+    console.log("selectedTypes from history", selectedTypes);
+
+    // Determine service type segment
+    if (selectedTypes.length === 0 || selectedTypes.length > 1) {
+      serviceTypeSegment = 'all-histories';
+      console.log("1")
+    } else {
+      console.log("2")
+      switch (selectedTypes[0]) {
+        case 'oil': serviceTypeSegment = 'all-histories'; break;
+        case 'maintenance': serviceTypeSegment = 'all-histories'; break;
+        case 'tyre': serviceTypeSegment = 'all-histories'; break;
+        case 'battery': serviceTypeSegment = 'all-histories'; break;
+        default: serviceTypeSegment = 'all-histories';
+      }
     }
 
-    // Add date range parameters if custom date filter is selected
+    // Build base path based on date filter
     if (dateFilter === 'custom' && customStartDate && customEndDate) {
+      console.log("3")
       const formattedStartDate = formatDate(customStartDate).replace(/-/g, '-');
       const formattedEndDate = formatDate(customEndDate).replace(/-/g, '-');
-      basePath = `/all/date-range/${regNoArray[0]}/${formattedStartDate}/${formattedEndDate}`;
+      basePath = `/all/date-range/${serviceTypeSegment}/${regNoArray[0]}/${formattedStartDate}/${formattedEndDate}`;
     } else if (dateFilter === 'lastXmonths') {
-      basePath = `/all/last-months/${regNoArray[0]}/${lastMonthsCount}`;
+      console.log("4")
+      basePath = `/all/last-months/${serviceTypeSegment}/${regNoArray[0]}/${lastMonthsCount}`;
     } else if (dateFilter === 'thismonth') {
+      console.log("5")
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
       const formattedStartDate = formatDate(firstDay).replace(/-/g, '-');
       const formattedEndDate = formatDate(lastDay).replace(/-/g, '-');
-      basePath = `/all/date-range/${regNoArray[0]}/${formattedStartDate}/${formattedEndDate}`;
+      basePath = `/all/date-range/${serviceTypeSegment}/${regNoArray[0]}/${formattedStartDate}/${formattedEndDate}`;
+    } else {
+      console.log("6")
+      basePath = `/all/${serviceTypeSegment}/${regNoArray[0]}`;
     }
 
-    navigate(basePath);
+    console.log("basepath", basePath);
+
+    navigate(basePath, {
+      state: {
+        serviceTypes: selectedTypes
+      }
+    });
   };
 
   const handleRowClick = (date, serviceType, historyId) => {
@@ -1081,8 +1103,8 @@ const ServiceHistory = () => {
   };
 
   const handleDeleteReport = (item) => {
-    console.log("itemssssssss" , item);
-    
+    console.log("itemssssssss", item);
+
     setDeleteReport(item);
     setShowDeleteModal(true);
   };
@@ -1105,7 +1127,7 @@ const ServiceHistory = () => {
     const data = await response.json()
 
     console.log("dataaaaaaaaaaaaaa", data);
-    
+
 
     if (data.success) {
       window.location.reload()
@@ -1592,14 +1614,15 @@ const ServiceHistory = () => {
       <DevModal
         isOpen={showFiltersModal}
         onClose={() => setShowFiltersModal(false)}
-        type="filters"
+        type="form"
         title="Service History Filters"
         message="Customize your view with advanced filtering options"
-        filterGroups={[
+        formFields={[
           {
             name: 'dateFilter',
             label: 'Date Range',
             type: 'select',
+            placeholder: 'Select date range',
             options: [
               { value: 'all', label: 'All Time' },
               { value: 'thismonth', label: 'This Month' },
@@ -1611,52 +1634,87 @@ const ServiceHistory = () => {
             name: 'lastMonthsCount',
             label: 'Number of Months',
             type: 'select',
-            options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => ({ value: n, label: `${n} Month${n > 1 ? 's' : ''}` }))
+            placeholder: 'Select number of months',
+            options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => ({
+              value: n,
+              label: `${n} Month${n > 1 ? 's' : ''}`
+            }))
           }] : []),
           ...(filters.dateFilter === 'custom' ? [
             {
               name: 'customStartDate',
               label: 'Start Date',
-              type: 'date'
+              type: 'date',
+              placeholder: 'Select start date'
             },
             {
               name: 'customEndDate',
               label: 'End Date',
-              type: 'date'
+              type: 'date',
+              placeholder: 'Select end date'
             }
           ] : []),
           {
             name: 'serviceTypes',
-            label: 'Service Types',
-            type: 'checkbox',
-            options: [
-              { value: 'oil', label: 'Oil Service' },
-              { value: 'normal', label: 'Normal Service' },
-              { value: 'maintenance', label: 'Major Works' },
-              { value: 'tyre', label: 'Tyre Service' },
-              { value: 'battery', label: 'Battery Service' }
-            ]
+            label: 'Service Types (Select Multiple)',
+            type: 'text',
+            placeholder: 'oil, normal, maintenance, tyre, battery',
+            value: filters.serviceTypes.join(', ')
           },
           {
-            name: 'serviceHoursRange',
-            label: 'Service Hours Range',
-            type: 'range'
+            name: 'serviceHoursMin',
+            label: 'Min Service Hours',
+            type: 'number',
+            placeholder: 'Minimum hours'
+          },
+          {
+            name: 'serviceHoursMax',
+            label: 'Max Service Hours',
+            type: 'number',
+            placeholder: 'Maximum hours'
           },
           {
             name: 'hasRemarks',
             label: 'Has Remarks',
             type: 'select',
+            placeholder: 'Select option',
             options: [
+              { value: '', label: 'All' },
               { value: 'yes', label: 'Yes' },
               { value: 'no', label: 'No' }
             ]
           }
         ]}
-        filterValues={filters}
-        onFilterChange={handleFilterChange}
-        onApplyFilters={handleApplyFilters}
-        onResetFilters={handleResetFilters}
+        formValues={{
+          dateFilter: filters.dateFilter,
+          lastMonthsCount: filters.lastMonthsCount,
+          customStartDate: filters.customStartDate,
+          customEndDate: filters.customEndDate,
+          serviceTypes: filters.serviceTypes.join(', '),
+          serviceHoursMin: filters.serviceHoursRange.min,
+          serviceHoursMax: filters.serviceHoursRange.max,
+          hasRemarks: filters.hasRemarks
+        }}
+        onFormChange={(name, value) => {
+          if (name === 'serviceTypes') {
+            // Parse comma-separated string into array
+            const typesArray = value.split(',').map(t => t.trim()).filter(t => t);
+            handleFilterChange('serviceTypes', typesArray);
+          } else if (name === 'serviceHoursMin' || name === 'serviceHoursMax') {
+            // Handle service hours range
+            const currentRange = filters.serviceHoursRange;
+            handleFilterChange('serviceHoursRange', {
+              ...currentRange,
+              [name === 'serviceHoursMin' ? 'min' : 'max']: value
+            });
+          } else {
+            handleFilterChange(name, value);
+          }
+        }}
         buttonText="Apply Filters"
+        secondaryButtonText="Reset"
+        onButtonClick={handleApplyFilters}
+        onSecondaryClick={handleResetFilters}
       />
 
       <div className="controls-bar">
@@ -1683,10 +1741,7 @@ const ServiceHistory = () => {
                 ? `View Last ${lastMonthsCount} Months Data`
                 : dateFilter === 'thismonth'
                   ? 'View This Month Data'
-                  : `View All ${activeTab === 'all' ? 'Documents' :
-                    activeTab === 'oil' ? 'Oil Service' :
-                      activeTab === 'maintenance' ? 'Major Works' :
-                        activeTab === 'tyre' ? 'Tyre Service' : 'Battery Service'}`}
+                  : 'View All Documents'}
             onClick={handleViewAllDocuments}
             colorScheme="lime-800"
             variant="gradient"

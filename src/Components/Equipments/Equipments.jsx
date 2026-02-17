@@ -8,6 +8,7 @@ import { useSearch } from '../../context/SearchContext';
 import { useHeaderVibration } from '../../context/HeaderVibrationContext';
 import Button from '../../common/Button/Button';
 import * as XLSX from 'xlsx';
+import Loader from '../../common/Loader/Loader';
 
 function Equipments() {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -107,7 +108,9 @@ function Equipments() {
     insuranceExpiry: '',
     tpcExpiry: '',
     operator: '',
+    operatorId: '',
     company: 'ATE',
+    hiredFrom: '',
     hired: false,
     status: 'Active',
     site: ''
@@ -121,6 +124,7 @@ function Equipments() {
     operator: '',
     operatorId: '',
     brand: '',
+    hiredFrom: '',
     site: '',
     status: ''
   });
@@ -163,10 +167,11 @@ function Equipments() {
     remarks: ''
   });
 
-  // Refetch equipment when tab changes
   useEffect(() => {
     setSearchTerm('');
     setCurrentPage(1);
+    setScrollPosition(0);      
+    setDisplayedEquipment([]);
     fetchEquipments(1, false);
   }, [activeTab]);
 
@@ -1215,10 +1220,10 @@ function Equipments() {
       year: equipment.year,
       company: equipment.company,
       operator: currentOperator,
-      operatorId: currentOperatorId
+      operatorId: currentOperatorId,
+      hiredFrom: equipment.hiredFrom || ''
     });
 
-    // Reset operator search term to current operator
     setOperatorSearchTerm(currentOperator);
     setShowOperatorDropdown(false);
     setShowEditModal(true);
@@ -1498,16 +1503,25 @@ function Equipments() {
   const handleAddEquipmentSubmit = async (e) => {
     e?.preventDefault();
 
+    const certificationBody = addEquipmentForm.operator && addEquipmentForm.operatorId
+      ? [{
+        operatorName: addEquipmentForm.operator,
+        operatorId: addEquipmentForm.operatorId,
+        assignedAt: new Date()
+      }]
+      : [];
+
     const newEquipment = {
       ...addEquipmentForm,
       year: parseInt(addEquipmentForm.year),
-      certificationBody: [addEquipmentForm.operator],
-      site: [addEquipmentForm.site],
-      hired: addEquipmentForm.company === 'HIRED'
+      certificationBody: certificationBody,
+      site: addEquipmentForm.site ? [addEquipmentForm.site] : [],
+      hired: addEquipmentForm.company === 'HIRED',
+      ...(addEquipmentForm.company === 'HIRED' && { hiredFrom: addEquipmentForm.hiredFrom })
     };
 
-    // Remove operator and site from the object as they're now in arrays
     delete newEquipment.operator;
+    delete newEquipment.operatorId;
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/add-equipment`, 'POST', newEquipment);
@@ -1519,7 +1533,6 @@ function Equipments() {
           message: `Equipment ${addEquipmentForm.regNo} successfully added.`,
           isError: false
         });
-        // Reset form
         setAddEquipmentForm({
           machine: '',
           regNo: '',
@@ -1530,8 +1543,10 @@ function Equipments() {
           insuranceExpiry: '',
           tpcExpiry: '',
           operator: '',
+          operatorId: '',
           company: 'ATE',
           hired: false,
+          hiredFrom: '',
           status: 'Active',
           site: ''
         });
@@ -1556,7 +1571,6 @@ function Equipments() {
 
   const closeAddModal = () => {
     setShowAddModal(false);
-    // Reset form when closing
     setAddEquipmentForm({
       machine: '',
       regNo: '',
@@ -1567,8 +1581,10 @@ function Equipments() {
       insuranceExpiry: '',
       tpcExpiry: '',
       operator: '',
+      operatorId: '',
       company: 'ATE',
       hired: false,
+      hiredFrom: '',
       status: 'Active',
       site: ''
     });
@@ -2484,7 +2500,7 @@ function Equipments() {
 
               return (
                 <div
-                  className={`equipment-card ${isSelectMode && selectedEquipment.includes(item.regNo) ? 'selected' : ''}`}
+                  className={`equipment-card ${isSelectMode && selectedEquipment.includes(item.regNo) ? 'selected' : ''} ${item.hired ? 'equipment-card-hired' : ''}`}
                   key={item.id}
                   data-reg-no={item.regNo}
                   onClick={() => isSelectMode && toggleEquipmentSelection(item.regNo)}
@@ -2523,7 +2539,7 @@ function Equipments() {
                       </>
                     ) : hasImages && !visibleCards.has(item.regNo) ? (
                       <div className="no-image-placeholder">
-                        Loading images...
+                        <Loader />
                       </div>
                     ) : (
                       <div className="no-image-placeholder">
@@ -2548,6 +2564,13 @@ function Equipments() {
                         </span>
                       </div>
                     </div>
+                    {
+                      activeTab == 'hired' && (
+                        <div className="main-details">
+                          <h4 className="card-title-hired">{item.hiredFrom}</h4>
+                        </div>
+                      )
+                    }
                     <div className="card-details-grid">
                       <div className="detail-item">
                         <span className="detail-label">Operator</span>
@@ -2727,7 +2750,7 @@ function Equipments() {
                               )}
                             </>
                           ) : hasImages && !visibleCards.has(item.regNo) ? (
-                            <div className="no-image-placeholder">Loading...</div>
+                            <Loader />
                           ) : (
                             <div className="no-image-placeholder">No images</div>
                           )}
@@ -2842,7 +2865,7 @@ function Equipments() {
             </div>
             <div className="sidebar-body">
               {isLoadingFuels ? (
-                <div className="loading-spinner"></div>
+                <Loader />
               ) : (
                 renderSidebarContent()
               )}
@@ -2892,6 +2915,14 @@ function Equipments() {
               { value: 'HIRED', label: 'HIRED' }
             ]
           },
+          // ✅ Conditional field - only show when company is HIRED
+          ...(addEquipmentForm.company === 'HIRED' ? [{
+            name: 'hiredFrom',
+            label: 'Hired From',
+            type: 'text',
+            placeholder: 'Enter company/organization name',
+            required: true
+          }] : []),
           { name: 'istimaraExpiry', label: 'Istimara Expiry', type: 'date' },
           { name: 'insuranceExpiry', label: 'Insurance Expiry', type: 'date' },
           { name: 'tpcExpiry', label: 'TPC Expiry', type: 'date' },
@@ -2906,11 +2937,44 @@ function Equipments() {
               { value: 'Maintenance', label: 'Maintenance' }
             ]
           },
-          { name: 'operator', label: 'Operator', type: 'text', placeholder: 'Enter operator name', required: true },
-          { name: 'site', label: 'Site', type: 'text', placeholder: 'Enter site', required: true }
+          {
+            name: 'operator',
+            label: 'Operator',
+            type: 'search-select',
+            placeholder: 'Search operator...',
+            required: true,
+            options: operator.map(op => ({
+              label: op.name,
+              value: op.name,
+              id: op._id || op.id
+            }))
+          },
+          {
+            name: 'site',
+            label: 'Site',
+            type: 'search-select',
+            placeholder: 'Search or add site...',
+            required: true,
+            options: sites.map(s => ({ label: s, value: s })),
+            onSearchFocus: handleSiteFetchOnFocus
+          }
         ]}
         formValues={addEquipmentForm}
-        onFormChange={(field, value) => setAddEquipmentForm({ ...addEquipmentForm, [field]: value })}
+        onFormChange={(field, value) => {
+          if (field === 'operator') {
+            const selectedOp = operator.find(op => op.name === value);
+            setAddEquipmentForm({
+              ...addEquipmentForm,
+              operator: value,
+              operatorId: selectedOp?._id || selectedOp?.id || ''
+            });
+          } else if (field === 'site') {
+            const siteValue = typeof value === 'string' ? value : value?.value || value;
+            setAddEquipmentForm({ ...addEquipmentForm, site: siteValue });
+          } else {
+            setAddEquipmentForm({ ...addEquipmentForm, [field]: value });
+          }
+        }}
         buttonText="Add Equipment"
         onButtonClick={handleAddEquipmentSubmit}
         secondaryButtonText="Cancel"
@@ -2955,7 +3019,25 @@ function Equipments() {
           { name: 'regNo', label: 'Registration No', type: 'text', placeholder: 'Enter reg number', required: true },
           { name: 'brand', label: 'Brand', type: 'text', placeholder: 'Enter brand', required: true },
           { name: 'year', label: 'Year', type: 'text', placeholder: 'Enter year', required: true },
-          { name: 'company', label: 'Company', type: 'text', placeholder: 'Enter company', required: true },
+          {
+            name: 'company',
+            label: 'Company',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'ATE', label: 'ATE' },
+              { value: 'ASK', label: 'ASK' },
+              { value: 'HIRED', label: 'HIRED' }
+            ]
+          },
+          // ✅ Conditional field - only show when company is HIRED
+          ...(editFormData.company === 'HIRED' ? [{
+            name: 'hiredFrom',
+            label: 'Hired From',
+            type: 'text',
+            placeholder: 'Enter company/organization name',
+            required: true
+          }] : []),
           {
             name: 'operator',
             label: 'Operator',
@@ -2994,13 +3076,15 @@ function Equipments() {
         formValues={editFormData}
         onFormChange={(field, value) => {
           if (field === 'operator') {
-            // Find the selected operator to get their ID
             const selectedOp = operator.find(op => op.name === value);
             setEditFormData({
               ...editFormData,
               operator: value,
-              operatorId: selectedOp?._id || selectedOp?.id || '' // Store operator ID
+              operatorId: selectedOp?._id || selectedOp?.id || ''
             });
+          } else if (field === 'site') {
+            const siteValue = typeof value === 'string' ? value : value?.value || value;
+            setEditFormData({ ...editFormData, site: siteValue });
           } else {
             setEditFormData({ ...editFormData, [field]: value });
           }

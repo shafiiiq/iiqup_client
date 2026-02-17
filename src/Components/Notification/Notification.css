@@ -334,7 +334,7 @@
 }
 
 .ntf-pad {
-  padding: 40px;
+  padding: 10px 40px 30px 40px;
 }
 
 .ntf-stat-content {
@@ -368,7 +368,7 @@
   border-radius: var(--radius-6xl);
   corner-shape: squircle;
   padding: 0;
-  box-shadow: var(--shadow-inner-5xl);
+  box-shadow: var(--shadow-inner-lg);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -434,7 +434,7 @@
 .ntf-card-title {
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-white);
+  color: var(--text-color);
   margin: 0;
   flex: 1;
   line-height: 1.4;
@@ -479,7 +479,7 @@
 
 .ntf-message {
   font-size: 15px;
-  color: var(--text-white);
+  color: var(--text-color);
   line-height: 1.6;
   margin: 0 0 20px 0;
   white-space: pre-line;
@@ -495,7 +495,7 @@
 
 .ntf-time-display {
   font-size: 13px;
-  color: var(--text-white-200);
+  color: var(--text-color);
   font-weight: 500;
 }
 

@@ -234,7 +234,6 @@ body.dark-theme {
 
 .service-table-container {
     overflow-x: auto;
-    background-color: var(--card-bg);
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
     box-shadow: var(--shadow-outer-4xl);

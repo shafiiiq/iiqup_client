@@ -53,11 +53,10 @@
   overflow: hidden;
 }
 
-.sidebar-header {
+.mechanics-sidebar .sidebar-header {
   padding: 20px;
-  background: var(--gradient-primary-600);
+  background: var(--gradient-primary-600) !important;
   color: var(--text-color);
-  box-shadow: var(--shadow-outer-xxl);
   border-radius: var(--radius-6xl);
   corner-shape: squircle;
 }

@@ -1457,6 +1457,51 @@
     gap: 12px;
 }
 
+.dm-file-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.dm-file-preview {
+    width: 90px;
+    height: 90px;
+    border-radius: var(--radius-6xl);
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 200ms ease;
+}
+
+.dm-file-preview:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.dm-file-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dm-file-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.75rem;
+}
+
+.dm-file-name {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+}
+
 /* Mobile adjustments */
 @media (max-width: 900px) {
     .dm-card-filters {

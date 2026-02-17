@@ -8,6 +8,7 @@ import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
+import Loader from '../../common/Loader/Loader';
 
 const Toolkits = () => {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -1183,7 +1184,7 @@ const Toolkits = () => {
       </div>
 
       {loading ? (
-        <div className="loading">Loading safety tools inventory...</div>
+        <Loader />
       ) : error ? (
         <div className="error-message">{error}</div>
       ) : (

@@ -28,7 +28,15 @@
   display: flex;
   flex-direction: row;
   height: 320px;
+  min-height: 320px;
+  height: auto;
   pointer-events: auto;
+}
+
+.equipment-card-hired {
+  height: 362px;
+  min-height: 362px;
+  height: auto;
 }
 
 .site-equipment-item {
@@ -171,6 +179,19 @@
   font-size: 28px;
   font-weight: 900;
   color: var(--color-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-title-hired {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text-color);
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -483,11 +504,10 @@ body.dark-theme .status-badge.loading {
 }
 
 .fuel-summary {
-  background-color: var(--bg-hover);
+  background: var(--gradient-glass-700);
   padding: 20px;
   border-radius: var(--radius-6xl);
   corner-shape: squircle;
-  border-left: 4px solid var(--color-primary);
 }
 
 .fuel-summary h3 {
@@ -792,7 +812,7 @@ body.dark-theme .status-badge.loading {
   overflow: hidden;
   border: 1px solid var(--color-primary-700);
   transition: all 0.3s ease;
-  height: 200px;
+  height: 218px;
   box-shadow: var(--shadow-outer-md);
 }
 
@@ -936,7 +956,6 @@ body.dark-theme .status-badge.loading {
   background: var(--gradient-primary-900);
   overflow: hidden;
   transition: all 0.3s ease;
-  height: 200px;
 }
 
 .site-equipment-item:hover {

@@ -4,6 +4,7 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/0auth';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
+import Loader from '../../common/Loader/Loader';
 
 const Mechanics = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -75,7 +76,7 @@ const Mechanics = () => {
   useEffect(() => {
     const fetchRecentActivity = async () => {
       console.log("Hiiiiiiiiiiiiiiiii");
-      
+
       if (!selectedMechanic?.zktecoPin) return;
 
       setRecentActivityLoading(true);
@@ -284,8 +285,7 @@ const Mechanics = () => {
     return (
       <div className="mechanics-container">
         <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading mechanics data...</p>
+          <Loader />
         </div>
       </div>
     );

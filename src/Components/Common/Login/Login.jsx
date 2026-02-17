@@ -4,7 +4,7 @@ import './Login.css';
 import { AuthUtils, LoginLogic } from '../../../utils/authUtils';
 import { END_POINT } from '../../../constants';
 import Button from '../../../common/Button/Button';
-import logoImage from '../../../assets/images/al-ansari.png';
+// import LoginSplineFallback from '../../../assets/login-spline-fallback.png';
 import Spline from '@splinetool/react-spline';
 import Input from '../../../common/Input/Input';
 import { checkWebGLSupport } from '../../../utils/compatibilty';

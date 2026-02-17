@@ -8,6 +8,7 @@ import Barcode from 'react-barcode';
 import DevModal from '../../common/DevModal';
 import { useSearch } from '../../context/SearchContext';
 import Button from '../../common/Button/Button';
+import Loader from '../../common/Loader/Loader';
 
 function StockManage() {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -1285,7 +1286,7 @@ function StockManage() {
       )}
 
       {loading ? (
-        <div className="stock-manage-loading">Loading stock inventory...</div>
+       <Loader/>
       ) : error ? (
         <div className="stock-manage-error">{error}</div>
       ) : (

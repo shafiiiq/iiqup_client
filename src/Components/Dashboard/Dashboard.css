@@ -72,7 +72,6 @@
   margin-bottom: 2rem;
   box-shadow: var(--shadow-inner-6xl);
   position: relative;
-  overflow: hidden;
   max-width: 58%;
 }
 
