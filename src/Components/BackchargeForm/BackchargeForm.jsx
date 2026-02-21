@@ -133,7 +133,6 @@ const BackchargeForm = () => {
             const response = await apiRequest(`${END_POINT}/backcharge/check-latest-backcharge-ref`, 'GET');
             if (response.ok) {
                 const data = await response.json();
-                console.log('Ref API response:', data);
 
                 if (data.success && data.data) {
                     const latestNumber = data.data.latestNumber || 140;
@@ -143,7 +142,6 @@ const BackchargeForm = () => {
 
                     // Generate format: ATE194-09-25 (no dash between ATE and number)
                     const newRefNumber = `ATE${latestNumber + 1}-${month}-${year}`;
-                    console.log('Generated refNo:', newRefNumber);
                     return newRefNumber;
                 }
             }

@@ -76,8 +76,6 @@ export const apiRequest = async (url, method = 'GET', body = null, customHeaders
     // If response contains uploadUrl and file is provided, upload to S3
     if (response.ok && file) {
       const responseData = await response.json();
-      console.log(responseData);
-
       if (responseData.uploadUrl) {
         const s3Response = await fetch(responseData.uploadUrl, {
           method: 'PUT',

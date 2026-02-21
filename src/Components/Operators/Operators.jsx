@@ -560,9 +560,6 @@ const Operators = () => {
       if (!response.ok) throw new Error(`Failed to ${formMode} operator`);
       const result = await response.json();
 
-      console.log("dataaaaaaaaaa", result);
-
-
       if (formMode === 'add') {
         setOperators([...operators, result.data]);
       } else {

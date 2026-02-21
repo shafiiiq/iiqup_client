@@ -35,7 +35,7 @@ const Login = ({ setUserLoggedIn }) => {
 
   useEffect(() => {
     if (splineError) {
-      console.log('Spline failed to load in Login');
+      console.error('Spline failed to load in Login');
     }
   }, [splineError]);
 
@@ -447,7 +447,7 @@ const Login = ({ setUserLoggedIn }) => {
             <div className="auth-buttons">
               <Button
                 text={step === 'updateAuthMail' ? "Back to login" : (step === 'otp' ? "Back to login" : "Let's")}
-                onClick={step === 'updateAuthMail' || step === 'otp' ? () => setStep('login') : () => console.log()}
+                onClick={step === 'updateAuthMail' || step === 'otp' ? () => setStep('login') : () => { return; }}
                 colorScheme="white-400"
                 variant="gradient"
                 font="3xl"

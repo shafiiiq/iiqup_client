@@ -75,8 +75,6 @@ const Mechanics = () => {
 
   useEffect(() => {
     const fetchRecentActivity = async () => {
-      console.log("Hiiiiiiiiiiiiiiiii");
-
       if (!selectedMechanic?.zktecoPin) return;
 
       setRecentActivityLoading(true);
@@ -85,9 +83,6 @@ const Mechanics = () => {
 
         const response = await apiRequest(`${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`);
         const data = await response.json();
-
-        console.log("dataaaaaaaaaaaaa", data.data.records);
-
 
         if (data.status === 200) {
           setRecentActivity(data.data.records || []);

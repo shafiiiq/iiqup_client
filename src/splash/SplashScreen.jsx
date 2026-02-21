@@ -20,7 +20,7 @@ function SplashScreen() {
       const timer = setTimeout(() => {
         navigate('/login', { replace: true });
       }, 2000);
-      return () => clearTimeout(timer); 
+      return () => clearTimeout(timer);
     }
   }, [navigate]);
 
@@ -98,7 +98,7 @@ function SplashScreen() {
             <div className="infomation-buttons">
               <Button
                 text="Sit Back"
-                onClick={() => console.log("clicked")}
+                onClick={() => { return; }}
                 colorScheme="white-500"
                 variant="gradient"
                 font="3xl"
@@ -114,7 +114,7 @@ function SplashScreen() {
               />
               <Button
                 text="Take a Breath"
-                onClick={() => console.log("clicked")}
+                onClick={() => { return; }}
                 colorScheme="yellow-500"
                 variant="gradient"
                 font="3xl"

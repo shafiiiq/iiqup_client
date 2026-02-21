@@ -94,8 +94,6 @@ const ServiceDoc = () => {
         // Get serviceTypes from location state
         const serviceTypes = location.state?.serviceTypes || [];
 
-        console.log("serviceTypes from doc", serviceTypes);
-
         if (currentPath.includes('/all/all-histories/')) {
           // Check if serviceTypes array exists and has items
           if (serviceTypes.length > 0) {
@@ -234,9 +232,6 @@ const ServiceDoc = () => {
         'POST',
         { password: sixDigitPassword }
       );
-
-      console.log("sixDigitPassword", await passwordResponse.json());
-
 
       if (!passwordResponse.ok) {
         throw new Error('Invalid 6-digit password');
@@ -386,8 +381,6 @@ const ServiceDoc = () => {
   };
 
   const handleAddReport = (historyId) => {
-    console.log("serviceType", serviceType);
-
     navigate(`/service-form/${serviceType}/${historyId}`);
   };
 
@@ -1228,7 +1221,6 @@ const renderFooterInfo = (reportData, regNo, supervisorSignUrl) => {
               src={supervisorSignUrl}
               alt="Supervisor Signature"
               onError={(e) => {
-                console.log('Signature URL expired or failed to load');
                 e.target.style.display = 'none';
               }}
             />

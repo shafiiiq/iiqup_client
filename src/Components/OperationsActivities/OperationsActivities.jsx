@@ -134,7 +134,7 @@ function OperationsActivities() {
             const combined = [
                 ...processedMobilizations.map(item => ({ ...item, activityType: 'mobilization' })),
                 ...processedReplacements.map(item => ({ ...item, activityType: 'replacement' }))
-            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+            ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 20);
 
             setRecentActivities(combined);
         } catch (error) {
@@ -346,12 +346,12 @@ function OperationsActivities() {
                             </div>
                         </div>
 
-                        {/* {item.remarks && (
+                        {item.remarks && (
                             <div className="activity-remarks">
                                 <span>Remarks: </span>
                                 <span>{item.remarks}</span>
                             </div>
-                        )} */}
+                        )}
                     </div>
                 </div>
             </div>
@@ -742,6 +742,12 @@ function OperationsActivities() {
                                     <span className="flow-value">{item.replacedSite}</span>
                                 </div>
                             </div>
+                            {item.remarks && (
+                                <div className="activity-remarks">
+                                    <span>Remarks: </span>
+                                    <span>{item.remarks}</span>
+                                </div>
+                            )}
                         </>
                     )}
 
@@ -1008,7 +1014,7 @@ function OperationsActivities() {
                     variant="gradient"
                     font="md"
                     squircle="4xl"
-                    width="33.33%"
+                    width="25%"
                     height="48px"
                     textColor={activeTab === 'recent' ? 'white-200' : 'gray-300'}
                     shadowPosition="to-bottom"
@@ -1021,7 +1027,7 @@ function OperationsActivities() {
                     variant="gradient"
                     font="md"
                     squircle="4xl"
-                    width="33.33%"
+                    width="25%"
                     height="48px"
                     textColor={activeTab === 'mobilizations' ? 'white-200' : 'gray-300'}
                     shadowPosition="to-bottom"
@@ -1034,9 +1040,22 @@ function OperationsActivities() {
                     variant="gradient"
                     font="md"
                     squircle="4xl"
-                    width="33.33%"
+                    width="25%"
                     height="48px"
                     textColor={activeTab === 'replacements' ? 'white-200' : 'gray-300'}
+                    shadowPosition="to-bottom"
+                    shadowColor="white-600"
+                />
+                <Button
+                    text="Status Changes"
+                    onClick={() => setActiveTab('statusChanges')}
+                    colorScheme={activeTab === 'statusChanges' ? 'amber-500' : 'amber-900'}
+                    variant="gradient"
+                    font="md"
+                    squircle="4xl"
+                    width="25%"
+                    height="48px"
+                    textColor={activeTab === 'statusChanges' ? 'white-200' : 'gray-300'}
                     shadowPosition="to-bottom"
                     shadowColor="white-600"
                 />
@@ -1061,7 +1080,9 @@ function OperationsActivities() {
                     {activeTab === 'mobilizations' && (
                         <div className="activities-grid">
                             {mobilizations.length > 0 ? (
-                                mobilizations.map(renderMobilizationCard)
+                                mobilizations
+                                    .filter(item => item.action !== 'status_changed')
+                                    .map(renderMobilizationCard)
                             ) : (
                                 <div className="no-activities">
                                     <p>No mobilization activities found</p>
@@ -1077,6 +1098,20 @@ function OperationsActivities() {
                             ) : (
                                 <div className="no-activities">
                                     <p>No replacement activities found</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'statusChanges' && (
+                        <div className="activities-grid">
+                            {mobilizations.filter(item => item.action === 'status_changed').length > 0 ? (
+                                mobilizations
+                                    .filter(item => item.action === 'status_changed')
+                                    .map(renderStatusChangeCard)
+                            ) : (
+                                <div className="no-activities">
+                                    <p>No status change activities found</p>
                                 </div>
                             )}
                         </div>

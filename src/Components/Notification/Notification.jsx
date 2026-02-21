@@ -80,23 +80,17 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     notificationSoundRef.current.src = soundOptions[selectedSound].url;
     notificationSoundRef.current.volume = 0.7;
     notificationSoundRef.current.preload = 'auto';
-
-    console.log('🔊 Notification sound initialized with:', soundOptions[selectedSound].name);
-
     notificationSoundRef.current.addEventListener('error', (e) => {
       console.error('❌ Sound file failed to load');
       playFallbackSound();
     });
 
-    notificationSoundRef.current.addEventListener('loadeddata', () => {
-      console.log('✅ Sound file loaded successfully');
-    });
+    notificationSoundRef.current.addEventListener('loadeddata', () => {});
 
     initializeApp();
     return cleanup;
   }, []);
 
-  // Live time update effect
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setCurrentTime(new Date());
@@ -146,21 +140,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
         const scrollPercentage = (scrollTop + windowHeight) / documentHeight;
         const isScrollingDown = scrollTop > lastScrollTop;
 
-        console.log('📊 SCROLL DEBUG:', {
-          scrollTop,
-          windowHeight,
-          documentHeight,
-          scrollPercentage: (scrollPercentage * 100).toFixed(2) + '%',
-          isScrollingDown,
-          currentPage,
-          hasMore,
-          isLoadingRefCurrent: isLoadingRef.current,
-          loading,
-          notificationsLength: notifications.length,
-          displayedLength: displayedNotifications.length
-        });
-
-        // SCROLL DOWN - Load more at 85%
         if (
           isScrollingDown &&
           scrollPercentage > LOAD_THRESHOLD &&
@@ -170,20 +149,12 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
         ) {
           const nextPage = currentPage + 1;
 
-          // Check if this page is already being fetched
           if (pendingPagesRef.current.has(nextPage)) {
-            console.log('⏸️ Page', nextPage, 'already loading, skipping...');
             return;
           }
 
-          console.log('🚀 TRIGGERING LOAD MORE');
-          console.log('   Current page:', currentPage);
-          console.log('   Next page will be:', nextPage);
-
-          // Mark this page as pending
           pendingPagesRef.current.add(nextPage);
 
-          // Show loading alert
           showAlert('Loading more notifications...', 'sync', '--color-info-600');
 
           isLoadingRef.current = true;
@@ -192,14 +163,12 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
           fetchAllNotifications(false, nextPage, true)
             .then(() => {
-              console.log('✅ FETCH COMPLETED');
-              console.log('   New notifications length:', notifications.length);
+              console.log('FETCH COMPLETED');
             })
             .catch((error) => {
               console.error('❌ FETCH FAILED:', error);
             })
             .finally(() => {
-              // Remove from pending
               pendingPagesRef.current.delete(nextPage);
 
               isLoadingRef.current = false;
@@ -212,18 +181,13 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
         // SCROLL UP - Remove bottom 100 ONLY when scrolled to very top
         if (!isScrollingDown && scrollTop < 100 && currentPage > 1 && notifications.length > ITEMS_PER_PAGE) {
-          console.log('⬆️ SCROLL UP - REMOVING NOTIFICATIONS');
-          console.log('   Before removal:', notifications.length);
           setNotifications(prev => {
             const itemsToKeep = ITEMS_PER_PAGE;
             const newArray = prev.slice(0, itemsToKeep);
-            console.log('   After removal:', newArray.length);
             return newArray;
           });
           setCurrentPage(1);
-          // Clear pending pages
           pendingPagesRef.current.clear();
-          console.log('   Reset to page 1');
         }
 
         lastScrollTop = scrollTop;
@@ -266,9 +230,9 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       if ('Notification' in window) {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-          console.log('✅ Web notifications enabled');
+          console.log('Web notifications enabled');
         } else {
-          console.log('❌ Web notifications denied');
+          console.log('Web notifications denied');
         }
       }
     } catch (error) {
@@ -538,11 +502,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
   };
 
   const fetchAllNotifications = async (isBackgroundRefresh = false, page = 1, append = false) => {
-    console.log('🔄 FETCH ALL NOTIFICATIONS CALLED');
-    console.log('   Background refresh:', isBackgroundRefresh);
-    console.log('   Page:', page);
-    console.log('   Append:', append);
-
     if (!isBackgroundRefresh && !append) {
       setLoading(true);
     }
@@ -555,34 +514,23 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
         page === 1 ? fetchSpecialNotifications(userUniqueCode) : []
       ]);
 
-      console.log('   Fetched normal:', normalNotifications.length);
-      console.log('   Fetched special:', specialNotifications.length);
-
       const newNotifications = [
         ...(page === 1 ? specialNotifications : []),
         ...normalNotifications
       ];
 
-      console.log('   Total new notifications:', newNotifications.length);
-
       if (append || isBackgroundRefresh) {
-        console.log('   MERGING with existing:', notifications.length);
         setNotifications(prev => {
           const existingIds = new Set(prev.map(n => n._id));
           const uniqueNew = newNotifications.filter(n => !existingIds.has(n._id));
-
-          console.log('   Unique new notifications:', uniqueNew.length);
-          console.log('   Duplicates filtered:', newNotifications.length - uniqueNew.length);
 
           const combined = isBackgroundRefresh
             ? [...uniqueNew, ...prev]
             : [...prev, ...uniqueNew];
 
-          console.log('   After merge:', combined.length);
           return combined;
         });
       } else {
-        console.log('   REPLACING all notifications');
         setNotifications(newNotifications);
       }
     } catch (error) {
@@ -599,8 +547,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
   const playNotificationSound = () => {
     setTimeout(() => {
-      console.log('🔔 playNotificationSound called');
-      // Check if sound is enabled
       if (!soundEnabled) {
         return;
       }
@@ -618,7 +564,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
               })
               .catch(e => {
                 console.error('❌ Audio play failed:', e);
-                console.log('🔄 Trying fallback sound...');
                 playFallbackSound();
               });
           }
@@ -635,15 +580,11 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
   // Fallback sound generator using Web Audio API
   const playFallbackSound = () => {
-    console.log('🔊 playFallbackSound called');
-
     if (!soundEnabled) {
-      console.log('⚠️ Fallback sound disabled by user');
       return;
     }
 
     try {
-      console.log('🎵 Generating fallback beep sound...');
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
       // First beep
@@ -662,9 +603,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
 
-      console.log('✅ First beep generated');
-
-      // Second beep
       setTimeout(() => {
         const oscillator2 = audioContext.createOscillator();
         const gainNode2 = audioContext.createGain();
@@ -681,10 +619,8 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
         oscillator2.start(audioContext.currentTime);
         oscillator2.stop(audioContext.currentTime + 0.1);
 
-        console.log('✅ Second beep generated');
       }, 150);
 
-      console.log('✅ Fallback sound played successfully!');
     } catch (error) {
       console.error('❌ Fallback sound generation failed:', error);
     }
@@ -978,7 +914,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
                   setSelectedSound(newSound);
                   localStorage.setItem('notificationSound', newSound);
                   notificationSoundRef.current.src = soundOptions[newSound].url;
-                  console.log('🎵 Changed sound to:', soundOptions[newSound].name);
                   setTimeout(() => playNotificationSound(), 100);
                 }}
                 options={Object.entries(soundOptions).map(([key, sound]) => ({

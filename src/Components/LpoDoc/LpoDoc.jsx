@@ -477,7 +477,6 @@ const LpoDoc = () => {
 
     const checkImages = () => {
       const images = componentRef.current.querySelectorAll('img');
-      console.log(images);
 
       if (images.length === 0) {
         setImagesLoaded(true);
@@ -629,7 +628,6 @@ const LpoDoc = () => {
         setLpoCounter(lpo.lpoCounter || 1);
 
         if (globalActivation.isActivated && globalActivation.isTrusted && deviceInfo) {
-          console.log("Loading signatures with flags:", flags);
           await Promise.all([
             loadSignatureWithInfo('accounts', deviceInfo, flags),
             loadSignatureWithInfo('pm', deviceInfo, flags),
@@ -656,7 +654,6 @@ const LpoDoc = () => {
 
   const sendToApprove = async () => {
     if (!imagesLoaded) {
-      console.log("imagesLoaded", imagesLoaded);
       alert('Please wait for all images to load before generating PDF');
       return;
     }
@@ -804,7 +801,6 @@ const LpoDoc = () => {
       }
 
       const result = await uploadResponse.json();
-      console.log('Upload response:', result);
 
       if (!uploadResponse.ok || result.status !== 200) {
         throw new Error(result.message || 'Upload failed');

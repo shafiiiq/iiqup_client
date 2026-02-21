@@ -9,6 +9,7 @@ import { apiRequest } from '../../utils/0auth';
 import { END_POINT } from '../../constants';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../common/Button/Button';
+import DevModal from '../../common/DevModal';
 
 const BackchargeDoc = () => {
     const { refNo } = useParams();
@@ -16,7 +17,9 @@ const BackchargeDoc = () => {
     const componentRef = useRef();
     const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
-    const [imagesLoaded, setImagesLoaded] = useState(false);
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [emailFormValues, setEmailFormValues] = useState({ email: '' });
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [saveStatus, setSaveStatus] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -64,7 +67,7 @@ const BackchargeDoc = () => {
             setHeaderTitle(null);
             setHeaderSubtitle(null);
         };
-    }, [refNo, formData.supplierName]);
+    }, [refNo, formData.supplierName, setHeaderTitle, setHeaderSubtitle]);
 
     useEffect(() => {
         const total = formData.tableRows.reduce((sum, row) => {
@@ -92,10 +95,8 @@ const BackchargeDoc = () => {
                 });
 
                 await Promise.all([logoPromise, textPromise]);
-                setImagesLoaded(true);
             } catch (error) {
                 console.error('Error loading images:', error);
-                setImagesLoaded(true);
             }
         };
 
@@ -114,7 +115,6 @@ const BackchargeDoc = () => {
                 if (response.ok) {
                     const data = await response.json();
 
-                    console.log(data);
                     setDocumentExists(true);
                     setDocumentId(data.data._id);
 
@@ -135,7 +135,6 @@ const BackchargeDoc = () => {
 
                         // Handle workshop comments lines
                         workshopComments: data.data.workshopComments?.lines?.find(line => line.lineNumber === 1)?.text || '',
-                        workSummaryLine2: data.workshopComments?.lines?.find(line => line.lineNumber === 2)?.text || '',
                         workSummaryLine2: data.data.workshopComments?.lines?.find(line => line.lineNumber === 2)?.text || '',
 
                         // Handle cost data
@@ -180,6 +179,80 @@ const BackchargeDoc = () => {
         fetchBackchargeData();
     }, [refNo, navigate]);
 
+    const sendToClient = () => {
+        setShowEmailModal(true);
+    };
+
+    const handleSendEmail = async () => {
+        const email = emailFormValues.email;
+        if (!email || !email.includes('@')) {
+            alert('Please enter a valid email');
+            return;
+        }
+
+        setIsSendingEmail(true);
+
+        try {
+            // Generate PDF as blob
+            const input = componentRef.current;
+            const controls = document.querySelector('.bcr-controls');
+            if (controls) controls.style.display = 'none';
+
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            const canvas = await html2canvas(input, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: '#FFFFFF',
+                onclone: (clonedDoc) => {
+                    const clonedControls = clonedDoc.querySelector('.bcr-controls');
+                    if (clonedControls) clonedControls.remove();
+                }
+            });
+
+            if (controls) controls.style.display = 'block';
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            if (imgHeight > pdfHeight) {
+                const scaledWidth = (canvas.width * pdfHeight) / canvas.height;
+                pdf.addImage(imgData, 'PNG', (pdfWidth - scaledWidth) / 2, 0, scaledWidth, pdfHeight, '', 'FAST');
+            } else {
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight, '', 'FAST');
+            }
+
+            const pdfBlob = pdf.output('blob');
+
+            const equipment = `${formData.equipmentType} - ${formData.plateNo}`;
+            const formDataToSend = new FormData();
+            formDataToSend.append('pdf', pdfBlob, `${getFileName()}.pdf`);
+            formDataToSend.append('email', email);
+            formDataToSend.append('recipientName', emailFormValues.recipientName || '');
+            formDataToSend.append('equipment', equipment);
+
+            const response = await apiRequest(`${END_POINT}/backcharge/send-via-email`, 'POST', formDataToSend, true);
+
+            if (response.ok) {
+                setShowEmailModal(false);
+                setEmailFormValues({ email: '' });
+                alert('Document sent successfully!');
+            } else {
+                alert('Failed to send email. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error sending email:', error);
+            alert('Error sending email.');
+            const controls = document.querySelector('.bcr-controls');
+            if (controls) controls.style.display = 'block';
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
+
     // API function to update backcharge data
     const updateBackchargeData = async () => {
         if (!documentId) return;
@@ -223,7 +296,6 @@ const BackchargeDoc = () => {
             if (response.ok) {
                 setSaveStatus('success');
                 setIsEditing(false);
-                console.log('Backcharge data updated successfully:', response.data);
                 setTimeout(() => setSaveStatus(''), 3000);
             } else {
                 setSaveStatus('error');
@@ -269,8 +341,6 @@ const BackchargeDoc = () => {
         }
 
         try {
-            console.log('Starting high-quality PDF generation...');
-
             const controls = document.querySelector('.bcr-controls');
             if (controls) {
                 controls.style.display = 'none';
@@ -305,8 +375,6 @@ const BackchargeDoc = () => {
                 }
             });
 
-            console.log('High-quality canvas created, generating PDF...');
-
             const imgData = canvas.toDataURL('image/png', 1.0);
 
             const pdf = new jsPDF({
@@ -330,8 +398,6 @@ const BackchargeDoc = () => {
             } else {
                 pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight, '', 'FAST');
             }
-
-            console.log('High-quality PDF generated successfully');
             pdf.save(getFileName() + '.pdf');
 
         } catch (error) {
@@ -1144,6 +1210,21 @@ const BackchargeDoc = () => {
                                     shadowPosition="to-bottom"
                                     shadowColor="white-600"
                                 />
+                                <Button
+                                    text="Send to client"
+                                    onClick={sendToClient}
+                                    colorScheme="rose-700"
+                                    variant="gradient"
+                                    font="md"
+                                    animation=""
+                                    squircle="4xl"
+                                    width="160px"
+                                    height="38px"
+                                    type="submit"
+                                    textColor="white-200"
+                                    shadowPosition="to-bottom"
+                                    shadowColor="white-600"
+                                />
                             </div>
                             <div className='bcr-btn-right'>
                                 <Button
@@ -1567,6 +1648,34 @@ const BackchargeDoc = () => {
                     </div>
                 </div>
             </div>
+            <DevModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                type="form"
+                title="Send to Client"
+                message="Enter the client's email address"
+                buttonText={isSendingEmail ? 'Sending...' : 'Send'}
+                onButtonClick={handleSendEmail}
+                secondaryButtonText="Cancel"
+                onSecondaryClick={() => setShowEmailModal(false)}
+                formFields={[
+                    {
+                        name: 'email',
+                        label: 'Client Email',
+                        type: 'email',
+                        placeholder: 'client@example.com',
+                        required: true,
+                    },
+                    {
+                        name: 'recipientName',
+                        label: 'Recipient Name (optional)',
+                        type: 'text',
+                        placeholder: 'e.g. John Doe',
+                    }
+                ]}
+                formValues={emailFormValues}
+                onFormChange={(field, value) => setEmailFormValues(prev => ({ ...prev, [field]: value }))}
+            />
         </div>
     );
 };

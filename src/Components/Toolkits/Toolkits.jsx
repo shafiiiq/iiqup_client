@@ -5,20 +5,12 @@ import { apiRequest } from '../../utils/0auth';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
 import DevModal from '../../common/DevModal';
-import { useSearch } from '../../context/SearchContext';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
 import Loader from '../../common/Loader/Loader';
 
 const Toolkits = () => {
-  const { searchTerm, setSearchTerm } = useSearch();
   const userDropdownRef = useRef(null);
-  const nameDropdownRef = useRef(null);
-  const typeDropdownRef = useRef(null);
-  const sizeDropdownRef = useRef(null);
-  const colorDropdownRef = useRef(null);
-
-  const predefinedToolNames = ['Coveralls', 'Safety Shoes', 'Helmet', 'Safety Glasses', 'Safety Jacket', 'Hand Gloves'];
   const predefinedColors = ['White', 'Yellow', 'Grey', 'Blue', 'Navy Blue', 'Kaki', 'Black'];
   const predefinedTypes = ['Head Protection', 'Eye Protection', 'Hand Protection', 'Foot Protection', 'Body Protection', 'Fall Protection', 'Respiratory Protection'];
   const predefinedSizes = ['S', 'M', 'L', 'XL', 'XXL', 'One Size'];
@@ -36,7 +28,6 @@ const Toolkits = () => {
   const [error, setError] = useState(null);
   const [selectedToolkit, setSelectedToolkit] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const [currentDateTime, setCurrentDateTime] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showVariantForm, setShowVariantForm] = useState(false);
   const [showStockHistory, setShowStockHistory] = useState(false);
@@ -80,16 +71,9 @@ const Toolkits = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
   const filteredToolkits = toolkits;
   const [nameSearchTerm, setNameSearchTerm] = useState('');
   const [typeSearchTerm, setTypeSearchTerm] = useState('');
-  const [sizeSearchTerm, setSizeSearchTerm] = useState('');
-  const [colorSearchTerm, setColorSearchTerm] = useState('');
-  const [showNameDropdown, setShowNameDropdown] = useState(false);
-  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
-  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
-  const [showColorDropdown, setShowColorDropdown] = useState(false);
   const [showToolkitHistory, setShowToolkitHistory] = useState(false);
   const [toolkitHistory, setToolkitHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState({
@@ -99,19 +83,6 @@ const Toolkits = () => {
     lastN: 7,
     lastUnit: 'days' // 'days', 'weeks', 'months', 'years'
   });
-
-  const filteredToolNames = predefinedToolNames.filter(name =>
-    name.toLowerCase().includes(nameSearchTerm.toLowerCase())
-  );
-  const filteredTypes = predefinedTypes.filter(type =>
-    type.toLowerCase().includes(typeSearchTerm.toLowerCase())
-  );
-  const filteredSizes = predefinedSizes.filter(size =>
-    size.toLowerCase().includes(sizeSearchTerm.toLowerCase())
-  );
-  const filteredColors = predefinedColors.filter(color =>
-    color.toLowerCase().includes(colorSearchTerm.toLowerCase())
-  );
 
   // Fetch all users (mechanics, operators, office users)
   useEffect(() => {
@@ -184,7 +155,6 @@ const Toolkits = () => {
 
   // Handle user selection
   const handleUserSelect = (user) => {
-    setSelectedUser(user);
     setReduceStockData({
       ...reduceStockData,
       person: user.name,
@@ -195,33 +165,14 @@ const Toolkits = () => {
     setShowUserDropdown(false);
   };
 
-  // Handle user search input change
-  const handleUserSearchChange = (e) => {
-    const value = e.target.value;
-    setUserSearchTerm(value);
-    setShowUserDropdown(value.length > 0);
-
-    // Update person in reduceStockData for manual typing
-    setReduceStockData({
-      ...reduceStockData,
-      person: value,
-      personId: null, // Clear ID when manually typing
-      reason: value ? `Handovered to ${value}` : 'Used'
-    });
-  };
-
-  // filtered history 
   const fetchAllToolkitsHistory = async () => {
     try {
-      // Fetch history from all toolkits
       const historyPromises = toolkits.map(async (toolkit) => {
         try {
           const response = await apiRequest(`${END_POINT}/toolkits/toolkit-stock-history/${toolkit._id}`);
           if (!response.ok) return [];
           const result = await response.json();
-          console.log("yesssss", result);
 
-          // Process each variant's stock history
           const variantHistories = [];
           if (result.data.variants && Array.isArray(result.data.variants)) {
             result.data.variants.forEach(variant => {
@@ -283,6 +234,8 @@ const Toolkits = () => {
           case 'years':
             cutoffDate.setFullYear(now.getFullYear() - historyFilter.lastN);
             break;
+          default:
+            return;
         }
 
         combinedHistory = combinedHistory.filter(h => {
@@ -355,19 +308,6 @@ const Toolkits = () => {
   // Handle clicks hired dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (nameDropdownRef.current && !nameDropdownRef.current.contains(event.target)) {
-        setShowNameDropdown(false);
-      }
-      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target)) {
-        setShowTypeDropdown(false);
-      }
-      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target)) {
-        setShowSizeDropdown(false);
-      }
-      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target)) {
-        setShowColorDropdown(false);
-      }
-      // Add user dropdown handler
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
         setShowUserDropdown(false);
       }
@@ -377,52 +317,6 @@ const Toolkits = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Update current date and time
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString}   |   ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Handle clicks hired dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (nameDropdownRef.current && !nameDropdownRef.current.contains(event.target)) {
-        setShowNameDropdown(false);
-      }
-      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target)) {
-        setShowTypeDropdown(false);
-      }
-      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target)) {
-        setShowSizeDropdown(false);
-      }
-      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target)) {
-        setShowColorDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Fetch toolkits data
   useEffect(() => {
     const fetchToolkits = async () => {
       try {
@@ -442,18 +336,6 @@ const Toolkits = () => {
     fetchToolkits();
   }, []);
 
-  const groupVariantsBySize = (variants) => {
-    const grouped = {};
-    variants.forEach(variant => {
-      if (!grouped[variant.size]) {
-        grouped[variant.size] = [];
-      }
-      grouped[variant.size].push(variant);
-    });
-    return grouped;
-  };
-
-  // Show toolkit details
   const showDetails = (toolkit) => {
     setSelectedToolkit(toolkit);
     setSelectedVariant(null);
@@ -517,8 +399,6 @@ const Toolkits = () => {
       inuse: false,
       reason: ''
     });
-    setSizeSearchTerm('');
-    setColorSearchTerm('');
     setSelectedToolkit(toolkit);
     setShowVariantForm(true);
   };
@@ -535,20 +415,10 @@ const Toolkits = () => {
       inuse: variant.inuse,
       reason: ''
     });
-    setSizeSearchTerm(variant.size);
-    setColorSearchTerm(variant.color);
     setSelectedToolkit(toolkit);
     setShowVariantForm(true);
   };
 
-  // Handle standard form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
 
   const openReduceStockModal = () => {
     setReduceStockData({
@@ -558,104 +428,7 @@ const Toolkits = () => {
       personId: null
     });
     setUserSearchTerm('');
-    setSelectedUser(null);
     setShowReduceStockModal(true);
-  };
-
-  // Handle variant form input changes
-  const handleVariantInputChange = (e) => {
-    const { name, value } = e.target;
-    let processedValue = value;
-
-    if (name === 'stockCount' || name === 'minStockLevel') {
-      processedValue = parseInt(value, 10) || 0;
-    } else if (name === 'inuse') {
-      processedValue = e.target.checked;
-    }
-
-    setVariantFormData({
-      ...variantFormData,
-      [name]: processedValue
-    });
-  };
-
-  // Handle dropdown selections
-  const handleNameSelect = (selectedName) => {
-    setFormData({
-      ...formData,
-      name: selectedName
-    });
-    setNameSearchTerm(selectedName);
-    setShowNameDropdown(false);
-  };
-
-  const handleTypeSelect = (selectedType) => {
-    setFormData({
-      ...formData,
-      type: selectedType
-    });
-    setTypeSearchTerm(selectedType);
-    setShowTypeDropdown(false);
-  };
-
-  const handleSizeSelect = (selectedSize) => {
-    setVariantFormData({
-      ...variantFormData,
-      size: selectedSize
-    });
-    setSizeSearchTerm(selectedSize);
-    setShowSizeDropdown(false);
-  };
-
-  const handleColorSelect = (selectedColor) => {
-    setVariantFormData({
-      ...variantFormData,
-      color: selectedColor
-    });
-    setColorSearchTerm(selectedColor);
-    setShowColorDropdown(false);
-  };
-
-  // Handle search input changes
-  const handleNameSearchChange = (e) => {
-    setNameSearchTerm(e.target.value);
-    setShowNameDropdown(true);
-  };
-
-  const handleTypeSearchChange = (e) => {
-    setTypeSearchTerm(e.target.value);
-    setShowTypeDropdown(true);
-  };
-
-  const handleSizeSearchChange = (e) => {
-    setSizeSearchTerm(e.target.value);
-    setShowSizeDropdown(true);
-  };
-
-  const handleColorSearchChange = (e) => {
-    setColorSearchTerm(e.target.value);
-    setShowColorDropdown(true);
-  };
-
-  // Toggle dropdowns
-  const toggleNameDropdown = () => {
-    setShowNameDropdown(!showNameDropdown);
-    setShowTypeDropdown(false);
-  };
-
-  const toggleTypeDropdown = () => {
-    setShowTypeDropdown(!showTypeDropdown);
-    setShowNameDropdown(false);
-  };
-
-  const toggleSizeDropdown = () => {
-    setShowSizeDropdown(!showSizeDropdown);
-    setShowColorDropdown(false);
-  };
-
-  const toggleColorDropdown = () => {
-    setShowColorDropdown(!showColorDropdown);
-    setShowSizeDropdown(false);
   };
 
   // Form submit handler for toolkit
@@ -910,7 +683,6 @@ const Toolkits = () => {
       });
 
       // Prepare and add data
-      let rowIndex = 2;
       dataToExport.forEach((toolkit, toolkitIndex) => {
         if (toolkit.variants && toolkit.variants.length > 0) {
           let filteredVariants = toolkit.variants;
@@ -954,7 +726,6 @@ const Toolkits = () => {
             };
 
             worksheet.addRow(rowData);
-            rowIndex++;
           });
         } else {
           const overallStatusText = toolkit.overallStatus === 'available' ? 'In Stock' :
@@ -978,7 +749,6 @@ const Toolkits = () => {
           };
 
           worksheet.addRow(rowData);
-          rowIndex++;
         }
       });
 
@@ -1061,57 +831,6 @@ const Toolkits = () => {
       alert('Failed to export data to Excel. Please try again.');
     } finally {
       setExporting(false);
-    }
-  };
-
-  const fetchToolkitHistory = async (toolkit) => {
-    try {
-      const response = await apiRequest(`${END_POINT}/toolkits/toolkit-history/${toolkit._id}`);
-      if (!response.ok) throw new Error('Failed to fetch toolkit history');
-      const result = await response.json();
-
-      let history = result.data.history || [];
-
-      // Apply date filters
-      if (historyFilter.type === 'range' && historyFilter.dateFrom && historyFilter.dateTo) {
-        const fromDate = new Date(historyFilter.dateFrom);
-        const toDate = new Date(historyFilter.dateTo);
-        toDate.setHours(23, 59, 59, 999); // Include full end date
-
-        history = history.filter(h => {
-          const histDate = new Date(h.date || h.assignedDate || h.timestamp);
-          return histDate >= fromDate && histDate <= toDate;
-        });
-      } else if (historyFilter.type === 'last') {
-        const now = new Date();
-        let cutoffDate = new Date();
-
-        switch (historyFilter.lastUnit) {
-          case 'days':
-            cutoffDate.setDate(now.getDate() - historyFilter.lastN);
-            break;
-          case 'weeks':
-            cutoffDate.setDate(now.getDate() - (historyFilter.lastN * 7));
-            break;
-          case 'months':
-            cutoffDate.setMonth(now.getMonth() - historyFilter.lastN);
-            break;
-          case 'years':
-            cutoffDate.setFullYear(now.getFullYear() - historyFilter.lastN);
-            break;
-        }
-
-        history = history.filter(h => {
-          const histDate = new Date(h.date || h.assignedDate || h.timestamp);
-          return histDate >= cutoffDate;
-        });
-      }
-
-      setToolkitHistory(history);
-      setShowToolkitHistory(true);
-    } catch (err) {
-      console.error('Error fetching toolkit history:', err);
-      setToolkitHistory([]);
     }
   };
 

@@ -264,8 +264,6 @@ function ServiceHistoryForm() {
 
       const serviceData = await serviceResponse.json();
 
-      console.log("serviceData", serviceData);
-
       if (!serviceResponse.ok) {
         throw new Error(serviceData.error);
       }

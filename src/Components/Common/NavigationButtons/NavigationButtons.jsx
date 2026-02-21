@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './NavigationButtons.css';
+import ArrowForward from '../../../assets/images/arrow_forward_ios.svg'
+import ArrowBack from '../../../assets/images/arrow_back_ios.svg'
 
 const NavigationButtons = () => {
   const navigate = useNavigate();
@@ -20,18 +22,14 @@ const NavigationButtons = () => {
         onClick={goBack}
         title="Go Back"
       >
-        <span class="material-symbols-rounded">
-          arrow_back_ios
-        </span>
+        <img src={ArrowBack} alt="B" className='main-control main-control-back' />
       </button>
       <button
         className="nav-btn forward-btn"
         onClick={goForward}
         title="Go Forward"
       >
-        <span class="material-symbols-rounded">
-          arrow_forward_ios
-        </span>
+        <img src={ArrowForward} alt="F" className='main-control main-control-forward' />
       </button>
     </div>
   );

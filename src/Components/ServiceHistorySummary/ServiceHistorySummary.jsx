@@ -64,9 +64,6 @@ function ServiceHistorySummary() {
             const response = await apiRequest(url, 'GET');
             const data = await response.json();
 
-            console.log("dataaaaa :::::", data);
-
-
             if (data && data.data && data.data.all) {
                 setServiceData(data.data.all);
             } else {

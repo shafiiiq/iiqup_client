@@ -910,8 +910,6 @@ function DocumentDetails() {
       );
 
       const result = await response.json();
-      console.log('Backend response:', result);
-
       if (result.status !== 200) {
         throw new Error(result.message || 'Upload failed');
       }
@@ -926,8 +924,6 @@ function DocumentDetails() {
       });
 
       if (!s3UploadResponse.ok) {
-        console.log('S3 upload failed:', await s3UploadResponse.json());
-
         throw new Error(`S3 upload failed: ${s3UploadResponse.status}`);
       }
 
@@ -985,8 +981,6 @@ function DocumentDetails() {
       }
 
       const data = await response.json();
-      console.log(data);
-
       const processedDocuments = [];
 
       if (data.documents && data.documents.length > 0) {
@@ -1174,8 +1168,6 @@ function DocumentDetails() {
       }
 
       const data = await response.json();
-      console.log(data.document.filePath);
-
       const body = { key: data.document.filePath, isLong: false };
       const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
       const s3URL = await s3response.json();

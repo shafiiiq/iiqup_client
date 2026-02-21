@@ -78,7 +78,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
                 // Load more when 80% scrolled
                 if (scrollTop > documentHeight * 0.8) {
-                    console.log('Loading more equipment...');
                     fetchEquipments(currentPage + 1, true);
                 }
             }, 200);
@@ -232,7 +231,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
             const pendingItems = data.filter(item => item.workflowStatus === "sent_to_workshop");
 
             setPendingLpos(pendingItems);
-            console.log(pendingItems);
 
             setShowPendingAlert(pendingItems.length > 0);
         } catch (error) {

@@ -36,8 +36,6 @@ export const fetchDashboardCounts = async (period = 'daily') => {
     try {
         const response = await apiRequest(`${END_POINT}/dashboard/get-${period}-counts`, 'GET');
         const result = await response.json();
-
-        console.log("Dailyyyyyyyyyy", result);
         
         return result.data;
     } catch (error) {

@@ -591,10 +591,8 @@ function Equipments() {
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
     } catch (error) {
       console.error('Error setting cache:', error);
-      // If localStorage is full, clear old cache
       if (error.name === 'QuotaExceededError') {
         localStorage.removeItem(CACHE_KEY);
-        console.log('Cache cleared due to quota exceeded');
       }
     }
   };
@@ -618,14 +616,12 @@ function Equipments() {
 
       if (hasChanges) {
         localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-        console.log('Expired cache entries cleared');
       }
     } catch (error) {
       console.error('Error clearing expired cache:', error);
     }
   };
 
-  // Cache equipment list (without images)
   const getCachedEquipmentList = () => {
     try {
       const cache = localStorage.getItem(EQUIPMENT_LIST_CACHE_KEY);
@@ -637,11 +633,9 @@ function Equipments() {
 
       if (now > expiryTime) {
         localStorage.removeItem(EQUIPMENT_LIST_CACHE_KEY);
-        console.log('Equipment list cache expired');
         return null;
       }
 
-      console.log('Using cached equipment list');
       return parsed.data;
     } catch (error) {
       console.error('Error reading equipment list cache:', error);
@@ -656,12 +650,10 @@ function Equipments() {
         timestamp: new Date().getTime()
       };
       localStorage.setItem(EQUIPMENT_LIST_CACHE_KEY, JSON.stringify(cacheData));
-      console.log('Equipment list cached successfully');
     } catch (error) {
       console.error('Error caching equipment list:', error);
       if (error.name === 'QuotaExceededError') {
         localStorage.removeItem(EQUIPMENT_LIST_CACHE_KEY);
-        console.log('Equipment list cache cleared due to quota exceeded');
       }
     }
   };
@@ -683,9 +675,7 @@ function Equipments() {
       const s3URL = await s3response.json();
       const url = s3URL.dataUrl;
 
-      // Cache the URL
       setCachedImageUrl(filePath, url);
-      console.log('Cached new URL for:', filePath);
 
       return url;
     } catch (error) {
@@ -770,7 +760,6 @@ function Equipments() {
 
         // Load more when 80% scrolled
         if (scrollTop > documentHeight * 0.8) {
-          console.log('Loading more equipment...');
           fetchEquipments(currentPage + 1, true);
         }
       }, 200);
@@ -827,13 +816,8 @@ function Equipments() {
       setTotalCount(data.pagination.totalCount);
       setHasMore(data.pagination.hasMore);
 
-      // Get regNos for bulk image fetch
       const regNos = equipmentList.map(eq => eq.regNo);
 
-      console.log("regNos", regNos);
-
-
-      // Fetch images in bulk (ONE API call instead of 20!)
       const imageResponse = await apiRequest(
         `${END_POINT}/equipments/bulk-equipment-images`,
         'POST',
@@ -841,10 +825,6 @@ function Equipments() {
       );
       const imageData = await imageResponse.json();
 
-      console.log("imageData", imageData);
-
-
-      // Merge equipment with images
       const equipmentsWithImages = await Promise.all(
         equipmentList.map(async (equipment) => {
           const images = imageData.data[equipment.regNo];
@@ -911,7 +891,6 @@ function Equipments() {
       isError: false
     });
     setShowStatusModal(true);
-    console.log('Cache manually cleared');
   };
 
   const fetchCompletedWorks = async () => {
@@ -2163,7 +2142,6 @@ function Equipments() {
 
 
       const fuelData = sidebarContent.data[0];
-      { console.log(fuelData.transactions) }
       return (
         <div className="fuels-list">
           <div className="fuel-summary">
@@ -2873,24 +2851,7 @@ function Equipments() {
           </div>
         </div>
       )}
-
-      {/* <DevModal
-        isOpen={showUnauthorizedModal}
-        onClose={() => setShowUnauthorizedModal(false)}
-        type="unauthorized"
-        title="Access Denied"
-        message="You don't have permission to perform this action."
-        unauthorizedReason="This feature requires administrator privileges."
-        contactEmail="support@yourcompany.com"
-        buttonText="Request Access"
-        onButtonClick={() => {
-          // Handle request access
-          console.log('Request access clicked');
-        }}
-        secondaryButtonText="Back"
-        onSecondaryClick={() => setShowUnauthorizedModal(false)}
-      /> */}
-
+      
       {/* Add Equipment Modal */}
       <DevModal
         isOpen={showAddModal}

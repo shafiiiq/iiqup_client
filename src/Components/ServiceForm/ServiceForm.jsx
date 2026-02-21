@@ -217,9 +217,6 @@ const ServiceForm = ({ initialData = {} }) => {
           const response = await apiRequest(`${END_POINT}/service-report/get-report/with-id/${reportId}`);
           const data = await response.json();
 
-          console.log("the data", data.data);
-
-
           if (data.ok && data.data) {
             const existingData = data.data;
 
@@ -491,10 +488,6 @@ const ServiceForm = ({ initialData = {} }) => {
 
       setTimeout(() => {
         const responseData = data.data.serviceReport || formData;
-
-        console.log("data", data.data);
-        console.log("responseData", responseData);
-
 
         navigate(`/service-document/${responseData.historyId}`, {
           state: {

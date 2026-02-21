@@ -303,8 +303,6 @@ const Dashboard = () => {
 
   // Manual refresh
   const handleRefresh = () => {
-    console.log("yeahhhhhhhh");
-
     loadDashboardData(true);
   };
 

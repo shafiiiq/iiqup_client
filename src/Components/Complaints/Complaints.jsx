@@ -289,7 +289,6 @@ const Complaints = () => {
         [filePath]: fullUrl
       }));
 
-      console.log('Generated URL:', fullUrl);
       return fullUrl;
     } catch (error) {
       console.error('Error getting media URL:', error);

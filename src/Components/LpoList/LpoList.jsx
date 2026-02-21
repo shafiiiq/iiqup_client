@@ -108,8 +108,6 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       setLpos(data.data);
       setFilteredData(data.data);
 
-      console.log("data.data", data.data);
-
     } catch (error) {
       console.error(`Error fetching LPO records:`, error);
     } finally {
@@ -291,35 +289,16 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     }
   };
 
-  const resetDateFilter = () => {
-    setDateRange({ startDate: '', endDate: '' });
-    setFilteredData(lpos);
-  };
-
-  var index = 1
-  const formatDate = (dateString) => {
-    console.log("dateString", dateString);
-    console.log("index", index);
-
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    index = index + 1
-    return date.toLocaleDateString('en-GB');
-  };
-
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const handleApplyFilters = () => {
-    // Update the main filter states from the modal filters
     setDateRange({
       startDate: filters.customStartDate,
       endDate: filters.customEndDate
     });
     setShowFiltersModal(false);
-
-    // Apply filters to data
     applyAllFilters();
   };
 

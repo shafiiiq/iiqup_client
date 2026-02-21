@@ -23,11 +23,11 @@
     backdrop-filter: blur(10px);
 }
 
-.nav-btn span{
+.nav-btn span {
     font-size: 45px;
     display: flex;
     justify-content: center;
-    margin-left: 10px;
+
 }
 
 .nav-btn:hover {
@@ -40,7 +40,12 @@
     transform: scale(0.95);
 }
 
-/* Mobile responsive */
+.main-control {
+    width: 60px;
+    height: 60px;
+    margin-left: 10px;
+}
+
 @media (max-width: 768px) {
     .navigation-buttons {
         bottom: 20px;
@@ -53,7 +58,6 @@
     }
 }
 
-/* Alternative positioning - bottom center for mobile */
 @media (max-width: 480px) {
     .navigation-buttons {
         bottom: 20px;

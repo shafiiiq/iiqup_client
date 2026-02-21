@@ -139,8 +139,6 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    console.log(location.pathname);
-
     setActiveLink(location.pathname);
   }, [location]);
 

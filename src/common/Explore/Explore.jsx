@@ -11,8 +11,6 @@ function Explore() {
   const [features, setFeatures] = useState([]);
   const [releaseId, setReleaseId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [hasExploredThisVersion, setHasExploredThisVersion] = useState(false);
 
   useEffect(() => {
     const fetchFeatures = async () => {
@@ -20,8 +18,6 @@ function Explore() {
         setIsLoading(true);
         const response = await apiRequest(`${END_POINT}/explorer/get-latest-release-for-user`, 'GET');
         const data = await response.json();
-
-        console.log("data", data);
 
         // Handle no data
         if (data.status !== 200 || !data.data) {

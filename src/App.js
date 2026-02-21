@@ -252,9 +252,7 @@ function App() {
         try {
           const response = await apiRequest(`${END_POINT}/explorer/get-latest-release-for-user`, 'GET');
           const data = await response.json();
-
-          console.log("Release check:", data);
-
+          
           if (data.status === 200 && data.data && !data.data.hasExploredThisVersion) {
             navigate('/explorer');
           }

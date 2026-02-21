@@ -49,15 +49,12 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
 
   // Fallback sound generator using Web Audio API
   const playFallbackSound = () => {
-    console.log('🔊 playFallbackSound called');
-
     if (!soundEnabled) {
-      console.log('⚠️ Fallback sound disabled by user');
+      console.error('Fallback sound disabled by user');
       return;
     }
 
     try {
-      console.log('🎵 Generating fallback beep sound...');
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
       // First beep
@@ -76,8 +73,6 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
 
-      console.log('✅ First beep generated');
-
       // Second beep
       setTimeout(() => {
         const oscillator2 = audioContext.createOscillator();
@@ -94,11 +89,8 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
 
         oscillator2.start(audioContext.currentTime);
         oscillator2.stop(audioContext.currentTime + 0.1);
-
-        console.log('✅ Second beep generated');
       }, 150);
 
-      console.log('✅ Fallback sound played successfully!');
     } catch (error) {
       console.error('❌ Fallback sound generation failed:', error);
     }
@@ -106,8 +98,6 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
 
   const playNotificationSound = () => {
     setTimeout(() => {
-      console.log('🔔 playNotificationSound called');
-      // Check if sound is enabled
       if (!soundEnabled) {
         return;
       }
@@ -125,7 +115,6 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
               })
               .catch(e => {
                 console.error('❌ Audio play failed:', e);
-                console.log('🔄 Trying fallback sound...');
                 playFallbackSound();
               });
           }
@@ -179,7 +168,6 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
             setSelectedSound(newSound);
             localStorage.setItem('notificationSound', newSound);
             notificationSoundRef.current.src = soundOptions[newSound].url;
-            console.log('🎵 Changed sound to:', soundOptions[newSound].name);
             setTimeout(() => playNotificationSound(), 100);
           }}
           options={Object.entries(soundOptions).map(([key, sound]) => ({

@@ -25,7 +25,6 @@ function Intro() {
 
     useEffect(() => {
         if (splineError) {
-            console.log('Auto-redirecting to login from intro');
             localStorage.setItem('hasSeenIntro', 'true');
             setTimeout(() => {
                 navigate('/login');

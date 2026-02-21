@@ -482,10 +482,8 @@ const Lpo = ({ isStock, isAllEquip, edit, amendment, amendmentEdit }) => {
           setTimeout(() => {
             setSaveStatus('');
             if (isAmendmentMode) {
-              console.log("yessssssssssss");
               navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/amendment/${true}/${complaintId || lpoData.complaintId || ''}`);
             } else {
-              console.log("noooo");
               navigate(`/lpo-doc/${encodeURIComponent(lpoData.lpoRef)}/${complaintId || ''}`);
             }
 

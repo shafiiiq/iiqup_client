@@ -163,8 +163,3 @@ export const scaleAll = (multiplier) => {
     Object.keys(BASE).forEach(key => BASE[key] *= multiplier);
     Object.keys(STEP).forEach(key => STEP[key] *= multiplier);
 };
-
-console.log('fontMap["71xl"]:', fontMap['71xl']);
-console.log('sizeMap["33xl"]:', sizeMap['33xl']);
-console.log('cornerRadiusMap["4xl"]:', cornerRadiusMap['4xl']);
-console.log('paddingInlineMap["80xl"]:', paddingInlineMap['80xl']);
