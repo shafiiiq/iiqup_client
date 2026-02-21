@@ -49,6 +49,7 @@ const ServiceHistory = () => {
   const [signatureCache, setSignatureCache] = useState({});
   const [isDocumentSigned, setIsDocumentSigned] = useState(false);
   const [signExpiryTime, setSignExpiryTime] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
   const { searchTerm, setSearchTerm } = useSearch();
   const [filteredData, setFilteredData] = useState([]);
@@ -58,6 +59,7 @@ const ServiceHistory = () => {
   const [lastMonthsCount, setLastMonthsCount] = useState(6);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [showCustomDateInputs, setShowCustomDateInputs] = useState(false);
   const [deleteReport, setDeleteReport] = useState({});
   const [serviceHistory, setServiceHistory] = useState([]);
   const [maintenanceHistory, setMaintenanceHistory] = useState([]);
@@ -66,6 +68,7 @@ const ServiceHistory = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentDateTime, setCurrentDateTime] = useState('');
   const [expandedRemarks, setExpandedRemarks] = useState({});
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [filters, setFilters] = useState({
@@ -107,6 +110,7 @@ const ServiceHistory = () => {
       interval = setInterval(() => {
         const now = Date.now();
         const remaining = Math.max(0, Math.floor((signExpiryTime - now) / 1000));
+        setTimeRemaining(remaining);
 
         if (remaining <= 0) {
           setIsDocumentSigned(false);
@@ -121,6 +125,34 @@ const ServiceHistory = () => {
       if (interval) clearInterval(interval);
     };
   }, [signExpiryTime, isDocumentSigned]);
+
+  // Get current date in DD-MM-YY format and time in AM/PM format
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+
+      // Format date as DD-MM-YY
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const dateString = `${day}-${month}-${year}`;
+
+      // Format time in AM/PM
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // Convert 0 to 12
+      const timeString = `${hours}:${minutes} ${ampm}`;
+
+      setCurrentDateTime(`${dateString}   |   ${timeString}`);
+    };
+
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const groupByEquipment = (data) => {
     const grouped = {};
@@ -313,6 +345,8 @@ const ServiceHistory = () => {
       setSupervisorSignUrl(fullUrl);
       setIsDocumentSigned(true);
       setSignExpiryTime(expiryTime);
+      setTimeRemaining(10);
+
       setSixDigitPassword('');
       setOtpCode('');
       setSignLoading(false);
@@ -337,6 +371,7 @@ const ServiceHistory = () => {
     setLastMonthsCount(filters.lastMonthsCount);
     setCustomStartDate(filters.customStartDate);
     setCustomEndDate(filters.customEndDate);
+    setShowCustomDateInputs(filters.dateFilter === 'custom');
     setShowFiltersModal(false);
   };
 
@@ -354,6 +389,7 @@ const ServiceHistory = () => {
     setLastMonthsCount(6);
     setCustomStartDate('');
     setCustomEndDate('');
+    setShowCustomDateInputs(false);
   };
 
   const handleFilterChange = (name, value) => {
@@ -711,6 +747,7 @@ const ServiceHistory = () => {
     processData();
   }, [serviceHistory, maintenanceHistory, tyreHistory, batteryHistory, regNoArray, searchTerm, activeTab, dateFilter, lastMonthsCount, customStartDate, customEndDate, filters]);
 
+  // Group data by equipment after filteredData is set
   useEffect(() => {
     if (isMultipleEquipment) {
       setGroupedData(groupByEquipment(filteredData));
@@ -718,6 +755,24 @@ const ServiceHistory = () => {
       setGroupedData({ [regNoArray[0]]: filteredData });
     }
   }, [filteredData, isMultipleEquipment, regNoArray]);
+
+  // Handle tab change
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchTerm(''); // Clear search when changing tabs
+  };
+
+  // Handle date filter change
+  const handleDateFilterChange = (filter) => {
+    setDateFilter(filter);
+    if (filter === 'custom') {
+      setShowCustomDateInputs(true);
+    } else {
+      setShowCustomDateInputs(false);
+      setCustomStartDate('');
+      setCustomEndDate('');
+    }
+  };
 
   const loadImageAsDataURL = (imageSrc) => {
     return new Promise((resolve, reject) => {
