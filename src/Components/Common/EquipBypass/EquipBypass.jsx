@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../../constants';
 import { apiRequest } from '../../../utils/api';
 import { useSearch } from '../../../context/SearchContext';
-import Button from '../../../Common/Button/Button';
-import Loader from '../../../Common/Loader/Loader';
+import Button from '../../../common/Button/Button';
+import Loader from '../../../common/Loader/Loader';
 
 function EquipBypass({ equipStocks, documents, isLPO }) {
     const { searchTerm } = useSearch();

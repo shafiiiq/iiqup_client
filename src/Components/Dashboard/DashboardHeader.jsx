@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
-import Button from '../../Common/Button/Button';
-import Input from '../../Common/Input/Input';
+import Button from '../../common/Button/Button';
+import Input from '../../common/Input/Input';
 
 const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleRefresh }) => {
   const notificationSoundRef = useRef(null);

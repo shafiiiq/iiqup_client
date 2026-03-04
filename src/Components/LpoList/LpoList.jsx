@@ -4,9 +4,9 @@ import { END_POINT } from '../../constants';
 import './LpoList.css';
 import { apiRequest } from '../../utils/api';
 import { useHeaderTitle } from '../../context/HeaderTitleContext';
-import DevModal from '../../Common/DevModal/DevModal';
-import Button from '../../Common/Button/Button';
-import Loader from '../../Common/Loader/Loader';
+import DevModal from '../../common/DevModal/DevModal';
+import Button from '../../common/Button/Button';
+import Loader from '../../common/Loader/Loader';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();

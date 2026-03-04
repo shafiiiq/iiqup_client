@@ -10,7 +10,7 @@ import { useNavigate }                 from 'react-router';
 import Spline                          from '@splinetool/react-spline';
 
 import { checkWebGLSupport } from '../utils/compatibility';
-import Button                from '../Common/Button/Button';
+import Button                from '../common/Button/Button';
 
 import './SplashScreen.css';
 

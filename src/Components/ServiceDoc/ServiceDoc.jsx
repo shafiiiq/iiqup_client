@@ -15,8 +15,8 @@ import mechanicSign from '../../assets/images/mechanic-sign.png';
 import { END_POINT }  from '../../constants';
 import { apiRequest } from '../../utils/api';
 
-import DevModal from '../../Common/DevModal/DevModal';
-import Button   from '../../Common/Button/Button';
+import DevModal from '../../common/DevModal/DevModal';
+import Button   from '../../common/Button/Button';
 
 import '../ServiceDoc/ServiceDoc.css';
 

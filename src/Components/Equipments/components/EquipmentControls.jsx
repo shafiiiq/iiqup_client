@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useNavigate }  from 'react-router-dom';
-import Button           from '../../../Common/Button/Button';
+import Button           from '../../../common/Button/Button';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared Button defaults — every button in this bar uses these same props.

@@ -13,9 +13,9 @@ import { useHeaderTitle }         from '../../context/HeaderTitleContext';
 import { useAlert }               from '../../context/AlertContext';
 import { useHeaderVibration }     from '../../context/HeaderVibrationContext';
 
-import Button from '../../Common/Button/Button';
-import Input  from '../../Common/Input/Input';
-import Toast  from '../../Common/Toast/Toast';
+import Button from '../../common/Button/Button';
+import Input  from '../../common/Input/Input';
+import Toast  from '../../common/Toast/Toast';
 
 import './ServiceForm.css';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  Activity, Wrench, AlertTriangle, Truck,
-  Package, Archive, ArrowUp, ArrowDown, BarChart3,
+  Activity, Wrench, AlertTriangle,
+  Package, Archive, ArrowUp, ArrowDown,
   Car,
   Battery
 } from 'lucide-react';
@@ -80,18 +80,6 @@ const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
           -3% from last period
         </div>
       </div>
-
-      {/* <div className="metric-card info">
-        <div className="metric-header">
-          <Truck className="metric-icon" />
-          <h3>Equipment Units</h3>
-        </div>
-        <div className="metric-value">{currentStats.collections['Equipment']}</div>
-        <div className="metric-change positive">
-          <ArrowUp size={14} />
-          +2 new units
-        </div>
-      </div> */}
 
       <div className="metric-card accent">
         <div className="metric-header">

@@ -39,13 +39,13 @@ import FormNavigation          from './Components/FormNavigation/FormNavigation'
 import OperationsActivities    from './Components/OperationsActivities/OperationsActivities';
 
 // ── Common / Shared Components ───────────────────────────────────────────────
-import Header            from './Components/Common/Header/Header';
-import EquipBypass       from './Components/Common/EquipBypass/EquipBypass';
-import Login             from './Components/Common/Login/Login';
-import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
+import Header            from './Components/common/Header/Header';
+import EquipBypass       from './Components/common/EquipBypass/EquipBypass';
+import Login             from './Components/common/Login/Login';
+import NavigationButtons from './Components/common/NavigationButtons/NavigationButtons';
 import Spacer            from './Components/Spacer/Spacer';
 import SplashScreen      from './splash/SplashScreen';
-import NotFound          from './Common/NotFound/NotFound';
+import NotFound          from './common/NotFound/NotFound';
 
 import './App.css';
 import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';

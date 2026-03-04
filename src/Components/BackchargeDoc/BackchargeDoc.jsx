@@ -20,8 +20,8 @@ import { END_POINT }                             from '../../constants';
 import { apiRequest }                            from '../../utils/api';
 import { getDeviceFingerprint, getLocationInfo } from '../../utils/deviceFingerprint';
 import { useHeaderTitle }                        from '../../context/HeaderTitleContext';
-import Button                                    from '../../Common/Button/Button';
-import DevModal                                  from '../../Common/DevModal/DevModal';
+import Button                                    from '../../common/Button/Button';
+import DevModal                                  from '../../common/DevModal/DevModal';
 
 import './BackchargeDoc.css';
 

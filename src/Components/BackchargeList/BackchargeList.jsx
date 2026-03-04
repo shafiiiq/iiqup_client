@@ -4,8 +4,8 @@ import { END_POINT } from '../../constants';
 import './BackchargeList.css';
 import { apiRequest } from '../../utils/api';
 import { useSearch } from '../../context/SearchContext';
-import Button from '../../Common/Button/Button';
-import DevModal from '../../Common/DevModal/DevModal';
+import Button from '../../common/Button/Button';
+import DevModal from '../../common/DevModal/DevModal';
 
 function BackchargeList() {
   const { searchTerm } = useSearch();

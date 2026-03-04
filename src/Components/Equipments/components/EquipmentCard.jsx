@@ -4,8 +4,8 @@
 // Receives all handlers as props — owns no state and makes no API calls.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import Loader          from '../../../Common/Loader/Loader';
-import Button          from '../../../Common/Button/Button';
+import Loader          from '../../../common/Loader/Loader';
+import Button          from '../../../common/Button/Button';
 import { getOperatorName } from '../utils/equipmentHelpers';
 
 // Shared button defaults for every action button in the card footer.

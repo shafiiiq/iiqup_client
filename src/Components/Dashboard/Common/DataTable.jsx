@@ -1,8 +1,3 @@
-import React, { useEffect } from 'react';
-import { apiRequest } from '../../../utils/api';
-import { END_POINT } from '../../../constants';
-import { fetchBrand } from '../dashboardApi';
-
 const DataTable = ({ currentData, formatDate }) => {
   if (!currentData?.tyreHistory?.length && !currentData?.maintenanceHistory?.length) {
     return null;

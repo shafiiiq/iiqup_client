@@ -18,8 +18,8 @@ import { apiRequest }                             from '../../utils/api';
 import { getDeviceFingerprint, getLocationInfo }  from '../../utils/deviceFingerprint';
 import { useHeaderTitle }                         from '../../context/HeaderTitleContext';
 
-import DevModal from '../../Common/DevModal/DevModal';
-import Button   from '../../Common/Button/Button';
+import DevModal from '../../common/DevModal/DevModal';
+import Button   from '../../common/Button/Button';
 
 import './LpoDoc.css';
 

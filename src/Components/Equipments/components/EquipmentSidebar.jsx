@@ -5,8 +5,8 @@
 //   'fuels'     — fuel consumption summary + breakdowns
 // ─────────────────────────────────────────────────────────────────────────────
 
-import Loader              from '../../../Common/Loader/Loader';
-import Button              from '../../../Common/Button/Button';
+import Loader              from '../../../common/Loader/Loader';
+import Button              from '../../../common/Button/Button';
 import { getOperatorName, formatDate, formatDateWithExpiry } from '../utils/equipmentHelpers';
 
 // ─────────────────────────────────────────────────────────────────────────────

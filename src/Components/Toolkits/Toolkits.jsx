@@ -4,10 +4,10 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
-import DevModal from '../../Common/DevModal/DevModal';
-import Button from '../../Common/Button/Button';
-import Input from '../../Common/Input/Input';
-import Loader from '../../Common/Loader/Loader';
+import DevModal from '../../common/DevModal/DevModal';
+import Button from '../../common/Button/Button';
+import Input from '../../common/Input/Input';
+import Loader from '../../common/Loader/Loader';
 
 const Toolkits = () => {
   const userDropdownRef = useRef(null);
