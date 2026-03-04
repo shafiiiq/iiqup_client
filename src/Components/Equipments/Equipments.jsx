@@ -53,6 +53,7 @@ function Equipments() {
     setFilteredData:       data.setFilteredData,
     setShowNoResultsModal: actions.setShowNoResultsModal,
     hydrateWithImages:     data.hydrateWithImages,
+    setIsSearchActive:     data.setIsSearchActive,
   });
 
   // ── Fullscreen Handlers ────────────────────────────────────────────────────

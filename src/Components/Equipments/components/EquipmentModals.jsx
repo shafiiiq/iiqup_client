@@ -329,7 +329,7 @@ function EquipmentModals({
         message={`Are you sure you want to demobilize ${selectedEquipmentForAction?.machine || 'this equipment'}? Do you want to select a custom date?`}
         buttonText="Yes, Select Date"
         onButtonClick={onDemobilizeAskDate}
-        secondaryButtonText="No, Demobilize Now"
+        secondaryButtonText="Demobilize"
         onSecondaryClick={onDemobilizeSubmit}
       />
 

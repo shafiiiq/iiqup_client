@@ -45,6 +45,9 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
   const [isLoadingMore,       setIsLoadingMore]       = useState(false);
   const [equipmentProgress,   setEquipmentProgress]   = useState(0);
 
+  // ── Search Guard ───────────────────────────────────────────────────────────
+  const [isSearchActive,      setIsSearchActive]      = useState(false);
+
   // ── Virtual Scroll (equipment-based / hired tabs) ──────────────────────────
   const [displayedEquipment,  setDisplayedEquipment]  = useState([]);
   const [scrollPosition,      setScrollPosition]      = useState(0);
@@ -294,7 +297,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
   // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!hasMore || isLoadingMore || isLoadingEquipments) return;
+    if (!hasMore || isLoadingMore || isLoadingEquipments || isSearchActive) return;
 
     let t = null;
     const handleInfiniteScroll = () => {
@@ -309,7 +312,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
     window.addEventListener('scroll', handleInfiniteScroll, { passive: true });
     return () => { window.removeEventListener('scroll', handleInfiniteScroll); clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, hasMore, isLoadingMore, isLoadingEquipments, currentPage]);
+  }, [activeTab, hasMore, isLoadingMore, isLoadingEquipments, currentPage, isSearchActive]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Effects — IntersectionObserver (lazy-load images per card)
@@ -378,18 +381,20 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
     isLoadingMore,
     equipmentProgress,
 
+    
     // Display slices
     displayedEquipment,
     displayedSites,
     siteGroupedEquipment,
-
+    
     // Card state
     visibleCards,
     activeImageIndex, setActiveImageIndex,
-
+    
     // Actions
     fetchEquipments,
     fetchSitesForDropdown,
     hydrateWithImages,
+    isSearchActive, setIsSearchActive,
   };
 };

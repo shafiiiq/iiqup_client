@@ -26,6 +26,7 @@ export const useEquipmentSearch = ({
   setFilteredData,
   setShowNoResultsModal,
   hydrateWithImages,
+  setIsSearchActive,
 }) => {
   const { searchTerm } = useSearch();
 
@@ -36,10 +37,14 @@ export const useEquipmentSearch = ({
   const searchEquipments = useCallback(async () => {
     if (!searchTerm?.trim()) {
       // Empty search — restore the paginated list from the server
+      setIsSearchActive(false); 
       fetchEquipments(1, false);
       setShowNoResultsModal(false);
       return;
     }
+
+    // Activate the guard
+    setIsSearchActive(true);
 
     try {
       // Map the active tab to the server's hired filter value
@@ -68,7 +73,7 @@ export const useEquipmentSearch = ({
     } catch (err) {
       console.error('Search error:', err);
     }
-  }, [searchTerm, activeTab, fetchEquipments, setFilteredData, setShowNoResultsModal, hydrateWithImages]);
+  }, [searchTerm, activeTab, fetchEquipments, setFilteredData, setShowNoResultsModal, hydrateWithImages, setIsSearchActive]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Debounced Effect
