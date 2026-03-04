@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Toolkits.css';
 import { END_POINT } from '../../constants';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
-import DevModal from '../../common/DevModal';
-import Button from '../../common/Button/Button';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import DevModal from '../../Common/DevModal/DevModal';
+import Button from '../../Common/Button/Button';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 const Toolkits = () => {
   const userDropdownRef = useRef(null);
@@ -77,14 +77,13 @@ const Toolkits = () => {
   const [showToolkitHistory, setShowToolkitHistory] = useState(false);
   const [toolkitHistory, setToolkitHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState({
-    type: 'all', // 'all', 'range', 'last'
+    type: 'all', 
     dateFrom: '',
     dateTo: '',
     lastN: 7,
-    lastUnit: 'days' // 'days', 'weeks', 'months', 'years'
+    lastUnit: 'days' 
   });
 
-  // Fetch all users (mechanics, operators, office users)
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
@@ -94,7 +93,6 @@ const Toolkits = () => {
           apiRequest(`${END_POINT}/users/get-all-users`, 'GET')
         ]);
 
-        // Process mechanics
         let mechanics = [];
         if (mechanicsRes.ok) {
           const mechanicsData = await mechanicsRes.json();
@@ -105,7 +103,6 @@ const Toolkits = () => {
           }));
         }
 
-        // Process operators
         let operators = [];
         if (operatorsRes.ok) {
           const operatorsData = await operatorsRes.json();
@@ -116,7 +113,6 @@ const Toolkits = () => {
           }));
         }
 
-        // Process office users
         let officeUsers = [];
         if (officeUsersRes.ok) {
           const officeData = await officeUsersRes.json();
@@ -127,7 +123,6 @@ const Toolkits = () => {
           }));
         }
 
-        // Combine all users
         const combinedUsers = [...mechanics, ...operators, ...officeUsers];
         setAllUsers(combinedUsers);
         setFilteredUsers(combinedUsers);
@@ -140,7 +135,6 @@ const Toolkits = () => {
   }, []);
 
 
-  // Filter users based on search term
   useEffect(() => {
     if (userSearchTerm.trim() === '') {
       setFilteredUsers(allUsers);
@@ -153,7 +147,6 @@ const Toolkits = () => {
     }
   }, [userSearchTerm, allUsers]);
 
-  // Handle user selection
   const handleUserSelect = (user) => {
     setReduceStockData({
       ...reduceStockData,
@@ -200,14 +193,12 @@ const Toolkits = () => {
       const allHistories = await Promise.all(historyPromises);
       let combinedHistory = allHistories.flat();
 
-      // Sort by date (newest first)
       combinedHistory.sort((a, b) => {
         const dateA = new Date(a.date || a.assignedDate || a.timestamp);
         const dateB = new Date(b.date || b.assignedDate || b.timestamp);
         return dateB - dateA;
       });
 
-      // Apply date filters
       if (historyFilter.type === 'range' && historyFilter.dateFrom && historyFilter.dateTo) {
         const fromDate = new Date(historyFilter.dateFrom);
         const toDate = new Date(historyFilter.dateTo);
@@ -251,11 +242,9 @@ const Toolkits = () => {
     }
   };
 
-  // Group variants by color and filter
   const getFilteredAndGroupedVariants = (variants) => {
     if (!variants || variants.length === 0) return {};
 
-    // First filter variants
     let filtered = variants.filter(variant => {
       const matchesSearch = variantSearchTerm === '' ||
         variant.size.toLowerCase().includes(variantSearchTerm.toLowerCase()) ||
@@ -270,7 +259,6 @@ const Toolkits = () => {
       return matchesSearch && matchesSize && matchesColor && matchesStatus;
     });
 
-    // Then group by color
     const grouped = {};
     filtered.forEach(variant => {
       if (!grouped[variant.color]) {
@@ -279,7 +267,6 @@ const Toolkits = () => {
       grouped[variant.color].push(variant);
     });
 
-    // Sort variants within each color group by size
     Object.keys(grouped).forEach(color => {
       grouped[color].sort((a, b) => {
         const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'One Size'];
@@ -293,19 +280,16 @@ const Toolkits = () => {
     return grouped;
   };
 
-  // Get unique sizes and colors for filter dropdowns
   const getUniqueValues = (variants, key) => {
     if (!variants || variants.length === 0) return [];
     const values = [...new Set(variants.map(v => v[key]))].sort();
     values.unshift(`All ${key}`);
 
-    // Transform to objects with value and label
     return values.map(v => ({
       value: v === `All ${key}` ? 'all' : v,
       label: v
     }));
   };
-  // Handle clicks hired dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
@@ -342,13 +326,11 @@ const Toolkits = () => {
     setShowStockHistory(false);
   };
 
-  // Show variant details
   const showVariantDetails = async (variant, toolkit) => {
     setSelectedToolkit(toolkit);
     setSelectedVariant(variant);
     setShowStockHistory(false);
 
-    // Fetch stock history when variant is selected
     try {
       const response = await apiRequest(`${END_POINT}/toolkits/stock-history/${toolkit._id}/${variant._id}`);
       if (!response.ok) throw new Error('Failed to fetch stock history');
@@ -361,7 +343,6 @@ const Toolkits = () => {
     }
   };
 
-  // Open add form for toolkit
   const openAddForm = () => {
     setFormMode('add');
     setFormData({
@@ -374,7 +355,6 @@ const Toolkits = () => {
     setShowForm(true);
   };
 
-  // Open update form for toolkit
   const openUpdateForm = (toolkit) => {
     setFormMode('update');
     setFormData({
@@ -388,7 +368,6 @@ const Toolkits = () => {
     setShowForm(true);
   };
 
-  // Open add form for variant
   const openAddVariantForm = (toolkit) => {
     setVariantFormMode('add');
     setVariantFormData({
@@ -403,7 +382,6 @@ const Toolkits = () => {
     setShowVariantForm(true);
   };
 
-  // Open update form for variant
   const openUpdateVariantForm = (variant, toolkit) => {
     setVariantFormMode('update');
     setVariantFormData({
@@ -431,7 +409,6 @@ const Toolkits = () => {
     setShowReduceStockModal(true);
   };
 
-  // Form submit handler for toolkit
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -463,7 +440,6 @@ const Toolkits = () => {
     }
   };
 
-  // Form submit handler for variant
   const handleVariantFormSubmit = async (e) => {
     try {
       if (variantFormMode === 'add') {
@@ -505,7 +481,6 @@ const Toolkits = () => {
     }
   };
 
-  // Delete toolkit
   const deleteToolkit = async (id) => {
     if (!window.confirm('Are you sure you want to delete this toolkit?')) return;
     try {
@@ -523,7 +498,6 @@ const Toolkits = () => {
     }
   };
 
-  // Delete variant
   const deleteVariant = async (toolkitId, variantId) => {
     if (!window.confirm('Are you sure you want to delete this variant?')) return;
     try {
@@ -532,13 +506,11 @@ const Toolkits = () => {
       const result = await response.json();
 
       if (result.data === null) {
-        // Toolkit was deleted because no variants left
         setToolkits(toolkits.filter(item => item._id !== toolkitId));
         if (selectedToolkit && selectedToolkit._id === toolkitId) {
           setSelectedToolkit(null);
         }
       } else {
-        // Variant was deleted
         setToolkits(toolkits.map(t => t._id === toolkitId ? result.data : t));
         if (selectedToolkit && selectedToolkit._id === toolkitId) {
           setSelectedToolkit(result.data);
@@ -574,7 +546,6 @@ const Toolkits = () => {
       setSelectedToolkit(updatedToolkit.data);
       setSelectedVariant(updatedToolkit.data.variants.find(v => v._id === selectedVariant._id));
 
-      // Refresh stock history
       const historyResponse = await apiRequest(`${END_POINT}/toolkits/stock-history/${selectedToolkit._id}/${selectedVariant._id}`);
       if (!historyResponse.ok) throw new Error('Failed to fetch updated stock history');
       const historyResult = await historyResponse.json();
@@ -587,14 +558,12 @@ const Toolkits = () => {
     }
   };
 
-  // Calculate status based on stock count and min stock level
   const calculateStatus = (stockCount, minStockLevel) => {
     if (stockCount <= 0) return 'out';
     if (stockCount < minStockLevel) return 'low';
     return 'available';
   };
 
-  // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
@@ -606,7 +575,6 @@ const Toolkits = () => {
 
   const handleApplyFilters = () => {
     setShowFiltersModal(false);
-    // Filters are already applied in the state
   };
 
   const handleResetFilters = () => {
@@ -626,18 +594,15 @@ const Toolkits = () => {
     try {
       setExporting(true);
 
-      // Apply export filters
       let dataToExport = toolkits;
 
       if (filters.toolkits.length > 0) {
         dataToExport = dataToExport.filter(t => filters.toolkits.includes(t._id));
       }
 
-      // Create a new workbook and worksheet
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Safety Tools Inventory');
 
-      // Define columns with headers
       worksheet.columns = [
         { header: 'Toolkit ID', key: 'toolkitId', width: 12 },
         { header: 'Tool Name', key: 'toolName', width: 25 },
@@ -655,7 +620,6 @@ const Toolkits = () => {
         { header: 'Overall Toolkit Status', key: 'overallStatus', width: 25 }
       ];
 
-      // Style the header row
       const headerRow = worksheet.getRow(1);
       headerRow.height = 40;
       headerRow.eachCell((cell) => {
@@ -682,12 +646,10 @@ const Toolkits = () => {
         };
       });
 
-      // Prepare and add data
       dataToExport.forEach((toolkit, toolkitIndex) => {
         if (toolkit.variants && toolkit.variants.length > 0) {
           let filteredVariants = toolkit.variants;
 
-          // Apply variant filters
           if (filters.sizes.length > 0) {
             filteredVariants = filteredVariants.filter(v => filters.sizes.includes(v.size));
           }
@@ -752,7 +714,6 @@ const Toolkits = () => {
         }
       });
 
-      // Style data rows
       for (let i = 2; i <= worksheet.rowCount; i++) {
         const row = worksheet.getRow(i);
         row.height = 40;
@@ -804,7 +765,6 @@ const Toolkits = () => {
         });
       }
 
-      // Generate filename
       const now = new Date();
       const dateStr = now.getFullYear() + '-' +
         String(now.getMonth() + 1).padStart(2, '0') + '-' +

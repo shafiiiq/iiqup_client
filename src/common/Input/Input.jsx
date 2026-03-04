@@ -188,7 +188,6 @@ const Input = ({
             if (is24Hour) {
                 setSelectedHour(hour24);
             } else {
-                // Convert 24h to 12h format
                 if (hour24 === 0) {
                     setSelectedHour(12);
                     setSelectedPeriod('AM');
@@ -235,7 +234,6 @@ const Input = ({
         }
 
         if (variant === 'gradient') {
-            // Create gradient based on color scheme
             const lighterShade = Math.max(100, parseInt(shade) - 200);
             const darkerShade = Math.min(900, parseInt(shade) + 100);
             return `linear-gradient(135deg, var(--${color}-${lighterShade}), var(--${color}-${shade}), var(--${color}-${darkerShade}))`;
@@ -258,8 +256,6 @@ const Input = ({
 
     const getTextColor = () => {
         if (textColor) return parseColor(textColor);
-
-        // For gradient/filled variants with dark colors, use white text
         if ((variant === 'gradient' || variant === 'filled')) {
             const { shade } = parseColorScheme(colorScheme);
             if (parseInt(shade) >= 500) {
@@ -273,7 +269,6 @@ const Input = ({
     const getPlaceholderColor = () => {
         if (placeholderColor) return parseColor(placeholderColor);
 
-        // For gradient/filled variants, use lighter placeholder
         if ((variant === 'gradient' || variant === 'filled')) {
             const { shade } = parseColorScheme(colorScheme);
             if (parseInt(shade) >= 500) {
@@ -1072,7 +1067,6 @@ const Input = ({
             if (is24Hour) {
                 hour24 = hour;
             } else {
-                // Convert 12h to 24h format
                 if (period === 'AM') {
                     hour24 = hour === 12 ? 0 : hour;
                 } else {

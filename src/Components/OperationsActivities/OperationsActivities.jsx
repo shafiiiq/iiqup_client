@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './OperationsActivities.css';
-import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
-import { apiRequest } from '../../utils/0auth';
-import Button from '../../common/Button/Button';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import { apiRequest } from '../../utils/api';
+import Button from '../../Common/Button/Button';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 function OperationsActivities() {
-    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('recent');
     const [mobilizations, setMobilizations] = useState([]);
     const [replacements, setReplacements] = useState([]);
@@ -24,6 +22,7 @@ function OperationsActivities() {
 
     useEffect(() => {
         fetchActivitiesWithFilter();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedPeriod, selectedMonthRange]);
 
     const fetchActivitiesWithFilter = async (filterType = selectedPeriod, startDate = null, endDate = null, months = null) => {
@@ -172,12 +171,11 @@ function OperationsActivities() {
         fetchActivitiesWithFilter(selectedPeriod);
     };
 
-    // Helper function to get S3 URL
     const getMediaUrl = async (filePath) => {
         if (!filePath) return '';
         try {
             const body = { key: filePath, isLong: true };
-            const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+            const s3response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', body);
             const s3URL = await s3response.json();
             return s3URL.dataUrl;
         } catch (error) {
@@ -190,7 +188,7 @@ function OperationsActivities() {
         if (!filePath) return null;
         try {
             const body = { key: filePath, isLong: false };
-            const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
+            const s3response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', body);
             const s3URL = await s3response.json();
             return s3URL.dataUrl;
         } catch (error) {
@@ -199,18 +197,15 @@ function OperationsActivities() {
         }
     };
 
-    // NEW: Handle period change
     const handlePeriodChange = (e) => {
         setSelectedPeriod(e.target.value);
     };
 
-    // NEW: Handle months filter
     const handleMonthsFilter = (months) => {
         setSelectedMonthRange(months);
         fetchActivitiesWithFilter('months', null, null, months);
     };
 
-    // NEW: Handle date range filter
     const handleDateRangeFilter = () => {
         if (dateRange.start && dateRange.end) {
             fetchActivitiesWithFilter('custom', dateRange.start, dateRange.end);
@@ -242,7 +237,6 @@ function OperationsActivities() {
         const hasImages = item.equipmentImages && item.equipmentImages.length > 0;
         const currentImageIndex = activeImageIndex[item.regNo] || 0;
 
-        // Status transition colors
         const getStatusColor = (status) => {
             const colors = {
                 'idle': '#F59E0B',

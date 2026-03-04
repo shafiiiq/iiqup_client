@@ -2,21 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import './EquipBypass.css';
 import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../../constants';
-import { apiRequest } from '../../../utils/0auth';
-import { useSearch } from '../../../context/SearchContext';
-import Button from '../../../common/Button/Button';
-import Loader from '../../../common/Loader/Loader';
+import { apiRequest } from '../../../utils/api';
+import { useSearch } from '../../../Context/SearchContext';
+import Button from '../../../Common/Button/Button';
+import Loader from '../../../Common/Loader/Loader';
 
 function EquipBypass({ equipStocks, documents, isLPO }) {
-    const { searchTerm, setSearchTerm } = useSearch();
+    const { searchTerm } = useSearch();
     const [equipments, setEquipments] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [currentDateTime, setCurrentDateTime] = useState('');
     const [pendingLpos, setPendingLpos] = useState([]);
     const [showPendingAlert, setShowPendingAlert] = useState(false);
     const [isLoadingEquipments, setIsLoadingEquipments] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -28,34 +26,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
     const navigate = useNavigate();
     const tableRef = useRef(null);
 
-    // Get current date and time
-    useEffect(() => {
-        const updateDateTime = () => {
-            const now = new Date();
-
-            // Format date as DD-MM-YY
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = String(now.getFullYear()).slice(-2);
-            const dateString = `${day}-${month}-${year}`;
-
-            // Format time in AM/PM
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            const timeString = `${hours}:${minutes} ${ampm}`;
-
-            setCurrentDateTime(`${dateString}   |   ${timeString}`);
-        };
-
-        updateDateTime();
-        const interval = setInterval(updateDateTime, 60000);
-
-        return () => clearInterval(interval);
-    }, []);
-
     useEffect(() => {
         fetchEquipments();
         if (isLPO) {
@@ -63,7 +33,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
     }, [isLPO]);
 
-    // Infinite scroll for loading more equipment
     useEffect(() => {
         if (!hasMore || isLoadingMore || isLoadingEquipments) return;
 
@@ -76,7 +45,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                 const scrollTop = window.scrollY + window.innerHeight;
                 const documentHeight = document.documentElement.scrollHeight;
 
-                // Load more when 80% scrolled
                 if (scrollTop > documentHeight * 0.8) {
                     fetchEquipments(currentPage + 1, true);
                 }
@@ -101,6 +69,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         if (isLPO) {
             fetchPendingLpos();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLPO, documents]);
 
     useEffect(() => {
@@ -122,14 +91,13 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
             default:
                 setFilteredData(equipments);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, equipments, operators, mechanics, officeStaffs]);
 
     const fetchOperators = async () => {
         try {
             const response = await apiRequest(`${END_POINT}/operators/get-all-operators`, 'GET');
             const data = await response.json();
-
-            // Extract the actual array from the response
             const operatorList = data.data || [];
 
             setOperators(operatorList);
@@ -146,8 +114,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         try {
             const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`, 'GET');
             const data = await response.json();
-
-            // Extract the actual array from the response
             const mechanicList = data.data || [];
 
             setMechanics(mechanicList);
@@ -164,8 +130,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         try {
             const response = await apiRequest(`${END_POINT}/users/get-all-users`, 'GET');
             const data = await response.json();
-
-            // Extract the actual array from the response - note it's nested in data.office
             const userList = data.data?.office || [];
 
             setOfficeStaffs(userList);
@@ -186,7 +150,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
 
         try {
-            // Fetch equipment list with pagination
             const response = await apiRequest(
                 `${END_POINT}/equipments/get-equipments?page=${page}&limit=20`,
                 'GET'
@@ -199,16 +162,13 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
             const equipmentList = data.data;
             setCurrentPage(data.pagination.currentPage);
-            setTotalPages(data.pagination.totalPages);
             setTotalCount(data.pagination.totalCount);
             setHasMore(data.pagination.hasMore);
 
             if (append) {
-                // Add to existing equipment
                 setEquipments(prev => [...prev, ...equipmentList]);
                 setFilteredData(prev => [...prev, ...equipmentList]);
             } else {
-                // Replace all equipment
                 setEquipments(equipmentList);
                 setFilteredData(equipmentList);
             }
@@ -226,8 +186,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         try {
             const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
             const data = await response.json();
-
-            // Filter complaints where workflowStatus is "sent_to_workshop"
             const pendingItems = data.filter(item => item.workflowStatus === "sent_to_workshop");
 
             setPendingLpos(pendingItems);
@@ -240,12 +198,10 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         }
     };
 
-    // Search functionality with debounce
     useEffect(() => {
         const searchEquipments = async () => {
             if (!searchTerm || searchTerm.trim() === '') {
-                // Search cleared - reload original equipment data
-                fetchEquipments(1, false); // Reset to page 1, don't append
+                fetchEquipments(1, false);
                 return;
             }
 
@@ -278,23 +234,6 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         return () => clearTimeout(debounceTimer);
     }, [searchTerm]);
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
-
-    const handleClearSearch = () => {
-        setSearchTerm('');
-    };
-
-    const handleSearchSubmit = (e) => {
-        e.preventDefault();
-
-        if (!searchTerm.trim()) return;
-
-        const foundEquipment = equipments.find(item =>
-            item.regNo.toLowerCase() === searchTerm.toLowerCase()
-        );
-    };
 
     const handleRowClick = (item) => {
         if (equipStocks) {
@@ -329,15 +268,15 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
     };
 
     const handleLpo = (type) => {
-        if (type == 'for-stock') {
+        if (type === 'for-stock') {
             navigate(`/lpo-form/for-stock`);
-        } else if (type == 'for-all-equipments') {
+        } else if (type === 'for-all-equipments') {
             navigate(`/lpo-form/for-all-equipments`);
-        } else if (type == 'view-for-all-equipments') {
+        } else if (type === 'view-for-all-equipments') {
             navigate(`/lpo-list/of-all-equipments`);
-        } else if (type == 'view-for-stock') {
+        } else if (type === 'view-for-stock') {
             navigate(`/lpo-list/of-stocks`);
-        } else if (type == 'view-all-lpo') {
+        } else if (type === 'view-all-lpo') {
             navigate(`/lpo-list/all-list`);
         }
     };

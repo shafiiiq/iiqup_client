@@ -1,9 +1,7 @@
-// New file: utils/deviceFingerprint.js
 export const getDeviceFingerprint = () => {
   const navigatorInfo = window.navigator;
   const screenInfo = window.screen;
   
-  // Generate unique code based on browser characteristics
   const uniqueCode = btoa(
     `${navigatorInfo.userAgent}-${screenInfo.width}x${screenInfo.height}-${navigatorInfo.language}`
   ).substring(0, 32);
@@ -20,15 +18,13 @@ export const getDeviceFingerprint = () => {
 
 let locationCache = null;
 const LOCATION_CACHE_KEY = 'locationCache';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 24 * 60 * 60 * 1000; 
 
 export const getLocationInfo = async () => {
-  // 1. Check in-memory cache
   if (locationCache) {
     return locationCache;
   }
 
-  // 2. Check localStorage
   const cached = localStorage.getItem(LOCATION_CACHE_KEY);
   if (cached) {
     const { data, timestamp } = JSON.parse(cached);
@@ -38,7 +34,6 @@ export const getLocationInfo = async () => {
     }
   }
 
-  // 3. Fetch from API as last resort
   try {
     const response = await fetch('https://ipapi.co/json/', {
       signal: AbortSignal.timeout(5000)

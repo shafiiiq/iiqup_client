@@ -4,7 +4,7 @@ import './Toast.css';
 const Toast = ({
     isOpen = false,
     onClose = () => { },
-    type = 'success', // 'success', 'error', 'warning', 'info'
+    type = 'success',
     textColor = '#ffffff',
     message = '',
     duration = 4000,
@@ -12,7 +12,7 @@ const Toast = ({
     showActionButton = false,
     actionButtonText = 'Action',
     onActionClick = () => { },
-    position = 'top-center', // 'top-center', 'top-left', 'top-right', 'bottom-center', 'bottom-left', 'bottom-right'
+    position = 'top-center',
 }) => {
     const [visible, setVisible] = React.useState(false);
     const [exiting, setExiting] = React.useState(false);

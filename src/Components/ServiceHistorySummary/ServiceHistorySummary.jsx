@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ServiceHistorySummary.css';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 import { END_POINT } from '../../constants';
-import { useSearch } from '../../context/SearchContext';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import { useSearch } from '../../Context/SearchContext';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../common/Button/Button';
-import DevModal from '../../common/DevModal';
+import Button from '../../Common/Button/Button';
+import DevModal from '../../Common/DevModal/DevModal';
 import ExcelJS from 'exceljs';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 function ServiceHistorySummary() {
     const { searchTerm } = useSearch();
@@ -26,7 +26,6 @@ function ServiceHistorySummary() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [expandedRemarks, setExpandedRemarks] = useState({});
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
-    const [monthsCount, setMonthsCount] = useState('');
 
     useEffect(() => {
         setHeaderTitle('Service History Summary');
@@ -35,7 +34,7 @@ function ServiceHistorySummary() {
             setHeaderTitle(null);
             setHeaderSubtitle(null);
         };
-    }, [selectedPeriod]);
+    }, [selectedPeriod, setHeaderSubtitle, setHeaderTitle, selectedMonthRange]);
 
     useEffect(() => {
         fetchServiceData(selectedPeriod);
@@ -283,6 +282,7 @@ function ServiceHistorySummary() {
                     case 'tyre': bgColor = 'FFD1ECF1'; break;
                     case 'battery': bgColor = 'FFF8D7DA'; break;
                     case 'normal': bgColor = 'FFF0E6FF'; break;
+                    default: bgColor = 'FFF0E6FF'; break;
                 }
 
                 row.eachCell((cell) => {

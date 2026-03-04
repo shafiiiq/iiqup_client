@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Explore.css';
-import Button from '../../common/Button/Button';
+import Button from '../../Common/Button/Button';
 import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 
 function Explore() {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ function Explore() {
         const response = await apiRequest(`${END_POINT}/explorer/get-latest-release-for-user`, 'GET');
         const data = await response.json();
 
-        // Handle no data
         if (data.status !== 200 || !data.data) {
           navigate('/');
           return;
@@ -27,13 +26,11 @@ function Explore() {
 
         const release = data.data;
 
-        // Already explored
         if (release.hasExploredThisVersion) {
           navigate('/');
           return;
         }
 
-        // No features
         if (!release.features || release.features.length === 0) {
           navigate('/');
           return;
@@ -45,7 +42,7 @@ function Explore() {
           release.features.map(async (feature) => {
             try {
               const s3Response = await apiRequest(
-                `${END_POINT}/s3Config/get-pre-signed-url`,
+                `${END_POINT}/s3/get-pre-signed-url`,
                 'POST',
                 { key: feature.videoUrl, isLong: true }
               );

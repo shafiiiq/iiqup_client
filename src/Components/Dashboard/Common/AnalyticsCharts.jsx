@@ -186,7 +186,6 @@ const ChartCard = ({
   </div>
 );
 
-// Helper function (would be moved to utils)
 const prepareStockStatusData = (stockData) => {
   if (!stockData || !stockData.length) return [];
 

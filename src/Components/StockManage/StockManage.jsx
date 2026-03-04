@@ -1,41 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import './StockManage.css';
 import { END_POINT } from '../../constants';
-import Select from 'react-select';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
-import DevModal from '../../common/DevModal';
-import { useSearch } from '../../context/SearchContext';
-import Button from '../../common/Button/Button';
-import Loader from '../../common/Loader/Loader';
+import DevModal from '../../Common/DevModal/DevModal';
+import { useSearch } from '../../Context/SearchContext';
+import Button from '../../Common/Button/Button';
+import Loader from '../../Common/Loader/Loader';
 
 function StockManage() {
-  const { searchTerm, setSearchTerm } = useSearch();
+  const { searchTerm } = useSearch();
 
   const [stocks, setStocks] = useState([]);
-  const [equipments, setEquipments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedStock, setSelectedStock] = useState(null);
-  const [currentDateTime, setCurrentDateTime] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showStockHistory, setShowStockHistory] = useState(false);
   const [formMode, setFormMode] = useState('add');
   const [message, setMessage] = useState({ text: '', type: '' });
   const [equipmentOptions, setEquipmentOptions] = useState([]);
   const [equipmentCategoryOptions, setEquipmentCategoryOptions] = useState([]);
-  const [selectedEquipments, setSelectedEquipments] = useState([]);
   const [showReduceForm, setShowReduceForm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [mechanics, setMechanics] = useState([]);
   const [equipmentSearchTerm, setEquipmentSearchTerm] = useState('');
-  const [mechanicSearchTerm, setMechanicSearchTerm] = useState('');
   const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false);
   const [filteredEquipmentOptions, setFilteredEquipmentOptions] = useState([]);
-  const [showMechanicDropdown, setShowMechanicDropdown] = useState(false);
-  const [filteredEquipments, setFilteredEquipments] = useState([]);
-  const [filteredMechanics, setFilteredMechanics] = useState([]);
 
   const [reduceFormData, setReduceFormData] = useState({
     stockCount: '',
@@ -65,22 +56,6 @@ function StockManage() {
 
 
   useEffect(() => {
-    const fetchMechanics = async () => {
-      try {
-        const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`, 'GET');
-        if (!response.ok) throw new Error('Failed to fetch mechanics');
-        const data = await response.json();
-        setMechanics(Array.isArray(data.data) ? data.data : []);
-      } catch (err) {
-        console.error('Error fetching mechanics:', err);
-      }
-    };
-
-    fetchMechanics();
-  }, []);
-
-  // Filter equipment options based on search term
-  useEffect(() => {
     if (equipmentSearchTerm.trim() === '') {
       setFilteredEquipmentOptions(formData.type === 'specific-equipment' ? equipmentOptions : equipmentCategoryOptions);
     } else {
@@ -92,19 +67,7 @@ function StockManage() {
     }
   }, [equipmentSearchTerm, equipmentOptions, equipmentCategoryOptions, formData.type]);
 
-  // Filter mechanics based on search term
-  useEffect(() => {
-    if (mechanicSearchTerm.trim() === '') {
-      setFilteredMechanics(mechanics);
-    } else {
-      const filtered = mechanics.filter(mechanic =>
-        mechanic.name.toLowerCase().includes(mechanicSearchTerm.toLowerCase())
-      );
-      setFilteredMechanics(filtered);
-    }
-  }, [mechanicSearchTerm, mechanics]);
 
-  // Helper function to handle equipment selection
   const handleEquipmentSelection = (item) => {
     const currentValues = formData.equipments || [];
     if (!currentValues.includes(item.value)) {
@@ -113,54 +76,9 @@ function StockManage() {
         ...formData,
         equipments: newEquipments
       });
-      setSelectedEquipments(newEquipments); // Sync with selectedEquipments
     }
     setEquipmentSearchTerm('');
     setShowEquipmentDropdown(false);
-  };
-
-  // Handle equipment selection
-  const handleEquipmentSelect = (equipment) => {
-    setReduceFormData({
-      ...reduceFormData,
-      equipmentName: equipment.machine,
-      equipmentNumber: equipment.regNo
-    });
-    setEquipmentSearchTerm(equipment.machine);
-    setShowEquipmentDropdown(false);
-  };
-
-  // Handle mechanic selection
-  const handleMechanicSelect = (mechanic) => {
-    setReduceFormData({
-      ...reduceFormData,
-      mechanicName: mechanic.name
-    });
-    setMechanicSearchTerm(mechanic.name);
-    setShowMechanicDropdown(false);
-  };
-
-  // Handle custom equipment name input
-  const handleEquipmentNameChange = (e) => {
-    const value = e.target.value;
-    setReduceFormData({
-      ...reduceFormData,
-      equipmentName: value,
-      equipmentNumber: '' // Clear equipment number when manually typing
-    });
-    setEquipmentSearchTerm(value);
-    setShowEquipmentDropdown(value.length > 0);
-  };
-
-  // Handle custom mechanic name input
-  const handleMechanicNameChange = (e) => {
-    const value = e.target.value;
-    setReduceFormData({
-      ...reduceFormData,
-      mechanicName: value
-    });
-    setMechanicSearchTerm(value);
-    setShowMechanicDropdown(value.length > 0);
   };
 
   useEffect(() => {
@@ -170,16 +88,12 @@ function StockManage() {
         if (!response.ok) throw new Error('Failed to fetch equipments');
         const result = await response.json();
 
-        setEquipments(Array.isArray(result.data) ? result.data : []);
-
-        // Create options for INDIVIDUAL equipment (for "For Specific Equipment")
         const individualOptions = result.data.map(equip => ({
           value: `${equip.machine} - ${equip.regNo}`,
           label: `${equip.machine} - ${equip.regNo}`,
           equipment: equip
         }));
 
-        // Create options for CATEGORIES (for "For Equipment")
         const uniqueCombinations = new Set();
         result.data.forEach(equip => {
           const combo = `${equip.machine} - ${equip.brand}`;
@@ -202,29 +116,6 @@ function StockManage() {
   }, []);
 
   useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString}   |   ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     const fetchStocks = async () => {
       try {
         setLoading(true);
@@ -244,19 +135,15 @@ function StockManage() {
   }, []);
 
   const handlePrint = () => {
-    // Store original states
     const originalTitle = document.title;
     const originalBodyClass = document.body.className;
 
     try {
-      // Set document title for print job
       const dateStr = new Date().toISOString().split('T')[0];
       document.title = `Stock_Inventory_Report_${dateStr}`;
 
-      // Add unique print mode class to body to trigger print styles
       document.body.className = (originalBodyClass + ' stock-manage-print-mode').trim();
 
-      // Add unique timestamp to header for CSS to display
       const headerElement = document.querySelector('.stock-manage-header');
       if (headerElement) {
         const currentDate = new Date().toLocaleDateString('en-US', {
@@ -272,7 +159,6 @@ function StockManage() {
         headerElement.setAttribute('data-sm-print-timestamp', `${currentDate} at ${currentTime}`);
       }
 
-      // Remove any conflicting print elements that might exist
       const conflictingElements = document.querySelectorAll(
         '.sm-temp-print-header, .sm-temp-print-date, .print-header, .print-date'
       );
@@ -282,23 +168,17 @@ function StockManage() {
         }
       });
 
-      // Small delay to ensure styles are applied
       setTimeout(() => {
-        // Trigger print
         window.print();
 
-        // Cleanup after a short delay (after print dialog)
         setTimeout(() => {
-          // Restore original states
           document.title = originalTitle;
           document.body.className = originalBodyClass;
 
-          // Remove the timestamp attribute
           if (headerElement) {
             headerElement.removeAttribute('data-sm-print-timestamp');
           }
 
-          // Restore any hidden elements
           conflictingElements.forEach(element => {
             if (element) {
               element.style.display = '';
@@ -308,7 +188,6 @@ function StockManage() {
       }, 100);
 
     } catch (error) {
-      // Error handling - restore states if something goes wrong
       console.error('Print error:', error);
       document.title = originalTitle;
       document.body.className = originalBodyClass;
@@ -413,7 +292,6 @@ function StockManage() {
       rate: '',
       stockCount: ''
     });
-    setSelectedEquipments([]);
     setEquipmentSearchTerm('');
     setShowEquipmentDropdown(false);
     setShowForm(true);
@@ -431,16 +309,7 @@ function StockManage() {
       rate: stock.rate,
       stockCount: stock.stockCount
     });
-    setSelectedEquipments(stock.equipments || []);
     setShowForm(true);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
   };
 
   const handleFormSubmit = async (e) => {
@@ -534,31 +403,23 @@ function StockManage() {
     try {
       setLoading(true);
 
-      // Create a new workbook
       const workbook = new ExcelJS.Workbook();
 
-      // Create main inventory worksheet
       const inventorySheet = workbook.addWorksheet('Stock Inventory');
 
-      // Create movement history worksheet (organized by stock)
       const movementSheet = workbook.addWorksheet('Movement History by Stock');
 
-      // Create consolidated movement history worksheet
       const consolidatedMovementSheet = workbook.addWorksheet('All Movements Timeline');
 
-      // Add report header and summary to inventory sheet
       const reportTitle = 'STOCK INVENTORY REPORT';
       const generatedDate = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
 
-      // Calculate summary data
       const totalItems = stocks.length;
       const inStockItems = stocks.filter(s => calculateStatus(s.stockCount) === 'available').length;
       const lowStockItems = stocks.filter(s => calculateStatus(s.stockCount) === 'low').length;
       const outOfStockItems = stocks.filter(s => calculateStatus(s.stockCount) === 'out').length;
       const totalStockCount = stocks.reduce((sum, s) => sum + s.stockCount, 0);
 
-      // === INVENTORY SHEET SETUP (same as before) ===
-      // Row 1: Report Title
       inventorySheet.getCell('A1').value = reportTitle;
       inventorySheet.mergeCells('A1:M1');
       const titleCell = inventorySheet.getCell('A1');
@@ -571,7 +432,6 @@ function StockManage() {
       };
       inventorySheet.getRow(1).height = 45;
 
-      // Row 2: Generation Date
       inventorySheet.getCell('A2').value = `Generated: ${generatedDate}`;
       inventorySheet.mergeCells('A2:M2');
       const dateCell = inventorySheet.getCell('A2');
@@ -584,10 +444,8 @@ function StockManage() {
       };
       inventorySheet.getRow(2).height = 25;
 
-      // Row 3: Empty row for spacing
       inventorySheet.getRow(3).height = 10;
 
-      // Row 4: Summary Header
       inventorySheet.getCell('A4').value = 'SUMMARY STATISTICS';
       inventorySheet.mergeCells('A4:M4');
       const summaryHeaderCell = inventorySheet.getCell('A4');
@@ -600,7 +458,6 @@ function StockManage() {
       };
       inventorySheet.getRow(4).height = 35;
 
-      // Row 5: Summary Data
       const summaryRow = inventorySheet.getRow(5);
       summaryRow.getCell(1).value = `Total Items: ${totalItems}`;
       summaryRow.getCell(4).value = `In Stock: ${inStockItems}`;
@@ -608,14 +465,12 @@ function StockManage() {
       summaryRow.getCell(10).value = `Out of Stock: ${outOfStockItems}`;
       summaryRow.getCell(13).value = `Total Stock Count: ${totalStockCount}`;
 
-      // Merge cells for summary data
       inventorySheet.mergeCells('A5:C5');
       inventorySheet.mergeCells('D5:F5');
       inventorySheet.mergeCells('G5:I5');
       inventorySheet.mergeCells('J5:K5');
       inventorySheet.mergeCells('M5:M5');
 
-      // Style summary data cells
       [1, 4, 7, 10, 13].forEach(colNum => {
         const cell = summaryRow.getCell(colNum);
         cell.font = { bold: true, size: 11, color: { argb: 'FF2C3E50' } };
@@ -628,10 +483,8 @@ function StockManage() {
       });
       summaryRow.height = 30;
 
-      // Row 6: Empty row for spacing
       inventorySheet.getRow(6).height = 15;
 
-      // Row 7: Data Table Header
       const dataHeaderRow = 7;
       const headers = [
         { header: 'ID', key: 'id', width: 8 },
@@ -649,17 +502,14 @@ function StockManage() {
         { header: 'Total Added', key: 'totalAdded', width: 15 }
       ];
 
-      // Set column widths
       headers.forEach((header, index) => {
         inventorySheet.getColumn(index + 1).width = header.width;
       });
 
-      // Add headers to row 7
       headers.forEach((header, index) => {
         inventorySheet.getCell(dataHeaderRow, index + 1).value = header.header;
       });
 
-      // Style the data table header row
       const headerRow = inventorySheet.getRow(dataHeaderRow);
       headerRow.height = 40;
       headerRow.eachCell((cell) => {
@@ -672,14 +522,12 @@ function StockManage() {
         };
       });
 
-      // Add inventory data starting from row 8
       let currentRow = dataHeaderRow + 1;
       filteredStocks.forEach((stock, index) => {
         const status = calculateStatus(stock.stockCount);
         const statusText = status === 'available' ? 'In Stock' :
           status === 'low' ? 'Low Stock' : 'Out of Stock';
 
-        // Calculate movement statistics
         const movements = stock.movements || [];
         const totalMovements = movements.length;
         const totalAdded = movements.filter(m => m.type === 'add').reduce((sum, m) => sum + (m.quantity || 0), 0);
@@ -717,7 +565,6 @@ function StockManage() {
           totalAdded
         ];
 
-        // Add row data
         rowData.forEach((value, colIndex) => {
           inventorySheet.getCell(currentRow, colIndex + 1).value = value;
         });
@@ -725,7 +572,6 @@ function StockManage() {
         currentRow++;
       });
 
-      // Style inventory data rows
       for (let i = dataHeaderRow + 1; i < currentRow; i++) {
         const row = inventorySheet.getRow(i);
         row.height = 35;
@@ -742,7 +588,6 @@ function StockManage() {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
           }
 
-          // Status-based coloring for status column
           const cellValue = cell.value;
           if (typeof cellValue === 'string') {
             if (cellValue.includes('Out of Stock')) {
@@ -759,9 +604,7 @@ function StockManage() {
         });
       }
 
-      // === MOVEMENT HISTORY BY STOCK SHEET (NEW ORGANIZED APPROACH) ===
 
-      // Movement sheet title
       movementSheet.getCell('A1').value = 'STOCK MOVEMENT HISTORY (ORGANIZED BY STOCK ITEM)';
       movementSheet.mergeCells('A1:J1');
       const movTitleCell = movementSheet.getCell('A1');
@@ -774,7 +617,6 @@ function StockManage() {
       };
       movementSheet.getRow(1).height = 45;
 
-      // Movement sheet date
       movementSheet.getCell('A2').value = `Generated: ${generatedDate}`;
       movementSheet.mergeCells('A2:J2');
       const movDateCell = movementSheet.getCell('A2');
@@ -787,7 +629,6 @@ function StockManage() {
       };
       movementSheet.getRow(2).height = 25;
 
-      // Set movement sheet column widths
       const movementHeaders = [
         { header: 'Movement Date', width: 18 },
         { header: 'Movement Time', width: 15 },
@@ -807,9 +648,7 @@ function StockManage() {
 
       let movementRowIndex = 4;
 
-      // Process each stock item separately
       filteredStocks.forEach((stock, stockIndex) => {
-        // Stock item header
         movementSheet.getCell(`A${movementRowIndex}`).value = `STOCK ITEM #${stockIndex + 1}: ${stock.product} (${stock.serialNumber})`;
         movementSheet.mergeCells(`A${movementRowIndex}:J${movementRowIndex}`);
         const stockHeaderCell = movementSheet.getCell(`A${movementRowIndex}`);
@@ -823,7 +662,6 @@ function StockManage() {
         movementSheet.getRow(movementRowIndex).height = 35;
         movementRowIndex++;
 
-        // Stock details row
         const stockDetails = `Current Stock: ${stock.stockCount} | Type: ${stock.type} | Equipment(s): ${stock.equipments && stock.equipments.length > 0 ? stock.equipments.join(', ') : 'N/A'}`;
         movementSheet.getCell(`A${movementRowIndex}`).value = stockDetails;
         movementSheet.mergeCells(`A${movementRowIndex}:J${movementRowIndex}`);
@@ -838,12 +676,10 @@ function StockManage() {
         movementSheet.getRow(movementRowIndex).height = 25;
         movementRowIndex++;
 
-        // Movement headers for this stock
         movementHeaders.forEach((header, index) => {
           movementSheet.getCell(movementRowIndex, index + 1).value = header.header;
         });
 
-        // Style movement headers
         const movHeaderRow = movementSheet.getRow(movementRowIndex);
         movHeaderRow.height = 30;
         movHeaderRow.eachCell((cell) => {
@@ -857,9 +693,7 @@ function StockManage() {
         });
         movementRowIndex++;
 
-        // Add movements for this stock
         if (stock.movements && Array.isArray(stock.movements) && stock.movements.length > 0) {
-          // Sort movements by date (most recent first)
           const sortedMovements = [...stock.movements].sort((a, b) => {
             const dateA = new Date(a.date);
             const dateB = new Date(b.date);
@@ -902,12 +736,10 @@ function StockManage() {
               notes
             ];
 
-            // Add movement row data
             movementRowData.forEach((value, colIndex) => {
               movementSheet.getCell(movementRowIndex, colIndex + 1).value = value;
             });
 
-            // Style movement row
             const row = movementSheet.getRow(movementRowIndex);
             row.height = 25;
             row.eachCell((cell, colNumber) => {
@@ -918,12 +750,10 @@ function StockManage() {
                 bottom: { style: 'thin' }, right: { style: 'thin' }
               };
 
-              // Alternate row colors within each stock section
               if (index % 2 === 0) {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FFF0' } };
               }
 
-              // Color code action types
               const cellValue = cell.value;
               if (typeof cellValue === 'string') {
                 if (cellValue === 'Add' || cellValue.startsWith('+')) {
@@ -937,7 +767,6 @@ function StockManage() {
             movementRowIndex++;
           });
         } else {
-          // No movements found
           movementSheet.getCell(`A${movementRowIndex}`).value = 'No movement history available for this stock item';
           movementSheet.mergeCells(`A${movementRowIndex}:J${movementRowIndex}`);
           const noMovCell = movementSheet.getCell(`A${movementRowIndex}`);
@@ -952,13 +781,10 @@ function StockManage() {
           movementRowIndex++;
         }
 
-        // Add spacing between stock items
         movementRowIndex += 2;
       });
 
-      // === CONSOLIDATED MOVEMENT TIMELINE SHEET ===
 
-      // Consolidated timeline title
       consolidatedMovementSheet.getCell('A1').value = 'ALL STOCK MOVEMENTS - CHRONOLOGICAL TIMELINE';
       consolidatedMovementSheet.mergeCells('A1:K1');
       const consTitle = consolidatedMovementSheet.getCell('A1');
@@ -971,7 +797,6 @@ function StockManage() {
       };
       consolidatedMovementSheet.getRow(1).height = 45;
 
-      // Date
       consolidatedMovementSheet.getCell('A2').value = `Generated: ${generatedDate}`;
       consolidatedMovementSheet.mergeCells('A2:K2');
       const consDate = consolidatedMovementSheet.getCell('A2');
@@ -984,7 +809,6 @@ function StockManage() {
       };
       consolidatedMovementSheet.getRow(2).height = 25;
 
-      // Consolidated headers
       const consolidatedHeaders = [
         { header: 'Date & Time', width: 20 },
         { header: 'Product Name', width: 30 },
@@ -999,13 +823,11 @@ function StockManage() {
         { header: 'Stock Item ID', width: 15 }
       ];
 
-      // Set consolidated sheet column widths and headers
       consolidatedHeaders.forEach((header, index) => {
         consolidatedMovementSheet.getColumn(index + 1).width = header.width;
         consolidatedMovementSheet.getCell(4, index + 1).value = header.header;
       });
 
-      // Style consolidated headers
       const consHeaderRow = consolidatedMovementSheet.getRow(4);
       consHeaderRow.height = 40;
       consHeaderRow.eachCell((cell) => {
@@ -1018,7 +840,6 @@ function StockManage() {
         };
       });
 
-      // Create consolidated movements array
       const allMovements = [];
       filteredStocks.forEach((stock, stockIndex) => {
         if (stock.movements && Array.isArray(stock.movements) && stock.movements.length > 0) {
@@ -1042,14 +863,12 @@ function StockManage() {
         }
       });
 
-      // Sort all movements by date (most recent first)
       allMovements.sort((a, b) => {
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return dateB.getTime() - dateA.getTime();
       });
 
-      // Add consolidated movement data
       let consRowIndex = 5;
       allMovements.forEach((movement, index) => {
         const dateTime = `${new Date(movement.date).toLocaleDateString()} ${movement.time || new Date(movement.date).toLocaleTimeString()}`;
@@ -1084,12 +903,10 @@ function StockManage() {
           movement.stockId
         ];
 
-        // Add consolidated row data
         consRowData.forEach((value, colIndex) => {
           consolidatedMovementSheet.getCell(consRowIndex, colIndex + 1).value = value;
         });
 
-        // Style consolidated row
         const row = consolidatedMovementSheet.getRow(consRowIndex);
         row.height = 25;
         row.eachCell((cell, colNumber) => {
@@ -1104,7 +921,6 @@ function StockManage() {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAF0E6' } };
           }
 
-          // Color code by action type
           const cellValue = cell.value;
           if (typeof cellValue === 'string') {
             if (cellValue === 'Add' || cellValue.startsWith('+')) {
@@ -1118,11 +934,9 @@ function StockManage() {
         consRowIndex++;
       });
 
-      // Add summary statistics to consolidated sheet
       if (allMovements.length > 0) {
         consRowIndex += 2;
 
-        // Summary header
         consolidatedMovementSheet.getCell(`A${consRowIndex}`).value = 'CONSOLIDATED MOVEMENT SUMMARY';
         consolidatedMovementSheet.mergeCells(`A${consRowIndex}:K${consRowIndex}`);
         const consSummCell = consolidatedMovementSheet.getCell(`A${consRowIndex}`);
@@ -1136,7 +950,6 @@ function StockManage() {
         consolidatedMovementSheet.getRow(consRowIndex).height = 35;
         consRowIndex++;
 
-        // Summary statistics
         const totalAdditions = allMovements.filter(m => m.type === 'add').length;
         const totalDeductions = allMovements.filter(m => m.type === 'deduct').length;
         const totalQuantityAdded = allMovements.filter(m => m.type === 'add').reduce((sum, m) => sum + (m.quantity || 0), 0);
@@ -1153,7 +966,6 @@ function StockManage() {
           `Net Stock Change: ${totalQuantityAdded - totalQuantityDeducted}`
         ];
 
-        // Add summary data in a grid format
         let summaryStartCol = 1;
         summaryStats.forEach((stat, index) => {
           if (index % 4 === 0 && index > 0) {
@@ -1161,7 +973,7 @@ function StockManage() {
             summaryStartCol = 1;
           }
 
-          const colSpan = index < 4 ? 3 : 2; // First row spans 3 cols, second row spans 2 cols
+          const colSpan = index < 4 ? 3 : 2; 
           const startCol = summaryStartCol;
           const endCol = summaryStartCol + colSpan - 1;
 
@@ -1183,7 +995,6 @@ function StockManage() {
         consolidatedMovementSheet.getRow(consRowIndex).height = 30;
       }
 
-      // Generate filename with current date and time
       const now = new Date();
       const dateStr = now.getFullYear() + '-' +
         String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -1192,21 +1003,17 @@ function StockManage() {
         String(now.getMinutes()).padStart(2, '0');
       const filename = `All_Stock_Report_${dateStr}_${timeStr}.xlsx`;
 
-      // Small delay to show loading state
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Generate buffer and create blob
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
       link.click();
 
-      // Clean up
       window.URL.revokeObjectURL(url);
 
       setMessage({
@@ -1626,12 +1433,10 @@ function StockManage() {
         formValues={addFormData}
         onFormChange={(field, value) => {
           if (field === 'equipments') {
-            // Handle equipment array updates
             setFormData({
               ...formData,
               equipments: value
             });
-            setSelectedEquipments(value);
           } else {
             setFormData({
               ...formData,
@@ -1703,7 +1508,6 @@ function StockManage() {
               equipmentNumber: ''
             });
           } else if (field === 'mechanicName') {
-            setMechanicSearchTerm(value);
             setReduceFormData({
               ...reduceFormData,
               mechanicName: value
@@ -1741,7 +1545,6 @@ function StockManage() {
               { value: 'all', label: 'For All Machines' }
             ]
           },
-          // For Specific Equipment - Searchable Multi-Select
           ...(formData.type === 'specific-equipment' ? [{
             name: 'equipments',
             label: 'Select Specific Equipment(s)',
@@ -1769,7 +1572,6 @@ function StockManage() {
               handleEquipmentSelection(item);
             }
           }] : []),
-          // For Equipment Category - Searchable Multi-Select  
           ...(formData.type === 'equipment' ? [{
             name: 'equipments',
             label: 'Select Equipment Categories',

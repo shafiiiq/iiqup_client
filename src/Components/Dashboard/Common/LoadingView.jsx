@@ -1,4 +1,3 @@
-// LoadingView.js
 import React from 'react';
 
 const LoadingView = ({ message = 'Loading Fleet Dashboard...', subMessage = 'Fetching real-time data from all systems' }) => (

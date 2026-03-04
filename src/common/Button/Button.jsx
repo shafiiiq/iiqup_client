@@ -6,13 +6,17 @@ const Button = ({
   children,
   type = 'button',
   onClick = () => { },
+  onMouseEnter = () => { },
+  onMouseLeave = () => { },
   colorScheme = 'primary-500',
   textColor = 'white',
   size = 'md',
   font = 'md',
+  title = '',
   variant = 'solid',
   width = 'auto',
   height = 'auto',
+  padding = '14px 28px',
   disabled = false,
   loading = false,
   fullWidth = false,
@@ -39,7 +43,6 @@ const Button = ({
 }) => {
   const buttonRef = React.useRef(null);
 
-  // Parse color scheme (e.g., "blue-500" -> { color: "blue", shade: "500" })
   const parseColorScheme = (scheme) => {
     const parts = scheme.split('-');
     if (parts.length === 2) {
@@ -51,14 +54,12 @@ const Button = ({
   const { color, shade } = parseColorScheme(colorScheme);
   const mainColor = `var(--${color}-${shade})`;
 
-  // Get adjacent shades for gradients and effects
   const getShade = (offset) => {
     const shadeNum = parseInt(shade);
     const newShade = Math.max(100, Math.min(900, shadeNum + offset));
     return `var(--${color}-${newShade})`;
   };
 
-  // Parse text color
   const getTextColor = () => {
     if (textColor.includes('-')) {
       const [c, s] = textColor.split('-');
@@ -67,7 +68,6 @@ const Button = ({
     return textColor;
   };
 
-  // Parse border color
   const getBorderColor = () => {
     if (borderColor === 'transparent' || borderColor === 'none') return 'transparent';
     if (borderColor.includes('-')) {
@@ -77,7 +77,6 @@ const Button = ({
     return borderColor;
   };
 
-  // Parse shadow color
   const getShadowColor = () => {
     if (!shadowColor) return `${mainColor}60`;
     if (shadowColor.includes('-')) {
@@ -87,7 +86,6 @@ const Button = ({
     return `${shadowColor}60`;
   };
 
-  // Get shadow based on position and size
   const getShadow = () => {
     const shadowCol = getShadowColor();
     const sizes = {
@@ -116,7 +114,6 @@ const Button = ({
     }
   };
 
-  // Rounded corners mapping
   const roundedMap = {
     none: '0',
     sm: '6px',
@@ -135,7 +132,6 @@ const Button = ({
     full: '9999px',
   };
 
-  // Corner shape radius mapping
   const cornerRadiusMap = {
     sm: '6px',
     md: '10px',
@@ -152,7 +148,6 @@ const Button = ({
     '10xl': '206px',
   };
 
-  // Font size mapping
   const fontMap = {
     xs: '12px',
     sm: '13px',
@@ -163,10 +158,10 @@ const Button = ({
     '3xl': '26px',
   };
 
-  // Generate dynamic styles
   const getButtonStyles = () => {
     const baseStyles = {
       width: fullWidth ? '100%' : width,
+      padding: padding,
       height: height,
       fontSize: fontMap[font] || fontMap.md,
       borderRadius: squircle ? (cornerRadiusMap[squircle] || cornerRadiusMap.md)
@@ -245,8 +240,8 @@ const Button = ({
     }
   };
 
-  // Hover effects
   const handleMouseEnter = (e) => {
+    onMouseEnter(e);
     if (disabled || loading) return;
     const button = e.currentTarget;
 
@@ -283,10 +278,16 @@ const Button = ({
         button.style.boxShadow = `0 0 20px ${mainColor}, 0 0 40px ${mainColor}, 0 0 60px ${mainColor}`;
         button.style.transform = 'scale(1.05)';
         break;
+
+      default:
+        button.style.boxShadow = `0 0 20px ${mainColor}, 0 0 40px ${mainColor}, 0 0 60px ${mainColor}`;
+        button.style.transform = 'scale(1.05)';
+        break;
     }
   };
 
   const handleMouseLeave = (e) => {
+    onMouseLeave(e);
     if (disabled || loading) return;
     const button = e.currentTarget;
     const styles = getButtonStyles();
@@ -313,7 +314,6 @@ const Button = ({
     onClick(e);
   };
 
-  // Class names
   const classes = [
     'dev-button',
     `dev-button-${size}`,
@@ -329,16 +329,6 @@ const Button = ({
     className,
   ].filter(Boolean).join(' ');
 
-  // Render icon
-  const renderIcon = () => {
-    if (!icon) return null;
-    if (typeof icon === 'string') {
-      return <span className="dev-button-icon">{getBuiltInIcon(icon)}</span>;
-    }
-    return <span className="dev-button-icon">{icon}</span>;
-  };
-
-  // Render Material Icons
   const renderMaterialIcon = (iconName, position) => {
     if (!iconName) return null;
 
@@ -360,22 +350,6 @@ const Button = ({
     );
   };
 
-  const getBuiltInIcon = (iconName) => {
-    const icons = {
-      check: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>,
-      plus: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>,
-      arrow: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>,
-      download: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
-      upload: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>,
-      heart: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
-      star: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
-      trash: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>,
-      edit: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>,
-      save: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>,
-    };
-    return icons[iconName] || null;
-  };
-
   return (
     <button
       ref={buttonRef}
@@ -387,6 +361,7 @@ const Button = ({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       disabled={disabled}
+      title={title}
       style={{ ...getButtonStyles(), ...style }}
       {...props}
     >

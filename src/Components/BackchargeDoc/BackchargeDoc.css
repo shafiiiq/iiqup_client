@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 @page {
     size: A4;
     margin: 0;
@@ -16,6 +17,7 @@
 .bcr-main-wrapper {
     font-family: 'Roboto', 'Arial', sans-serif;
     color: var(--text-black);
+    background-color: var(--text-white);
     width: 260mm !important;
     min-height: 380 !important;
     margin: 0 auto !important;
@@ -33,7 +35,7 @@
 
 .bcr-main-wrapper.dark {
     background-color: var(--bcr-background-light);
-    color: #000000;
+    color: var(--color-black);
 }
 
 /* Container */
@@ -43,7 +45,7 @@
 }
 
 .dark .bcr-report-border {
-    border-color: #000000;
+    border-color: var(--color-black);
 }
 
 /* Header section */
@@ -51,8 +53,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.5rem;
 }
 
 /* Logo container */
@@ -105,12 +105,12 @@
 .bcr-company-name-en {
     font-size: 0.9rem;
     font-weight: bold;
-    color: #000000;
+    color: var(--color-black);
     margin-bottom: 0.1rem;
 }
 
 .bcr-company-name-ar {
-    color: #000000;
+    color: var(--color-black);
     margin: 0;
     font-size: 0.8rem;
 }
@@ -122,7 +122,7 @@
     font-size: 20px;
     text-decoration: underline;
     margin: 0.1rem 0;
-    color: #000000;
+    color: var(--color-black);
 }
 
 /* Information grid */
@@ -133,7 +133,7 @@
 }
 
 .dark .bcr-info-grid {
-    border-color: #000000;
+    border-color: var(--color-black);
 }
 
 .bcr-info-full-row {
@@ -146,7 +146,7 @@
 }
 
 .dark .bcr-border-top {
-    border-top-color: #000000;
+    border-top-color: var(--color-black);
 }
 
 .bcr-info-field {
@@ -160,7 +160,7 @@
     font-weight: 400;
     font-size: 19px;
     margin-right: 0.4rem;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .colon {
@@ -171,13 +171,13 @@
     font-weight: 400;
     font-size: 19px;
     width: 160px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-field-value {
     font-weight: 400;
     font-size: 19px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-field-value-bold {
@@ -185,11 +185,16 @@
     font-size: 19px;
     display: inline-block;
     min-width: 150px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .dark .bcr-field-value-bold {
-    border-bottom-color: #000000;
+    border-bottom-color: var(--color-black);
+}
+
+.bcr-field-value-bold input {
+    font-size: 19px;
+    color: var(--color-black);
 }
 
 .mr-l-2 {
@@ -206,7 +211,7 @@
     font-weight: 400;
     font-size: 19px;
     margin-left: 3rem;
-    color: #000000;
+    color: var(--color-black);
 }
 
 /* Scope section */
@@ -217,45 +222,46 @@
     font-size: 19px;
     display: flex;
     flex-direction: column;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-scope-section-sub {
     font-weight: 400;
     font-size: 19px;
     display: flex;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .dark .bcr-scope-section {
-    border-color: #000000;
+    border-color: var(--color-black);
 }
 
 .bcr-scope-label {
     font-weight: bold;
     width: 20%;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .scope-value {
     width: 80%;
-    color: #000000;
+    color: var(--color-black);
+    font-size: 17px;
 }
 
 /* Parts section */
 .bcr-parts-section {
     margin: 0.3rem 0;
-    border-right: 1px solid #000000;
+    border-right: 1px solid var(--color-black);
 }
 
 .bcr-parts-header {
     font-weight: bold;
     text-align: center;
     padding: 0.2rem 0;
-    border-top: 1px solid #000000;
+    border-top: 1px solid var(--color-black);
     margin-bottom: 0;
     font-size: 19px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-parts-table {
@@ -264,13 +270,13 @@
 }
 
 .bcr-parts-table-header {
-    border-top: 1px solid #000000;
-    border-bottom: 1px solid #000000;
+    border-top: 1px solid var(--color-black);
+    border-bottom: 1px solid var(--color-black);
     padding: 0.2rem;
     font-weight: bold;
     font-size: 19px;
     background-color: #ffffff;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-parts-table-sl {
@@ -299,12 +305,12 @@
 }
 
 .bcr-parts-table-cell {
-    border-bottom: 1px solid #000000;
+    border-bottom: 1px solid var(--color-black);
     padding: 0.2rem;
     height: 12px;
     font-size: 0.76rem;
     vertical-align: top;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-parts-table-center {
@@ -316,41 +322,41 @@
 }
 
 .bcr-parts-table-footer {
-    border-bottom: 1px solid #000000;
+    border-bottom: 1px solid var(--color-black);
     padding: 0.2rem;
     font-size: 14px;
     background-color: #ffffff;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-parts-table-total-label {
     text-align: right;
     font-weight: bold;
-    color: #000000;
+    color: var(--color-black);
 }
 
 /* Comments section */
 .bcr-comments-section {
     margin: 0.3rem 0;
-    border: 1px solid #000000;
+    border: 1px solid var(--color-black);
     padding: 0.2rem 0.5rem 0.5rem 0.5rem;
 }
 
 .dark .bcr-comments-section {
-    border-color: #000000;
+    border-color: var(--color-black);
 }
 
 .bcr-comments-label {
     font-weight: bold;
     font-size: 21px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-comments-text {
     margin: 0.6rem 0 0 4.5rem;
     font-weight: 400;
     font-size: 19px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .work-summary-line-2 {
@@ -358,25 +364,25 @@
     font-weight: 400;
     font-size: 19px;
     width: 100%;
-    color: #000000;
+    color: var(--color-black);
 }
 
 /* Cost summary section */
 .bcr-cost-summary-section {
     margin: 0.3rem 0;
-    border: 1px solid #000000;
+    border: 1px solid var(--color-black);
     padding: 0.8rem 0.2rem 0.7rem 0.2rem;
 }
 
 .dark .bcr-cost-summary-section {
-    border-color: #000000;
+    border-color: var(--color-black);
 }
 
 .bcr-cost-summary-title {
     font-weight: bold;
     margin-bottom: 0.3rem;
     font-size: 21px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-cost-summary-content {
@@ -393,7 +399,7 @@
     font-weight: 400;
     font-size: 21px;
     padding-top: 0.4rem;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-cost-total-row {
@@ -415,30 +421,30 @@
     margin-right: 2px;
     font-weight: 500;
     margin-right: 1rem;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-cost-label {
     margin-left: auto;
     margin-right: 2rem;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .text-data-underline {
-    border-bottom: 1px solid #000000 !important;
+    border-bottom: 1px solid var(--color-black) !important;
 }
 
 .dark .bcr-cost-underline {
-    border-bottom-color: #000000;
+    border-bottom-color: var(--color-black);
 }
 
 .bcr-cost-amount {
     width: 100%;
-    border-bottom: 1px solid #000000 !important;
+    border-bottom: 1px solid var(--color-black) !important;
     text-align: left;
     padding-bottom: 1px;
     font-size: 19px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-deduction-row {
@@ -448,7 +454,7 @@
     margin-top: 0.8rem;
     font-weight: 400;
     font-size: 19px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-deduction-label {
@@ -456,7 +462,7 @@
     font-weight: bold;
     margin-bottom: 0.3rem;
     font-size: 21px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-deduction-value-container {
@@ -465,11 +471,11 @@
     min-width: 250px;
     max-width: 250px;
     font-size: 21px;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .dark .bcr-deduction-underline {
-    border-bottom-color: #000000;
+    border-bottom-color: var(--color-black);
 }
 
 .bcr-auth-table {
@@ -479,24 +485,35 @@
 }
 
 .bcr-auth-header {
-    border-left: 1px solid #000000;
-    border-bottom: 1px solid #000000;
-    border-top: 1px solid #000000;
+    border-left: 1px solid var(--color-black);
+    border-bottom: 1px solid var(--color-black);
+    border-top: 1px solid var(--color-black);
     padding: 0.2rem;
     font-weight: 600;
     text-align: center;
     font-size: 19px;
     background-color: #ffffff;
-    color: #000000;
+    color: var(--color-black);
 }
 
 .bcr-auth-cell {
-    border-left: 1px solid #000000;
+    border-left: 1px solid var(--color-black);
     padding: 0.2rem;
     text-align: center;
     font-size: 19px;
     vertical-align: top;
-    color: #000000;
+    color: var(--color-black);
+    position: relative;
+}
+
+.bcr-auth-cell img {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 200px;
+    max-width: 100%;
+    object-fit: contain;
+    top: 50%;
 }
 
 .bcr-auth-signature-space {
@@ -504,9 +521,42 @@
 }
 
 .bcr-auth-name {
-    border-top: 1px solid #000000;
+    border-top: 1px solid var(--color-black);
     font-weight: bold;
-    color: #000000;
+    color: var(--color-black);
+}
+
+.dropdown-suggestions {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 200px;
+    right: 0;
+    background: var(--text-color);
+    border-radius: 4px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 9999;
+    min-width: 300px;
+    color: var(--text-inverse) !important;
+}
+
+.dropdown-suggestions::-webkit-scrollbar {
+    display: none;
+}
+
+.dropdown-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-black-700);
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+    color: var(--text-inverse) !important;
+}
+
+.dropdown-item:hover {
+    background: var(--color-white-200) !important;
+    color: var(--color-black) !important;
 }
 
 /* Responsive design for smaller screens */
@@ -567,7 +617,8 @@
     justify-content: space-between;
 }
 
-.bcr-btn-right, .bcr-btn-left {
+.bcr-btn-right,
+.bcr-btn-left {
     display: flex;
     gap: 1.5rem;
 }
@@ -641,12 +692,12 @@
 }
 
 .dropdown-item strong {
-    color: #000000;
+    color: var(--color-black);
     font-weight: 600;
 }
 
 .dropdown-item small {
-    color: #000000;
+    color: var(--color-black);
     display: block;
     margin-top: 2px;
 }
@@ -656,5 +707,12 @@
 }
 
 .bcr-info-field .dropdown-suggestions .dropdown-item {
-    color: #000000;
+    color: var(--color-black);
+}
+
+.ceo-toggle {
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--color-black);
+    text-decoration: underline;
 }

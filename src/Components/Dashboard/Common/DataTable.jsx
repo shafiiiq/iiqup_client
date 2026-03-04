@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { apiRequest } from '../../../utils/0auth';
+import { apiRequest } from '../../../utils/api';
 import { END_POINT } from '../../../constants';
 import { fetchBrand } from '../dashboardApi';
 

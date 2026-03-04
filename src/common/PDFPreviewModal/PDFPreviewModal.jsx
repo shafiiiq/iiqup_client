@@ -50,7 +50,6 @@ const PDFPreviewModal = ({
 
     const handleDocumentLoad = (e) => {
         setNumPages(e.doc.numPages);
-        // Generate page thumbnails
         const pages = Array.from({ length: e.doc.numPages }, (_, i) => i + 1);
         setPageElements(pages);
     };
@@ -60,7 +59,6 @@ const PDFPreviewModal = ({
     return (
         <div className="pdf-preview-overlay" onClick={onClose}>
             <div className="pdf-preview-modal" onClick={(e) => e.stopPropagation()}>
-                {/* Left side - Pages Grid */}
                 <div className="pdf-preview-left">
                     <div className="pdf-preview-header">
                         <h2>{fileName}</h2>

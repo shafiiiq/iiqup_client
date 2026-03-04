@@ -1,15 +1,11 @@
 import { END_POINT } from '../../constants';
 import { COLORS } from './utils/dasboard-utils';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 
-// ============================================================================
-// CACHE MANAGEMENT
-// ============================================================================
 let equipmentCache = null;
 let cacheTime = 0;
-const EQUIPMENT_CACHE_TTL = 30000; // 30 seconds
+const EQUIPMENT_CACHE_TTL = 30000;
 
-// Tab data cache
 const tabDataCache = {
     daily: null,
     weekly: null,
@@ -23,15 +19,8 @@ const tabDataCache = {
     }
 };
 
-const TAB_CACHE_TTL = 60000; // 1 minute for tab data
+const TAB_CACHE_TTL = 60000;
 
-// ============================================================================
-// PROGRESSIVE DATA LOADING
-// ============================================================================
-
-/**
- * STAGE 1: Fetch counts only (SUPER FAST - shows metrics immediately)
- */
 export const fetchDashboardCounts = async (period = 'daily') => {
     try {
         const response = await apiRequest(`${END_POINT}/dashboard/get-${period}-counts`, 'GET');
@@ -44,13 +33,9 @@ export const fetchDashboardCounts = async (period = 'daily') => {
     }
 };
 
-/**
- * STAGE 2: Fetch specific tab data (with caching)
- */
 export const fetchTabData = async (period = 'daily', forceRefresh = false) => {
     const now = Date.now();
 
-    // Return cached data if valid and not forcing refresh
     if (!forceRefresh &&
         tabDataCache[period] &&
         (now - tabDataCache.timestamps[period]) < TAB_CACHE_TTL) {
@@ -60,8 +45,6 @@ export const fetchTabData = async (period = 'daily', forceRefresh = false) => {
     try {
         const response = await apiRequest(`${END_POINT}/dashboard/get-${period}-updates`, 'GET');
         const result = await response.json();
-
-        // Cache the result
         tabDataCache[period] = result.data;
         tabDataCache.timestamps[period] = now;
 
@@ -72,29 +55,20 @@ export const fetchTabData = async (period = 'daily', forceRefresh = false) => {
     }
 };
 
-/**
- * OPTIMIZED: Fetch only what's needed for initial load
- */
 export const fetchInitialDashboardData = async () => {
-    // Fetch equipment data once (needed for brand mapping)
     await getEquipmentData();
 
-    // Only fetch daily counts first (super fast)
     const dailyCounts = await fetchDashboardCounts('daily');
-
-    // Fetch daily full data in background
     const dailyData = await fetchTabData('daily');
-
-    // Generate real-time analytics from daily data only
     const realTimeData = await generateRealTimeAnalytics({
         daily: dailyData
     });
 
     return {
         daily: dailyData,
-        weekly: null,  // Load on demand
-        monthly: null, // Load on demand
-        yearly: null,  // Load on demand
+        weekly: null,  
+        monthly: null, 
+        yearly: null,  
         realTime: realTimeData,
         counts: {
             daily: dailyCounts,
@@ -105,19 +79,12 @@ export const fetchInitialDashboardData = async () => {
     };
 };
 
-/**
- * Load specific tab data on demand
- */
 export const loadTabDataOnDemand = async (period, currentData) => {
-    // If already loaded, return existing data
     if (currentData[period]) {
         return currentData;
     }
 
-    // Fetch the specific tab data
     const tabData = await fetchTabData(period);
-
-    // Add brand mapping
     const brandMap = await getBrandMap();
     if (tabData) {
         addBrandToData(tabData, brandMap);
@@ -129,13 +96,6 @@ export const loadTabDataOnDemand = async (period, currentData) => {
     };
 };
 
-// ============================================================================
-// EQUIPMENT & BRAND DATA
-// ============================================================================
-
-/**
- * Get equipment data with caching
- */
 const getEquipmentData = async () => {
     const now = Date.now();
 
@@ -148,9 +108,6 @@ const getEquipmentData = async () => {
     return equipmentCache;
 };
 
-/**
- * Get brand map (memoized)
- */
 export const getBrandMap = async () => {
     const equipData = await getEquipmentData();
     const brandMap = new Map();
@@ -162,9 +119,6 @@ export const getBrandMap = async () => {
     return brandMap;
 };
 
-/**
- * Add brand to dataset (optimized)
- */
 export const addBrandToData = (dataset, brandMap) => {
     if (dataset.maintenanceHistory) {
         dataset.maintenanceHistory.forEach(maintenance => {
@@ -179,13 +133,6 @@ export const addBrandToData = (dataset, brandMap) => {
     }
 };
 
-// ============================================================================
-// REAL-TIME ANALYTICS (OPTIMIZED)
-// ============================================================================
-
-/**
- * Generate real-time analytics - optimized version
- */
 export const generateRealTimeAnalytics = async (data) => {
     const analytics = {
         totalServices: 0,
@@ -205,10 +152,9 @@ export const generateRealTimeAnalytics = async (data) => {
         performanceMetrics: []
     };
 
-    // Fetch all required data in parallel
     const [complaints, equipData, application, allStocks] = await Promise.all([
         apiRequest(`${END_POINT}/complaints/get-all-complaints`).then(res => res.json()),
-        getEquipmentData(), // Use cached version
+        getEquipmentData(),
         apiRequest(`${END_POINT}/applications/get-all-requests`).then(res => res.json()),
         apiRequest(`${END_POINT}/stocks/get-all-stocks`).then(res => res.json())
     ]);
@@ -216,22 +162,16 @@ export const generateRealTimeAnalytics = async (data) => {
     const allEquipments = equipData.data;
     const allApplication = application.data;
     const stocks = allStocks.data;
-
-    // Calculate metrics
     const pendingComplaints = complaints.data.filter(c => c.status === 'pending');
     analytics.pendingComplaints = pendingComplaints;
     analytics.pendingMaintenance = pendingComplaints.length || 0;
-
     const pendingApplications = allApplication.filter(app => app.status === 'pending');
     analytics.pendingApplications = pendingApplications.length || 0;
-
     analytics.totalEquipment = allEquipments.length || 0;
     analytics.activeEquipment = allEquipments.filter(eq => eq.status === 'active').length || 0;
     analytics.idleEquipment = allEquipments.filter(eq => eq.status === 'idle').length || 0;
-
     const lowStocks = stocks.filter(stock => stock.status === 'low_stock');
 
-    // Calculate from available period data
     Object.values(data).forEach(periodData => {
         if (periodData) {
             analytics.totalServices += periodData.serviceHistory?.length || 0;
@@ -240,10 +180,8 @@ export const generateRealTimeAnalytics = async (data) => {
         }
     });
 
-    // Generate trends only for available data
     analytics.trends = generateTrendsData(data);
 
-    // Stock health (only from daily if available)
     if (data.daily?.stocks) {
         analytics.stockHealth = data.daily.stocks.slice(0, 10).map(stock => ({
             name: stock.product || 'Unknown Stock',
@@ -255,7 +193,6 @@ export const generateRealTimeAnalytics = async (data) => {
         }));
     }
 
-    // Toolkit status (only from daily if available)
     if (data.daily?.toolkit) {
         analytics.toolkitStatus = data.daily.toolkit.slice(0, 10).map(toolkit => ({
             name: toolkit.name || 'Unknown Toolkit',
@@ -265,7 +202,6 @@ export const generateRealTimeAnalytics = async (data) => {
         }));
     }
 
-    // Calculate efficiency
     const totalOperations = analytics.totalServices + analytics.stockItems + analytics.toolkitItems;
     analytics.efficiency = totalOperations > 0
         ? Math.round(((totalOperations - analytics.pendingMaintenance) / totalOperations) * 100)
@@ -273,7 +209,6 @@ export const generateRealTimeAnalytics = async (data) => {
     analytics.activeServices = Math.round(analytics.totalServices * 0.85);
     analytics.criticalAlerts = Math.round(analytics.pendingMaintenance * 0.3);
 
-    // Stock metrics
     analytics.stockMetrics = {
         totalStockItems: stocks.length,
         lowStockAlerts: lowStocks.length,
@@ -282,7 +217,6 @@ export const generateRealTimeAnalytics = async (data) => {
         ) || 0
     };
 
-    // Toolkit metrics
     analytics.toolkitMetrics = {
         totalToolkitItems: analytics.toolkitItems,
         lowToolkitAlerts: data.daily?.toolkit?.filter(toolkit =>
@@ -293,7 +227,6 @@ export const generateRealTimeAnalytics = async (data) => {
         ) || 0
     };
 
-    // Performance metrics
     analytics.performanceMetrics = [
         { name: 'Total Services', value: analytics.totalServices, color: COLORS.primary },
         { name: 'Active Services', value: analytics.activeServices, color: COLORS.success },
@@ -306,9 +239,6 @@ export const generateRealTimeAnalytics = async (data) => {
     return analytics;
 };
 
-/**
- * Generate trends data helper
- */
 const generateTrendsData = (data) => {
     const periods = ['daily', 'weekly', 'monthly', 'yearly'];
     const labels = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
@@ -325,13 +255,6 @@ const generateTrendsData = (data) => {
     }));
 };
 
-// ============================================================================
-// MEMOIZED DATA PREPARATION FUNCTIONS
-// ============================================================================
-
-/**
- * Get comprehensive statistics (memoization-ready)
- */
 export const getComprehensiveStats = (data) => {
     if (!data) return { total: 0, collections: {}, trends: {} };
 
@@ -363,9 +286,6 @@ export const getComprehensiveStats = (data) => {
     };
 };
 
-/**
- * Prepare analytics data (memoization-ready)
- */
 export const prepareAnalyticsData = (data) => {
     if (!data) return [];
 
@@ -387,9 +307,6 @@ export const prepareAnalyticsData = (data) => {
     })).filter(item => item.value > 0);
 };
 
-/**
- * Prepare stock performance (memoization-ready)
- */
 export const prepareStockPerformance = (data) => {
     if (!data?.stocks) return [];
 
@@ -404,9 +321,6 @@ export const prepareStockPerformance = (data) => {
     }));
 };
 
-/**
- * Prepare toolkit performance (memoization-ready)
- */
 export const prepareToolkitPerformance = (data) => {
     if (!data?.toolkit) return [];
 
@@ -419,9 +333,6 @@ export const prepareToolkitPerformance = (data) => {
     }));
 };
 
-/**
- * Prepare bar chart data (memoization-ready)
- */
 export const prepareBarChartData = (data) => {
     if (!data) return [];
 
@@ -442,9 +353,6 @@ export const prepareBarChartData = (data) => {
     })).filter(item => item.count > 0);
 };
 
-/**
- * Get activity content (pure function)
- */
 export const getActivityContent = (update) => {
     const contentMap = {
         'tyre-history': `Tyre Replacement: ${update.tyreModel} (${update.tyreNumber}) - ${update.equipment} #${update.equipmentNo}`,
@@ -459,10 +367,6 @@ export const getActivityContent = (update) => {
     return contentMap[update.content] || `System Update: ${update.content}`;
 };
 
-// ============================================================================
-// COMPARISON DATA (LAZY LOADING)
-// ============================================================================
-
 const comparisonCache = {
     last5Days: null,
     last5Months: null,
@@ -474,11 +378,8 @@ const comparisonCache = {
     }
 };
 
-const COMPARISON_CACHE_TTL = 300000; // 5 minutes
+const COMPARISON_CACHE_TTL = 300000;
 
-/**
- * Fetch comparison data with caching
- */
 export const fetchLast5DaysComparison = async () => {
     const now = Date.now();
 
@@ -545,9 +446,6 @@ export const fetchLast5YearsComparison = async () => {
     }
 };
 
-/**
- * Prepare comparison chart data
- */
 export const prepareComparisonChartData = (comparisonData, period) => {
     if (!comparisonData || !comparisonData.comparison) return [];
 
@@ -572,23 +470,14 @@ export const prepareComparisonChartData = (comparisonData, period) => {
     });
 };
 
-/**
- * Fetch initial data for a specific tab (for page refresh)
- */
 export const fetchInitialTabData = async (period = 'daily') => {
-    // Fetch equipment data once (needed for brand mapping)
     await getEquipmentData();
 
-    // Fetch the specific period's data
     const tabData = await fetchTabData(period);
-
-    // Add brand mapping
     const brandMap = await getBrandMap();
     if (tabData) {
         addBrandToData(tabData, brandMap);
     }
-
-    // Generate real-time analytics
     const realTimeData = await generateRealTimeAnalytics({
         [period]: tabData
     });
@@ -605,13 +494,6 @@ export const fetchInitialTabData = async (period = 'daily') => {
     };
 };
 
-// ============================================================================
-// CACHE MANAGEMENT
-// ============================================================================
-
-/**
- * Clear all caches
- */
 export const clearAllCaches = () => {
     equipmentCache = null;
     cacheTime = 0;

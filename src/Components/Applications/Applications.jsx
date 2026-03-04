@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { END_POINT } from '../../constants';
 import './Applications.css';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 
 const Applications = () => {
   const [userId, setUserId] = useState(null);
@@ -26,7 +26,6 @@ const Applications = () => {
   const [availabilityInfo, setAvailabilityInfo] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
 
-  // Get user ID from localStorage on component mount
   useEffect(() => {
     const getUserFromStorage = () => {
       try {
@@ -49,7 +48,6 @@ const Applications = () => {
     getUserFromStorage();
   }, []);
 
-  // Update current date and time
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
@@ -154,11 +152,10 @@ const Applications = () => {
       [name]: value
     }));
 
-    // Auto-set end date for annual leave
     if (name === 'startDate' && leaveData.leaveSubType === 'annual' && value) {
       const startDate = new Date(value);
       const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 29); // 30 days total (including start date)
+      endDate.setDate(startDate.getDate() + 29); 
       setLeaveData(prev => ({
         ...prev,
         endDate: endDate.toISOString().split('T')[0]
@@ -207,7 +204,6 @@ const Applications = () => {
 
       setSuccessMessage('Application submitted successfully!');
 
-      // Reset form
       if (applicationType === 'leave') {
         setLeaveData({
           startDate: '',
@@ -232,7 +228,6 @@ const Applications = () => {
     }
   };
 
-  // Show loading state while userId is being retrieved
   if (!userId) {
     return (
       <div className="applications-dashboard">

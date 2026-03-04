@@ -431,16 +431,6 @@
   margin-bottom: 4px;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: var(--radius-6xl);
-  corner-shape: squircle;
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 8px;
-}
-
 .status-badge.available {
   background: rgba(46, 204, 113, 0.1);
   color: var(--color-success);

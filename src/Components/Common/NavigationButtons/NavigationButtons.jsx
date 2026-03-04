@@ -1,35 +1,40 @@
-import React from 'react';
+// ─────────────────────────────────────────────────────────────────────────────
+// NavigationButtons.jsx — Browser history navigation controls
+// Renders back and forward arrow buttons that mirror the browser's
+// native navigation, persisted across the app via absolute positioning.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import React       from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import ArrowBack    from '../../../assets/images/arrow_back_ios.svg';
+import ArrowForward from '../../../assets/images/arrow_forward_ios.svg';
+
 import './NavigationButtons.css';
-import ArrowForward from '../../../assets/images/arrow_forward_ios.svg'
-import ArrowBack from '../../../assets/images/arrow_back_ios.svg'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NavigationButtons Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 const NavigationButtons = () => {
   const navigate = useNavigate();
-
-  const goBack = () => {
-    navigate(-1);
-  };
-
-  const goForward = () => {
-    navigate(1);
-  };
 
   return (
     <div className="navigation-buttons">
       <button
         className="nav-btn back-btn"
-        onClick={goBack}
+        onClick={() => navigate(-1)}
         title="Go Back"
       >
-        <img src={ArrowBack} alt="B" className='main-control main-control-back' />
+        <img src={ArrowBack} alt="Back" className="main-control main-control-back" />
       </button>
+
       <button
         className="nav-btn forward-btn"
-        onClick={goForward}
+        onClick={() => navigate(1)}
         title="Go Forward"
       >
-        <img src={ArrowForward} alt="F" className='main-control main-control-forward' />
+        <img src={ArrowForward} alt="Forward" className="main-control main-control-forward" />
       </button>
     </div>
   );

@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, RefreshCw } from 'lucide-react';
-import Button from '../../common/Button/Button';
-import Input from '../../common/Input/Input';
+import React, { useRef, useState } from 'react';
+import Button from '../../Common/Button/Button';
+import Input from '../../Common/Input/Input';
 
 const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleRefresh }) => {
   const notificationSoundRef = useRef(null);
@@ -47,7 +46,6 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
     }
   }
 
-  // Fallback sound generator using Web Audio API
   const playFallbackSound = () => {
     if (!soundEnabled) {
       console.error('Fallback sound disabled by user');
@@ -56,24 +54,17 @@ const DashboardHeader = ({ title, subtitle, currentDateTime, refreshing, handleR
 
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-      // First beep
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-
       oscillator.frequency.value = 800;
       oscillator.type = 'sine';
-
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
 
-      // Second beep
       setTimeout(() => {
         const oscillator2 = audioContext.createOscillator();
         const gainNode2 = audioContext.createGain();

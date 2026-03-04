@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './LpoList.css';
-import { apiRequest } from '../../utils/0auth';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
-import DevModal from '../../common/DevModal';
-import Button from '../../common/Button/Button';
-import Loader from '../../common/Loader/Loader';
+import { apiRequest } from '../../utils/api';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
+import DevModal from '../../Common/DevModal/DevModal';
+import Button from '../../Common/Button/Button';
+import Loader from '../../Common/Loader/Loader';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -22,8 +22,6 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const [selectedLpo, setSelectedLpo] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [currentDateTime, setCurrentDateTime] = useState('');
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [filters, setFilters] = useState({
     dateFilter: 'all',
@@ -52,45 +50,19 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     }
-    // Cleanup - reset when component unmounts
     return () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [isAll, isEquip, isStock, isForAllEquip]);
-
-
-  // Get current date and time
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString}   |   ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
+  }, [isAll, isEquip, isStock, isForAllEquip, setHeaderSubtitle, setHeaderTitle]);
 
   useEffect(() => {
     fetchLpos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAll, isEquip, isStock, isForAllEquip, regNo]);
 
   const fetchLpos = async () => {
-    let url = `${END_POINT}/lpo/get-all-lpo`; // default for isAll
+    let url = `${END_POINT}/lpo/get-all-lpo`;
 
     if (isEquip && regNo) {
       url = `${END_POINT}/lpo/get-lpo-by-regno/${regNo}`;
@@ -117,6 +89,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
 
   useEffect(() => {
     applyAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lpos, searchTerm, filters]);
 
   const handleSearchChange = (e) => {
@@ -194,7 +167,6 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
         'DELETE'
       );
 
-      // Check if response is successful
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to delete LPO');
@@ -237,67 +209,11 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     navigate(`/lpo-form/${regNo}`);
   };
 
-  const handleDateRangeChange = (e) => {
-    const { name, value } = e.target;
-    setDateRange(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFilterByDate = async () => {
-    if (!dateRange.startDate || !dateRange.endDate) {
-      setDeleteStatus({
-        message: 'Please select both start and end dates',
-        isError: true
-      });
-      setShowStatusModal(true);
-      return;
-    }
-
-    // Use the same URL logic for date filtering based on the active mode
-    let baseUrl = `${END_POINT}/lpo/get-lpos-by-date`;
-
-    if (isEquip && regNo) {
-      baseUrl = `${END_POINT}/lpo/get-lpo-by-regno-date/${regNo}`;
-    } else if (isStock) {
-      baseUrl = `${END_POINT}/lpo/get-lpo-of-stock-date`;
-    } else if (isForAllEquip) {
-      baseUrl = `${END_POINT}/lpo/get-lpo-of-all-equipments-date`;
-    }
-
-    const url = `${baseUrl}?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
-
-    try {
-      const response = await apiRequest(url, 'GET');
-
-      if (response.success) {
-        setFilteredData(response.data);
-      } else {
-        setDeleteStatus({
-          message: response.message || 'Error filtering LPOs',
-          isError: true
-        });
-        setShowStatusModal(true);
-      }
-    } catch (error) {
-      setDeleteStatus({
-        message: 'Error filtering LPOs: ' + error.message,
-        isError: true
-      });
-      setShowStatusModal(true);
-    }
-  };
-
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const handleApplyFilters = () => {
-    setDateRange({
-      startDate: filters.customStartDate,
-      endDate: filters.customEndDate
-    });
     setShowFiltersModal(false);
     applyAllFilters();
   };
@@ -312,14 +228,12 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       customStartDate: '',
       customEndDate: ''
     });
-    setDateRange({ startDate: '', endDate: '' });
     setFilteredData(lpos);
   };
 
   const applyAllFilters = () => {
     let filtered = [...lpos];
 
-    // Apply date filter
     if (filters.dateFilter === 'custom' && filters.customStartDate && filters.customEndDate) {
       filtered = filtered.filter(lpo => {
         const lpoDate = new Date(lpo.date);
@@ -340,21 +254,18 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       });
     }
 
-    // Apply vendor filter
     if (filters.vendors.length > 0) {
       filtered = filtered.filter(lpo =>
         filters.vendors.includes(lpo.company?.vendor)
       );
     }
 
-    // Apply equipment filter
     if (filters.equipmentTypes.length > 0) {
       filtered = filtered.filter(lpo =>
         filters.equipmentTypes.includes(lpo.equipment)
       );
     }
 
-    // Apply amount range filter
     if (filters.amountRange.min || filters.amountRange.max) {
       filtered = filtered.filter(lpo => {
         const amount = lpo.totalAmount;
@@ -364,7 +275,6 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       });
     }
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(lpo => {
         return Object.values(lpo).some(value => {

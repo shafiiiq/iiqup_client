@@ -58,9 +58,10 @@
 .complaints-status-item {
     flex: 1;
     min-width: 200px;
-    background: var(--gradient-glass-400);
+    background: var(--gradient-glass-100);
     backdrop-filter: blur(20px);
-    border-radius: var(--radius-4xl);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     padding: 1.25rem;
     display: flex;
     align-items: center;
@@ -105,7 +106,7 @@
 /* Complaints List */
 .complaints-list-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
 }
 
@@ -133,15 +134,16 @@
 }
 
 .complaint-card {
-    background: var(--gradient-glass-700);
+    background: var(--gradient-glass-300);
     backdrop-filter: blur(20px);
-    border-radius: var(--radius-4xl);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     overflow: hidden;
     transition: all 0.3s ease;
     height: 100%;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-inner-4xl);
+    box-shadow: var(--shadow-outer-md);
 }
 
 .complaint-card:hover {
@@ -165,8 +167,8 @@
 }
 
 .complaint-title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 25px;
+    font-weight: 500;
     margin: 0;
     color: white;
 }
@@ -184,8 +186,9 @@
 .complaint-meta {
     display: flex;
     gap: 1rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.85rem;
+    color: var(--text-color-300);
+    justify-content: space-between;
+    font-size: 17px;
     flex-wrap: wrap;
 }
 
@@ -222,13 +225,13 @@
 }
 
 .complaint-info-item strong {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 20px;
+    color: var(--text-color-200);
 }
 
 .complaint-info-item span {
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 18px;
 }
 
 .complaint-description {
@@ -251,8 +254,6 @@
 }
 
 .complaint-media-display {
-    background: var(--gradient-glass-400);
-    border-radius: var(--radius-4xl);
     overflow: hidden;
     max-width: 400px;
 }
@@ -263,7 +264,8 @@
     justify-content: center;
     position: relative;
     max-width: 400px;
-    border-radius: var(--radius-4xl);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
 }
 
 .complaint-media-container {
@@ -274,7 +276,8 @@
     align-items: center;
     justify-content: center;
     background: var(--text-inverse);
-    border-radius: var(--radius-4xl);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     overflow: hidden;
     margin: 0 auto;
 }
@@ -318,8 +321,8 @@
 }
 
 .complaint-media-counter {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 18px;
+    color: var(--text-color-200);
     text-align: center;
     padding: 0.5rem;
 }
@@ -334,17 +337,18 @@
 .complaint-thumbnail {
     width: 70px;
     height: 45px;
-    border-radius: var(--radius-4xl);
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
     overflow: hidden;
     cursor: pointer;
     flex-shrink: 0;
-    border: 1px solid transparent;
+    border: 3px solid transparent;
     transition: all 0.3s ease;
 }
 
 
 .complaint-thumbnail-active {
-    border-color: var(--color-primary);
+    border-color: var(--color-primary-300);
 }
 
 .complaint-thumbnail img {
@@ -372,8 +376,8 @@
     gap: 0.5rem;
 }
 
-.complaint-play-icon {
-    font-size: 0.9rem;
+.complaint-play-format {
+    font-size: 15px;
 }
 
 .complaint-no-media {

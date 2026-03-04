@@ -166,17 +166,6 @@
   top: 0;
   left: 0;
 }
-
-/* Status Badge Styles */
-.status-badge {
-  padding: 4px 8px;
-  border-radius: var(--radius-6xl);
-  corner-shape: squircle;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
 .status-badge.available,
 .status-badge.active {
   background-color: rgba(46, 204, 113, 0.1);

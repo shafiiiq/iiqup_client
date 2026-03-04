@@ -5,7 +5,6 @@
 }
 
 .page-container-doc {
-  font-family: Arial, sans-serif;
   max-width: 100%;
   background-color: #f1f1f1 !important;
   max-height: 100vh !important;
@@ -430,7 +429,7 @@ img.company-seal {
   text-align: start !important;
   font-weight: bold !important;
   padding: 12px !important;
-  font-size: 16pt !important;
+  font-size: 12pt !important;
 }
 
 .date-no-border {
@@ -501,14 +500,6 @@ img.company-seal {
   50% {
     opacity: 0.6;
   }
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
 }
 
 .status-badge.checking {

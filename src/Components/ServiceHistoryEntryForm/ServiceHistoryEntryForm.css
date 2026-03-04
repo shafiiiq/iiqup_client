@@ -1,0 +1,219 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   ServiceHistoryEntryForm.css — Styles for the unified ServiceHistoryEntryForm.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Page container ────────────────────────────────────────────────────────── */
+
+.service-history-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-primary);
+  padding: 20px;
+  min-height: 100vh;
+  color: var(--text-color);
+  display: flex;
+  justify-content: flex-end;
+  width: 60%;
+  margin: 10rem 10rem auto auto;
+}
+
+/* ── Hero / background image ───────────────────────────────────────────────── */
+
+.form-overlay-cnt-img {
+  position: absolute;
+  left: -200px;
+  top: -200px;
+  width: 1400px;
+  transform: rotate(-45deg);
+  transition: 2s all cubic-bezier(0.075, 0.82, 0.165, 1);
+  overflow: hidden;
+  opacity: 0.5;
+  border-radius: var(--radius-8xl);
+  pointer-events: none;
+}
+
+.form-overlay-cnt-img img {
+  width: 100%;
+}
+
+.form-overlay-cnt-img:hover {
+  transform: rotate(-40deg);
+  opacity: 0.7;
+}
+
+/* ── Form card container ────────────────────────────────────────────────────── */
+
+.form-container {
+  background: var(--gradient-primary-900);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  box-shadow: var(--shadow-outer-xxl);
+  padding: 25px;
+}
+
+.form-container.form-container-hst {
+  width: 62%;
+  height: fit-content;
+  margin-top: 160px;
+  margin-right: 80px;
+}
+
+/* ── Form grid ─────────────────────────────────────────────────────────────── */
+
+.service-history-form {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  place-items: center;
+  align-items: center;
+}
+
+form {
+  padding: 2rem 0 !important;
+}
+
+/* ── Field groups ──────────────────────────────────────────────────────────── */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #a0aec0;
+}
+
+/* Full-width fields (e.g. Work Remarks textarea) */
+.full-width {
+  grid-column: span 4;
+}
+
+/* Full Service select spans two columns */
+.full-service-group {
+  grid-column: span 2;
+}
+
+/* ── Status message banner ─────────────────────────────────────────────────── */
+
+.message {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: var(--shadow-outer-xxl);
+}
+
+.message.success {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--normal-color);
+}
+
+.message.error {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--urgent-color);
+}
+
+/* ── Action buttons row ────────────────────────────────────────────────────── */
+
+.form-actions {
+  grid-column: span 4;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: -1px;
+  width: 100%;
+}
+
+/* ── Misc shared helpers ───────────────────────────────────────────────────── */
+
+.date-time {
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 16px;
+  box-shadow: var(--shadow-outer-xxl);
+}
+
+.equipment-info {
+  font-size: 24px;
+  color: var(--text-color);
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* ── Responsive: hide decorative image and expand card at 1400px ───────────── */
+
+@media (max-width: 1400px) {
+   .service-history-container {
+       width: 100%;
+       margin: 0; 
+   }
+
+  .form-overlay-cnt-img {
+    display: none;
+  }
+
+  .form-container.form-container-hst {
+    width: 100%;
+    margin-top: 0;
+    margin-right: 0;
+  }
+
+  .service-history-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .full-width {
+    grid-column: span 2;
+  }
+
+  .form-actions {
+    grid-column: span 2;
+  }
+}
+
+/* ── Responsive: single-column at 768px ────────────────────────────────────── */
+
+@media (max-width: 768px) {
+   .service-history-container {
+    width: 100%;
+    margin: 0; 
+   }
+
+  .form-overlay-cnt-img {
+    display: none;
+  }
+
+  .form-container.form-container-hst {
+    width: 100%;
+    margin-top: 0;
+    margin-right: 0;
+  }
+
+  .service-history-form {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width,
+  .full-service-group,
+  .form-actions {
+    grid-column: 1;
+  }
+
+  .form-actions {
+    justify-content: center;
+  }
+
+  .date-time {
+    width: 100%;
+  }
+}

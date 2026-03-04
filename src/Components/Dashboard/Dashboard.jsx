@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, AreaChart, Area,
+  BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
 
 import {
-  fetchInitialTabData,
-  fetchInitialDashboardData,
-  loadTabDataOnDemand,
   generateRealTimeAnalytics,
   getBrandMap,
   addBrandToData,
@@ -36,10 +33,9 @@ import './Dashboard.css';
 import { formatDate, formatDateTime, getStatusColor, COLORS } from './utils/dasboard-utils';
 import Notifications from '../Notification/Notification';
 import LiveChat from '../LiveChat/LiveChat';
-import Loader from '../../common/Loader/Loader';
+import Loader from '../../Common/Loader/Loader';
 
 const Dashboard = () => {
-  // Refs for height calculation
   const statusBarRef = useRef(null);
   const dashboardHeaderRef = useRef(null);
   const dashboardTabsRef = useRef(null);
@@ -71,26 +67,20 @@ const Dashboard = () => {
     last5Years: null
   });
   const [comparisonLoading, setComparisonLoading] = useState(false);
-  const [activeComparison, setActiveComparison] = useState('days'); // 'days', 'months', 'years'
+  const [activeComparison, setActiveComparison] = useState('days');
 
   useEffect(() => {
-    // Load comparison data when component mounts
     loadComparisonData('days');
   }, []);
 
-  // Effect for hero height calculation
   useEffect(() => {
-    // Initial calculation
     const timer = setTimeout(calculateHeroHeight, 100);
-
-    // Resize observer for better detection
     const resizeObserver = new ResizeObserver(calculateHeroHeight);
 
     if (statusBarRef.current) resizeObserver.observe(statusBarRef.current);
     if (dashboardHeaderRef.current) resizeObserver.observe(dashboardHeaderRef.current);
     if (dashboardTabsRef.current) resizeObserver.observe(dashboardTabsRef.current);
 
-    // Window resize listener
     const handleResize = () => {
       calculateHeroHeight();
     };
@@ -103,7 +93,6 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Recalculate when data changes
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(calculateHeroHeight, 100);
@@ -111,7 +100,6 @@ const Dashboard = () => {
     }
   }, [loading, activeTab, dashboardData]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     handleRefresh();
 
@@ -120,9 +108,9 @@ const Dashboard = () => {
     }, 20000);
 
     return () => clearInterval(refreshInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Real-time clock and date
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
@@ -175,7 +163,6 @@ const Dashboard = () => {
     }
   };
 
-  // Calculate hero height
   const calculateHeroHeight = () => {
     if (!statusBarRef.current || !dashboardHeaderRef.current || !dashboardTabsRef.current) {
       return;
@@ -184,11 +171,8 @@ const Dashboard = () => {
     const statusBarHeight = statusBarRef.current.offsetHeight;
     const dashboardHeaderHeight = dashboardHeaderRef.current.offsetHeight;
     const dashboardTabsHeight = dashboardTabsRef.current.offsetHeight;
-
-    // Convert 4rem to pixels
     const remToPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
     const fourRemInPx = 4 * remToPx;
-
     const totalHeight = statusBarHeight + dashboardHeaderHeight + dashboardTabsHeight + fourRemInPx;
     setHeroHeight(totalHeight);
   };
@@ -196,7 +180,6 @@ const Dashboard = () => {
   const handleComparisonChange = (type) => {
     setActiveComparison(type);
 
-    // Load data if not already loaded
     if (type === 'days' && !comparisonData.last5Days) {
       loadComparisonData('days');
     } else if (type === 'months' && !comparisonData.last5Months) {
@@ -206,7 +189,6 @@ const Dashboard = () => {
     }
   };
 
-  // 6. GET CURRENT COMPARISON DATA
   const getCurrentComparisonData = () => {
     if (activeComparison === 'days') return comparisonData.last5Days;
     if (activeComparison === 'months') return comparisonData.last5Months;
@@ -231,15 +213,12 @@ const Dashboard = () => {
     }
   }, [dashboardData, pendingTab]);
 
-  // Fetch dashboard data wrapper
   const loadDashboardData = async (showRefresh = false) => {
     try {
       if (showRefresh) setRefreshing(true);
       setLoading(!showRefresh);
 
       const currentActiveTab = localStorage.getItem('dashboardActiveTab') || 'daily';
-
-      // Fetch only the current tab's data
       const tabData = await fetchTabData(currentActiveTab);
 
       const brandMap = await getBrandMap();
@@ -247,16 +226,14 @@ const Dashboard = () => {
         addBrandToData(tabData, brandMap);
       }
 
-      // Generate fresh realTime analytics from the current tab data
       const realTimeData = await generateRealTimeAnalytics({
         [currentActiveTab]: tabData
       });
 
-      // Update both current tab AND realTime data
       setDashboardData(prev => ({
         ...prev,
         [currentActiveTab]: tabData,
-        realTime: realTimeData  // This was missing!
+        realTime: realTimeData  
       }));
 
       setLoading(false);
@@ -272,13 +249,11 @@ const Dashboard = () => {
   const handleTabChange = async (newTab) => {
     localStorage.setItem('dashboardActiveTab', newTab);
 
-    // If data already exists, switch immediately
     if (dashboardData[newTab]) {
       setActiveTab(newTab);
       return;
     }
 
-    // Set pending tab and loading state
     setPendingTab(newTab);
     setTabLoading(true);
 
@@ -289,7 +264,6 @@ const Dashboard = () => {
         addBrandToData(tabData, brandMap);
       }
 
-      // Update data - the useEffect will handle tab switching
       setDashboardData(prev => ({
         ...prev,
         [newTab]: tabData
@@ -301,14 +275,8 @@ const Dashboard = () => {
     }
   };
 
-  // Manual refresh
   const handleRefresh = () => {
     loadDashboardData(true);
-  };
-
-  // Get current data based on active tab
-  const getCurrentData = () => {
-    return dashboardData[activeTab];
   };
 
   const currentData = useMemo(() => dashboardData[activeTab], [dashboardData, activeTab]);

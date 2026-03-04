@@ -1,401 +1,399 @@
-import React, { useState, useEffect } from 'react';
-import { AlertTriangle, RefreshCw, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { END_POINT } from '../../constants';
-import './Complaints.css';
-import { Link, useParams } from 'react-router';
-import { apiRequest } from '../../utils/0auth';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
-import Button from '../../common/Button/Button';
+// ─────────────────────────────────────────────────────────────────────────────
+// Complaints.jsx — Complaints management dashboard.
+// Displays all complaints or a single complaint (when :complaintId is present).
+// Features:
+//   • Auto-refreshes every 30 seconds
+//   • Media carousel with prev/next navigation and thumbnail strip
+//   • Async S3 pre-signed URL resolution for images and videos
+//   • Status summary bar (Resolved / Pending / Rejected / In Progress)
+//   • Complaint-linked navigation to service form after resolution
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Async Media Component for handling media URLs
-const AsyncMedia = ({ filePath, type, mimeType, alt, className, onError, mediaUrls, getMediaUrl, ...props }) => {
+import { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router';
+import {
+  AlertTriangle, RefreshCw, CheckCircle, XCircle, Clock,
+  ChevronLeft, ChevronRight
+} from 'lucide-react';
+
+import { END_POINT } from '../../constants';
+import { apiRequest } from '../../utils/api';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
+import Button from '../../Common/Button/Button';
+import Loader from '../../Common/Loader/Loader';
+
+import './Complaints.css';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Fallback image shown when a media file fails to load. */
+const FALLBACK_IMAGE = 'https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?cs=srgb&dl=clouds-cloudy-countryside-236047.jpg&fm=jpg';
+
+/** Auto-refresh interval in milliseconds. */
+const REFRESH_INTERVAL_MS = 30_000;
+
+/** Video file extensions used for type detection when mimeType is absent. */
+const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'm4v'];
+
+/** Status display configuration keyed by normalised status string. */
+const STATUS_CONFIG = {
+  resolved: { color: '#10b981', icon: CheckCircle },
+  'in-progress': { color: '#3b82f6', icon: Clock },
+  pending: { color: '#f59e0b', icon: Clock },
+  rejected: { color: '#ef4444', icon: XCircle },
+};
+
+/** Shared Button props applied to every action button in the header bar. */
+const SHARED_BTN = {
+  variant: 'gradient',
+  font: 'md',
+  animation: '',
+  squircle: '4xl',
+  height: '38px',
+  textColor: 'white-200',
+  shadowPosition: 'to-bottom',
+  shadowColor: 'white-600',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Returns true when the given media file is a video, based on mimeType or
+ * file extension.
+ *
+ * @param {{ mimeType?: string, filePath?: string, type?: string }} media
+ * @returns {boolean}
+ */
+const isVideoMedia = ({ mimeType, filePath, type } = {}) => {
+  if (mimeType) return mimeType.toLowerCase().includes('video');
+  if (filePath) return VIDEO_EXTENSIONS.includes(filePath.toLowerCase().split('.').pop());
+  return type === 'video';
+};
+
+/**
+ * Formats an ISO date string for display.
+ *
+ * @param {string} dateString - Raw ISO date string.
+ * @returns {string} Localised date/time string, or "Unknown date".
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown date';
+  return new Date(dateString).toLocaleDateString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+};
+
+/**
+ * Returns the status colour for a given status string.
+ *
+ * @param {string} status - Complaint status value.
+ * @returns {string} CSS colour string.
+ */
+const getStatusColor = (status) =>
+  (STATUS_CONFIG[status?.toLowerCase()] || { color: '#64748b' }).color;
+
+/**
+ * Returns the Lucide icon component for a given status string.
+ *
+ * @param {string} status - Complaint status value.
+ * @returns {React.ComponentType} Icon component.
+ */
+const getStatusIcon = (status) =>
+  (STATUS_CONFIG[status?.toLowerCase()] || { icon: Clock }).icon;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AsyncMedia — Sub-component
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Asynchronously resolves an S3 pre-signed URL and renders either an <img>
+ * or <video> element. Shows a spinner while loading and a fallback image on
+ * error.
+ *
+ * @param {Object}   props
+ * @param {string}   props.filePath    - S3 key / file path.
+ * @param {string}   [props.type]      - Explicit media type ('video' | 'image').
+ * @param {string}   [props.mimeType]  - MIME type string.
+ * @param {string}   [props.alt]       - Alt text for images.
+ * @param {string}   [props.className] - CSS class name.
+ * @param {Function} [props.onError]   - Error callback.
+ * @param {Object}   props.mediaUrls   - Cached URL map from parent state.
+ * @param {Function} props.getMediaUrl - Async function to resolve an S3 URL.
+ */
+const AsyncMedia = ({
+  filePath, type, mimeType, alt, className, onError,
+  mediaUrls, getMediaUrl,
+  ...rest
+}) => {
   const [mediaUrl, setMediaUrl] = useState(mediaUrls[filePath] || '');
   const [loading, setLoading] = useState(!mediaUrls[filePath]);
   const [error, setError] = useState(false);
 
+  // ── Effect: Resolve pre-signed URL when filePath changes ─────────────────
+
   useEffect(() => {
-    const loadMedia = async () => {
-      if (!filePath) return;
+    if (!filePath) return;
 
-      if (mediaUrls[filePath]) {
-        setMediaUrl(mediaUrls[filePath]);
-        setLoading(false);
-        return;
-      }
+    // Use cached URL if already resolved.
+    if (mediaUrls[filePath]) {
+      setMediaUrl(mediaUrls[filePath]);
+      setLoading(false);
+      return;
+    }
 
+    const load = async () => {
       try {
         setLoading(true);
         const url = await getMediaUrl(filePath);
         setMediaUrl(url);
-        setLoading(false);
       } catch (err) {
-        console.error('Error loading media:', err);
+        console.error('[AsyncMedia] URL resolution error:', err);
         setError(true);
-        setLoading(false);
         if (onError) onError(err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadMedia();
-  }, [filePath, mediaUrls, getMediaUrl]);
+    load();
+  }, [filePath, mediaUrls, getMediaUrl, onError]);
 
-  // Determine if it's a video based on mimeType or file extension
-  const isVideo = () => {
-    if (mimeType) {
-      return mimeType.toLowerCase().includes('video') || mimeType.toLowerCase() === 'video';
-    }
-    if (filePath) {
-      const extension = filePath.toLowerCase().split('.').pop();
-      return ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'm4v'].includes(extension);
-    }
-    return type === 'video';
-  };
+  // ── Loading state ─────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className={`${className} media-loading`} style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#f3f4f6',
-        minHeight: '100px'
-      }}>
-        <div className="loading-spinner-small"></div>
+      <div className={`${className} media-loading`}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backgroundColor: '#f3f4f6', minHeight: '100px'
+        }}>
+        <div className="loading-spinner-small" />
       </div>
     );
   }
 
+  // ── Error / missing URL — show fallback image ─────────────────────────────
+
   if (error || !mediaUrl) {
-    return (
-      <img
-        src="https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?cs=srgb&dl=clouds-cloudy-countryside-236047.jpg&fm=jpg"
-        alt={alt}
-        className={className}
-        onError={onError}
-      />
-    );
+    return <img src={FALLBACK_IMAGE} alt={alt} className={className} onError={onError} />;
   }
 
-  if (isVideo()) {
-    // Filter out DOM-invalid props for video element
-    const { mimeType: _, mediaUrls: __, getMediaUrl: ___, ...validVideoProps } = props;
+  // ── Video ─────────────────────────────────────────────────────────────────
 
+  if (isVideoMedia({ mimeType, filePath, type })) {
+    // Strip props that are invalid on <video> elements.
+    const { mediaUrls: _, getMediaUrl: __, ...videoProps } = rest;
     return (
-      <video
-        {...validVideoProps}
-        className={className}
-        onError={onError}
-      >
+      <video {...videoProps} className={className} onError={onError}>
         <source src={mediaUrl} type={mimeType || 'video/mp4'} />
         <source src={mediaUrl} type="video/webm" />
         <source src={mediaUrl} type="video/ogg" />
         Your browser does not support the video tag.
       </video>
     );
-  } else {
-    // Filter out DOM-invalid props for img element
-    const { controls, preload, mimeType: _, mediaUrls: __, getMediaUrl: ___, onLoadStart, onLoadedData, ...validImgProps } = props;
-
-    return (
-      <img
-        {...validImgProps}
-        src={mediaUrl}
-        alt={alt}
-        className={className}
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = 'https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?cs=srgb&dl=clouds-cloudy-countryside-236047.jpg&fm=jpg';
-          if (onError) onError(e);
-        }}
-      />
-    );
   }
+
+  // ── Image ─────────────────────────────────────────────────────────────────
+
+  // Strip props that are invalid on <img> elements.
+  const { controls, preload, mediaUrls: _, getMediaUrl: __, onLoadStart, onLoadedData, ...imgProps } = rest;
+  return (
+    <img
+      {...imgProps}
+      src={mediaUrl}
+      alt={alt}
+      className={className}
+      onError={(e) => {
+        e.target.onerror = null;
+        e.target.src = FALLBACK_IMAGE;
+        if (onError) onError(e);
+      }}
+    />
+  );
 };
 
-const Complaints = () => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Complaints — Main Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Complaints — Full complaints dashboard with auto-refresh, media carousel,
+ * and status summary. Operates in two modes:
+ *   • All complaints — when no :complaintId param is present.
+ *   • Single complaint — when :complaintId is in the URL.
+ */
+function Complaints() {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
-  const { complaintId, regNo } = useParams()
+  const { complaintId, regNo } = useParams();
+
+  // ── Complaints data ────────────────────────────────────────────────────────
+
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeMediaIndices, setActiveMediaIndices] = useState({});
-  const [currentDateTime, setCurrentDateTime] = useState('');
-  const [lastUpdated, setLastUpdated] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [videoErrors, setVideoErrors] = useState({}); // Track video loading errors
-  const [videoLoadingStates, setVideoLoadingStates] = useState({}); // Track video loading states
 
+  // ── Media state ────────────────────────────────────────────────────────────
 
-  // Set header title when component mounts or data changes
+  const [mediaUrls, setMediaUrls] = useState({});
+  const [activeMediaIndices, setActiveMediaIndices] = useState({});
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Effects
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── Effect: Sync header title / subtitle ──────────────────────────────────
+
   useEffect(() => {
-    const title = 'Complaints Management'
-    const subtitle = `${complaints.length} Complaints`
-    setHeaderTitle(title);
-    setHeaderSubtitle(subtitle);
+    setHeaderTitle('Complaints Management');
+    setHeaderSubtitle(`${complaints.length} Complaints`);
 
-    // Cleanup - reset when component unmounts
-    return () => {
-      setHeaderTitle(null);
-      setHeaderSubtitle(null);
-    };
-  }, [complaints.length]);
+    return () => { setHeaderTitle(null); setHeaderSubtitle(null); };
+  }, [complaints.length, setHeaderTitle, setHeaderSubtitle]);
 
-  // Real-time clock and date
+  // ── Effect: Initial fetch + 30-second auto-refresh ────────────────────────
+
   useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      });
+    fetchComplaints();
 
-      setLastUpdated(`Last updated: ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 4000);
+    const interval = setInterval(() => fetchComplaints(true), REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Data Fetching
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Fetches complaints from the API and preloads all media URLs.
+   * When showRefresh is true the spinner is suppressed (silent background refresh).
+   *
+   * @param {boolean} [showRefresh=false] - Show the refreshing indicator instead of full spinner.
+   */
   const fetchComplaints = async (showRefresh = false) => {
     try {
-      if (showRefresh) setRefreshing(true);
-      setLoading(!showRefresh);
+      showRefresh ? setRefreshing(true) : setLoading(true);
 
-      let response;
+      const endpoint = complaintId
+        ? `${END_POINT}/complaints/get-complaints/${complaintId}`
+        : `${END_POINT}/complaints/get-all-complaints`;
 
-      if (complaintId) {
-        response = await apiRequest(`${END_POINT}/complaints/get-complaints/${complaintId}`);
-      } else {
-        response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`);
-      }
-
+      const response = await apiRequest(endpoint);
       if (!response.ok) throw new Error('Failed to fetch complaints');
 
       const data = await response.json();
 
-      // Convert to array if fetching single complaint
-      const complaintsArray = complaintId ? [data] : data;
+      const raw = complaintId ? [data] : data.data;
+      if (!Array.isArray(raw)) throw new Error('Invalid data format: expected array');
 
-      if (!Array.isArray(complaintsArray)) throw new Error('Invalid data format: expected array');
+      // Sort newest first.
+      const sorted = [...raw].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      // Sort complaints by createdAt in descending order (newest first)
-      const sortedComplaints = [...complaintsArray].sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
-
-      // Initialize active media indices
-      const indices = {};
-      sortedComplaints.forEach((complaint, idx) => {
-        indices[idx] = 0;
-      });
-
+      // Initialise media carousel indices.
+      const indices = Object.fromEntries(sorted.map((_, i) => [i, 0]));
       setActiveMediaIndices(indices);
-      const processedComplaints = sortedComplaints.map(complaint => ({
-        ...complaint,
-        mediaFiles: complaint.mediaFiles || [],
-        solutions: complaint.solutions || []
+
+      const processed = sorted.map((c) => ({
+        ...c,
+        mediaFiles: c.mediaFiles || [],
+        solutions: c.solutions || [],
       }));
 
-      setComplaints(processedComplaints);
+      setComplaints(processed);
+      await preloadMediaUrls(processed);
 
-      // Preload all media URLs after setting complaints
-      await preloadMediaUrls(processedComplaints);
-
-      setLoading(false);
-      setRefreshing(false);
     } catch (err) {
+      console.error('[Complaints] fetchComplaints error:', err);
       setError(err.message || 'Failed to fetch complaints');
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchComplaints();
-  }, []);
-
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    fetchComplaints();
-
-    const refreshInterval = setInterval(() => {
-      fetchComplaints(true);
-    }, 30000);
-
-    return () => clearInterval(refreshInterval);
-  }, []);
-
-  const handleRefresh = () => {
-    fetchComplaints(true);
-  };
-
-  const handleMediaNavigation = (complaintIndex, direction) => {
-    setActiveMediaIndices(prev => {
-      const currentIndex = prev[complaintIndex] || 0;
-      const mediaCount = complaints[complaintIndex]?.mediaFiles?.length || 0;
-
-      if (mediaCount <= 1) return prev;
-
-      let newIndex;
-      if (direction === 'prev') {
-        newIndex = currentIndex === 0 ? mediaCount - 1 : currentIndex - 1;
-      } else {
-        newIndex = currentIndex === mediaCount - 1 ? 0 : currentIndex + 1;
-      }
-
-      return {
-        ...prev,
-        [complaintIndex]: newIndex
-      };
-    });
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown date';
-    const options = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
-
-  // State to store pre-signed URLs
-  const [mediaUrls, setMediaUrls] = useState({});
-
-  // Enhanced media URL construction
+  /**
+   * Resolves and caches an S3 pre-signed URL for a given file path.
+   * Returns the cached URL immediately if already resolved.
+   *
+   * @param {string} filePath - S3 key.
+   * @returns {Promise<string>} Pre-signed URL.
+   */
   const getMediaUrl = async (filePath) => {
     if (!filePath) return '';
-
-    // Check if URL is already cached
-    if (mediaUrls[filePath]) {
-      return mediaUrls[filePath];
-    }
+    if (mediaUrls[filePath]) return mediaUrls[filePath];
 
     try {
-      const body = { key: filePath, isLong: true };
-      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
-      const s3URL = await s3response.json();
-      const fullUrl = s3URL.dataUrl;
+      const response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: true });
+      const result = await response.json();
+      const url = result.dataUrl;
 
-      // Cache the URL
-      setMediaUrls(prev => ({
-        ...prev,
-        [filePath]: fullUrl
-      }));
-
-      return fullUrl;
-    } catch (error) {
-      console.error('Error getting media URL:', error);
-      // Fallback URL
-      return 'https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?cs=srgb&dl=clouds-cloudy-countryside-236047.jpg&fm=jpg';
+      setMediaUrls((prev) => ({ ...prev, [filePath]: url }));
+      return url;
+    } catch (err) {
+      console.error('[Complaints] getMediaUrl error:', err);
+      return FALLBACK_IMAGE;
     }
   };
 
-  // Function to preload media URLs
-  const preloadMediaUrls = async (complaints) => {
-    const urlPromises = [];
+  /**
+   * Pre-fetches all media URLs for a set of complaints in parallel.
+   * Skips paths that are already cached.
+   *
+   * @param {Object[]} complaintsData - Array of complaint objects.
+   */
+  const preloadMediaUrls = async (complaintsData) => {
+    const paths = [];
 
-    complaints.forEach(complaint => {
-      // Preload complaint media files
-      complaint.mediaFiles?.forEach(media => {
-        if (media.filePath && !mediaUrls[media.filePath]) {
-          urlPromises.push(getMediaUrl(media.filePath));
-        }
-      });
-
-      // Preload solution media files
-      complaint.solutions?.forEach(solution => {
-        if (solution.filePath && !mediaUrls[solution.filePath]) {
-          urlPromises.push(getMediaUrl(solution.filePath));
-        }
-      });
+    complaintsData.forEach((c) => {
+      c.mediaFiles?.forEach((m) => { if (m.filePath && !mediaUrls[m.filePath]) paths.push(m.filePath); });
+      c.solutions?.forEach((s) => { if (s.filePath && !mediaUrls[s.filePath]) paths.push(s.filePath); });
     });
 
-    // Wait for all URLs to be loaded
-    await Promise.all(urlPromises);
+    await Promise.all(paths.map(getMediaUrl));
   };
 
-  // Test if URL is accessible
-  const testMediaUrl = async (url) => {
-    try {
-      const response = await apiRequest(url, 'HEAD');
-      return response.ok;
-    } catch (error) {
-      console.error(`URL ${url} test failed:`, error);
-      return false;
-    }
+  // ─────────────────────────────────────────────────────────────────────────
+  // Event Handlers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Triggers a silent background refresh of the complaints list. */
+  const handleRefresh = () => fetchComplaints(true);
+
+  /**
+   * Advances the media carousel for a specific complaint card.
+   *
+   * @param {number} complaintIndex - Index of the complaint in the list.
+   * @param {'prev'|'next'} direction - Navigation direction.
+   */
+  const handleMediaNavigation = (complaintIndex, direction) => {
+    setActiveMediaIndices((prev) => {
+      const current = prev[complaintIndex] || 0;
+      const mediaCount = complaints[complaintIndex]?.mediaFiles?.length || 0;
+      if (mediaCount <= 1) return prev;
+
+      const next = direction === 'prev'
+        ? (current === 0 ? mediaCount - 1 : current - 1)
+        : (current === mediaCount - 1 ? 0 : current + 1);
+
+      return { ...prev, [complaintIndex]: next };
+    });
   };
 
-  const handleVideoError = (complaintIndex, mediaIndex, error) => {
-    const key = `${complaintIndex}-${mediaIndex}`;
-    setVideoErrors(prev => ({
-      ...prev,
-      [key]: error
-    }));
-    console.error(`Video error for complaint ${complaintIndex}, media ${mediaIndex}:`, error);
-  };
-
-  const handleVideoLoadStart = (complaintIndex, mediaIndex) => {
-    const key = `${complaintIndex}-${mediaIndex}`;
-    setVideoLoadingStates(prev => ({
-      ...prev,
-      [key]: 'loading'
-    }));
-  };
-
-  const handleVideoLoadedData = (complaintIndex, mediaIndex) => {
-    const key = `${complaintIndex}-${mediaIndex}`;
-    setVideoLoadingStates(prev => ({
-      ...prev,
-      [key]: 'loaded'
-    }));
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'resolved': return '#10b981';
-      case 'in-progress': return '#3b82f6';
-      case 'pending': return '#f59e0b';
-      case 'rejected': return '#ef4444';
-      default: return '#64748b';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'resolved': return <CheckCircle size={16} />;
-      case 'in-progress': return <Clock size={16} />;
-      case 'rejected': return <XCircle size={16} />;
-      default: return <Clock size={16} />;
-    }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (!bytes) return 'Unknown size';
-    const mb = bytes / (1024 * 1024);
-    return `${mb.toFixed(2)} MB`;
-  };
-
-  const formatDuration = (seconds) => {
-    if (!seconds) return 'Unknown duration';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Loading / Error / Empty states
+  // ─────────────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
       <div className="complaints-dashboard-container">
         <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <h2>Loading Complaints Dashboard...</h2>
-          <p>Fetching complaint data from all systems</p>
+          <Loader />
         </div>
       </div>
     );
@@ -409,8 +407,7 @@ const Complaints = () => {
           <h2>Complaints Dashboard Error</h2>
           <p>{error}</p>
           <button onClick={() => fetchComplaints()} className="retry-button">
-            <RefreshCw size={16} />
-            Retry
+            <RefreshCw size={16} /> Retry
           </button>
         </div>
       </div>
@@ -426,8 +423,7 @@ const Complaints = () => {
             <h2>No Complaints Found</h2>
             <p>There are currently no complaints in the system</p>
             <button onClick={() => fetchComplaints()} className="refresh-button">
-              <RefreshCw size={16} />
-              Refresh
+              <RefreshCw size={16} /> Refresh
             </button>
           </div>
         </div>
@@ -435,127 +431,99 @@ const Complaints = () => {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Derived summary counts
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const statusCounts = {
+    resolved: complaints.filter((c) => c.status?.toLowerCase() === 'resolved').length,
+    pending: complaints.filter((c) => c.status?.toLowerCase() === 'pending').length,
+    rejected: complaints.filter((c) => c.status?.toLowerCase() === 'rejected').length,
+    'in-progress': complaints.filter((c) => c.status?.toLowerCase() === 'in-progress').length,
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
+
   return (
     <div className="complaints-dashboard-container">
+
+      {/* ── Header: navigation and refresh actions ── */}
       <div className="complaints-summary-header">
         <div className="complaints-summary-content">
           <Link to="/dashboard">
-            <Button
-              text="Return to Dashboard"
-              onClick={() => { }}
-              colorScheme="amber-800"
-              variant="gradient"
-              font="md"
-              animation=""
-              squircle="4xl"
-              width="200px"
-              height="38px"
-              type="submit"
-              textColor="white-200"
-              shadowPosition="to-bottom"
-              shadowColor="white-600"
+            <Button {...SHARED_BTN} text="Return to Dashboard" onClick={() => { }}
+              colorScheme="amber-800" width="200px" type="submit"
             />
           </Link>
-          <Button
+          <Button {...SHARED_BTN}
             text={refreshing ? 'Refreshing...' : 'Refresh'}
             onClick={handleRefresh}
-            colorScheme="lime-800"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="160px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
+            colorScheme="lime-800" width="160px" type="submit"
           />
         </div>
       </div>
 
+      {/* ── Status summary bar ── */}
       <div className="complaints-status-bar">
-        <div className="complaints-status-item">
-          <div className="complaints-status-icon" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-            <CheckCircle size={24} />
+        {[
+          { key: 'resolved', label: 'Resolved', gradient: '#10b981, #059669', Icon: CheckCircle },
+          { key: 'pending', label: 'Pending', gradient: '#f59e0b, #d97706', Icon: Clock },
+          { key: 'rejected', label: 'Rejected', gradient: '#ef4444, #dc2626', Icon: XCircle },
+          { key: 'in-progress', label: 'In Progress', gradient: '#3b82f6, #1d4ed8', Icon: Clock },
+        ].map(({ key, label, gradient, Icon }) => (
+          <div key={key} className="complaints-status-item">
+            <div className="complaints-status-icon"
+              style={{ background: `linear-gradient(135deg, ${gradient})` }}>
+              <Icon size={24} />
+            </div>
+            <div className="complaints-status-content">
+              <span className="complaints-status-value">{statusCounts[key]}</span>
+              <span className="complaints-status-label">{label}</span>
+            </div>
           </div>
-          <div className="complaints-status-content">
-            <span className="complaints-status-value">
-              {complaints.filter(c => c.status?.toLowerCase() === 'resolved').length}
-            </span>
-            <span className="complaints-status-label">Resolved</span>
-          </div>
-        </div>
-        <div className="complaints-status-item">
-          <div className="complaints-status-icon" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
-            <Clock size={24} />
-          </div>
-          <div className="complaints-status-content">
-            <span className="complaints-status-value">
-              {complaints.filter(c => c.status?.toLowerCase() === 'pending').length}
-            </span>
-            <span className="complaints-status-label">Pending</span>
-          </div>
-        </div>
-        <div className="complaints-status-item">
-          <div className="complaints-status-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
-            <XCircle size={24} />
-          </div>
-          <div className="complaints-status-content">
-            <span className="complaints-status-value">
-              {complaints.filter(c => c.status?.toLowerCase() === 'rejected').length}
-            </span>
-            <span className="complaints-status-label">Rejected</span>
-          </div>
-        </div>
-        <div className="complaints-status-item">
-          <div className="complaints-status-icon" style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}>
-            <Clock size={24} />
-          </div>
-          <div className="complaints-status-content">
-            <span className="complaints-status-value">
-              {complaints.filter(c => c.status?.toLowerCase() === 'in-progress').length}
-            </span>
-            <span className="complaints-status-label">In Progress</span>
-          </div>
-        </div>
+        ))}
       </div>
 
+      {/* ── Complaints list ── */}
       <div className="complaints-list-container">
         {complaints.map((complaint, complaintIndex) => {
           const activeMediaIndex = activeMediaIndices[complaintIndex] || 0;
           const activeMedia = complaint.mediaFiles[activeMediaIndex];
           const hasMultipleMedia = complaint.mediaFiles.length > 1;
           const statusColor = getStatusColor(complaint.status);
-          const statusIcon = getStatusIcon(complaint.status);
-          const videoErrorKey = `${complaintIndex}-${activeMediaIndex}`;
-          const videoLoadingKey = `${complaintIndex}-${activeMediaIndex}`;
+          const StatusIcon = getStatusIcon(complaint.status);
 
           return (
             <div key={complaint._id || complaintIndex} className="complaint-card-container">
               <div className="complaint-card">
-                <div className="complaint-card-header" style={{ borderBottom: `3px solid ${statusColor}` }}>
+
+                {/* ── Card header: title, status badge, dates ── */}
+                <div className="complaint-card-header"
+                  style={{ borderBottom: `3px solid ${statusColor}` }}>
                   <div className="complaint-title-section">
-                    <h2 className="complaint-title">Complaint #{complaintIndex + 1}</h2>
-                    <div className="complaint-status-badge" style={{ backgroundColor: `${statusColor}20`, color: statusColor }}>
-                      {statusIcon}
+                    <h2 className="complaint-title">ID : {complaint.complaintId}</h2>
+                    <div className="complaint-status-badge"
+                      style={{ backgroundColor: `${statusColor}20`, color: statusColor }}>
+                      <StatusIcon size={16} />
                       <span>{complaint.status || 'Unknown'}</span>
                     </div>
                   </div>
                   <div className="complaint-meta">
-                    <span className="complaint-date">
-                      Submitted on {formatDate(complaint.createdAt)}
-                    </span>
+                    <span className="complaint-date">Submitted on {formatDate(complaint.createdAt)}</span>
                     {complaint.updatedAt && (
-                      <span className="complaint-date">
-                        Last updated: {formatDate(complaint.updatedAt)}
-                      </span>
+                      <span className="complaint-date">Last updated: {formatDate(complaint.updatedAt)}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="complaint-content-grid">
+
+                  {/* ── Left: complaint details + media carousel ── */}
                   <div className="complaint-details-section">
+
+                    {/* Info grid */}
                     <div className="complaint-info-grid">
                       <div className="complaint-info-item">
                         <strong>Name :</strong>
@@ -563,7 +531,7 @@ const Complaints = () => {
                       </div>
                       {complaint.regNo && (
                         <div className="complaint-info-item">
-                          <strong>Equipment Reg No:</strong>
+                          <strong>Reg No:</strong>
                           <span>{complaint.regNo}</span>
                         </div>
                       )}
@@ -581,6 +549,7 @@ const Complaints = () => {
                       )}
                     </div>
 
+                    {/* Description */}
                     {complaint.description && (
                       <div className="complaint-description">
                         <h3>Description</h3>
@@ -588,15 +557,15 @@ const Complaints = () => {
                       </div>
                     )}
 
+                    {/* Media carousel */}
                     {complaint.mediaFiles?.length > 0 ? (
                       <div className="complaint-media-section">
                         <div className="complaint-media-display">
                           <div className="complaint-media-viewer">
+
                             {hasMultipleMedia && (
-                              <button
-                                className="complaint-media-nav-button complaint-media-prev-button"
-                                onClick={() => handleMediaNavigation(complaintIndex, 'prev')}
-                              >
+                              <button className="complaint-media-nav-button complaint-media-prev-button"
+                                onClick={() => handleMediaNavigation(complaintIndex, 'prev')}>
                                 <ChevronLeft size={24} />
                               </button>
                             )}
@@ -612,19 +581,13 @@ const Complaints = () => {
                                 getMediaUrl={getMediaUrl}
                                 controls
                                 preload="metadata"
-                                onLoadStart={() => handleVideoLoadStart(complaintIndex, activeMediaIndex)}
-                                onLoadedData={() => handleVideoLoadedData(complaintIndex, activeMediaIndex)}
-                                onError={(e) => {
-                                  handleVideoError(complaintIndex, activeMediaIndex, e.target?.error?.message || 'Media load error');
-                                }}
+                                onError={(e) => console.error('[Complaints] media error:', e.target?.error?.message)}
                               />
                             </div>
 
                             {hasMultipleMedia && (
-                              <button
-                                className="complaint-media-nav-button complaint-media-next-button"
-                                onClick={() => handleMediaNavigation(complaintIndex, 'next')}
-                              >
+                              <button className="complaint-media-nav-button complaint-media-next-button"
+                                onClick={() => handleMediaNavigation(complaintIndex, 'next')}>
                                 <ChevronRight size={24} />
                               </button>
                             )}
@@ -635,42 +598,30 @@ const Complaints = () => {
                           </div>
                         </div>
 
+                        {/* Thumbnail strip */}
                         <div className="complaint-media-thumbnails">
                           {complaint.mediaFiles.map((media, mediaIndex) => (
                             <div
                               key={mediaIndex}
                               className={`complaint-thumbnail ${mediaIndex === activeMediaIndex ? 'complaint-thumbnail-active' : ''}`}
-                              onClick={() => setActiveMediaIndices(prev => ({
-                                ...prev,
-                                [complaintIndex]: mediaIndex
-                              }))}
+                              onClick={() => setActiveMediaIndices((prev) => ({ ...prev, [complaintIndex]: mediaIndex }))}
                             >
-                              {/* Check if it's a video based on mimeType or file extension */}
-                              {(() => {
-                                const isVideo = media.mimeType?.toLowerCase().includes('video') ||
-                                  media.mimeType?.toLowerCase() === 'video' ||
-                                  media.filePath?.toLowerCase().match(/\.(mp4|webm|ogg|avi|mov|wmv|flv|m4v)$/);
-
-                                return isVideo ? (
-                                  <div className="complaint-video-thumbnail">
-                                    <div className="complaint-thumbnail-placeholder">
-                                      <span className="complaint-play-icon">▶</span>
-                                      <div style={{ fontSize: '10px', marginTop: '4px' }}>
-                                        {media.mimeType || 'video'}
-                                      </div>
-                                    </div>
+                              {isVideoMedia(media) ? (
+                                <div className="complaint-video-thumbnail">
+                                  <div className="complaint-thumbnail-placeholder">
+                                    <div className="complaint-play-format">{media.mimeType || 'video'}</div>
                                   </div>
-                                ) : (
-                                  <AsyncMedia
-                                    filePath={media.filePath}
-                                    type={media.type}
-                                    mimeType={media.mimeType}
-                                    alt={`Thumbnail ${mediaIndex + 1}`}
-                                    mediaUrls={mediaUrls}
-                                    getMediaUrl={getMediaUrl}
-                                  />
-                                );
-                              })()}
+                                </div>
+                              ) : (
+                                <AsyncMedia
+                                  filePath={media.filePath}
+                                  type={media.type}
+                                  mimeType={media.mimeType}
+                                  alt={`Thumbnail ${mediaIndex + 1}`}
+                                  mediaUrls={mediaUrls}
+                                  getMediaUrl={getMediaUrl}
+                                />
+                              )}
                             </div>
                           ))}
                         </div>
@@ -680,7 +631,7 @@ const Complaints = () => {
                     )}
                   </div>
 
-                  {/* FIXED SOLUTIONS SECTION */}
+                  {/* ── Right: solutions list ── */}
                   <div className="complaint-solutions-section">
                     <h3 className="solutions-title">Solutions</h3>
 
@@ -693,8 +644,6 @@ const Complaints = () => {
                                 {formatDate(solution.uploadDate || solution.createdAt)}
                               </span>
                             </div>
-
-                            {/* Display the solution file using AsyncMedia component */}
                             <div className="solution-media">
                               <div className="solution-media-item">
                                 <AsyncMedia
@@ -707,9 +656,7 @@ const Complaints = () => {
                                   getMediaUrl={getMediaUrl}
                                   controls
                                   preload="metadata"
-                                  onError={(e) => {
-                                    console.error('Solution media error:', e);
-                                  }}
+                                  onError={(e) => console.error('[Complaints] solution media error:', e)}
                                 />
                               </div>
                             </div>
@@ -717,30 +664,28 @@ const Complaints = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="no-solutions">
-                        No solutions provided yet for this complaint
-                      </div>
+                      <div className="no-solutions">No solutions provided yet for this complaint</div>
                     )}
                   </div>
+
                 </div>
               </div>
             </div>
           );
         })}
-        {
-          complaintId ? (
-            <div className="complaint-card-container work-navigation">
-              <Link to={`/service-form-nav/${regNo}`}>
-                <button>
-                  Conclude & Store to database
-                </button>
-              </Link>
-            </div>
-          ) : ''
-        }
+
+        {/* ── Conclude action (single-complaint view only) ── */}
+        {complaintId && (
+          <div className="complaint-card-container work-navigation">
+            <Link to={`/service-form-nav/${regNo}`}>
+              <button>Conclude &amp; Store to database</button>
+            </Link>
+          </div>
+        )}
       </div>
+
     </div>
   );
-};
+}
 
 export default Complaints;

@@ -1,4 +1,3 @@
-// Color constants
 export const COLORS = {
   primary: '#1e3a8a',
   primaryLight: '#3b82f6',
@@ -18,7 +17,6 @@ export const COLORS = {
 };
 
 
-// Get status color
 export const getStatusColor = (status) => {
   const statusColors = {
     'Active': COLORS.success,
@@ -35,7 +33,6 @@ export const getStatusColor = (status) => {
   return statusColors[status] || COLORS.primary;
 };
 
-// Format datetime for display
 export const formatDateTime = (dateString) => {
   const date = new Date(dateString);
   return {
@@ -44,7 +41,6 @@ export const formatDateTime = (dateString) => {
   };
 };
 
-// Format date for display
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {

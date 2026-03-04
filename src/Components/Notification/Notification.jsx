@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { END_POINT } from '../../constants';
 import './Notification.css';
-import { apiRequest } from '../../utils/0auth';
-import Button from '../../common/Button/Button';
-import { useAlert } from '../../context/AlertContext';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import { apiRequest } from '../../utils/api';
+import Button from '../../Common/Button/Button';
+import { useAlert } from '../../Context/AlertContext';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
@@ -39,23 +39,14 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
   const ITEMS_PER_PAGE = 100;
   const LOAD_THRESHOLD = 0.85;
-  const UNLOAD_THRESHOLD = 0.3;
-  const BUFFER_ITEMS = 10;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [displayedNotifications, setDisplayedNotifications] = useState([]);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [visibleCards, setVisibleCards] = useState(new Set());
   const [notifications, setNotifications] = useState([]);
-  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [uniqueCode, setUniqueCode] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isConnected, setIsConnected] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -68,14 +59,12 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     return (saved && soundOptions[saved]) ? saved : 'bell';
   });
 
-  // WebSocket refs
   const socketRef = useRef(null);
   const timerRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const notificationSoundRef = useRef(null);
 
   useEffect(() => {
-    // Initialize notification sound using the selectedSound state
     notificationSoundRef.current = new Audio();
     notificationSoundRef.current.src = soundOptions[selectedSound].url;
     notificationSoundRef.current.volume = 0.7;
@@ -85,25 +74,13 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       playFallbackSound();
     });
 
-    notificationSoundRef.current.addEventListener('loadeddata', () => {});
+    notificationSoundRef.current.addEventListener('loadeddata', () => { });
 
     initializeApp();
     return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []);
-
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     fetchAllNotifications(false, 1, false);
 
@@ -112,9 +89,9 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     }, 30000);
 
     return () => clearInterval(refreshInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Detect scroll and update which items to show
   useEffect(() => {
     let scrollTimeout = null;
     let lastScrollTop = 0;
@@ -158,7 +135,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
           showAlert('Loading more notifications...', 'sync', '--color-info-600');
 
           isLoadingRef.current = true;
-          setIsLoadingMore(true);
           setCurrentPage(nextPage);
 
           fetchAllNotifications(false, nextPage, true)
@@ -172,14 +148,10 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
               pendingPagesRef.current.delete(nextPage);
 
               isLoadingRef.current = false;
-              setIsLoadingMore(false);
 
-              // Show success alert
               showAlert('Loaded successfully', 'check_circle', '--color-success-600');
             });
         }
-
-        // SCROLL UP - Remove bottom 100 ONLY when scrolled to very top
         if (!isScrollingDown && scrollTop < 100 && currentPage > 1 && notifications.length > ITEMS_PER_PAGE) {
           setNotifications(prev => {
             const itemsToKeep = ITEMS_PER_PAGE;
@@ -201,6 +173,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       scrollElement.removeEventListener('scroll', handleScroll);
       if (scrollTimeout) clearTimeout(scrollTimeout);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, loading, currentPage, notifications.length, scrollContainerRef, showAlert, displayedNotifications.length]);
 
   useEffect(() => {
@@ -302,7 +275,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       });
 
       socketRef.current.on('connect', () => {
-        setIsConnected(true);
         socketRef.current.emit('authenticate', {
           uniqueCode: userUniqueCode,
           userId: userUniqueCode
@@ -313,8 +285,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       });
 
       socketRef.current.on('disconnect', (reason) => {
-        setIsConnected(false);
-
         reconnectTimeoutRef.current = setTimeout(() => {
           if (!socketRef.current?.connected) {
             setupWebSocket();
@@ -323,8 +293,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       });
 
       socketRef.current.on('connect_error', (error) => {
-        console.error('❌ WebSocket connection error:', error);
-        setIsConnected(false);
+        console.error('WebSocket connection error:', error);
       });
 
       socketRef.current.on('new_notification', (data) => {
@@ -345,7 +314,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
     } catch (error) {
       console.error('❌ Error setting up WebSocket:', error);
-      setIsConnected(false);
     }
   };
 
@@ -358,23 +326,19 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
       showAlert('New Notification Recieved', 'notifications_active', '--color-primary');
 
-      // Play notification sound
       playNotificationSound();
 
-      // Add animation class to new notification
       notification.animate = true;
       notification.read = false;
-      notification.isNew = true; // Add a flag to identify new notifications
+      notification.isNew = true; 
 
       setNotifications(prev => {
-        // Remove animation from previous notifications
         const updatedPrev = prev.map(n => ({
           ...n,
           animate: false,
           isNew: false
         }));
 
-        // Add new notification at the beginning
         return [notification, ...updatedPrev];
       });
 
@@ -383,12 +347,11 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
       showWebNotification(notificationTitle, notificationBody);
 
-      // Remove animation class after animation completes
       setTimeout(() => {
         setNotifications(prev => prev.map(n =>
           n._id === notification._id ? { ...n, animate: false, isNew: false } : n
         ));
-      }, 600); // Match this with animation duration
+      }, 600);
 
     } catch (error) {
       console.error('❌ Error in handleNewNotification:', error);
@@ -411,10 +374,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     }
   };
 
-  const body = {
-    uniqueCode: uniqueCode
-  }
-
   const fetchNormalNotifications = async (page = 1) => {
     try {
       const response = await apiRequest(`${END_POINT}/notification/get-all-notification`,
@@ -429,7 +388,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
       if (response.ok && data.status === 200) {
         setHasMore(data.pagination.hasMore);
-        setTotalCount(data.pagination.totalCount);
 
         return data.data.map((notification) => ({
           ...notification,
@@ -578,7 +536,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     }, 1000);
   };
 
-  // Fallback sound generator using Web Audio API
   const playFallbackSound = () => {
     if (!soundEnabled) {
       return;
@@ -587,7 +544,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-      // First beep
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -628,7 +584,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchAllNotifications(false); // Show loading state for manual refresh
+    await fetchAllNotifications(false); 
     setRefreshing(false);
   };
 
@@ -659,34 +615,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       setTimeout(() => playNotificationSound(), 100);
     }
   }
-
-  const getNotificationStats = () => {
-    return {
-      total: notifications.length,
-      normal: notifications.filter(n => n.type === 'normal').length,
-      special: notifications.filter(n => n.type === 'special').length,
-      highPriority: notifications.filter(n =>
-        (n.type === 'normal' && n.priority === 'high') ||
-        (n.type === 'special' && n.priority === 'high')
-      ).length,
-    };
-  };
-
-  const getNotificationIcon = (notification) => {
-    if (notification.type === 'special') {
-      if (notification.stockInfo?.type === 'equipment') {
-        return '🚛';
-      }
-      return '📦';
-    }
-
-    switch (notification.priority) {
-      case 'high': return '🚨';
-      case 'medium': return '📢';
-      case 'low': return '📝';
-      default: return '📢';
-    }
-  };
 
   const getNotificationColor = (notification) => {
     if (notification.type === 'special') {
@@ -825,8 +753,6 @@ const Notifications = ({ islivemodeON, scrollContainerRef }) => {
       return 'Special notification update';
     }
   };
-
-  const stats = getNotificationStats();
 
   if (loading && !refreshing) {
     return (

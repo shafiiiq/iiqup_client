@@ -3,7 +3,7 @@ import { AlertTriangle, RefreshCw, CheckCircle, XCircle, Clock, User, Calendar, 
 import { END_POINT } from '../../constants';
 import './ApplicationsList.css';
 import { Link } from 'react-router';
-import { apiRequest } from '../../utils/0auth';
+import { apiRequest } from '../../utils/api';
 
 const ApplicationsList = () => {
     const [applications, setApplications] = useState([]);

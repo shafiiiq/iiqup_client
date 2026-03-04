@@ -229,9 +229,9 @@
   border-bottom: 2px solid var(--border-primary);
 }
 
-.detail-item {
+.detail-item-equipment {
   display: flex;
-  flex-direction: column;
+  flex-direction: column !important;
   gap: 6px;
   align-items: start !important;
 }
@@ -258,12 +258,14 @@
   display: inline-flex;
   align-items: center;
   padding: 8px 16px;
-  border-radius: 24px;
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 0 !important;
+  border-radius: var(--radius-6xl);
+  height: 30px;
+  corner-shape: squircle;
 }
 
 .status-badge.active {

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Minimize2, Maximize2, Paperclip, Smile, Search } from 'lucide-react';
 import './LiveChat.css';
 
-// Static users data
 const STATIC_USERS = [
     {
         id: 1,
@@ -60,7 +59,6 @@ const STATIC_USERS = [
     }
 ];
 
-// Static messages for each user
 const USERS_MESSAGES = {
     1: [
         { id: 1, sender: 'John Doe', message: 'Hi! I need help with the fleet system', timestamp: '10:30 AM', isAgent: false, avatar: 'JD' },
@@ -116,12 +114,10 @@ const LiveChat = () => {
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
-        // Initialize messages from static data
         setMessages(USERS_MESSAGES);
     }, []);
 
     useEffect(() => {
-        // Calculate total unread count
         const total = users.reduce((sum, user) => sum + user.unreadCount, 0);
         setTotalUnreadCount(total);
     }, [users]);
@@ -138,8 +134,6 @@ const LiveChat = () => {
 
     const handleUserSelect = (user) => {
         setSelectedUser(user);
-
-        // Mark messages as read
         setUsers(prevUsers =>
             prevUsers.map(u =>
                 u.id === user.id ? { ...u, unreadCount: 0 } : u
@@ -165,7 +159,6 @@ const LiveChat = () => {
             [selectedUser.id]: [...(prev[selectedUser.id] || []), newMessage]
         }));
 
-        // Update last message in users list
         setUsers(prevUsers =>
             prevUsers.map(u =>
                 u.id === selectedUser.id
@@ -176,7 +169,6 @@ const LiveChat = () => {
 
         setInputMessage('');
 
-        // Simulate agent typing
         setIsTyping(true);
         setTimeout(() => {
             const agentResponse = {

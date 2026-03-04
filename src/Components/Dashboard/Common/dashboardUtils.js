@@ -1,4 +1,3 @@
-// Utility functions used across components
 export const formatDateTime = (dateString) => {
   const date = new Date(dateString);
   return {

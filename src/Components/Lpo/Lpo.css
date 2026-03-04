@@ -5,7 +5,6 @@
 }
 
 .page-container {
-  font-family: 'Times New Roman', serif;
   max-width: 100%;
   height: 100% !important;
   min-height: 130vh;
@@ -78,7 +77,6 @@
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15) !important;
   position: relative !important;
   margin-bottom: 2rem !important;
-  font-family: 'Times New Roman', serif !important;
   color: var(--text-inverse);
 }
 
@@ -159,6 +157,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex-direction: row !important;
   gap: 8px;
 }
 
@@ -167,13 +166,11 @@
   margin: 15px 0 !important;
 }
 
-/* Enhanced Input Styling - Word-like appearance */
 .editable-input {
   border: none !important;
   border-bottom: 1px dotted #666 !important;
   padding: 2px 4px !important;
   font-size: 12pt !important;
-  font-family: 'Times New Roman', serif !important;
   background-color: transparent !important;
   outline: none !important;
   transition: all 0.2s ease !important;
@@ -187,24 +184,12 @@
   border-bottom: 1px dotted #666;
   padding: 2px 4px;
   font-size: 12pt;
-  font-family: 'Times New Roman', serif;
   background-color: transparent;
   outline: none;
   resize: vertical;
   min-height: 60px;
   text-align: justify;
   line-height: 1.4;
-}
-
-.editable--f:focus {
-  background-color: #f8f9ff;
-  border-bottom: 1px solid #0066cc;
-}
-
-
-.editable-input:focus {
-  border-bottom: 1px solid #0066cc !important;
-  background-color: #f8f9ff !important;
 }
 
 .editable-input::placeholder {
@@ -238,7 +223,6 @@
   cursor: pointer !important;
   min-width: 200px !important;
   font-size: 12pt !important;
-  font-family: 'Times New Roman', serif !important;
   background-color: transparent !important;
   transition: all 0.2s ease !important;
 }
@@ -262,7 +246,6 @@
   border-bottom: 1px solid #eee;
   outline: none;
   font-size: 12pt;
-  font-family: 'Times New Roman', serif;
 }
 
 .dropdown-options {
@@ -359,15 +342,9 @@
   background: transparent !important;
   text-align: center;
   font-size: 12pt !important;
-  font-family: 'Times New Roman', serif !important;
   padding: 4px !important;
   outline: none !important;
   transition: all 0.2s ease !important;
-}
-
-.table-input:focus {
-  background-color: #f8f9ff !important;
-  border-radius: 3px !important;
 }
 
 .description-input {
@@ -492,17 +469,11 @@
   border: none !important;
   background: transparent !important;
   font-size: 12pt !important;
-  font-family: 'Times New Roman', serif !important;
   padding: 4px !important;
   outline: none !important;
   line-height: 1.6 !important;
   resize: vertical !important;
   min-height: 80px !important;
-}
-
-.payment-terms-input:focus {
-  background-color: #f8f9ff !important;
-  border-radius: 3px !important;
 }
 
 .note-row {
@@ -524,6 +495,10 @@
   border-collapse: collapse !important;
   margin-top: -1px !important;
   border: 1px solid #000 !important;
+}
+
+.signatures-table-form {
+  margin-bottom: 6rem;
 }
 
 .signatures-table td {
@@ -576,9 +551,9 @@
 }
 
 .equipment-tag {
-  background: #f0f0f0 !important;
-  padding: 3px 8px;
-  border-radius: 4px;
+  background: transparent !important;
+  padding: 8px;
+  font-size: 15px !important;
   display: flex;
   align-items: center;
   color: var(--text-inverse) !important;
@@ -623,52 +598,12 @@
   min-height: 100%;
   min-width: 6rem;
   position: relative;
-  /* background-color: red; */
 }
 
 .equip-field-name {
   position: sticky;
 }
 
-/* Responsive styling */
-/* @media (max-width: 768px) {
-  .lpo-document-f {
-    padding: 15px !important;
-    width: 100% !important;
-    height: auto !important;
-  }
-  
-  .header {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .company-details-sl {
-    text-align: center;
-    margin-top: 15px;
-  }
-  
-  .details-table {
-    font-size: 11pt !important;
-  }
-  
-  .left-col, .right-col {
-    width: 100% !important;
-    display: block !important;
-  }
-  
-  .detail-item {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-  }
-  
-  .editable-input {
-    min-width: 100% !important;
-    margin-top: 5px !important;
-  }
-} */
-
-/* Additional enhancements */
 .lpo-document-f::before {
   content: '';
   position: absolute;
@@ -700,13 +635,6 @@
   transition: all 0.2s ease !important;
 }
 
-/* Focus states for better UX */
-.editable-input:focus,
-.table-input:focus,
-.payment-terms-input:focus {
-  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2) !important;
-}
-
 /* Total amount and discount styles */
 .calculated-total {
   position: relative;
@@ -720,15 +648,9 @@
   background: transparent;
   text-align: center;
   font-size: 12pt;
-  font-family: 'Times New Roman', serif;
   font-weight: bold;
   padding: 4px;
   outline: none;
-}
-
-.total-amount-input:focus {
-  background-color: #f8f9ff;
-  border-radius: 3px;
 }
 
 .discount-popup {
@@ -736,10 +658,9 @@
   top: -40px;
   right: 0;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   padding: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -783,12 +704,9 @@
 }
 
 .discount-popup {
-  background: white;
-  border-radius: 8px;
   padding: 20px;
   min-width: 350px;
   max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   position: relative;
 }
 
@@ -830,25 +748,22 @@
 .discount-input-group input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  border: 1px solid var(--color-primary-200);
   font-size: 14px;
   box-sizing: border-box;
 }
 
-.discount-input-group input:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
 .discount-preview {
-  background: #f8f9fa;
+  background: var(--color-white-200);
   padding: 10px;
   border-radius: 4px;
   margin-top: 10px;
   font-weight: 500;
-  color: #495057;
+  color: var(--color-black);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
 }
 
 .discount-popup-actions {
@@ -988,8 +903,7 @@
 .payment-term-input {
   flex: 1;
   padding: 4px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  font-size: 12p;
 }
 
 .remove-term-btn {

@@ -56,16 +56,6 @@
 .toolkits-table tbody tr:nth-child(even) {
   background: var(--gradient-primary-900);
 }
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: var(--radius-6xl);
-  corner-shape: squircle;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
 .status-badge.available {
   background-color: rgba(46, 204, 113, 0.1);
   color: var(--color-success);

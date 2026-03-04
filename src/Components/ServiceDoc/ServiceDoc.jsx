@@ -1,157 +1,532 @@
-'use client';
-import React, { useEffect, useState } from 'react';
+// ─────────────────────────────────────────────────────────────────────────────
+// ServiceDoc.jsx — Renders a printable service report document.
+// Supports single-report view and multi-report (paginated) view.
+// Handles digital signature flow: password → OTP → signature URL.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import logoImage from '../../assets/images/al-ansari-color.png';
-import alAnsariText from '../../assets/images/al-ansari-full-address.png';
-import mechanicSign from '../../assets/images/mechanic-sign.png';
-import { END_POINT } from '../../constants';
-import '../ServiceDoc/ServiceDoc.css'
-import { apiRequest } from '../../utils/0auth';
-import DevModal from '../../common/DevModal';
-import Button from '../../common/Button/Button';
 import { Loader } from 'lucide-react';
 
-const ServiceDoc = () => {
+import logoImage    from '../../assets/images/al-ansari-color.png';
+import alAnsariText from '../../assets/images/al-ansari-full-address.png';
+import mechanicSign from '../../assets/images/mechanic-sign.png';
+
+import { END_POINT }  from '../../constants';
+import { apiRequest } from '../../utils/api';
+
+import DevModal from '../../Common/DevModal/DevModal';
+import Button   from '../../Common/Button/Button';
+
+import '../ServiceDoc/ServiceDoc.css';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Signature session duration in milliseconds (10 seconds). */
+const SIGNATURE_EXPIRY_MS = 10_000;
+
+/** Rate-limit window in milliseconds (1 minute). */
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+/** Maximum authentication attempts allowed within the rate-limit window. */
+const MAX_AUTH_ATTEMPTS = 3;
+
+/** Shared Button props used across every action button to reduce duplication. */
+const SHARED_BTN = {
+  variant:       'gradient',
+  font:          'md',
+  animation:     '',
+  squircle:      '4xl',
+  height:        '38px',
+  textColor:     'white-200',
+  shadowPosition:'to-bottom',
+  shadowColor:   'white-600',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Maps a service type key to its human-readable display name.
+ *
+ * @param {string} type - Service type key (e.g. 'oil', 'tyre').
+ * @returns {string} Display name.
+ */
+const getServiceTypeName = (type) => {
+  const map = {
+    oil:         'Oil Service',
+    maintenance: 'Major Works',
+    tyre:        'Tyre Service',
+    battery:     'Battery Service',
+  };
+  return map[type] || 'Service';
+};
+
+/**
+ * Converts a "DD-MM-YYYY" date string to "YYYY-MM-DD" for display.
+ * Returns the original string unchanged if the format is unrecognised.
+ *
+ * @param {string} dateString - Date in "DD-MM-YYYY" format.
+ * @returns {string} Reformatted date or original value.
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const parts = dateString.split('-');
+  return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateString;
+};
+
+/**
+ * Formats a countdown in seconds to "M:SS" display format.
+ *
+ * @param {number} totalSeconds - Remaining seconds.
+ * @returns {string} Formatted time string.
+ */
+const formatTimeRemaining = (totalSeconds) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+/**
+ * Resolves the correct API URL for the fetch based on the current pathname
+ * and optional service-type filters from router state.
+ *
+ * @param {string}   pathname     - Current window pathname.
+ * @param {string[]} serviceTypes - Optional service-type filters from state.
+ * @param {Object}   params       - Destructured URL params (regNo, startDate, endDate, monthsCount).
+ * @returns {{ url: string, isMultiple: boolean }}
+ */
+const resolveReportUrl = (pathname, serviceTypes, { regNo, startDate, endDate, monthsCount }) => {
+  const typeQuery = serviceTypes.length ? `?serviceTypes=${serviceTypes.join(',')}` : '';
+
+  if (pathname.includes('/all/all-histories/')) {
+    return { url: `${END_POINT}/service-report/histories/${regNo}/all${typeQuery}`, isMultiple: true };
+  }
+
+  if (pathname.includes('/all/date-range/')) {
+    const serviceType = pathname.split('/')[3];
+    return { url: `${END_POINT}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}${typeQuery}`, isMultiple: true };
+  }
+
+  if (pathname.includes('/all/last-months/')) {
+    const serviceType = pathname.split('/')[3];
+    return { url: `${END_POINT}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}${typeQuery}`, isMultiple: true };
+  }
+
+  // Single-report view resolved by regNo + date (from router state).
+  return { url: null, isMultiple: false };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * ReportHeader — Company logo and address banner shown at the top of each document.
+ */
+function ReportHeader() {
+  return (
+    <div className="header">
+      <div className="logo-placeholder">
+        <img src={logoImage} alt="Company Logo" />
+      </div>
+      <div className="company-details-s">
+        <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * ChecklistRows — Renders the 35-item checklist as paired table rows (two columns).
+ *
+ * @param {Object} reportData - Full report object containing `checklistItems`.
+ */
+function ChecklistRows({ reportData }) {
+  // Build a lookup map { id → status } for O(1) access in the render loop.
+  const statusMap = {};
+  reportData.checklistItems?.forEach((item) => {
+    statusMap[item.id] = item.status;
+  });
+
+  const items = reportData.checklistItems || [];
+
+  // The left column renders items 1-17; the right column renders 18-33.
+  // Items 34 and 35 are omitted from the table rows (displayed in footer area).
+  const leftItems  = items.slice(0, 17);
+  const rightItems = items.slice(17, 33);
+
+  return (
+    <>
+      {leftItems.map((leftItem, idx) => {
+        const rightItem = rightItems[idx];
+        return (
+          <tr key={leftItem.id}>
+            <td>{leftItem.id}</td>
+            <td>{leftItem.description}</td>
+            <td className="tick">{statusMap[leftItem.id] || ''}</td>
+            {rightItem ? (
+              <>
+                <td>{rightItem.id}</td>
+                <td>{rightItem.description}</td>
+                <td className="tick">{statusMap[rightItem.id] || ''}</td>
+              </>
+            ) : (
+              <><td /><td /><td /></>
+            )}
+          </tr>
+        );
+      })}
+
+      {/* ── Remarks row ── */}
+      <tr className="remarks-row">
+        <td colSpan="6">
+          <div className="remarks-box">
+            <div className="remarks-text-doc">
+              <strong className="remarks-label">REMARKS : </strong>
+              {reportData.remarks?.toUpperCase()}
+            </div>
+          </div>
+          <span className="equipment-fit-to-work">EQUIPMENT FIT TO WORK</span>
+        </td>
+      </tr>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * FooterRows — Renders the service metadata and signature rows at the bottom
+ * of each report table.
+ *
+ * @param {Object} reportData       - Full report object.
+ * @param {string} regNo            - Equipment registration number.
+ * @param {string} supervisorSignUrl - URL of the supervisor's digital signature image.
+ */
+function FooterRows({ reportData, regNo, supervisorSignUrl }) {
+  const nextServiceDisplay =
+    reportData.nextServiceHrs === 0 || reportData.nextServiceHrs === '0'
+      ? ''
+      : reportData.fullService
+        ? `${reportData.nextServiceHrs} - ${Number(reportData.serviceHrs) + 3000}`
+        : reportData.nextServiceHrs;
+
+  return (
+    <>
+      <tr>
+        <td colSpan="3"><strong>SERVICE HRS:</strong> {reportData.fullService ? `${reportData.serviceHrs} - ${reportData.serviceHrs}` : reportData.serviceHrs}</td>
+        <td colSpan="3"><strong>EQUIPMENT NO:</strong> {regNo}</td>
+      </tr>
+      <tr>
+        <td colSpan="3"><strong>NEXT SERVICE HRS:</strong> {nextServiceDisplay}</td>
+        <td colSpan="3"><strong>MACHINE:</strong> {reportData.machine?.toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td colSpan="3"><strong>MECHANICS:</strong> {reportData.mechanics?.toUpperCase()}</td>
+        <td colSpan="3"><strong>LOCATION:</strong> {reportData.location?.toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td colSpan="3"><strong>DATE:</strong> {formatDate(reportData.date)}</td>
+        <td colSpan="3"><strong>OPERATOR NAME:</strong> {reportData.operatorName?.toUpperCase()}</td>
+      </tr>
+      <tr className="sign-table">
+        <td colSpan="3">
+          <strong>MECHANIC SIGN:</strong>
+          <img className="sign mechanic-sign" src={mechanicSign} alt="Mechanic Signature" />
+        </td>
+        <td colSpan="3">
+          <strong>SUPERVISOR SIGN:</strong>
+          {supervisorSignUrl ? (
+            <img
+              className="sign supervisor-sign"
+              src={supervisorSignUrl}
+              alt="Supervisor Signature"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <span className="no-signature">Not Signed</span>
+          )}
+        </td>
+      </tr>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * ReportDocument — Wraps a single report in its printable document shell.
+ *
+ * @param {Object}   report           - Report data object.
+ * @param {string}   regNo            - Equipment registration number.
+ * @param {string}   supervisorSignUrl - Supervisor signature image URL.
+ * @param {string}   headingTitle     - Table heading (e.g. "PERIODIC SERVICE REPORT - Oil Service").
+ * @param {Function} onEdit           - Edit handler: (reportId, serviceType) => void.
+ * @param {Function} onDelete         - Delete handler: (reportId) => void.
+ * @param {boolean}  showActions      - Whether to show the Edit/Delete action bar.
+ * @param {Object}   [style]          - Optional inline styles for the wrapper div.
+ */
+function ReportDocument({ report, regNo, supervisorSignUrl, headingTitle, onEdit, onDelete, showActions, style }) {
+  return (
+    <div className="doc-wrapper" style={style}>
+
+      {/* ── Edit / Delete actions (hidden on print) ── */}
+      {showActions && (
+        <div className="report-actions no-print">
+          <Button {...SHARED_BTN} text="Edit"   onClick={() => onEdit(report._id, report.serviceType)}   colorScheme="lime-800" width="160px" type="submit" />
+          <Button {...SHARED_BTN} text="Delete" onClick={() => onDelete(report._id)}                     colorScheme="red-800"  width="160px" type="submit" />
+        </div>
+      )}
+
+      <div className="x-container">
+        <div className="report-container">
+          <ReportHeader />
+          <table className="checklist-table-s">
+            <thead>
+              <tr>
+                <th colSpan="6" className="heading">{headingTitle}</th>
+              </tr>
+              <tr>
+                <th>SL.NO</th>
+                <th>DESCRIPTION</th>
+                <th>CHECKED</th>
+                <th>SL.NO</th>
+                <th>DESCRIPTION</th>
+                <th>CHECKED</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ChecklistRows  reportData={report} />
+              <FooterRows     reportData={report} regNo={regNo} supervisorSignUrl={supervisorSignUrl} />
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * SignatureModals — All modal dialogs used by the signature and delete flows.
+ * Extracted to keep the main component's JSX concise.
+ */
+function SignatureModals({
+  // Password
+  showPasswordModal, sixDigitPassword, signLoading, signError,
+  onPasswordClose, onPasswordInput, onPasswordSubmit,
+  // OTP
+  showOtpModal, otpCode,
+  onOtpClose, onOtpInput, onOtpBack, onOtpSubmit,
+  // Warning
+  showWarningModal, onWarningClose, onWarnSign,
+  // Success
+  showSuccessModal, onSuccessClose, onSuccessPrint,
+  // Delete
+  showDeleteModal, onDeleteClose, onDeleteConfirm,
+  // Loading
+  showLoadingModal, loadingMessage,
+}) {
+  return (
+    <>
+      {/* ── Step 1: 6-digit password ── */}
+      <DevModal
+        isOpen={showPasswordModal}
+        onClose={onPasswordClose}
+        type="authentication"
+        title="Document Signature Authentication"
+        message="Step 1: Enter your 6-digit password"
+        showInput
+        inputValue={sixDigitPassword}
+        onInputChange={onPasswordInput}
+        inputPlaceholder="Enter 6-digit password"
+        inputMaxLength={6}
+        inputError={signError}
+        buttonText={signLoading ? 'Verifying...' : 'Verify & Send OTP'}
+        onButtonClick={onPasswordSubmit}
+        preventClose={signLoading}
+      />
+
+      {/* ── Step 2: OTP ── */}
+      <DevModal
+        isOpen={showOtpModal}
+        onClose={onOtpClose}
+        type="otp"
+        title="Enter OTP Code"
+        message="OTP has been sent to the authorized email"
+        showInput
+        inputValue={otpCode}
+        onInputChange={onOtpInput}
+        inputPlaceholder="Enter 6-digit OTP"
+        inputMaxLength={6}
+        inputError={signError}
+        buttonText={signLoading ? 'Signing...' : 'Sign Document'}
+        secondaryButtonText="Back"
+        onSecondaryClick={onOtpBack}
+        onButtonClick={onOtpSubmit}
+        preventClose={signLoading}
+      />
+
+      {/* ── Print warning ── */}
+      <DevModal
+        isOpen={showWarningModal}
+        onClose={onWarningClose}
+        type="warning"
+        title="!Document Not Signed"
+        message="You must sign the document before printing! This ensures document authenticity and compliance."
+        buttonText="Sign Document Now"
+        secondaryButtonText="Cancel"
+        onButtonClick={onWarnSign}
+        onSecondaryClick={onWarningClose}
+      />
+
+      {/* ── Signature success ── */}
+      <DevModal
+        isOpen={showSuccessModal}
+        onClose={onSuccessClose}
+        type="success"
+        title="Document Signed Successfully!"
+        message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
+        buttonText="Print Now"
+        secondaryButtonText="Close"
+        onButtonClick={onSuccessPrint}
+        onSecondaryClick={onSuccessClose}
+      />
+
+      {/* ── Delete confirmation ── */}
+      <DevModal
+        isOpen={showDeleteModal}
+        onClose={onDeleteClose}
+        type="error"
+        title="Delete Report?"
+        message="Are you sure you want to delete this report? This action cannot be undone."
+        buttonText="Delete"
+        secondaryButtonText="Cancel"
+        onButtonClick={onDeleteConfirm}
+        onSecondaryClick={onDeleteClose}
+      />
+
+      {/* ── Progress / loading ── */}
+      <DevModal
+        isOpen={showLoadingModal}
+        onClose={() => {}}
+        type="progress"
+        title="Processing..."
+        message={loadingMessage}
+        progress={100}
+        preventClose
+      />
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ServiceDoc — Main Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ServiceDoc() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { historyId, regNo: regNoParam, serviceType: serviceTypeParam, startDate: startDateParam, endDate: endDateParam, monthsCount: monthsCountParam } = useParams();
 
-  const stateData = location.state || {};
-  const regNo = stateData.regNo || regNoParam;
-  const date = stateData.date;
+  // ── Route params ───────────────────────────────────────────────────────────
+
+  const {
+    historyId,
+    regNo:       regNoParam,
+    serviceType: serviceTypeParam,
+    startDate:   startDateParam,
+    endDate:     endDateParam,
+    monthsCount: monthsCountParam,
+  } = useParams();
+
+  // Router state takes precedence over URL params (supports programmatic navigation).
+  const stateData   = location.state || {};
+  const regNo       = stateData.regNo       || regNoParam;
+  const date        = stateData.date;
   const serviceType = stateData.serviceType || serviceTypeParam;
-  const startDate = stateData.startDate || startDateParam;
-  const endDate = stateData.endDate || endDateParam;
+  const startDate   = stateData.startDate   || startDateParam;
+  const endDate     = stateData.endDate     || endDateParam;
   const monthsCount = stateData.monthsCount || monthsCountParam;
 
-  const [reportData, setReportData] = useState(null);
+  // ── Data state ─────────────────────────────────────────────────────────────
+
+  const [reportData,      setReportData]      = useState(null);
   const [multipleReports, setMultipleReports] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isMultipleView, setIsMultipleView] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
+  const [isMultipleView,  setIsMultipleView]  = useState(false);
+  const [totalCount,      setTotalCount]      = useState(0);
+  const [loading,         setLoading]         = useState(true);
+
+  // ── Signature state ────────────────────────────────────────────────────────
+
   const [supervisorSignUrl, setSupervisorSignUrl] = useState('');
+  const [isDocumentSigned,  setIsDocumentSigned]  = useState(false);
+  const [signExpiryTime,    setSignExpiryTime]    = useState(null);
+  const [timeRemaining,     setTimeRemaining]     = useState(0);
+  const [signatureCache,    setSignatureCache]    = useState({});
+
+  // ── Auth state ─────────────────────────────────────────────────────────────
+
   const [sixDigitPassword, setSixDigitPassword] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [signLoading, setSignLoading] = useState(false);
-  const [signError, setSignError] = useState('');
-  const [docAUTHmiddle, setDocAUTHmiddle] = useState('');
-  const [authAttempts, setAuthAttempts] = useState(0);
-  const [lastAttempt, setLastAttempt] = useState(null);
-  const [signatureCache, setSignatureCache] = useState({});
-  const [isDocumentSigned, setIsDocumentSigned] = useState(false);
-  const [signExpiryTime, setSignExpiryTime] = useState(null);
-  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [otpCode,          setOtpCode]          = useState('');
+  const [docAUTHmiddle,    setDocAUTHmiddle]    = useState('');
+  const [signLoading,      setSignLoading]      = useState(false);
+  const [signError,        setSignError]        = useState('');
+  const [authAttempts,     setAuthAttempts]     = useState(0);
+  const [lastAttempt,      setLastAttempt]      = useState(null);
+
+  // ── Modal visibility state ─────────────────────────────────────────────────
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [showWarningModal, setShowWarningModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteReportId, setDeleteReportId] = useState(null);
-  const [showLoadingModal, setShowLoadingModal] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('');
+  const [showOtpModal,      setShowOtpModal]      = useState(false);
+  const [showWarningModal,  setShowWarningModal]  = useState(false);
+  const [showSuccessModal,  setShowSuccessModal]  = useState(false);
+  const [showDeleteModal,   setShowDeleteModal]   = useState(false);
+  const [showLoadingModal,  setShowLoadingModal]  = useState(false);
+  const [loadingMessage,    setLoadingMessage]    = useState('');
+  const [deleteReportId,    setDeleteReportId]    = useState(null);
 
-  const checkRateLimit = () => {
-    const now = Date.now();
-    const timeDiff = now - (lastAttempt || 0);
-
-    if (timeDiff < 60000 && authAttempts >= 3) { // 3 attempts per minute
-      setSignError('Too many attempts. Please wait 1 minute.');
-      return false;
-    }
-
-    if (timeDiff > 60000) {
-      setAuthAttempts(0);
-    }
-
-    return true;
-  };
-
-  // Check signature cache
-  const checkSignatureCache = (documentId) => {
-    const cached = signatureCache[documentId || 'default'];
-    if (cached && Date.now() < cached.expiry) {
-      return cached.url;
-    }
-    return null;
-  };
-
-  // Format time remaining
-  const formatTimeRemaining = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
+  // ── Effect: Fetch report data ──────────────────────────────────────────────
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
       try {
-        let url = '';
-        let multipleView = false;
-
-        const currentPath = window.location.pathname;
-
-        // Get serviceTypes from location state
+        const pathname     = window.location.pathname;
         const serviceTypes = location.state?.serviceTypes || [];
 
-        if (currentPath.includes('/all/all-histories/')) {
-          // Check if serviceTypes array exists and has items
-          if (serviceTypes.length > 0) {
-            // Convert array to comma-separated string for API
-            const serviceTypesParam = serviceTypes.join(',');
-            url = `${END_POINT}/service-report/histories/${regNo}/all?serviceTypes=${serviceTypesParam}`;
-          } else {
-            url = `${END_POINT}/service-report/histories/${regNo}/all`;
-          }
-          multipleView = true;
-        } else if (currentPath.includes('/all/date-range/')) {
-          const pathParts = currentPath.split('/');
-          const serviceType = pathParts[3];
+        const { url: resolvedUrl, isMultiple } = resolveReportUrl(
+          pathname, serviceTypes, { regNo, startDate, endDate, monthsCount }
+        );
 
-          if (serviceTypes.length > 0) {
-            const serviceTypesParam = serviceTypes.join(',');
-            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}?serviceTypes=${serviceTypesParam}`;
-          } else {
-            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}`;
-          }
-          multipleView = true;
-        } else if (currentPath.includes('/all/last-months/')) {
-          const pathParts = currentPath.split('/');
-          const serviceType = pathParts[3];
+        // Single-report view uses regNo + date from router state.
+        const fetchUrl = resolvedUrl || `${END_POINT}/service-report/${regNo}/${date}`;
 
-          if (serviceTypes.length > 0) {
-            const serviceTypesParam = serviceTypes.join(',');
-            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}?serviceTypes=${serviceTypesParam}`;
-          } else {
-            url = `${END_POINT}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}`;
-          }
-          multipleView = true;
+        setIsMultipleView(isMultiple);
+
+        const response = await apiRequest(fetchUrl);
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+        const result = await response.json();
+
+        if (isMultiple) {
+          setMultipleReports(result.data || []);
+          setTotalCount(result.data?.length || 0);
         } else {
-          url = `${END_POINT}/service-report/${regNo}/${date}`;
-          multipleView = false;
-        }
-
-        setIsMultipleView(multipleView);
-
-        const response = await apiRequest(url);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (multipleView) {
-          setMultipleReports(data.data || []);
-          setTotalCount(data.data?.length || 0);
-        } else {
-          setReportData(data.data?.[0] || null);
+          setReportData(result.data?.[0] || null);
           setTotalCount(1);
         }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching report data:", error);
+      } catch (err) {
+        console.error('[ServiceDoc] fetchData error:', err);
+      } finally {
         setLoading(false);
       }
     };
@@ -159,33 +534,62 @@ const ServiceDoc = () => {
     fetchData();
   }, [regNo, date, startDate, endDate, monthsCount, location.state]);
 
-  // Countdown timer effect
+  // ── Effect: Signature countdown timer ─────────────────────────────────────
+
   useEffect(() => {
-    let interval = null;
+    if (!signExpiryTime || !isDocumentSigned) return;
 
-    if (signExpiryTime && isDocumentSigned) {
-      interval = setInterval(() => {
-        const now = Date.now();
-        const remaining = Math.max(0, Math.floor((signExpiryTime - now) / 1000));
-        setTimeRemaining(remaining);
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((signExpiryTime - Date.now()) / 1000));
+      setTimeRemaining(remaining);
 
-        if (remaining <= 0) {
-          setIsDocumentSigned(false);
-          setSupervisorSignUrl('');
-          setSignExpiryTime(null);
-          clearInterval(interval);
-        }
-      }, 1000);
-    }
+      if (remaining <= 0) {
+        setIsDocumentSigned(false);
+        setSupervisorSignUrl('');
+        setSignExpiryTime(null);
+        clearInterval(interval);
+      }
+    }, 1000);
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [signExpiryTime, isDocumentSigned]);
 
-  // Enhanced sign document function
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  /**
+   * Returns true if the user is within the allowed request rate.
+   * Resets the attempt counter if the rate-limit window has expired.
+   */
+  const checkRateLimit = () => {
+    const now      = Date.now();
+    const timeDiff = now - (lastAttempt || 0);
+
+    if (timeDiff < RATE_LIMIT_WINDOW_MS && authAttempts >= MAX_AUTH_ATTEMPTS) {
+      setSignError('Too many attempts. Please wait 1 minute.');
+      return false;
+    }
+
+    if (timeDiff > RATE_LIMIT_WINDOW_MS) setAuthAttempts(0);
+
+    return true;
+  };
+
+  /**
+   * Returns a cached signature URL if still valid, otherwise null.
+   *
+   * @param {string} documentId - Cache key (defaults to 'default').
+   * @returns {string|null}
+   */
+  const checkSignatureCache = (documentId = 'default') => {
+    const cached = signatureCache[documentId];
+    return cached && Date.now() < cached.expiry ? cached.url : null;
+  };
+
+  // ── Signature flow handlers ────────────────────────────────────────────────
+
+  /** Initiates the signature flow. Uses cache if a valid entry exists. */
   const signDocument = () => {
-    const cachedUrl = checkSignatureCache('default');
+    const cachedUrl = checkSignatureCache();
     if (cachedUrl) {
       setSupervisorSignUrl(cachedUrl);
       setIsDocumentSigned(true);
@@ -193,49 +597,34 @@ const ServiceDoc = () => {
       return;
     }
 
-    setShowPasswordModal(true);
     setSixDigitPassword('');
     setOtpCode('');
     setSignError('');
+    setShowPasswordModal(true);
   };
 
-  // Enhanced handle print function
-  const handlePrint = () => {
-    if (!isDocumentSigned) {
-      setShowWarningModal(true);
-      return;
-    }
-    window.print();
-  };
-
+  /** Verifies the 6-digit password and triggers an OTP send. */
   const handleSixDigitVerification = async () => {
     if (sixDigitPassword.length !== 6) {
       setSignError('Please enter a 6-digit password');
       return;
     }
 
+    if (!checkRateLimit()) return;
+
     setSignLoading(true);
     setSignError('');
-
-    if (!checkRateLimit()) {
-      setSignLoading(false);
-      return;
-    }
+    setShowPasswordModal(false);
+    setShowLoadingModal(true);
+    setLoadingMessage('Verifying password...');
 
     try {
-      setShowPasswordModal(false);
-      setShowLoadingModal(true);
-      setLoadingMessage('Verifying password...');
-
       const passwordResponse = await apiRequest(
         `${END_POINT}/users/six-digit-auth/verify`,
         'POST',
         { password: sixDigitPassword }
       );
-
-      if (!passwordResponse.ok) {
-        throw new Error('Invalid 6-digit password');
-      }
+      if (!passwordResponse.ok) throw new Error('Invalid 6-digit password');
 
       setDocAUTHmiddle(sixDigitPassword);
       setLoadingMessage('Sending OTP to authorized email...');
@@ -245,26 +634,24 @@ const ServiceDoc = () => {
         'POST',
         { email: 'DOCUMENT_VERIFIER_AUTH_MAIL' }
       );
-
-      if (!otpResponse.ok) {
-        throw new Error('Failed to send OTP');
-      }
+      if (!otpResponse.ok) throw new Error('Failed to send OTP');
 
       setShowLoadingModal(false);
       setShowOtpModal(true);
-      setSignLoading(false);
-      setSignError('');
-    } catch (error) {
-      console.error('Six-digit verification error:', error);
-      setAuthAttempts(prev => prev + 1);
+
+    } catch (err) {
+      console.error('[ServiceDoc] Six-digit verification error:', err);
+      setAuthAttempts((prev) => prev + 1);
       setLastAttempt(Date.now());
-      setSignError(error.message || 'Authentication failed. Please try again.');
+      setSignError(err.message || 'Authentication failed. Please try again.');
       setShowLoadingModal(false);
       setShowPasswordModal(true);
+    } finally {
       setSignLoading(false);
     }
   };
 
+  /** Verifies the OTP, fetches the signature key, and applies the digital signature. */
   const handleOtpVerification = async () => {
     if (otpCode.length !== 6) {
       setSignError('Please enter the 6-digit OTP');
@@ -273,215 +660,178 @@ const ServiceDoc = () => {
 
     setSignLoading(true);
     setSignError('');
+    setShowOtpModal(false);
+    setShowLoadingModal(true);
+    setLoadingMessage('Verifying OTP code...');
 
     try {
-      setShowOtpModal(false);
-      setShowLoadingModal(true);
-      setLoadingMessage('Verifying OTP code...');
-
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
       const otpResponse = await apiRequest(
         `${END_POINT}/otp/verify`,
         'POST',
-        {
-          email: 'DOCUMENT_VERIFIER_AUTH_MAIL',
-          otp: otpCode,
-          userId: userData._id
-        }
+        { email: 'DOCUMENT_VERIFIER_AUTH_MAIL', otp: otpCode, userId: userData._id }
       );
-
-      if (!otpResponse.ok) {
-        throw new Error('Invalid OTP code. Please check and try again.');
-      }
+      if (!otpResponse.ok) throw new Error('Invalid OTP code. Please check and try again.');
 
       setLoadingMessage('Generating signature key...');
 
       const keyResponse = await apiRequest(
-        `${END_POINT}/users/doc-0auth-sign-key`,
+        `${END_POINT}/users/doc-api-sign-key`,
         'POST',
         { password: docAUTHmiddle }
       );
-
-      if (!keyResponse.ok) {
-        throw new Error('Failed to generate signature key');
-      }
+      if (!keyResponse.ok) throw new Error('Failed to generate signature key');
 
       setDocAUTHmiddle('');
       const keyData = await keyResponse.json();
 
       setLoadingMessage('Applying digital signature...');
 
-      const body = { key: keyData.data.sign_key, isLong: false, isAuthSign: true };
-      const s3response = await apiRequest(
-        `${END_POINT}/s3Config/get-pre-signed-url`,
+      const s3Response = await apiRequest(
+        `${END_POINT}/s3/get-pre-signed-url`,
         'POST',
-        body
+        { key: keyData.data.sign_key, isLong: false, isAuthSign: true }
       );
+      if (!s3Response.ok) throw new Error('Failed to generate signature URL');
 
-      if (!s3response.ok) {
-        throw new Error('Failed to generate signature URL');
-      }
+      const s3Data  = await s3Response.json();
+      const fullUrl = s3Data.dataUrl;
 
-      const s3URL = await s3response.json();
-      const fullUrl = s3URL.dataUrl;
-
-      const expiryTime = Date.now() + 10000;
-      setSignatureCache(prev => ({
-        ...prev,
-        'default': { url: fullUrl, expiry: expiryTime }
-      }));
+      // Cache the signature URL with an expiry timestamp.
+      const expiryTime = Date.now() + SIGNATURE_EXPIRY_MS;
+      setSignatureCache((prev) => ({ ...prev, default: { url: fullUrl, expiry: expiryTime } }));
 
       setSupervisorSignUrl(fullUrl);
       setIsDocumentSigned(true);
       setSignExpiryTime(expiryTime);
-      setTimeRemaining(10);
-
+      setTimeRemaining(SIGNATURE_EXPIRY_MS / 1000);
       setSixDigitPassword('');
       setOtpCode('');
-      setSignLoading(false);
       setAuthAttempts(0);
       setSignError('');
-
       setShowLoadingModal(false);
       setShowSuccessModal(true);
 
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      setSignError(error.message || 'Verification failed. Please try again.');
+    } catch (err) {
+      console.error('[ServiceDoc] OTP verification error:', err);
+      setSignError(err.message || 'Verification failed. Please try again.');
       setShowLoadingModal(false);
       setShowOtpModal(true);
+    } finally {
       setSignLoading(false);
     }
   };
 
-  // Your existing helper functions
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const parts = dateString.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return dateString;
-  };
+  // ── Navigation handlers ────────────────────────────────────────────────────
 
-  const getServiceTypeName = (serviceType) => {
-    switch (serviceType) {
-      case 'oil':
-        return 'Oil Service';
-      case 'maintenance':
-        return 'Major Works';
-      case 'tyre':
-        return 'Tyre Service';
-      case 'battery':
-        return 'Battery Service';
-      default:
-        return 'Service';
-    }
-  };
-
-  const handleAddReport = (historyId) => {
-    navigate(`/service-form/${serviceType}/${historyId}`);
-  };
-
-  const handleBackToHistory = () => {
-    navigate(`/service-history/${regNo}`);
-  };
-
-  const handleEditReport = (reportId, serviceType) => {
-    navigate(`/service-form/update/${serviceType}/${reportId}`);
-  };
-
-  const handleDeleteReport = (reportId) => {
-    setDeleteReportId(reportId);
-    setShowDeleteModal(true);
-  };
+  const handlePrint           = () => isDocumentSigned ? window.print() : setShowWarningModal(true);
+  const handleBackToHistory   = () => navigate(`/service-history/${regNo}`);
+  const handleAddReport       = (id) => navigate(`/service-form/${serviceType}/${id}`);
+  const handleEditReport      = (reportId, type) => navigate(`/service-form/update/${type}/${reportId}`);
+  const handleDeleteReport    = (reportId) => { setDeleteReportId(reportId); setShowDeleteModal(true); };
 
   const confirmDeleteReport = async () => {
     try {
-      const response = await apiRequest(
-        `${END_POINT}/service-report/deletewith/${deleteReportId}`,
-        'DELETE'
-      );
-
+      const response = await apiRequest(`${END_POINT}/service-report/deletewith/${deleteReportId}`, 'DELETE');
       if (response.ok) {
         setShowDeleteModal(false);
         window.location.reload();
       } else {
         alert('Failed to delete the report. Please try again.');
       }
-    } catch (error) {
-      console.error('Error deleting report:', error);
+    } catch (err) {
+      console.error('[ServiceDoc] Delete report error:', err);
       alert('An error occurred while deleting the report.');
     }
   };
 
-  // If loading, show a loading state
+  // ── Modal prop bundles ─────────────────────────────────────────────────────
+
+  /** All props forwarded to <SignatureModals />. */
+  const signatureModalProps = {
+    // Password
+    showPasswordModal, sixDigitPassword, signLoading, signError,
+    onPasswordClose: () => { setShowPasswordModal(false); setSixDigitPassword(''); setSignError(''); },
+    onPasswordInput: (val) => setSixDigitPassword(val.replace(/\D/g, '')),
+    onPasswordSubmit: handleSixDigitVerification,
+    // OTP
+    showOtpModal, otpCode,
+    onOtpClose: () => { setShowOtpModal(false); setOtpCode(''); setSignError(''); },
+    onOtpInput: (val) => setOtpCode(val.replace(/\D/g, '')),
+    onOtpBack: () => { setShowOtpModal(false); setShowPasswordModal(true); },
+    onOtpSubmit: handleOtpVerification,
+    // Warning
+    showWarningModal,
+    onWarningClose: () => setShowWarningModal(false),
+    onWarnSign: () => { setShowWarningModal(false); signDocument(); },
+    // Success
+    showSuccessModal,
+    onSuccessClose: () => setShowSuccessModal(false),
+    onSuccessPrint: () => { setShowSuccessModal(false); handlePrint(); },
+    // Delete
+    showDeleteModal,
+    onDeleteClose: () => setShowDeleteModal(false),
+    onDeleteConfirm: confirmDeleteReport,
+    // Loading
+    showLoadingModal, loadingMessage,
+  };
+
+  // ── Shared action bar rendered above both single and multi-report views ────
+
+  const ActionBar = () => (
+    <div className="back-bug">
+      <div className="print-button-wrapper no-print wraped-print">
+        <Button {...SHARED_BTN} text="Back to Service History" onClick={handleBackToHistory} colorScheme="violet-800" width="220px" type="submit" />
+        <Button
+          {...SHARED_BTN}
+          text={isDocumentSigned ? 'Print All Reports' : 'Sign to Print All'}
+          onClick={handlePrint}
+          colorScheme={isDocumentSigned ? 'violet-800' : 'gray-900'}
+          width="160px"
+          type={isDocumentSigned ? 'submit' : 'disabled'}
+          cursor={isDocumentSigned ? 'allowed' : 'not-allowed'}
+        />
+        <Button
+          {...SHARED_BTN}
+          text="Sign the Document"
+          onClick={signDocument}
+          colorScheme={isDocumentSigned ? 'emerald-800' : 'amber-600'}
+          width="160px"
+          type="submit"
+        />
+      </div>
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render guards
+  // ─────────────────────────────────────────────────────────────────────────
+
   if (loading) {
     return (
       <div className="loading-container">
         <div className="no-print">
-          <Button
-            text="Back to Service History"
-            onClick={handleBackToHistory}
-            colorScheme="violet-800"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="220px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
+          <Button {...SHARED_BTN} text="Back to Service History" onClick={handleBackToHistory} colorScheme="violet-800" width="220px" type="submit" />
         </div>
-        <div className='no-print'>
+        <div className="no-print">
           <Loader />
         </div>
       </div>
     );
   }
 
-  // Multiple reports view
+  // ── Multiple-report view ───────────────────────────────────────────────────
+
   if (isMultipleView) {
-    if (!multipleReports || multipleReports.length === 0) {
+    if (!multipleReports.length) {
       return (
         <div className="no-data-container">
           <div className="no-print">
             <h2>No report data available for the selected criteria</h2>
             <div className="no-result-found-service-nav">
-              <Button
-                text="Back to Service History"
-                onClick={handleBackToHistory}
-                colorScheme="violet-800"
-                variant="gradient"
-                font="md"
-                animation=""
-                squircle="4xl"
-                width="220px"
-                height="38px"
-                type="submit"
-                textColor="white-200"
-                shadowPosition="to-bottom"
-                shadowColor="white-600"
-              />
-              <Button
-                text=" Add Report Data"
-                onClick={handleAddReport}
-                colorScheme="violet-800"
-                variant="gradient"
-                font="md"
-                animation=""
-                squircle="4xl"
-                width="160px"
-                height="38px"
-                type="submit"
-                textColor="white-200"
-                shadowPosition="to-bottom"
-                shadowColor="white-600"
-              />
+              <Button {...SHARED_BTN} text="Back to Service History" onClick={handleBackToHistory}           colorScheme="violet-800" width="220px" type="submit" />
+              <Button {...SHARED_BTN} text="Add Report Data"         onClick={() => handleAddReport(historyId)} colorScheme="violet-800" width="160px" type="submit" />
             </div>
           </div>
         </div>
@@ -490,285 +840,52 @@ const ServiceDoc = () => {
 
     return (
       <>
+        {/* ── Document count + signature status ── */}
         <div className="back-bug">
           <div className="document-count">
-            <span className='status-document-left'>Showing {totalCount} Document(S) for Equipment: {regNo}</span>
+            <span className="status-document-left">
+              Showing {totalCount} Document(S) for Equipment: {regNo}
+            </span>
             {isDocumentSigned && (
               <div className="signature-status">
                 <span className="signed-indicator">✅ Document Signed</span>
-                <span className="expiry-timer">
-                  ⏰ Expires in: {formatTimeRemaining(timeRemaining)}
-                </span>
+                <span className="expiry-timer">⏰ Expires in: {formatTimeRemaining(timeRemaining)}</span>
               </div>
             )}
           </div>
-          <div className="print-button-wrapper no-print wraped-print">
-            <Button
-              text="Back to Service History"
-              onClick={handleBackToHistory}
-              colorScheme="violet-800"
-              variant="gradient"
-              font="md"
-              animation=""
-              squircle="4xl"
-              width="220px"
-              height="38px"
-              type="submit"
-              textColor="white-200"
-              shadowPosition="to-bottom"
-              shadowColor="white-600"
-            />
-            <Button
-              text={!isDocumentSigned ? 'Sign to Print All' : 'Print All Reports'}
-              onClick={handlePrint}
-              colorScheme={!isDocumentSigned ? 'gray-900' : 'violet-800'}
-              variant="gradient"
-              font="md"
-              animation=""
-              squircle="4xl"
-              width="160px"
-              height="38px"
-              type={!isDocumentSigned ? 'disabled' : 'submit'}
-              textColor="white-200"
-              cursor={!isDocumentSigned ? 'not-allowed' : 'allowed'}
-              shadowPosition="to-bottom"
-              shadowColor="white-600"
-            />
-            {/* note here back / back here  */}
-            <Button
-              text="Sign the Document"
-              onClick={signDocument}
-              colorScheme={!isDocumentSigned ? 'amber-600' : 'emerald-800'}
-              variant="gradient"
-              font="md"
-              animation=""
-              squircle="4xl"
-              width="160px"
-              height="38px"
-              type="submit"
-              textColor="white-200"
-              shadowPosition="to-bottom"
-              shadowColor="white-600"
-            />
-          </div>
         </div>
 
+        <ActionBar />
+
+        {/* ── Report pages ── */}
         {multipleReports.map((report, index) => (
-          <div key={index} className="doc-wrapper" style={{ pageBreakAfter: index < multipleReports.length - 1 ? 'always' : 'auto' }}>
-            <div className="report-actions no-print">
-              <Button
-                text="Edit"
-                onClick={() => handleEditReport(report._id, report.serviceType)}
-                colorScheme="lime-800"
-                variant="gradient"
-                font="md"
-                animation=""
-                squircle="4xl"
-                width="160px"
-                height="38px"
-                type="submit"
-                textColor="white-200"
-                shadowPosition="to-bottom"
-                shadowColor="white-600"
-              />
-              <Button
-                text="Delete"
-                onClick={() => handleDeleteReport(report._id)}
-                colorScheme="red-800"
-                variant="gradient"
-                font="md"
-                animation=""
-                squircle="4xl"
-                width="160px"
-                height="38px"
-                type="submit"
-                textColor="white-200"
-                shadowPosition="to-bottom"
-                shadowColor="white-600"
-              />
-            </div>
-
-            <div className="x-container">
-              <div className="report-container">
-                <div className="header">
-                  <div className="logo-placeholder">
-                    <img src={logoImage} alt="Company Logo" />
-                  </div>
-                  <div className="company-details-s">
-                    <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
-                  </div>
-                </div>
-
-                <table className="checklist-table-s">
-                  <thead>
-                    <tr>
-                      <th colSpan="6" className="heading">
-                        PERIODIC SERVICE REPORT - {getServiceTypeName(report.serviceType)}
-                        {report.date && ` - ${formatDate(report.date)}`}
-                      </th>
-                    </tr>
-                    <tr>
-                      <th>SL.NO</th>
-                      <th>DESCRIPTION</th>
-                      <th>CHECKED</th>
-                      <th>SL.NO</th>
-                      <th>DESCRIPTION</th>
-                      <th>CHECKED</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {renderChecklistItems(report)}
-                    {renderFooterInfo(report, regNo, supervisorSignUrl)}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <ReportDocument
+            key={report._id || index}
+            report={report}
+            regNo={regNo}
+            supervisorSignUrl={supervisorSignUrl}
+            headingTitle={`PERIODIC SERVICE REPORT - ${getServiceTypeName(report.serviceType)}${report.date ? ` - ${formatDate(report.date)}` : ''}`}
+            onEdit={handleEditReport}
+            onDelete={handleDeleteReport}
+            showActions
+            style={{ pageBreakAfter: index < multipleReports.length - 1 ? 'always' : 'auto' }}
+          />
         ))}
-        {/* Password Modal */}
-        <DevModal
-          isOpen={showPasswordModal}
-          onClose={() => {
-            setShowPasswordModal(false);
-            setSixDigitPassword('');
-            setSignError('');
-          }}
-          type="authentication"
-          title="Document Signature Authentication"
-          message="Step 1: Enter your 6-digit password"
-          showInput={true}
-          inputValue={sixDigitPassword}
-          onInputChange={(value) => setSixDigitPassword(value.replace(/\D/g, ''))}
-          inputPlaceholder="Enter 6-digit password"
-          inputMaxLength={6}
-          inputError={signError}
-          buttonText={signLoading ? "Verifying..." : "Verify & Send OTP"}
-          onButtonClick={handleSixDigitVerification}
-          preventClose={signLoading}
-        />
 
-        {/* OTP Modal */}
-        <DevModal
-          isOpen={showOtpModal}
-          onClose={() => {
-            setShowOtpModal(false);
-            setOtpCode('');
-            setSignError('');
-          }}
-          type="otp"
-          title="Enter OTP Code"
-          message="OTP has been sent to the authorized email"
-          showInput={true}
-          inputValue={otpCode}
-          onInputChange={(value) => setOtpCode(value.replace(/\D/g, ''))}
-          inputPlaceholder="Enter 6-digit OTP"
-          inputMaxLength={6}
-          inputError={signError}
-          buttonText={signLoading ? "Signing..." : "Sign Document"}
-          secondaryButtonText="Back"
-          onSecondaryClick={() => {
-            setShowOtpModal(false);
-            setShowPasswordModal(true);
-          }}
-          onButtonClick={handleOtpVerification}
-          preventClose={signLoading}
-        />
-
-        {/* Warning Modal */}
-        <DevModal
-          isOpen={showWarningModal}
-          onClose={() => setShowWarningModal(false)}
-          type="warning"
-          title="!Document Not Signed"
-          message="You must sign the document before printing! This ensures document authenticity and compliance."
-          buttonText="Sign Document Now"
-          secondaryButtonText="Cancel"
-          onButtonClick={() => {
-            setShowWarningModal(false);
-            signDocument();
-          }}
-          onSecondaryClick={() => setShowWarningModal(false)}
-        />
-
-        {/* Success Modal */}
-        <DevModal
-          isOpen={showSuccessModal}
-          onClose={() => setShowSuccessModal(false)}
-          type="success"
-          title="Document Signed Successfully!"
-          message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
-          buttonText="Print Now"
-          secondaryButtonText="Close"
-          onButtonClick={() => {
-            setShowSuccessModal(false);
-            handlePrint();
-          }}
-          onSecondaryClick={() => setShowSuccessModal(false)}
-        />
-
-        {/* Delete Confirmation Modal */}
-        <DevModal
-          isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
-          type="error"
-          title="Delete Report?"
-          message="Are you sure you want to delete this report? This action cannot be undone."
-          buttonText="Delete"
-          secondaryButtonText="Cancel"
-          onButtonClick={confirmDeleteReport}
-          onSecondaryClick={() => setShowDeleteModal(false)}
-        />
-
-        {/* Loading Modal */}
-        <DevModal
-          isOpen={showLoadingModal}
-          onClose={() => { }}
-          type="progress"
-          title="Processing..."
-          message={loadingMessage}
-          progress={100}
-          preventClose={true}
-        />
+        <SignatureModals {...signatureModalProps} />
       </>
     );
   }
 
-  // Single report view
+  // ── Single-report view ────────────────────────────────────────────────────
+
   if (!reportData) {
     return (
       <div className="no-data-container">
         <h2>No report data available for this equipment and date</h2>
         <div className="no-result-found-service-nav">
-          <Button
-            text="Back to Service History"
-            onClick={handleBackToHistory}
-            colorScheme="amber-800"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="220px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
-          <Button
-            text="Add Report Data"
-            onClick={() => handleAddReport(historyId)}
-            colorScheme="violet-800"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="160px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
+          <Button {...SHARED_BTN} text="Back to Service History" onClick={handleBackToHistory}                colorScheme="amber-800"  width="220px" type="submit" />
+          <Button {...SHARED_BTN} text="Add Report Data"         onClick={() => handleAddReport(historyId)}   colorScheme="violet-800" width="160px" type="submit" />
         </div>
       </div>
     );
@@ -776,461 +893,29 @@ const ServiceDoc = () => {
 
   return (
     <>
-      <div className="back-bug">
-        <div className="print-button-wrapper no-print wraped-print">
-          <Button
-            text="Back to Service History"
-            onClick={handleBackToHistory}
-            colorScheme="violet-800"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="220px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
-          <Button
-            text={!isDocumentSigned ? 'Sign to Print All' : 'Print All Reports'}
-            onClick={handlePrint}
-            colorScheme={!isDocumentSigned ? 'gray-900' : 'violet-800'}
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="160px"
-            height="38px"
-            type={!isDocumentSigned ? 'disabled' : 'submit'}
-            textColor="white-200"
-            cursor={!isDocumentSigned ? 'not-allowed' : 'allowed'}
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
-          <Button
-            text="Sign the Document"
-            onClick={signDocument}
-            colorScheme={!isDocumentSigned ? 'amber-600' : 'emerald-800'}
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="160px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
-        </div>
-      </div>
+      <ActionBar />
 
-
-
+      {/* ── Single report edit/delete bar ── */}
       <div className="back-bug pb-n">
         <div className="report-actions no-print single-report-actions">
-          <Button
-            text="Edit"
-            onClick={() => handleEditReport(reportData._id, reportData.serviceType)}
-            colorScheme="lime-800"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="160px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
-          <Button
-            text="Delete"
-            onClick={() => handleDeleteReport(reportData._id)}
-            colorScheme="red-700"
-            variant="gradient"
-            font="md"
-            animation=""
-            squircle="4xl"
-            width="160px"
-            height="38px"
-            type="submit"
-            textColor="white-200"
-            shadowPosition="to-bottom"
-            shadowColor="white-600"
-          />
+          <Button {...SHARED_BTN} text="Edit"   onClick={() => handleEditReport(reportData._id, reportData.serviceType)} colorScheme="lime-800" width="160px" type="submit" />
+          <Button {...SHARED_BTN} text="Delete" onClick={() => handleDeleteReport(reportData._id)}                        colorScheme="red-700"  width="160px" type="submit" />
         </div>
       </div>
 
-      <div className="doc-wrapper">
-        <div className="x-container">
-          <div className="report-container">
-            <div className="header">
-              <div className="logo-placeholder">
-                <img src={logoImage} alt="Company Logo" />
-              </div>
-              <div className="company-details-s">
-                <img src={alAnsariText} alt="AL Ansari Transport & Enterprises W.L.L" />
-              </div>
-            </div>
-
-            <table className="checklist-table-s">
-              <thead>
-                <tr>
-                  <th colSpan="6" className="heading">PERIODIC SERVICE REPORT</th>
-                </tr>
-                <tr>
-                  <th>SL.NO</th>
-                  <th>DESCRIPTION</th>
-                  <th>CHECKED</th>
-                  <th>SL.NO</th>
-                  <th>DESCRIPTION</th>
-                  <th>CHECKED</th>
-                </tr>
-              </thead>
-              <tbody>
-                {renderChecklistItems(reportData)}
-                {renderFooterInfo(reportData, regNo, supervisorSignUrl)}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      {/* Password Modal */}
-      <DevModal
-        isOpen={showPasswordModal}
-        onClose={() => {
-          setShowPasswordModal(false);
-          setSixDigitPassword('');
-          setSignError('');
-        }}
-        type="authentication"
-        title="Document Signature Authentication"
-        message="Step 1: Enter your 6-digit password"
-        showInput={true}
-        inputValue={sixDigitPassword}
-        onInputChange={(value) => setSixDigitPassword(value.replace(/\D/g, ''))}
-        inputPlaceholder="Enter 6-digit password"
-        inputMaxLength={6}
-        inputError={signError}
-        buttonText={signLoading ? "Verifying..." : "Verify & Send OTP"}
-        onButtonClick={handleSixDigitVerification}
-        preventClose={signLoading}
+      <ReportDocument
+        report={reportData}
+        regNo={regNo}
+        supervisorSignUrl={supervisorSignUrl}
+        headingTitle="PERIODIC SERVICE REPORT"
+        onEdit={handleEditReport}
+        onDelete={handleDeleteReport}
+        showActions={false}
       />
 
-      {/* OTP Modal */}
-      <DevModal
-        isOpen={showOtpModal}
-        onClose={() => {
-          setShowOtpModal(false);
-          setOtpCode('');
-          setSignError('');
-        }}
-        type="otp"
-        title="Enter OTP Code"
-        message="OTP has been sent to the authorized email"
-        showInput={true}
-        inputValue={otpCode}
-        onInputChange={(value) => setOtpCode(value.replace(/\D/g, ''))}
-        inputPlaceholder="Enter 6-digit OTP"
-        inputMaxLength={6}
-        inputError={signError}
-        buttonText={signLoading ? "Signing..." : "Sign Document"}
-        secondaryButtonText="Back"
-        onSecondaryClick={() => {
-          setShowOtpModal(false);
-          setShowPasswordModal(true);
-        }}
-        onButtonClick={handleOtpVerification}
-        preventClose={signLoading}
-      />
-
-      {/* Warning Modal */}
-      <DevModal
-        isOpen={showWarningModal}
-        onClose={() => setShowWarningModal(false)}
-        type="warning"
-        title="!Document Not Signed"
-        message="You must sign the document before printing! This ensures document authenticity and compliance."
-        buttonText="Sign Document Now"
-        secondaryButtonText="Cancel"
-        onButtonClick={() => {
-          setShowWarningModal(false);
-          signDocument();
-        }}
-        onSecondaryClick={() => setShowWarningModal(false)}
-      />
-
-      {/* Success Modal */}
-      <DevModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        type="success"
-        title="Document Signed Successfully!"
-        message="Your document has been digitally signed! Signature valid for 10 seconds. You can now print the document."
-        buttonText="Print Now"
-        secondaryButtonText="Close"
-        onButtonClick={() => {
-          setShowSuccessModal(false);
-          handlePrint();
-        }}
-        onSecondaryClick={() => setShowSuccessModal(false)}
-      />
-
-      {/* Delete Confirmation Modal */}
-      <DevModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        type="error"
-        title="Delete Report?"
-        message="Are you sure you want to delete this report? This action cannot be undone."
-        buttonText="Delete"
-        secondaryButtonText="Cancel"
-        onButtonClick={confirmDeleteReport}
-        onSecondaryClick={() => setShowDeleteModal(false)}
-      />
-
-      {/* Loading Modal */}
-      <DevModal
-        isOpen={showLoadingModal}
-        onClose={() => { }}
-        type="progress"
-        title="Processing..."
-        message={loadingMessage}
-        progress={100}
-        preventClose={true}
-      />
+      <SignatureModals {...signatureModalProps} />
     </>
   );
-};
-
-// Helper function to render checklist items
-const renderChecklistItems = (reportData) => {
-  const checklistLookup = {};
-  if (reportData.checklistItems && reportData.checklistItems.length > 0) {
-    reportData.checklistItems.forEach(item => {
-      checklistLookup[item.id] = item.status;
-    });
-  }
-
-  const ifClean = true;
-
-  return (
-    <>
-      <tr>
-        <td>1</td>
-        <td>{reportData.checklistItems[0].description}</td>
-        <td className='tick'>{checklistLookup[1] || ''}</td>
-        <td>18</td>
-        <td>Check Gear Shift System</td>
-        <td className='tick'>{checklistLookup[18] || ''}</td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>{reportData.checklistItems[1].description}</td>
-        <td className='tick'>{checklistLookup[2] || ''}</td>
-        <td>19</td>
-        <td>Check Clutch System</td>
-        <td className='tick'>{checklistLookup[19] || ''}</td>
-      </tr>
-      <tr>
-        <td>3</td>
-        <td>{ifClean ? "Check/Clean Air Filter" : "Check/Change Air Filter"}</td>
-        <td className='tick'>{checklistLookup[3] || ''}</td>
-        <td>20</td>
-        <td>Check Wheel Nut</td>
-        <td className='tick'>{checklistLookup[20] || ''}</td>
-      </tr>
-      <tr>
-        <td>4</td>
-        <td>Check Transmission Filter</td>
-        <td className='tick'>{checklistLookup[4] || ''}</td>
-        <td>21</td>
-        <td>Check Starter & Alternator</td>
-        <td className='tick'>{checklistLookup[21] || ''}</td>
-      </tr>
-      <tr>
-        <td>5</td>
-        <td>Check Power Steering Oil</td>
-        <td className='tick'>{checklistLookup[5] || ''}</td>
-        <td>22</td>
-        <td>Check Number Plate both</td>
-        <td className='tick'>{checklistLookup[22] || ''}</td>
-      </tr>
-      <tr>
-        <td>6</td>
-        <td>Check Hydraulic Oil</td>
-        <td className='tick'>{checklistLookup[6] || ''}</td>
-        <td>23</td>
-        <td>Check Paint</td>
-        <td className='tick'>{checklistLookup[23] || ''}</td>
-      </tr>
-      <tr>
-        <td>7</td>
-        <td>Check Brake</td>
-        <td className='tick'>{checklistLookup[7] || ''}</td>
-        <td>24</td>
-        <td>Check Tires</td>
-        <td className='tick'>{checklistLookup[24] || ''}</td>
-      </tr>
-      <tr>
-        <td>8</td>
-        <td>Check Tyre Air Pressure</td>
-        <td className='tick'>{checklistLookup[8] || ''}</td>
-        <td>25</td>
-        <td>Check Silencer</td>
-        <td className='tick'>{checklistLookup[25] || ''}</td>
-      </tr>
-      <tr>
-        <td>9</td>
-        <td>Check Oil Leak</td>
-        <td className='tick'>{checklistLookup[9] || ''}</td>
-        <td>26</td>
-        <td>Replace Hydraulic Oil- Filter</td>
-        <td className='tick'>{checklistLookup[26] || ''}</td>
-      </tr>
-      <tr>
-        <td>10</td>
-        <td>Check Battery Condition</td>
-        <td className='tick'>{checklistLookup[10] || ''}</td>
-        <td>27</td>
-        <td>Replace Transmission Oil</td>
-        <td className='tick'>{checklistLookup[27] || ''}</td>
-      </tr>
-      <tr>
-        <td>11</td>
-        <td>Check Wiper & Water</td>
-        <td className='tick'>{checklistLookup[11] || ''}</td>
-        <td>28</td>
-        <td>Replace Differential Oil</td>
-        <td className='tick'>{checklistLookup[28] || ''}</td>
-      </tr>
-      <tr>
-        <td>12</td>
-        <td>Check All Lights</td>
-        <td className='tick'>{checklistLookup[12] || ''}</td>
-        <td>29</td>
-        <td>Replace Steering Box Oil</td>
-        <td className='tick'>{checklistLookup[29] || ''}</td>
-      </tr>
-      <tr>
-        <td>13</td>
-        <td>Check All Horns</td>
-        <td className='tick'>{checklistLookup[13] || ''}</td>
-        <td>30</td>
-        <td>Check Engine Valve Clearence</td>
-        <td className='tick'>{checklistLookup[30] || ''}</td>
-      </tr>
-      <tr>
-        <td>14</td>
-        <td>Check Parking Brake</td>
-        <td className='tick'>{checklistLookup[14] || ''}</td>
-        <td>31</td>
-        <td>Replace clutch fluid</td>
-        <td className='tick'>{checklistLookup[31] || ''}</td>
-      </tr>
-      <tr>
-        <td>15</td>
-        <td>Check Differential Oil</td>
-        <td className='tick'>{checklistLookup[15] || ''}</td>
-        <td>32</td>
-        <td>Check Brake Lining</td>
-        <td className='tick'>{checklistLookup[32] || ''}</td>
-      </tr>
-      <tr>
-        <td>16</td>
-        <td>Check Rod Water & Hoses</td>
-        <td className='tick'>{checklistLookup[16] || ''}</td>
-        <td>33</td>
-        <td>Change Drive Belt</td>
-        <td>{checklistLookup[33] || ''}</td>
-      </tr>
-      <tr>
-        <td>17</td>
-        <td>Lubricants All Points</td>
-        <td className='tick'>{checklistLookup[17] || ''}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-
-      <tr className="remarks-row">
-        <td colSpan="6">
-          <div className="remarks-box">
-            <div className="remarks-text-doc">
-              <strong className='remarks-label'>REMARKS : </strong>
-              {reportData.remarks.toUpperCase()}
-            </div>
-          </div>
-          <span className="equipment-fit-to-work">
-            EQUIPMENT FIT TO WORK
-          </span>
-        </td>
-      </tr>
-    </>
-  );
-};
-
-// Updated helper function to render footer information with signature
-const renderFooterInfo = (reportData, regNo, supervisorSignUrl) => {
-  const formatDateForDoc = (dateString) => {
-    if (!dateString) return '';
-    const parts = dateString.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return dateString;
-  };
-
-  return (
-    <>
-      <tr>
-        <td colSpan="3"><strong>SERVICE HRS:</strong> {reportData.fullService ? `${reportData.serviceHrs} - ${reportData.serviceHrs}` : reportData.serviceHrs}</td>
-        <td colSpan="3"><strong>EQUIPMENT NO:</strong> {regNo}</td>
-      </tr>
-      <tr>
-        <td colSpan="3">
-          <strong>NEXT SERVICE HRS:</strong> {
-            reportData.nextServiceHrs == 0
-              ? ''
-              : reportData.fullService
-                ? `${reportData.nextServiceHrs} - ${Number(reportData.serviceHrs) + 3000}`
-                : reportData.nextServiceHrs
-          }
-        </td>
-        <td colSpan="3"><strong>MACHINE:</strong> {reportData.machine.toUpperCase()}</td>
-      </tr>
-      <tr>
-        <td colSpan="3"><strong>MECHANICS:</strong> {reportData.mechanics.toUpperCase()}</td>
-        <td colSpan="3"><strong>LOCATION:</strong> {reportData.location.toUpperCase()}</td>
-      </tr>
-      <tr>
-        <td colSpan="3"><strong>DATE:</strong> {formatDateForDoc(reportData.date)}</td>
-        <td colSpan="3"><strong>OPERATOR NAME:</strong> {reportData.operatorName.toUpperCase()}</td>
-      </tr>
-      <tr className='sign-table'>
-        <td colSpan="3"><strong>MECHANIC SIGN:</strong>
-          <img className='sign mechanic-sign' src={mechanicSign} alt="" />
-        </td>
-        <td colSpan="3"><strong>SUPERVISOR SIGN:</strong>
-          {supervisorSignUrl ? (
-            <img
-              className='sign supervisor-sign'
-              src={supervisorSignUrl}
-              alt="Supervisor Signature"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          ) : (
-            <span className="no-signature">Not Signed</span>
-          )}
-        </td>
-      </tr>
-    </>
-  );
-};
+}
 
 export default ServiceDoc;

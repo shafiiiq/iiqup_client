@@ -1,308 +1,242 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Header.jsx — Global application header
+// Renders the sticky top nav with: logo, navigation pills, global search,
+// user controls (theme toggle + logout), alert banner, and breadcrumb title.
+// Visibility and content are driven by context (search, title, alert, vibration).
+// ─────────────────────────────────────────────────────────────────────────────
+
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate }     from 'react-router-dom';
+
+import { LoginLogic }           from '../../../utils/authUtils';
+import { useSearch }            from '../../../Context/SearchContext';
+import { useHeaderTitle }       from '../../../Context/HeaderTitleContext';
+import { useHeaderVibration }   from '../../../Context/HeaderVibrationContext';
+import { useAlert }             from '../../../Context/AlertContext';
+
 import logoImage from '../../../assets/images/al-ansari.png';
-import { LoginLogic } from '../../../utils/authUtils';
-import { useSearch } from '../../../context/SearchContext';
-import { useHeaderTitle } from '../../../context/HeaderTitleContext';
-import { useHeaderVibration } from '../../../context/HeaderVibrationContext';
-import { useAlert } from '../../../context/AlertContext';
 import '../Header/Header.css';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Duration (ms) of the header shake animation on triggered vibration. */
+const VIBRATION_DURATION_MS = 300;
+
+/**
+ * Primary navigation items.
+ * Icons use the Material Symbols Rounded font via className, not SVG imports,
+ * so they render as ligature text nodes — no bundle cost.
+ */
+const NAV_ITEMS = [
+  { path: '/',                label: 'Home',          icon: 'home'        },
+  { path: '/equipments',      label: 'Equipments',    icon: 'auto_towing'        },
+  { path: '/stock-manage',    label: 'Stock',         icon: 'shopping_cart'      },
+  { path: '/toolkits',        label: 'Toolkits',      icon: 'handyman'           },
+  { path: '/mechanics',       label: 'Mechanics',     icon: 'smart_toy'          },
+  { path: '/operators',       label: 'Operators',     icon: 'contacts_product'   },
+  { path: '/lpo-list',        label: 'LPO',           icon: 'edit_document'      },
+  { path: '/backcharge-list', label: 'Backcharges',   icon: 'table_convert'      },
+  { path: '/documents',       label: 'Documents',     icon: 'files'              },
+  { path: '/notification',    label: 'Notifications', icon: 'notification_audio' },
+  { path: '/dashboard',       label: 'Dashboard',     icon: 'browse'             },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Header Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // ── Context ────────────────────────────────────────────────────────────────
+
   const { searchTerm, setSearchTerm, clearSearch } = useSearch();
-  const { headerTitle, headerSubtitle } = useHeaderTitle();
-  const { shouldVibrate, resetVibration } = useHeaderVibration();
-  const { alert } = useAlert();
+  const { headerTitle, headerSubtitle }            = useHeaderTitle();
+  const { shouldVibrate, resetVibration }          = useHeaderVibration();
+  const { alert }                                  = useAlert();
+
+  // ── Refs ───────────────────────────────────────────────────────────────────
+
   const searchInputRef = useRef(null);
-  const navRef = useRef(null);
-  const activeItemRef = useRef(null);
-  const indicatorRef = useRef(null);
+  const navRef         = useRef(null);
 
-  const [isVibrating, setIsVibrating] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState('/');
-  const [showNav, setShowNav] = useState(false);
-  const [indicatorStyle, setIndicatorStyle] = useState({});
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [searchExpanded, setSearchExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  // ── State ──────────────────────────────────────────────────────────────────
 
-  // Navigation items with icons
-  const navItems = [
-    {
-      path: '/',
-      label: 'Home',
-      icon: <span class="material-symbols-rounded">home</span>
-    },
-    {
-      path: '/equipments',
-      label: 'Equipments',
-      icon: <span class="material-symbols-rounded">auto_towing</span>
-    },
-    {
-      path: '/stock-manage',
-      label: 'Stock',
-      icon: <span class="material-symbols-rounded">shopping_cart</span>
-    },
-    {
-      path: '/toolkits',
-      label: 'Toolkits',
-      icon: <span class="material-symbols-rounded">handyman</span>
-    },
-    {
-      path: '/mechanics',
-      label: 'Mechanics',
-      icon: <span class="material-symbols-rounded">smart_toy</span>
-    },
-    {
-      path: '/operators',
-      label: 'Operators',
-      icon: <span class="material-symbols-rounded">contacts_product</span>
-    },
-    {
-      path: '/lpo-list',
-      label: 'LPO',
-      icon: <span class="material-symbols-rounded">edit_document</span>
-    },
-    {
-      path: '/backcharge-list',
-      label: 'Backcharges',
-      icon: <span class="material-symbols-rounded">table_convert</span>
-    },
-    {
-      path: '/documents',
-      label: 'Documents',
-      icon: <span class="material-symbols-rounded">files</span>
-    },
-    {
-      path: '/notification',
-      label: 'Notifications',
-      icon: <span class="material-symbols-rounded">notification_audio</span>
-    },
-    {
-      path: '/dashboard',
-      label: 'Dashboard',
-      icon: <span class="material-symbols-rounded">browse</span>
-    }
-  ];
+  const [isVibrating,     setIsVibrating]     = useState(false);
+  const [scrolled,        setScrolled]        = useState(false);
+  const [activeLink,      setActiveLink]      = useState('/');
+  const [showNav,         setShowNav]         = useState(false);   // true on nav hover
+  const [isDarkMode,      setIsDarkMode]      = useState(false);
+  const [searchExpanded,  setSearchExpanded]  = useState(false);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Effects
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Restore persisted dark-mode preference on mount.
   useEffect(() => {
-    if (shouldVibrate) {
-      setIsVibrating(true);
-
-      // Remove the vibrating class after animation completes (300ms)
-      setTimeout(() => {
-        setIsVibrating(false);
-        resetVibration();
-      }, 300);
-    }
-  }, [shouldVibrate, resetVibration]);
-
-  // In your Header component
-  useEffect(() => {
-    const isDark = localStorage.getItem('theme') === 'dark';
-    if (isDark) {
+    if (localStorage.getItem('theme') === 'dark') {
       document.body.classList.add('dark-theme');
       setIsDarkMode(true);
     }
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-
-    if (newTheme) {
-      document.body.classList.add('dark-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.remove('dark-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
+  // Trigger the CSS shake animation when an external vibration event fires.
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
+    if (!shouldVibrate) return;
+    setIsVibrating(true);
+    const timer = setTimeout(() => {
+      setIsVibrating(false);
+      resetVibration();
+    }, VIBRATION_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [shouldVibrate, resetVibration]);
 
+  // Apply the 'scrolled' class once the page scrolls past 10px.
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Sync the active nav item with the current route.
   useEffect(() => {
     setActiveLink(location.pathname);
   }, [location]);
 
-  useEffect(() => {
-    updateIndicatorPosition();
-  }, [activeLink]);
+  // ─────────────────────────────────────────────────────────────────────────
+  // Handlers
+  // ─────────────────────────────────────────────────────────────────────────
 
+  /** Toggles light/dark theme and persists the choice to localStorage. */
+  const toggleTheme = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.body.classList.toggle('dark-theme', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+  };
+
+  /** Expands the search bar and auto-focuses the input after the CSS transition. */
   const handleSearchToggle = () => {
-    setSearchExpanded(!searchExpanded);
-    if (!searchExpanded) {
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 300);
-    }
-  };
-
-  const handleSearchBlur = () => {
-    if (!searchTerm) {
-      setSearchExpanded(false);
-    }
-  };
-
-  const updateIndicatorPosition = () => {
-    if (!navRef.current) return;
-
-    const navItems = navRef.current.querySelectorAll('li');
-    let activeItem = null;
-
-    navItems.forEach(item => {
-      const link = item.querySelector('a');
-      const href = link.getAttribute('href');
-      const to = link.getAttribute('to');
-
-      if ((to === activeLink) || (href === activeLink)) {
-        activeItem = item;
-      }
+    setSearchExpanded((prev) => {
+      if (!prev) setTimeout(() => searchInputRef.current?.focus(), 300);
+      return !prev;
     });
-
-    if (activeItem) {
-      const activeLink = activeItem.querySelector('a');
-      const { width, left } = activeLink.getBoundingClientRect();
-      const navLeft = navRef.current.getBoundingClientRect().left;
-
-      setIndicatorStyle({
-        width: `${width * 0.8}px`,
-        left: `${left - navLeft + (width * 0.1)}px`
-      });
-    }
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+  /** Collapses the search bar when the input loses focus and is empty. */
+  const handleSearchBlur = () => {
+    if (!searchTerm) setSearchExpanded(false);
   };
 
-  const handleNavClick = (path) => {
-    setActiveLink(path);
-    setMenuOpen(false);
-  };
+  const handleNavClick = (path) => setActiveLink(path);
 
   const handleLogout = () => {
-    const confirmLogout = window.confirm('Are you sure you want to logout?');
-    if (confirmLogout) {
-      LoginLogic.handleLogout(navigate, setUserLoggedIn);
-      setMenuOpen(false);
-    }
+    if (!window.confirm('Are you sure you want to logout?')) return;
+    LoginLogic.handleLogout(navigate, setUserLoggedIn);
   };
 
-  useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+  /** Returns the first letter of the current user's name, or 'W' as fallback. */
+  const getProfileInitial = () => currentUser?.name?.charAt(0).toUpperCase() ?? 'W';
 
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [menuOpen]);
+  // ─────────────────────────────────────────────────────────────────────────
+  // Derived Values
+  // ─────────────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    window.addEventListener('resize', updateIndicatorPosition);
-    setTimeout(updateIndicatorPosition, 100);
+  /**
+   * When the user is NOT hovering the nav, the nav pills are hidden and replaced
+   * by either an alert banner (priority) or a breadcrumb title.
+   */
+  const hasContextualDisplay = (headerTitle || alert) && !showNav;
 
-    return () => {
-      window.removeEventListener('resize', updateIndicatorPosition);
-    };
-  }, []);
-
-  // Get first letter of user's name for profile icon
-  const getProfileInitial = () => {
-    if (!currentUser?.name) return 'W';
-    return currentUser.name.charAt(0).toUpperCase();
-  };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
       <div className="header-container">
 
-        {/* user control section  */}
+        {/* ── User Controls ────────────────────────────────────────────── */}
         {user_logged_in && (
           <div className="user-section">
             <div className="user-details">
-              <div className="profile-icon">
-                {getProfileInitial()}
-              </div>
+              <div className="profile-icon">{getProfileInitial()}</div>
               <span className="user-name">{currentUser?.name}</span>
             </div>
+
             <div className="user-actions">
-              <label class="bb8-toggle">
-                <input class="bb8-toggle__checkbox" type="checkbox" onChange={toggleTheme} checked={isDarkMode} />
-                <div class="bb8-toggle__container">
-                  <div class="bb8-toggle__scenery">
-                    <div class="bb8-toggle__star"></div>
-                    <div class="bb8-toggle__star"></div>
-                    <div class="bb8-toggle__star"></div>
-                    <div class="bb8-toggle__star"></div>
-                    <div class="bb8-toggle__star"></div>
-                    <div class="bb8-toggle__star"></div>
-                    <div class="bb8-toggle__star"></div>
-                    <div class="tatto-1"></div>
-                    <div class="tatto-2"></div>
-                    <div class="gomrassen"></div>
-                    <div class="hermes"></div>
-                    <div class="chenini"></div>
-                    <div class="bb8-toggle__cloud"></div>
-                    <div class="bb8-toggle__cloud"></div>
-                    <div class="bb8-toggle__cloud"></div>
+              {/* BB8 animated day/night theme toggle */}
+              <label className="bb8-toggle">
+                <input
+                  className="bb8-toggle__checkbox"
+                  type="checkbox"
+                  onChange={toggleTheme}
+                  checked={isDarkMode}
+                />
+                <div className="bb8-toggle__container">
+                  <div className="bb8-toggle__scenery">
+                    <div className="bb8-toggle__star"></div>
+                    <div className="bb8-toggle__star"></div>
+                    <div className="bb8-toggle__star"></div>
+                    <div className="bb8-toggle__star"></div>
+                    <div className="bb8-toggle__star"></div>
+                    <div className="bb8-toggle__star"></div>
+                    <div className="bb8-toggle__star"></div>
+                    <div className="tatto-1"></div>
+                    <div className="tatto-2"></div>
+                    <div className="gomrassen"></div>
+                    <div className="hermes"></div>
+                    <div className="chenini"></div>
+                    <div className="bb8-toggle__cloud"></div>
+                    <div className="bb8-toggle__cloud"></div>
+                    <div className="bb8-toggle__cloud"></div>
                   </div>
-                  <div class="bb8">
-                    <div class="bb8__head-container">
-                      <div class="bb8__antenna"></div>
-                      <div class="bb8__antenna"></div>
-                      <div class="bb8__head"></div>
+                  <div className="bb8">
+                    <div className="bb8__head-container">
+                      <div className="bb8__antenna"></div>
+                      <div className="bb8__antenna"></div>
+                      <div className="bb8__head"></div>
                     </div>
-                    <div class="bb8__body"></div>
+                    <div className="bb8__body"></div>
                   </div>
-                  <div class="artificial__hidden">
-                    <div class="bb8__shadow"></div>
+                  <div className="artificial__hidden">
+                    <div className="bb8__shadow"></div>
                   </div>
                 </div>
               </label>
-              <button
-                onClick={handleLogout}
-                className="logout-btn"
-                title="Logout"
-              >
+
+              <button onClick={handleLogout} className="logout-btn" title="Logout">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="16,17 21,12 16,7"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="21" y1="12" x2="9" y2="12"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </div>
           </div>
         )}
 
+        {/* ── Navigation ───────────────────────────────────────────────── */}
         <nav
-          className={`header-nav ${searchExpanded ? 'shrink' : ''} ${headerTitle || alert ? 'has-title' : ''} ${isVibrating ? 'vibrating' : ''}`}
+          className={[
+            'header-nav',
+            searchExpanded          ? 'shrink'     : '',
+            hasContextualDisplay    ? 'has-title'  : '',
+            isVibrating             ? 'vibrating'  : '',
+          ].filter(Boolean).join(' ')}
           ref={navRef}
           onMouseEnter={() => setShowNav(true)}
           onMouseLeave={() => setShowNav(false)}
         >
-          {/* Alert Display - PRIORITY - shows for 3 seconds */}
-          {alert && !showNav ? (
+          {/* Alert banner — highest priority, replaces nav pills and title */}
+          {alert && !showNav && (
             <div className="header-alert">
               <span className="alert-icon material-symbols-rounded" style={{ color: `var(${alert.color})` }}>
                 {alert.icon}
@@ -311,33 +245,31 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
                 {alert.message}
               </span>
             </div>
-          ) : headerTitle && !showNav ? (
-            /* Title/Breadcrumb Display - shows only if NO alert */
+          )}
+
+          {/* Breadcrumb title — shown when no alert and user is not hovering */}
+          {headerTitle && !alert && !showNav && (
             <div className="header-breadcrumb">
               <h1 className="breadcrumb-title">{headerTitle}</h1>
               {headerSubtitle && (
                 <>
                   <span className="breadcrumb-separator">
-                    <span class="material-symbols-rounded">
-                      arrow_forward_ios
-                    </span>
+                    <span className="material-symbols-rounded">arrow_forward_ios</span>
                   </span>
                   <h2 className="breadcrumb-subtitle">{headerSubtitle}</h2>
                 </>
               )}
             </div>
-          ) : null}
+          )}
 
-          {/* Normal Navigation */}
-          <ul className={(headerTitle || alert) && !showNav ? 'nav-hidden' : ''}>
-            {navItems.map((item, index) => (
+          {/* Nav pills — hidden behind alert/title until user hovers */}
+          <ul className={hasContextualDisplay ? 'nav-hidden' : ''}>
+            {NAV_ITEMS.map((item) => (
               <li key={item.path} className={activeLink === item.path ? 'active' : ''}>
-                <Link
-                  to={item.path}
-                  onClick={() => handleNavClick(item.path)}
-                  title={item.label}
-                >
-                  <span className="nav-icon">{item.icon}</span>
+                <Link to={item.path} onClick={() => handleNavClick(item.path)} title={item.label}>
+                  <span className="nav-icon">
+                    <span className="material-symbols-rounded">{item.icon}</span>
+                  </span>
                   <span className="nav-text">{item.label}</span>
                 </Link>
               </li>
@@ -345,16 +277,12 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
           </ul>
         </nav>
 
+        {/* ── Global Search ─────────────────────────────────────────────── */}
         <div className={`global-search ${searchExpanded ? 'expanded' : ''}`}>
-          <button
-            className="search-icon-btn"
-            onClick={handleSearchToggle}
-            aria-label="Search"
-          >
-            <span className="material-symbols-rounded">
-              search
-            </span>
+          <button className="search-icon-btn" onClick={handleSearchToggle} aria-label="Search">
+            <span className="material-symbols-rounded">search</span>
           </button>
+
           <input
             ref={searchInputRef}
             type="text"
@@ -364,20 +292,18 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             onBlur={handleSearchBlur}
           />
+
           {searchTerm && (
             <button
               className="search-clear-btn"
-              onClick={() => {
-                clearSearch();
-                setSearchExpanded(false);
-              }}
+              onClick={() => { clearSearch(); setSearchExpanded(false); }}
             >
               ×
             </button>
           )}
         </div>
 
-        {/* logo section  */}
+        {/* ── Logo ─────────────────────────────────────────────────────── */}
         <div className="logo-section">
           <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
         </div>

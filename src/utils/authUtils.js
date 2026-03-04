@@ -1,28 +1,25 @@
-// authUtils.js - Enhanced Authentication utility functions with CEO handling
 import { END_POINT } from "../constants";
-import { apiRequest } from "./0auth";
+import { apiRequest } from "./api";
 export const AuthUtils = {
-    // Save user session after successful login
     saveUserSession: (user, rememberMe = false) => {
         const userSession = {
             userId: user._id,
             email: user.email,
             authMail: user.authMail,
-            uniqueCode: user.uniqueCode, // Store uniqueCode
+            uniqueCode: user.uniqueCode,
             loginTime: new Date().toISOString(),
             expiresAt: rememberMe
-                ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
-                : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+                ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         };
 
         localStorage.setItem('userSession', JSON.stringify(userSession));
-        localStorage.setItem('user', JSON.stringify(user)); // Store full user data
+        localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('auth0token', user.auth0token);
         localStorage.setItem('refresh_token', user.refresh_token);
         localStorage.setItem('isUserLoggedIn', 'true');
     },
 
-    // Check if user session is valid
     checkUserSession: () => {
         const session = localStorage.getItem('userSession');
         const user = localStorage.getItem('user');
@@ -39,7 +36,6 @@ export const AuthUtils = {
             const expiresAt = new Date(userSession.expiresAt);
 
             if (now > expiresAt) {
-                // Session expired
                 AuthUtils.clearUserSession();
                 return { isValid: false, user: null };
             }
@@ -53,7 +49,7 @@ export const AuthUtils = {
                     uniqueCode: userSession.uniqueCode,
                     loginTime: userSession.loginTime,
                     name: userData.name,
-                    ...userData // Include all user data
+                    ...userData 
                 }
             };
         } catch (error) {
@@ -62,26 +58,22 @@ export const AuthUtils = {
         }
     },
 
-    // Clear user session (logout)
     clearUserSession: () => {
         localStorage.removeItem('userSession');
         localStorage.removeItem('user');
         localStorage.removeItem('isUserLoggedIn');
-        localStorage.removeItem('ceoUniqueCode'); // Clear CEO code cache
+        localStorage.removeItem('ceoUniqueCode'); 
     },
 
-    // Get current user from session
     getCurrentUser: () => {
         const { isValid, user } = AuthUtils.checkUserSession();
         return isValid ? user : null;
     },
 
-    // Check if user is logged in
     isAuthenticated: () => {
         return AuthUtils.checkUserSession().isValid;
     },
 
-    // Check if current user is CEO
     isCEO: async () => {
         const currentUser = AuthUtils.getCurrentUser();
         if (!currentUser || !currentUser.uniqueCode || !currentUser.email) {
@@ -89,7 +81,6 @@ export const AuthUtils = {
         }
 
         try {
-            // Check if we have cached CEO code
             const cachedCEOCode = localStorage.getItem('ceoUniqueCode');
             if (cachedCEOCode) {
                 return currentUser.uniqueCode === cachedCEOCode;
@@ -99,7 +90,6 @@ export const AuthUtils = {
                 email: currentUser.email
             }
 
-            // Fetch CEO's unique code from API by sending current user's email
             const response = await apiRequest(`${END_POINT}/users/verify-ceo`,
                 'POST',
                 body
@@ -108,7 +98,6 @@ export const AuthUtils = {
             const data = await response.json();
 
             if (response.ok && data.success && data.data) {
-                // Cache the CEO code for future use
                 localStorage.setItem('ceoUniqueCode', data.data);
                 return currentUser.uniqueCode === data.data;
             }
@@ -120,7 +109,6 @@ export const AuthUtils = {
         }
     },
 
-    // Extend session (for remember me functionality)
     extendSession: (days = 30) => {
         const session = localStorage.getItem('userSession');
         if (session) {
@@ -131,17 +119,12 @@ export const AuthUtils = {
     }
 };
 
-// Enhanced Login Component Logic
 export const LoginLogic = {
-    // Handle successful login with CEO check
     handleLoginSuccess: async (userData, rememberMe, navigate, setUserLoggedIn) => {
-        // Save session
         AuthUtils.saveUserSession(userData, rememberMe);
 
-        // Update app state
         setUserLoggedIn(true);
 
-        // Check if user is CEO and redirect accordingly
         const isCEO = await AuthUtils.isCEO();
         if (isCEO) {
             navigate('/dashboard');
@@ -150,15 +133,9 @@ export const LoginLogic = {
         }
     },
 
-    // Handle logout
     handleLogout: (navigate, setUserLoggedIn) => {
-        // Clear session
         AuthUtils.clearUserSession();
-
-        // Update app state
         setUserLoggedIn(false);
-
-        // Redirect to login
         navigate('/login');
     },
 
@@ -181,7 +158,7 @@ export const LoginLogic = {
             return {
                 success: true,
                 user: data.data,
-                requiresOTP: !!data.data.authMail // Flag to indicate if OTP is needed
+                requiresOTP: !!data.data.authMail
             };
         } catch (error) {
             return { success: false, error: error.message };
@@ -204,12 +181,10 @@ export const LoginLogic = {
             }
 
             if (data.authorized) {
-                // Handle successful verification and login
                 const finalUserData = data.data.user || userData;
                 AuthUtils.saveUserSession(finalUserData, rememberMe);
                 setUserLoggedIn(true);
 
-                // Check if user is CEO and redirect accordingly
                 const isCEO = await AuthUtils.isCEO();
                 if (isCEO) {
                     navigate('/dashboard');
@@ -246,7 +221,6 @@ export const LoginLogic = {
     }
 };
 
-// Protected Route Component Logic
 export const ProtectedRoute = ({ children, navigate }) => {
     const { isValid } = AuthUtils.checkUserSession();
 
@@ -258,13 +232,10 @@ export const ProtectedRoute = ({ children, navigate }) => {
     return children;
 };
 
-// Auto-login check for App component with CEO redirect
 export const checkAutoLogin = async (setUserLoggedIn, navigate) => {
     const { isValid } = AuthUtils.checkUserSession();
     if (isValid) {
         setUserLoggedIn(true);
-
-        // Check if user is CEO and redirect to dashboard if needed
         const isCEO = await AuthUtils.isCEO();
         if (isCEO && navigate && window.location.pathname !== '/dashboard') {
             navigate('/dashboard');

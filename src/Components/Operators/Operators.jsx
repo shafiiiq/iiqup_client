@@ -1,247 +1,186 @@
-import React, { useState, useEffect, useRef } from 'react';
+// ─────────────────────────────────────────────────────────────────────────────
+// Operators.jsx — Operators list with add/edit/delete, details sidebar,
+//                 profile picture upload, and fullscreen image viewer.
+// Single file — all logic is tightly coupled to shared state. No splitting needed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './Operators.css';
-import { END_POINT } from '../../constants';
-import { apiRequest } from '../../utils/0auth';
-import { useSearch } from '../../context/SearchContext';
-import Button from '../../common/Button/Button';
-import Loader from '../../common/Loader/Loader';
-import DevModal from '../../common/DevModal';
+
+import { END_POINT }  from '../../constants';
+import { apiRequest } from '../../utils/api';
+import { useSearch }  from '../../Context/SearchContext';
+
+import Button   from '../../Common/Button/Button';
+import Loader   from '../../Common/Loader/Loader';
+import DevModal from '../../Common/DevModal/DevModal';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Static option lists — defined outside the component so they are never
+// recreated. Safe to reference directly in the form fields config.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NATIONALITY_OPTIONS   = ['INDIAN', 'NEPALI', 'BANGLADESHI', 'PAKISTANI', 'SRI LANKAN', 'OTHER'];
+const SPONSORSHIP_OPTIONS   = ['ATE', 'ASK', 'HIRED'];
+const WORKING_IN_OPTIONS    = ['ATE', 'SITE', 'OFFICE', 'ASK'];
+const LICENCE_TYPE_OPTIONS  = ['Loader', 'Car', 'Bus', 'Med. Truck', 'Heavy Truck', 'Crane', 'Forklift'];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty form — single source of truth for both "add" and "reset" paths
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EMPTY_FORM = {
+  name:                     '',
+  userType:                 'operator',
+  nationality:              'INDIAN',
+  sponsorship:              'ATE',
+  workingIn:                'ATE',
+  doj:                      '',
+  passportNo:               '',
+  passportExpiry:           '',
+  qatarId:                  '',
+  qidExpiry:                '',
+  healthCardExpiry:         '',
+  licenceType:              '',
+  licenceExpiry:            '',
+  labourContractExpiry:     '',
+  workmenCompensationAdded: 'no',
+  contactNo:                '',
+  dob:                      '',
+  email:                    '',
+  password:                 '',
+  equipmentNumber:          '',
+  isVerified:               false,
+  toolkits:                 [],
+  hired:                    false,
+  hiredFrom:                '',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pure helpers — no React, no side effects
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** "AB" initials from a full name. Falls back to "OP". */
+const getInitials = (name) => {
+  if (!name) return 'OP';
+  const parts = name.trim().split(' ');
+  return parts.length === 1
+    ? parts[0][0].toUpperCase()
+    : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+/** Locale date string or "N/A". */
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString();
+};
+
+/** True when the date is in the past. */
+const isExpired = (dateString) => {
+  if (!dateString) return false;
+  return new Date(dateString) < new Date();
+};
+
+/**
+ * Derives display status from document expiry and verification flag.
+ * Returns 'expired' | 'pending' | 'active'.
+ */
+const getOperatorStatus = (operator) => {
+  const docs = [
+    operator.passportExpiry,
+    operator.qidExpiry,
+    operator.licenceExpiry,
+    operator.healthCardExpiry,
+    operator.labourContractExpiry,
+  ];
+  if (docs.some(isExpired)) return 'expired';
+  if (!operator.isVerified)  return 'pending';
+  return 'active';
+};
+
+/** Sort-icon character for a sortable column header. */
+const getSortIcon = (field, sortField, sortDirection) => {
+  if (sortField !== field) return '⇅';
+  return sortDirection === 'asc' ? '↑' : '↓';
+};
+
+/** Converts a date value to "YYYY-MM-DD" for date inputs. */
+const toInputDate = (value) =>
+  value ? new Date(value).toISOString().split('T')[0] : '';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FullScreenImageViewer
+// Defined OUTSIDE the parent component so React doesn't remount it on every
+// parent render. Receives only what it needs.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FullScreenImageViewer = ({ src, onClose }) => {
+  if (!src) return null;
+
+  return (
+    <div className="fullscreen-image-overlay" onClick={onClose}>
+      <button className="fullscreen-close-btn" onClick={onClose}>×</button>
+      <img
+        src={src}
+        alt="Full screen"
+        className="fullscreen-image"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OperatorDetailItem — small presentational helper to avoid repeated JSX
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DetailItem = ({ label, value, expired = false, className = '' }) => (
+  <div className="operator-detail-item">
+    <span className="label">{label}:</span>
+    <span className={`value ${expired ? 'expired' : ''} ${className}`}>
+      {value}
+      {expired && ' (Expired)'}
+    </span>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Operators Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 const Operators = () => {
-  const { searchTerm, setSearchTerm } = useSearch();
+  const { searchTerm } = useSearch();
 
-  // Predefined options
-  const nationalityOptions = ['INDIAN', 'NEPALI', 'BANGLADESHI', 'PAKISTANI', 'SRI LANKAN', 'OTHER'];
-  const sponsorshipOptions = ['ATE', 'ASK', 'HIRED'];
-  const workingInOptions = ['ATE', 'SITE', 'OFFICE', 'ASK'];
-  const licenceTypeOptions = ['Loader', 'Car', 'Bus', 'Med. Truck', 'Heavy Truck', 'Crane', 'Forklift'];
-
-  const [operators, setOperators] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedOperator, setSelectedOperator] = useState(null);
-  const [currentDateTime, setCurrentDateTime] = useState('');
-  const [darkMode, setDarkMode] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [devModalOpen, setDevModalOpen] = React.useState(false);
-  const [devModalFileValues, setDevModalFileValues] = React.useState({});
-  const [formMode, setFormMode] = useState('add');
+  // ── Data ───────────────────────────────────────────────────────────────────
+  const [operators,      setOperators]      = useState([]);
   const [profilePicUrls, setProfilePicUrls] = useState({});
-  const [fullScreenImage, setFullScreenImage] = useState(null);
-  const [activeTab, setActiveTab] = useState('internal');
-  const [sortField, setSortField] = useState('name');
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState(null);
+
+  // ── UI State ───────────────────────────────────────────────────────────────
+  const [selectedOperator, setSelectedOperator] = useState(null);
+  const [fullScreenImage,  setFullScreenImage]  = useState(null);
+  const [activeTab,        setActiveTab]        = useState('internal');
+
+  // ── Table Sorting ──────────────────────────────────────────────────────────
+  const [sortField,     setSortField]     = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
 
-  const [formData, setFormData] = useState({
-    name: '',
-    userType: 'operator',
-    nationality: 'INDIAN',
-    sponsorship: 'ATE',
-    workingIn: 'ATE',
-    doj: '',
-    passportNo: '',
-    passportExpiry: '',
-    qatarId: '',
-    qidExpiry: '',
-    healthCardExpiry: '',
-    licenceType: '',
-    licenceExpiry: '',
-    labourContractExpiry: '',
-    workmenCompensationAdded: 'no',
-    contactNo: '',
-    dob: '',
-    email: '',
-    password: '',
-    equipmentNumber: '',
-    isVerified: false,
-    toolkits: [],
-    hired: false,
-    hiredFrom: ''
-  });
-
-  const operatorFormFields = [
-    { name: 'profilePic', label: 'Profile Picture', type: 'file', accept: 'image/*', currentPreview: profilePicUrls[formData.qatarId] || null },
-    { name: 'name', label: 'Full Name', type: 'text', placeholder: 'Full name', required: true },
-    { name: 'qatarId', label: 'Qatar ID', type: 'text', placeholder: 'Qatar ID', required: true },
-    { name: 'contactNo', label: 'Contact Number', type: 'text', placeholder: 'Contact number' },
-    { name: 'email', label: 'Email', type: 'text', placeholder: 'Email' },
-    { name: 'nationality', label: 'Nationality', type: 'allow-add-select', placeholder: 'Select nationality', options: nationalityOptions },
-    { name: 'sponsorship', label: 'Sponsorship', type: 'allow-add-select', placeholder: 'Select sponsorship', options: sponsorshipOptions },
-    ...(formData.sponsorship === 'HIRED' ? [{
-      name: 'hiredFrom',
-      label: 'Hired From',
-      type: 'text',
-      placeholder: 'Enter company/organization name',
-      required: true
-    }] : []),
-    { name: 'workingIn', label: 'Working In', type: 'allow-add-select', placeholder: 'Select location', options: workingInOptions },
-    { name: 'equipmentNumber', label: 'Equipment Number', type: 'text', placeholder: 'Equipment number' },
-    { name: 'workmenCompensationAdded', label: 'Workmen Compensation', type: 'select', options: [{ label: 'No', value: 'no' }, { label: 'Yes', value: 'yes' }] },
-    { name: 'passportNo', label: 'Passport Number', type: 'text', placeholder: 'Passport number' },
-    { name: 'licenceType', label: 'Licence Type', type: 'allow-add-select', placeholder: 'Select licence type', options: licenceTypeOptions },
-    { name: 'dob', label: 'Date of Birth', type: 'date' },
-    { name: 'doj', label: 'Date of Joining', type: 'date' },
-    { name: 'passportExpiry', label: 'Passport Expiry', type: 'date' },
-    { name: 'qidExpiry', label: 'QID Expiry', type: 'date' },
-    { name: 'healthCardExpiry', label: 'Health Card Expiry', type: 'date' },
-    { name: 'licenceExpiry', label: 'Licence Expiry', type: 'date' },
-    { name: 'labourContractExpiry', label: 'Labour Contract Expiry', type: 'date' },
-    { name: 'password', label: 'Password', type: 'password', placeholder: 'Password' },
-    { name: 'isVerified', label: 'Verified Operator', type: 'checkbox' },
-  ];
-
+  // ── Form / Modal ───────────────────────────────────────────────────────────
+  const [formMode,      setFormMode]      = useState('add');
+  const [formData,      setFormData]      = useState(EMPTY_FORM);
+  const [formOpen,      setFormOpen]      = useState(false);
   const [profilePicFile, setProfilePicFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploading,     setUploading]     = useState(false);
 
-  // Search states for dropdowns
-  const [nationalitySearchTerm, setNationalitySearchTerm] = useState('');
-  const [sponsorshipSearchTerm, setSponsorshipSearchTerm] = useState('');
-  const [workingInSearchTerm, setWorkingInSearchTerm] = useState('');
-  const [licenceTypeSearchTerm, setLicenceTypeSearchTerm] = useState('');
+  // ── Delete Confirmation ────────────────────────────────────────────────────
+  const [showDeleteModal,   setShowDeleteModal]   = useState(false);
+  const [operatorToDelete,  setOperatorToDelete]  = useState(null);
 
-  // States for dropdown visibility
-  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
-  const [showSponsorshipDropdown, setShowSponsorshipDropdown] = useState(false);
-  const [showWorkingInDropdown, setShowWorkingInDropdown] = useState(false);
-  const [showLicenceTypeDropdown, setShowLicenceTypeDropdown] = useState(false);
+  // ─────────────────────────────────────────────────────────────────────────
+  // Fetch Operators
+  // ─────────────────────────────────────────────────────────────────────────
 
-  // Refs for dropdown components
-  const nationalityDropdownRef = useRef(null);
-  const sponsorshipDropdownRef = useRef(null);
-  const workingInDropdownRef = useRef(null);
-  const licenceTypeDropdownRef = useRef(null);
-
-  // Refs for date inputs
-  const dobRef = useRef(null);
-  const dojRef = useRef(null);
-  const passportExpiryRef = useRef(null);
-  const qidExpiryRef = useRef(null);
-  const healthCardExpiryRef = useRef(null);
-  const licenceExpiryRef = useRef(null);
-  const labourContractExpiryRef = useRef(null);
-
-  // Filtered lists based on search term
-  const filteredNationalities = nationalityOptions.filter(nationality =>
-    nationality.toLowerCase().includes(nationalitySearchTerm.toLowerCase())
-  );
-
-  const filteredSponsorships = sponsorshipOptions.filter(sponsorship =>
-    sponsorship.toLowerCase().includes(sponsorshipSearchTerm.toLowerCase())
-  );
-
-  const filteredWorkingIn = workingInOptions.filter(working =>
-    working.toLowerCase().includes(workingInSearchTerm.toLowerCase())
-  );
-
-  const filteredLicenceTypes = licenceTypeOptions.filter(licence =>
-    licence.toLowerCase().includes(licenceTypeSearchTerm.toLowerCase())
-  );
-
-  // Sorting function
-  const handleSort = (field) => {
-    const direction = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
-    setSortField(field);
-    setSortDirection(direction);
-  };
-
-  // Get sorted operators
-  const getSortedOperators = (operatorsToSort) => {
-    return [...operatorsToSort].sort((a, b) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
-
-      // Handle null/undefined values
-      if (aValue == null) aValue = '';
-      if (bValue == null) bValue = '';
-
-      // Convert to string for consistent comparison
-      aValue = aValue.toString().toLowerCase();
-      bValue = bValue.toString().toLowerCase();
-
-      if (sortDirection === 'asc') {
-        return aValue.localeCompare(bValue);
-      } else {
-        return bValue.localeCompare(aValue);
-      }
-    });
-  };
-
-  // Load profile pic URLs when operators are fetched
-  useEffect(() => {
-    const loadProfilePics = async () => {
-      const urls = {};
-
-      for (const operator of operators) {
-        if (operator.profilePic?.filePath) {
-          const url = await getProfilePicUrl(operator.profilePic.filePath);
-          if (url) {
-            urls[operator.qatarId] = url;
-          }
-        }
-      }
-
-      setProfilePicUrls(urls);
-    };
-
-    if (operators.length > 0) {
-      loadProfilePics();
-    }
-  }, [operators]);
-
-  // Update current date and time
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString}   |   ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (nationalityDropdownRef.current && !nationalityDropdownRef.current.contains(event.target)) {
-        setShowNationalityDropdown(false);
-      }
-      if (sponsorshipDropdownRef.current && !sponsorshipDropdownRef.current.contains(event.target)) {
-        setShowSponsorshipDropdown(false);
-      }
-      if (workingInDropdownRef.current && !workingInDropdownRef.current.contains(event.target)) {
-        setShowWorkingInDropdown(false);
-      }
-      if (licenceTypeDropdownRef.current && !licenceTypeDropdownRef.current.contains(event.target)) {
-        setShowLicenceTypeDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Apply dark mode to body
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-theme');
-    } else {
-      document.body.classList.remove('dark-theme');
-    }
-  }, [darkMode]);
-
-  // Fetch operators data
   useEffect(() => {
     const fetchOperators = async () => {
       try {
@@ -250,491 +189,280 @@ const Operators = () => {
         if (!response.ok) throw new Error('Failed to fetch operators');
         const result = await response.json();
         setOperators(Array.isArray(result.data) ? result.data : []);
-        setLoading(false);
       } catch (err) {
         setError(err.message);
-        setLoading(false);
         console.error('Error fetching operators:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchOperators();
   }, []);
 
-  const filteredOperators = operators.filter(operator => {
-    // Filter by tab
-    const tabFilter = activeTab === 'internal'
-      ? !operator.hired || operator.hired === false
-      : operator.hired === true;
+  // ─────────────────────────────────────────────────────────────────────────
+  // Profile Picture URL Loading (S3 pre-signed)
+  // Runs after operators list changes. Builds a qatarId → url map.
+  // ─────────────────────────────────────────────────────────────────────────
 
-    // Filter by search term
-    const searchFilter =
-      operator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      operator.qatarId.includes(searchTerm) ||
-      operator.uniqueCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      operator.nationality.toLowerCase().includes(searchTerm.toLowerCase());
+  const getProfilePicUrl = useCallback(async (filePath) => {
+    if (!filePath) return null;
+    try {
+      const res = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.dataUrl;
+    } catch {
+      return null;
+    }
+  }, []);
 
-    return tabFilter && searchFilter;
-  });
+  useEffect(() => {
+    if (!operators.length) return;
 
-  const sortedAndFilteredOperators = getSortedOperators(filteredOperators);
+    const loadProfilePics = async () => {
+      const urls = {};
+      for (const op of operators) {
+        if (op.profilePic?.filePath) {
+          const url = await getProfilePicUrl(op.profilePic.filePath);
+          if (url) urls[op.qatarId] = url;
+        }
+      }
+      setProfilePicUrls(urls);
+    };
 
-  // Generate initials for profile picture placeholder
-  const getInitials = (name) => {
-    if (!name) return 'OP';
-    const names = name.split(' ');
-    if (names.length === 1) return names[0].charAt(0).toUpperCase();
-    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
-  };
+    loadProfilePics();
+  }, [operators, getProfilePicUrl]);
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Derived Data — memoised to avoid recomputation on every render
+  // ─────────────────────────────────────────────────────────────────────────
 
-  // Check if date is expired
-  const isExpired = (dateString) => {
-    if (!dateString) return false;
-    return new Date(dateString) < new Date();
-  };
+  const filteredAndSorted = useMemo(() => {
+    const q = searchTerm.toLowerCase();
 
-  // Calculate operator status
-  const calculateOperatorStatus = (operator) => {
-    const expiredDocs = [];
-    if (isExpired(operator.passportExpiry)) expiredDocs.push('Passport');
-    if (isExpired(operator.qidExpiry)) expiredDocs.push('QID');
-    if (isExpired(operator.licenceExpiry)) expiredDocs.push('License');
-    if (isExpired(operator.healthCardExpiry)) expiredDocs.push('Health Card');
-    if (isExpired(operator.labourContractExpiry)) expiredDocs.push('Labour Contract');
+    const filtered = operators.filter((op) => {
+      const matchesTab = activeTab === 'internal'
+        ? !op.hired || op.hired === false
+        : op.hired === true;
 
-    if (expiredDocs.length > 0) return 'expired';
-    if (!operator.isVerified) return 'pending';
-    return 'active';
-  };
+      const matchesSearch = !q ||
+        op.name.toLowerCase().includes(q)            ||
+        op.qatarId.includes(searchTerm)              ||
+        op.uniqueCode.toLowerCase().includes(q)      ||
+        op.nationality.toLowerCase().includes(q);
 
-  // Show operator details
-  const showDetails = (operator) => {
-    setSelectedOperator(operator);
-  };
-
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      return matchesTab && matchesSearch;
     });
+
+    return [...filtered].sort((a, b) => {
+      const av = (a[sortField] ?? '').toString().toLowerCase();
+      const bv = (b[sortField] ?? '').toString().toLowerCase();
+      return sortDirection === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }, [operators, activeTab, searchTerm, sortField, sortDirection]);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Sorting
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const handleSort = (field) => {
+    setSortDirection(prev => sortField === field && prev === 'asc' ? 'desc' : 'asc');
+    setSortField(field);
   };
 
-  // Handle date input clicks
-  const handleDateInputClick = (ref) => {
-    if (ref.current) {
-      ref.current.showPicker();
-    }
-  };
-
-  // Handle file selection for profile picture
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size should be less than 5MB');
-        return;
-      }
-      setProfilePicFile(file);
-    }
-  };
-
-  // Handle dropdown selections
-  const handleNationalitySelect = (selected) => {
-    setFormData({ ...formData, nationality: selected });
-    setNationalitySearchTerm(selected);
-    setShowNationalityDropdown(false);
-  };
-
-  const handleSponsorshipSelect = (selected) => {
-    setFormData({ ...formData, sponsorship: selected });
-    setSponsorshipSearchTerm(selected);
-    setShowSponsorshipDropdown(false);
-  };
-
-  const handleWorkingInSelect = (selected) => {
-    setFormData({ ...formData, workingIn: selected });
-    setWorkingInSearchTerm(selected);
-    setShowWorkingInDropdown(false);
-  };
-
-  const handleLicenceTypeSelect = (selected) => {
-    setFormData({ ...formData, licenceType: selected });
-    setLicenceTypeSearchTerm(selected);
-    setShowLicenceTypeDropdown(false);
-  };
-
-  // Handle search input changes
-  const handleNationalitySearchChange = (e) => {
-    setNationalitySearchTerm(e.target.value);
-    setShowNationalityDropdown(true);
-  };
-
-  const handleSponsorshipSearchChange = (e) => {
-    setSponsorshipSearchTerm(e.target.value);
-    setShowSponsorshipDropdown(true);
-  };
-
-  const handleWorkingInSearchChange = (e) => {
-    setWorkingInSearchTerm(e.target.value);
-    setShowWorkingInDropdown(true);
-  };
-
-  const handleLicenceTypeSearchChange = (e) => {
-    setLicenceTypeSearchTerm(e.target.value);
-    setShowLicenceTypeDropdown(true);
-  };
-
-  // Toggle dropdowns
-  const toggleNationalityDropdown = () => {
-    setShowNationalityDropdown(!showNationalityDropdown);
-    setShowSponsorshipDropdown(false);
-    setShowWorkingInDropdown(false);
-    setShowLicenceTypeDropdown(false);
-  };
-
-  const toggleSponsorshipDropdown = () => {
-    setShowSponsorshipDropdown(!showSponsorshipDropdown);
-    setShowNationalityDropdown(false);
-    setShowWorkingInDropdown(false);
-    setShowLicenceTypeDropdown(false);
-  };
-
-  const toggleWorkingInDropdown = () => {
-    setShowWorkingInDropdown(!showWorkingInDropdown);
-    setShowNationalityDropdown(false);
-    setShowSponsorshipDropdown(false);
-    setShowLicenceTypeDropdown(false);
-  };
-
-  const toggleLicenceTypeDropdown = () => {
-    setShowLicenceTypeDropdown(!showLicenceTypeDropdown);
-    setShowNationalityDropdown(false);
-    setShowSponsorshipDropdown(false);
-    setShowWorkingInDropdown(false);
-  };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Form — Open / Close
+  // ─────────────────────────────────────────────────────────────────────────
 
   const openAddForm = () => {
     setFormMode('add');
-    setFormData({
-      name: '',
-      userType: 'operator',
-      nationality: 'INDIAN',
-      sponsorship: 'ATE',
-      workingIn: 'ATE',
-      doj: '',
-      passportNo: '',
-      passportExpiry: '',
-      qatarId: '',
-      qidExpiry: '',
-      healthCardExpiry: '',
-      licenceType: '',
-      licenceExpiry: '',
-      labourContractExpiry: '',
-      workmenCompensationAdded: 'no',
-      contactNo: '',
-      dob: '',
-      email: '',
-      password: '',
-      equipmentNumber: '',
-      isVerified: false,
-      toolkits: [],
-      hired: false,
-      hiredFrom: ''
-    });
-    setNationalitySearchTerm('INDIAN');
-    setSponsorshipSearchTerm('ATE');
-    setWorkingInSearchTerm('ATE');
-    setLicenceTypeSearchTerm('');
+    setFormData(EMPTY_FORM);
     setProfilePicFile(null);
-    setDevModalOpen(true);
+    setFormOpen(true);
   };
 
-  // Open edit form
   const openEditForm = (operator) => {
     setFormMode('update');
     setFormData({
-      _id: operator._id,
-      id: operator.id,
-      slNo: operator.slNo,
-      name: operator.name,
-      userType: operator.userType,
-      uniqueCode: operator.uniqueCode,
-      nationality: operator.nationality,
-      sponsorship: operator.sponsorship,
-      workingIn: operator.workingIn,
-      doj: operator.doj ? new Date(operator.doj).toISOString().split('T')[0] : '',
-      passportNo: operator.passportNo,
-      passportExpiry: operator.passportExpiry ? new Date(operator.passportExpiry).toISOString().split('T')[0] : '',
-      qatarId: operator.qatarId,
-      qidExpiry: operator.qidExpiry ? new Date(operator.qidExpiry).toISOString().split('T')[0] : '',
-      healthCardExpiry: operator.healthCardExpiry ? new Date(operator.healthCardExpiry).toISOString().split('T')[0] : '',
-      licenceType: operator.licenceType,
-      licenceExpiry: operator.licenceExpiry ? new Date(operator.licenceExpiry).toISOString().split('T')[0] : '',
-      labourContractExpiry: operator.labourContractExpiry ? new Date(operator.labourContractExpiry).toISOString().split('T')[0] : '',
+      _id:                      operator._id,
+      id:                       operator.id,
+      slNo:                     operator.slNo,
+      uniqueCode:               operator.uniqueCode,
+      name:                     operator.name,
+      userType:                 operator.userType,
+      nationality:              operator.nationality,
+      sponsorship:              operator.sponsorship,
+      workingIn:                operator.workingIn,
+      doj:                      toInputDate(operator.doj),
+      passportNo:               operator.passportNo,
+      passportExpiry:           toInputDate(operator.passportExpiry),
+      qatarId:                  operator.qatarId,
+      qidExpiry:                toInputDate(operator.qidExpiry),
+      healthCardExpiry:         toInputDate(operator.healthCardExpiry),
+      licenceType:              operator.licenceType,
+      licenceExpiry:            toInputDate(operator.licenceExpiry),
+      labourContractExpiry:     toInputDate(operator.labourContractExpiry),
       workmenCompensationAdded: operator.workmenCompensationAdded,
-      contactNo: operator.contactNo,
-      dob: operator.dob ? new Date(operator.dob).toISOString().split('T')[0] : '',
-      email: operator.email,
-      password: operator.password,
-      equipmentNumber: operator.equipmentNumber,
-      isVerified: operator.isVerified,
-      toolkits: operator.toolkits || [],
-      hired: operator.hired || false
+      contactNo:                operator.contactNo,
+      dob:                      toInputDate(operator.dob),
+      email:                    operator.email,
+      password:                 operator.password,
+      equipmentNumber:          operator.equipmentNumber,
+      isVerified:               operator.isVerified,
+      toolkits:                 operator.toolkits || [],
+      hired:                    operator.hired || false,
+      hiredFrom:                operator.hiredFrom || '',
     });
-    setNationalitySearchTerm(operator.nationality);
-    setSponsorshipSearchTerm(operator.sponsorship);
-    setWorkingInSearchTerm(operator.workingIn);
-    setLicenceTypeSearchTerm(operator.licenceType);
     setProfilePicFile(null);
-    setDevModalOpen(true)
+    setFormOpen(true);
   };
 
-  // Upload profile picture to S3
-  const uploadProfilePicture = async (qatarId, name) => {
+  // ─────────────────────────────────────────────────────────────────────────
+  // Form Submit — Add / Update
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const uploadProfilePicture = async (qatarId) => {
     if (!profilePicFile) return null;
-
+    setUploading(true);
     try {
-      setUploading(true);
-      const response = await apiRequest(
-        `${END_POINT}/operators/upload-profile-pic`,
-        'POST',
-        { qatarId },
-        {},
-        profilePicFile
-      );
-
-      if (!response.ok) throw new Error('Failed to upload profile picture');
-      const result = await response.json();
+      const res = await apiRequest(`${END_POINT}/operators/upload-profile-pic`, 'POST', { qatarId }, {}, profilePicFile);
+      if (!res.ok) throw new Error('Failed to upload profile picture');
+      const result = await res.json();
       return result.data.profilePic;
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      throw error;
     } finally {
       setUploading(false);
     }
   };
 
-  // Form submit handler
-  const handleFormSubmit = async (e) => {
+  const handleFormSubmit = async () => {
     try {
-      let profilePicUrl = null;
+      const profilePicUrl = await uploadProfilePicture(formData.qatarId);
+      const payload       = { ...formData, ...(profilePicUrl && { profilePic: profilePicUrl }) };
 
-      if (profilePicFile) {
-        profilePicUrl = await uploadProfilePicture(formData.qatarId, formData.name);
-      }
+      const isAdd  = formMode === 'add';
+      const url    = isAdd
+        ? `${END_POINT}/operators/create-operator`
+        : `${END_POINT}/operators/update-operator/${selectedOperator._id}`;
 
-      const operatorData = {
-        ...formData,
-        ...(profilePicUrl && { profilePic: profilePicUrl })
-      };
+      const res = await apiRequest(url, isAdd ? 'POST' : 'PUT', payload);
+      if (!res.ok) throw new Error(`Failed to ${formMode} operator`);
+      const result = await res.json();
 
-      let response;
-
-      if (formMode === 'add') {
-        response = await apiRequest(
-          `${END_POINT}/operators/create-operator`,
-          'POST',
-          operatorData
-        );
+      if (isAdd) {
+        setOperators(prev => [...prev, result.data]);
       } else {
-        response = await apiRequest(
-          `${END_POINT}/operators/update-operator/${selectedOperator._id}`,
-          'PUT',
-          operatorData
-        );
+        setOperators(prev => prev.map(op => op.qatarId === result.data.qatarId ? result.data : op));
+        if (selectedOperator?._id === formData._id) setSelectedOperator(result.data);
       }
 
-      if (!response.ok) throw new Error(`Failed to ${formMode} operator`);
-      const result = await response.json();
-
-      if (formMode === 'add') {
-        setOperators([...operators, result.data]);
-      } else {
-        setOperators(operators.map(op =>
-          op.qatarId === result.data.qatarId ? result.data : op
-        ));
-        if (selectedOperator && selectedOperator._id === formData._id) {
-          setSelectedOperator(result.data);
-        }
-      }
-
-      setDevModalOpen(false)
+      setFormOpen(false);
       setProfilePicFile(null);
-
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert(`Failed to ${formMode} operator: ${error.message}`);
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      alert(`Failed to ${formMode} operator: ${err.message}`);
     }
   };
 
-  const deleteOperator = async (qatarId) => {
-    if (!window.confirm('Are you sure you want to delete this operator?')) return;
+  // ─────────────────────────────────────────────────────────────────────────
+  // Delete
+  // ─────────────────────────────────────────────────────────────────────────
 
+  const handleDeleteClick = (operator) => {
+    setOperatorToDelete(operator);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!operatorToDelete) return;
     try {
-      const response = await apiRequest(
-        `${END_POINT}/operators/delete-operator/${qatarId}`,
-        'DELETE'
-      );
+      const res = await apiRequest(`${END_POINT}/operators/delete-operator/${operatorToDelete.qatarId}`, 'DELETE');
+      if (!res.ok) throw new Error('Failed to delete operator');
 
-      if (!response.ok) throw new Error('Failed to delete operator');
-
-      setOperators(operators.filter(op => op.qatarId !== qatarId));
-      if (selectedOperator && selectedOperator.qatarId === qatarId) {
-        setSelectedOperator(null);
-      }
-    } catch (error) {
-      console.error('Error deleting operator:', error);
-      alert(`Failed to delete operator: ${error.message}`);
+      setOperators(prev => prev.filter(op => op.qatarId !== operatorToDelete.qatarId));
+      if (selectedOperator?.qatarId === operatorToDelete.qatarId) setSelectedOperator(null);
+    } catch (err) {
+      console.error('Error deleting operator:', err);
+      alert(`Failed to delete operator: ${err.message}`);
+    } finally {
+      setShowDeleteModal(false);
+      setOperatorToDelete(null);
     }
   };
 
-  // Get sort icon
-  const getSortIcon = (field) => {
-    if (sortField !== field) return '⇅';
-    return sortDirection === 'asc' ? '↑' : '↓';
+  // ─────────────────────────────────────────────────────────────────────────
+  // Form Fields Config
+  // Defined inside the component (not at module level) because it references
+  // dynamic state: formData.sponsorship, profilePicUrls, formData.qatarId.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const operatorFormFields = [
+    { name: 'profilePic',               label: 'Profile Picture',          type: 'file',             accept: 'image/*', currentPreview: profilePicUrls[formData.qatarId] || null },
+    { name: 'name',                     label: 'Full Name',                 type: 'text',             placeholder: 'Full name',              required: true },
+    { name: 'qatarId',                  label: 'Qatar ID',                  type: 'text',             placeholder: 'Qatar ID',               required: true },
+    { name: 'contactNo',                label: 'Contact Number',            type: 'text',             placeholder: 'Contact number' },
+    { name: 'email',                    label: 'Email',                     type: 'text',             placeholder: 'Email' },
+    { name: 'nationality',              label: 'Nationality',               type: 'allow-add-select', options: NATIONALITY_OPTIONS },
+    { name: 'sponsorship',              label: 'Sponsorship',               type: 'allow-add-select', options: SPONSORSHIP_OPTIONS },
+    ...(formData.sponsorship === 'HIRED' ? [{ name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Company / organization name', required: true }] : []),
+    { name: 'workingIn',                label: 'Working In',                type: 'allow-add-select', options: WORKING_IN_OPTIONS },
+    { name: 'equipmentNumber',          label: 'Equipment Number',          type: 'text',             placeholder: 'Equipment number' },
+    { name: 'workmenCompensationAdded', label: 'Workmen Compensation',      type: 'select',           options: [{ label: 'No', value: 'no' }, { label: 'Yes', value: 'yes' }] },
+    { name: 'passportNo',               label: 'Passport Number',           type: 'text',             placeholder: 'Passport number' },
+    { name: 'licenceType',              label: 'Licence Type',              type: 'allow-add-select', options: LICENCE_TYPE_OPTIONS },
+    { name: 'dob',                      label: 'Date of Birth',             type: 'date' },
+    { name: 'doj',                      label: 'Date of Joining',           type: 'date' },
+    { name: 'passportExpiry',           label: 'Passport Expiry',           type: 'date' },
+    { name: 'qidExpiry',                label: 'QID Expiry',                type: 'date' },
+    { name: 'healthCardExpiry',         label: 'Health Card Expiry',        type: 'date' },
+    { name: 'licenceExpiry',            label: 'Licence Expiry',            type: 'date' },
+    { name: 'labourContractExpiry',     label: 'Labour Contract Expiry',    type: 'date' },
+    { name: 'password',                 label: 'Password',                  type: 'password',         placeholder: 'Password' },
+    { name: 'isVerified',               label: 'Verified Operator',         type: 'checkbox' },
+  ];
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Shared Button defaults for this page
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const BTN = {
+    variant: 'gradient', font: 'md', animation: '', squircle: '4xl',
+    width: '160px', height: '38px', type: 'submit',
+    shadowPosition: 'to-bottom', shadowColor: 'white-600',
   };
 
-  const getProfilePicUrl = async (filePath) => {
-    if (!filePath) return null;
-
-    try {
-      const body = { key: filePath, isLong: false };
-      const s3response = await apiRequest(`${END_POINT}/s3Config/get-pre-signed-url`, 'POST', body);
-
-      if (!s3response.ok) return null;
-
-      const s3URL = await s3response.json();
-      return s3URL.dataUrl;
-    } catch (error) {
-      console.error('Error getting profile pic URL:', error);
-      return null;
-    }
-  };
-
-  const FullScreenImageViewer = () => {
-    if (!fullScreenImage) return null;
-
-    return (
-      <div
-        className="fullscreen-image-overlay"
-        onClick={() => setFullScreenImage(null)}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.95)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          cursor: 'pointer'
-        }}
-      >
-        <button
-          onClick={() => setFullScreenImage(null)}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'rgba(255, 255, 255, 0.2)',
-            border: 'none',
-            color: 'white',
-            fontSize: '30px',
-            width: '50px',
-            height: '50px',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000
-          }}
-        >
-          ×
-        </button>
-        <img
-          src={fullScreenImage}
-          alt="Full screen"
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            maxWidth: '90%',
-            maxHeight: '90%',
-            objectFit: 'contain',
-            borderRadius: '8px'
-          }}
-        />
-      </div>
-    );
-  };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="operators-container">
+
+      {/* ── Add Button ── */}
       <div className="operators-actions">
-        <Button
-          text="Add Operator"
-          onClick={openAddForm}
-          colorScheme="lime-700"
-          variant="gradient"
-          font="md"
-          animation=""
-          squircle="4xl"
-          width="160px"
-          height="38px"
-          type="submit"
-          textColor="white-200"
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
+        <Button {...BTN} text="Add Operator" onClick={openAddForm} colorScheme="lime-700" textColor="white-200" />
       </div>
 
+      {/* ── Tab Switcher ── */}
       <div className="doc-details-tabs">
-        <Button
-          text="Company Operators"
-          onClick={() => setActiveTab('internal')}
-          colorScheme={activeTab === 'internal' ? 'amber-300' : 'amber-900'}
-          variant="gradient"
-          font="md"
-          animation=""
-          squircle="4xl"
-          width="50%"
-          height="48px"
-          type="submit"
-          textColor={activeTab === 'internal' ? 'black-300' : 'white-900'}
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
-        <Button
-          text="Hired Operators"
-          onClick={() => setActiveTab('hired')}
-          colorScheme={activeTab === 'hired' ? 'amber-400' : 'amber-900'}
-          variant="gradient"
-          font="md"
-          animation=""
-          squircle="4xl"
-          width="50%"
-          height="48px"
-          type="submit"
-          textColor={activeTab === 'hired' ? 'black-300' : 'white-900'}
-          shadowPosition="to-bottom"
-          shadowColor="white-600"
-        />
+        {[
+          { key: 'internal', label: 'Company Operators', active: 'amber-300', inactive: 'amber-900' },
+          { key: 'hired',    label: 'Hired Operators',   active: 'amber-400', inactive: 'amber-900' },
+        ].map(({ key, label, active, inactive }) => (
+          <Button
+            key={key}
+            {...BTN}
+            width="50%"
+            height="48px"
+            text={label}
+            onClick={() => setActiveTab(key)}
+            colorScheme={activeTab === key ? active : inactive}
+            textColor={activeTab === key ? 'black-300' : 'white-900'}
+          />
+        ))}
       </div>
 
+      {/* ── Operators Table ── */}
       {loading ? (
         <Loader />
       ) : error ? (
@@ -746,381 +474,260 @@ const Operators = () => {
               <tr>
                 <th>ID</th>
                 <th>Profile</th>
-                <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                  Name {getSortIcon('name')}
-                </th>
-                <th onClick={() => handleSort('qatarId')} style={{ cursor: 'pointer' }}>
-                  Qatar ID {getSortIcon('qatarId')}
-                </th>
-                <th onClick={() => handleSort('uniqueCode')} style={{ cursor: 'pointer' }}>
-                  Unique Code {getSortIcon('uniqueCode')}
-                </th>
-                <th onClick={() => handleSort('nationality')} style={{ cursor: 'pointer' }}>
-                  Nationality {getSortIcon('nationality')}
-                </th>
-                <th onClick={() => handleSort('sponsorship')} style={{ cursor: 'pointer' }}>
-                  Sponsorship {getSortIcon('sponsorship')}
-                </th>
-                <th onClick={() => handleSort('equipmentNumber')} style={{ cursor: 'pointer' }}>
-                  Equipment No {getSortIcon('equipmentNumber')}
-                </th>
+                {[
+                  ['name',            'Name'          ],
+                  ['qatarId',         'Qatar ID'      ],
+                  ['uniqueCode',      'Unique Code'   ],
+                  ['nationality',     'Nationality'   ],
+                  ['sponsorship',     'Sponsorship'   ],
+                  ['equipmentNumber', 'Equipment No'  ],
+                ].map(([field, label]) => (
+                  <th key={field} onClick={() => handleSort(field)} style={{ cursor: 'pointer' }}>
+                    {label} {getSortIcon(field, sortField, sortDirection)}
+                  </th>
+                ))}
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {sortedAndFilteredOperators.map((operator, index) => (
-                <tr key={operator._id || operator.qatarId}>
-                  <td>{index + 1}</td>
-                  <td>
-                    <div
-                      className="profile-pic-small"
-                      onClick={() => profilePicUrls[operator.qatarId] && setFullScreenImage(profilePicUrls[operator.qatarId])}
-                      style={{ cursor: profilePicUrls[operator.qatarId] ? 'pointer' : 'default' }}
-                    >
-                      {profilePicUrls[operator.qatarId] ? (
-                        <img
-                          src={profilePicUrls[operator.qatarId]}
-                          alt={operator.name}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                      ) : null}
+              {filteredAndSorted.map((operator, index) => {
+                // Compute status once per row — not 3× in JSX
+                const status    = getOperatorStatus(operator);
+                const picUrl    = profilePicUrls[operator.qatarId];
+                const initials  = getInitials(operator.name);
+
+                return (
+                  <tr key={operator._id || operator.qatarId}>
+                    <td>{index + 1}</td>
+
+                    {/* Profile picture / initials */}
+                    <td>
                       <div
-                        className="profile-initials"
-                        style={{
-                          display: profilePicUrls[operator.qatarId] ? 'none' : 'flex'
-                        }}
+                        className="profile-pic-small"
+                        onClick={() => picUrl && setFullScreenImage(picUrl)}
+                        style={{ cursor: picUrl ? 'pointer' : 'default' }}
                       >
-                        {getInitials(operator.name)}
+                        {picUrl && (
+                          <img
+                            src={picUrl}
+                            alt={operator.name}
+                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                          />
+                        )}
+                        <div className="profile-initials" style={{ display: picUrl ? 'none' : 'flex' }}>
+                          {initials}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>{operator.name}</td>
-                  <td>{operator.qatarId}</td>
-                  <td>{operator.uniqueCode}</td>
-                  <td>{operator.nationality}</td>
-                  <td>{operator.sponsorship}</td>
-                  <td>{operator.equipmentNumber || 'N/A'}</td>
-                  <td>
-                    <span className={`status-badge ${calculateOperatorStatus(operator)}`}>
-                      {calculateOperatorStatus(operator) === 'active' ? 'Active' :
-                        calculateOperatorStatus(operator) === 'expired' ? 'Expired' : 'Pending'}
-                    </span>
-                  </td>
-                  <td className="action-buttons">
-                    <Button
-                      text="Details"
-                      onClick={() => showDetails(operator)}
-                      colorScheme="orange-800"
-                      variant="gradient"
-                      font="md"
-                      animation=""
-                      squircle="4xl"
-                      width="160px"
-                      height="38px"
-                      type="submit"
-                      textColor="white-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="white-600"
-                    />
-                  </td>
-                </tr>
-              ))}
+                    </td>
+
+                    <td>{operator.name}</td>
+                    <td>{operator.qatarId}</td>
+                    <td>{operator.uniqueCode}</td>
+                    <td>{operator.nationality}</td>
+                    <td>{operator.sponsorship}</td>
+                    <td>{operator.equipmentNumber || 'N/A'}</td>
+
+                    {/* Status badge */}
+                    <td>
+                      <span className={`status-badge ${status}`}>
+                        {status === 'active' ? 'Active' : status === 'expired' ? 'Expired' : 'Pending'}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="action-buttons">
+                      <Button {...BTN} text="Details" onClick={() => setSelectedOperator(operator)} colorScheme="orange-800" textColor="white-200" />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Selected operator details sidebar */}
-      {selectedOperator && (
-        <div className="operator-details">
-          <div className="details-header">
-            <h2>Operator Details</h2>
-            <button className="close-btn" onClick={() => setSelectedOperator(null)}>
-              <span class="material-symbols-rounded">
-                close
-              </span>
-            </button>
-          </div>
-          <div className="details-content">
-            <div className="operator-profile-section">
-              <div
-                className="profile-pic-large"
-                onClick={() => profilePicUrls[selectedOperator.qatarId] && setFullScreenImage(profilePicUrls[selectedOperator.qatarId])}
-                style={{ cursor: profilePicUrls[selectedOperator.qatarId] ? 'pointer' : 'default' }}
-              >
-                {profilePicUrls[selectedOperator.qatarId] ? (
-                  <img
-                    src={profilePicUrls[selectedOperator.qatarId]}
-                    alt={selectedOperator.name}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
+      {/* ── Selected Operator Details Sidebar ── */}
+      {selectedOperator && (() => {
+        const op     = selectedOperator;
+        const picUrl = profilePicUrls[op.qatarId];
+        const status = getOperatorStatus(op);
+
+        return (
+          <div className="operator-details">
+            <div className="details-header">
+              <h2>Operator Details</h2>
+              <button className="close-btn" onClick={() => setSelectedOperator(null)}>
+                <span className="material-symbols-rounded">close</span>
+              </button>
+            </div>
+
+            <div className="details-content">
+
+              {/* Profile section */}
+              <div className="operator-profile-section">
                 <div
-                  className="profile-initials-large"
-                  style={{
-                    display: profilePicUrls[selectedOperator.qatarId] ? 'none' : 'flex'
-                  }}
+                  className="profile-pic-large"
+                  onClick={() => picUrl && setFullScreenImage(picUrl)}
+                  style={{ cursor: picUrl ? 'pointer' : 'default' }}
                 >
-                  {getInitials(selectedOperator.name)}
+                  {picUrl && (
+                    <img
+                      src={picUrl}
+                      alt={op.name}
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    />
+                  )}
+                  <div className="profile-initials-large" style={{ display: picUrl ? 'none' : 'flex' }}>
+                    {getInitials(op.name)}
+                  </div>
                 </div>
-              </div>
-              <div className="profile-info">
-                <h3>{selectedOperator.name}</h3>
-                <div className="operator-detail-item">
-                  <span className="label">Qatar ID:</span>
-                  <span className="value">{selectedOperator.qatarId}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Unique Code:</span>
-                  <span className="value">{selectedOperator.uniqueCode}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Status:</span>
-                  <span className={`value status-badge ${calculateOperatorStatus(selectedOperator)}`}>
-                    {calculateOperatorStatus(selectedOperator) === 'active' ? 'Active' :
-                      calculateOperatorStatus(selectedOperator) === 'expired' ? 'Expired' : 'Operator is not verified'}
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            <div className="details-grid">
-              <div className="detail-group">
-                <h4>Personal Information</h4>
-                <div className="operator-detail-item">
-                  <span className="label">Employee ID:</span>
-                  <span className="value">{selectedOperator.id}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Serial No:</span>
-                  <span className="value">{selectedOperator.slNo}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Nationality:</span>
-                  <span className="value">{selectedOperator.nationality}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Date of Birth:</span>
-                  <span className="value">{formatDate(selectedOperator.dob)}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Contact No:</span>
-                  <span className="value">{selectedOperator.contactNo || 'N/A'}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Email:</span>
-                  <span className="value">{selectedOperator.email || 'N/A'}</span>
+                <div className="profile-info">
+                  <h3>{op.name}</h3>
+                  <DetailItem label="Qatar ID"    value={op.qatarId}     />
+                  <DetailItem label="Unique Code" value={op.uniqueCode}  />
+                  <DetailItem
+                    label="Status"
+                    value={status === 'active' ? 'Active' : status === 'expired' ? 'Expired' : 'Operator is not verified'}
+                    className={`status-badge ${status}`}
+                  />
                 </div>
               </div>
 
-              <div className="detail-group">
-                <h4>Employment Details</h4>
-                <div className="operator-detail-item">
-                  <span className="label">User Type:</span>
-                  <span className="value">{selectedOperator.userType}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Sponsorship:</span>
-                  <span className="value">{selectedOperator.sponsorship}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Working In:</span>
-                  <span className="value">{selectedOperator.workingIn}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Date of Joining:</span>
-                  <span className="value">{formatDate(selectedOperator.doj)}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Equipment Number:</span>
-                  <span className="value">{selectedOperator.equipmentNumber || 'N/A'}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Workmen Compensation:</span>
-                  <span className="value">{selectedOperator.workmenCompensationAdded === 'yes' ? 'Yes' : 'No'}</span>
-                </div>
-              </div>
+              {/* Detail groups */}
+              <div className="details-grid">
 
-              <div className="detail-group">
-                <h4>Document Details</h4>
-                <div className="operator-detail-item">
-                  <span className="label">Passport No:</span>
-                  <span className="value">{selectedOperator.passportNo || 'N/A'}</span>
+                <div className="detail-group">
+                  <h4>Personal Information</h4>
+                  <DetailItem label="Employee ID"  value={op.id}                            />
+                  <DetailItem label="Serial No"    value={op.slNo}                          />
+                  <DetailItem label="Nationality"  value={op.nationality}                   />
+                  <DetailItem label="Date of Birth" value={formatDate(op.dob)}              />
+                  <DetailItem label="Contact No"   value={op.contactNo || 'N/A'}            />
+                  <DetailItem label="Email"        value={op.email     || 'N/A'}            />
                 </div>
-                <div className="operator-detail-item">
-                  <span className="label">Passport Expiry:</span>
-                  <span className={`value ${isExpired(selectedOperator.passportExpiry) ? 'expired' : ''}`}>
-                    {formatDate(selectedOperator.passportExpiry)}
-                    {isExpired(selectedOperator.passportExpiry) && ' (Expired)'}
-                  </span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">QID Expiry:</span>
-                  <span className={`value ${isExpired(selectedOperator.qidExpiry) ? 'expired' : ''}`}>
-                    {formatDate(selectedOperator.qidExpiry)}
-                    {isExpired(selectedOperator.qidExpiry) && ' (Expired)'}
-                  </span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Health Card Expiry:</span>
-                  <span className={`value ${isExpired(selectedOperator.healthCardExpiry) ? 'expired' : ''}`}>
-                    {formatDate(selectedOperator.healthCardExpiry)}
-                    {isExpired(selectedOperator.healthCardExpiry) && ' (Expired)'}
-                  </span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">License Type:</span>
-                  <span className="value">{selectedOperator.licenceType || 'N/A'}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">License Expiry:</span>
-                  <span className={`value ${isExpired(selectedOperator.licenceExpiry) ? 'expired' : ''}`}>
-                    {formatDate(selectedOperator.licenceExpiry)}
-                    {isExpired(selectedOperator.licenceExpiry) && ' (Expired)'}
-                  </span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Labour Contract Expiry:</span>
-                  <span className={`value ${isExpired(selectedOperator.labourContractExpiry) ? 'expired' : ''}`}>
-                    {formatDate(selectedOperator.labourContractExpiry)}
-                    {isExpired(selectedOperator.labourContractExpiry) && ' (Expired)'}
-                  </span>
-                </div>
-              </div>
 
-              <div className="detail-group">
-                <h4>System Information</h4>
-                <div className="operator-detail-item">
-                  <span className="label">Verified:</span>
-                  <span className="value">{selectedOperator.isVerified ? 'Yes' : 'No'}</span>
+                <div className="detail-group">
+                  <h4>Employment Details</h4>
+                  <DetailItem label="User Type"    value={op.userType}                      />
+                  <DetailItem label="Sponsorship"  value={op.sponsorship}                   />
+                  <DetailItem label="Working In"   value={op.workingIn}                     />
+                  <DetailItem label="Date of Joining" value={formatDate(op.doj)}            />
+                  <DetailItem label="Equipment Number" value={op.equipmentNumber || 'N/A'} />
+                  <DetailItem label="Workmen Compensation" value={op.workmenCompensationAdded === 'yes' ? 'Yes' : 'No'} />
                 </div>
-                <div className="operator-detail-item">
-                  <span className="label">Verified At:</span>
-                  <span className="value">{formatDate(selectedOperator.verifiedAt)}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Created At:</span>
-                  <span className="value">{formatDate(selectedOperator.createdAt)}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Last Updated:</span>
-                  <span className="value">{formatDate(selectedOperator.updatedAt)}</span>
-                </div>
-                <div className="operator-detail-item">
-                  <span className="label">Assigned Toolkits:</span>
-                  <span className="value">{selectedOperator.toolkits && selectedOperator.toolkits.length > 0 ? selectedOperator.toolkits.length : 'None'}</span>
-                </div>
-              </div>
 
-              <div className="detail-group">
-                <h4>Assigned Safety Items</h4>
-                <div className='operators-table-container'>
-                  <table className="operators-table">
-                    <thead>
-                      <tr>
-                        <th>SL NO</th>
-                        <th>Handovered Date</th>
-                        <th>Name</th>
-                        <th>Color</th>
-                        <th>Quantity</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedOperator.toolkits.length > 0 ? (
-                        selectedOperator.toolkits.slice().reverse().map((toolkit, index) => (
-                          <tr key={toolkit._id}>
-                            <td>{selectedOperator.toolkits.length - index}</td>
-                            <td>{formatDate(toolkit.assignedDate)}</td>
-                            <td>{toolkit.toolkitName}</td>
-                            <td>{toolkit.color}</td>
-                            <td>{toolkit.quantity}</td>
-                          </tr>
-                        ))
-                      ) : (
+                <div className="detail-group">
+                  <h4>Document Details</h4>
+                  <DetailItem label="Passport No"   value={op.passportNo || 'N/A'}                                          />
+                  <DetailItem label="Passport Expiry"       value={formatDate(op.passportExpiry)}       expired={isExpired(op.passportExpiry)}       />
+                  <DetailItem label="QID Expiry"            value={formatDate(op.qidExpiry)}            expired={isExpired(op.qidExpiry)}            />
+                  <DetailItem label="Health Card Expiry"    value={formatDate(op.healthCardExpiry)}     expired={isExpired(op.healthCardExpiry)}     />
+                  <DetailItem label="License Type"          value={op.licenceType || 'N/A'}                                                        />
+                  <DetailItem label="License Expiry"        value={formatDate(op.licenceExpiry)}        expired={isExpired(op.licenceExpiry)}        />
+                  <DetailItem label="Labour Contract Expiry" value={formatDate(op.labourContractExpiry)} expired={isExpired(op.labourContractExpiry)} />
+                </div>
+
+                <div className="detail-group">
+                  <h4>System Information</h4>
+                  <DetailItem label="Verified"         value={op.isVerified ? 'Yes' : 'No'}    />
+                  <DetailItem label="Verified At"      value={formatDate(op.verifiedAt)}        />
+                  <DetailItem label="Created At"       value={formatDate(op.createdAt)}         />
+                  <DetailItem label="Last Updated"     value={formatDate(op.updatedAt)}         />
+                  <DetailItem label="Assigned Toolkits" value={op.toolkits?.length || 'None'}  />
+                </div>
+
+                {/* Toolkits table */}
+                <div className="detail-group">
+                  <h4>Assigned Safety Items</h4>
+                  <div className="operators-table-container">
+                    <table className="operators-table">
+                      <thead>
                         <tr>
-                          <td colSpan="40" className="no-data">No toolkits assigned</td>
+                          <th>SL NO</th>
+                          <th>Handovered Date</th>
+                          <th>Name</th>
+                          <th>Color</th>
+                          <th>Quantity</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {op.toolkits?.length > 0 ? (
+                          op.toolkits.slice().reverse().map((toolkit, i) => (
+                            <tr key={toolkit._id}>
+                              <td>{op.toolkits.length - i}</td>
+                              <td>{formatDate(toolkit.assignedDate)}</td>
+                              <td>{toolkit.toolkitName}</td>
+                              <td>{toolkit.color}</td>
+                              <td>{toolkit.quantity}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr><td colSpan="5" className="no-data">No toolkits assigned</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="operator-actions">
-              <h3>Actions</h3>
-              <div className="action-btn-group">
-                <Button
-                  text="Edit Operator"
-                  onClick={() => openEditForm(selectedOperator)}
-                  colorScheme="blue-700"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="38px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Delete Operator"
-                  onClick={() => deleteOperator(selectedOperator.qatarId)}
-                  colorScheme="red-700"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="38px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
+              {/* Action buttons */}
+              <div className="operator-actions">
+                <h3>Actions</h3>
+                <div className="action-btn-group">
+                  <Button {...BTN} text="Edit Operator"   onClick={() => openEditForm(op)}       colorScheme="blue-700" textColor="white-200" />
+                  <Button {...BTN} text="Delete Operator" onClick={() => handleDeleteClick(op)}  colorScheme="red-700"  textColor="white-200" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
+      {/* ── Add / Edit Form Modal ── */}
       <DevModal
-        isOpen={devModalOpen}
-        onClose={() => setDevModalOpen(false)}
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
         type="form"
         title={formMode === 'add' ? 'Add New Operator' : 'Edit Operator'}
         buttonText={uploading ? 'Uploading...' : formMode === 'add' ? 'Add Operator' : 'Update Operator'}
         secondaryButtonText="Cancel"
-        onSecondaryClick={() => setDevModalOpen(false)}
+        onSecondaryClick={() => setFormOpen(false)}
         onButtonClick={handleFormSubmit}
         formFields={operatorFormFields}
         formValues={formData}
-        onFormChange={(fieldName, value) => {
+        onFormChange={(field, value) => {
           setFormData(prev => {
-            const updated = { ...prev, [fieldName]: value };
-            if (fieldName === 'sponsorship') {
-              updated.hired = value === 'HIRED';
-              if (value !== 'HIRED') updated.hiredFrom = '';
+            const next = { ...prev, [field]: value };
+            // Keep the `hired` flag in sync with sponsorship
+            if (field === 'sponsorship') {
+              next.hired    = value === 'HIRED';
+              if (value !== 'HIRED') next.hiredFrom = '';
             }
-            return updated;
+            return next;
           });
         }}
-        fileValues={devModalFileValues}
-        onFileChange={(fieldName, file) => {
-          setDevModalFileValues(prev => ({ ...prev, [fieldName]: file }));
-          setProfilePicFile(file);
+        onFileChange={(field, file) => {
+          if (field === 'profilePic') setProfilePicFile(file);
         }}
       />
-      <FullScreenImageViewer />
+
+      {/* ── Delete Confirmation Modal ── */}
+      <DevModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        type="error"
+        title="Delete Operator?"
+        message={`Are you sure you want to delete ${operatorToDelete?.name}? This action cannot be undone.`}
+        buttonText="Delete"
+        secondaryButtonText="Cancel"
+        onButtonClick={confirmDelete}
+        onSecondaryClick={() => setShowDeleteModal(false)}
+      />
+
+      {/* ── Fullscreen Image Viewer ── */}
+      <FullScreenImageViewer src={fullScreenImage} onClose={() => setFullScreenImage(null)} />
     </div>
   );
 };

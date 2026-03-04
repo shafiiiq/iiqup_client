@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './BackchargeList.css';
-import { apiRequest } from '../../utils/0auth';
-import { useSearch } from '../../context/SearchContext';
-import Button from '../../common/Button/Button';
-import DevModal from '../../common/DevModal';
+import { apiRequest } from '../../utils/api';
+import { useSearch } from '../../Context/SearchContext';
+import Button from '../../Common/Button/Button';
+import DevModal from '../../Common/DevModal/DevModal';
 
 function BackchargeList() {
   const { searchTerm, setSearchTerm } = useSearch();
@@ -30,7 +30,6 @@ function BackchargeList() {
     customEndDate: ''
   });
 
-  // Get current date and time
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
@@ -83,7 +82,6 @@ function BackchargeList() {
   const applyAllFilters = () => {
     let results = [...backcharges];
 
-    // Apply date filter
     if (filters.dateFilter === 'custom' && filters.customStartDate && filters.customEndDate) {
       const startDate = new Date(filters.customStartDate);
       const endDate = new Date(filters.customEndDate);
@@ -104,21 +102,18 @@ function BackchargeList() {
       });
     }
 
-    // Apply supplier filter
     if (filters.suppliers.length > 0) {
       results = results.filter(item =>
         filters.suppliers.includes(item.supplierName)
       );
     }
 
-    // Apply equipment filter
     if (filters.equipmentTypes.length > 0) {
       results = results.filter(item =>
         filters.equipmentTypes.includes(item.equipmentType)
       );
     }
 
-    // Apply cost range filter
     if (filters.costRange.min || filters.costRange.max) {
       results = results.filter(item => {
         const cost = item.costSummary?.totalCost || 0;
@@ -128,7 +123,6 @@ function BackchargeList() {
       });
     }
 
-    // Apply search filter
     if (searchTerm) {
       results = results.filter(item => {
         const searchableFields = [

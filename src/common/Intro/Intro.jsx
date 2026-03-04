@@ -3,7 +3,7 @@ import Spline from '@splinetool/react-spline';
 import Button from '../Button/Button';
 import './Intro.css'
 import { useNavigate } from 'react-router';
-import { checkWebGLSupport } from '../../utils/compatibilty';
+import { checkWebGLSupport } from '../../utils/compatibility';
 
 function Intro() {
     const navigate = useNavigate()
@@ -45,7 +45,7 @@ function Intro() {
 
     const createLightningStorm = () => {
         const container = document.querySelector('.intro-hero')
-        const boltCount = 15 // JUST A FEW
+        const boltCount = 15 
         const rect = container.getBoundingClientRect()
 
         for (let i = 0; i < boltCount; i++) {
@@ -53,11 +53,9 @@ function Intro() {
                 const lightning = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
                 lightning.classList.add('lightning-bolt')
 
-                // RANDOM position across ENTIRE screen
                 const startX = Math.random() * rect.width
                 const startY = Math.random() * rect.height
 
-                // RANDOM size
                 const width = 100 + Math.random() * 300
                 const height = 100 + Math.random() * 400
 
@@ -66,11 +64,9 @@ function Intro() {
                 lightning.style.width = `${width}px`
                 lightning.style.height = `${height}px`
 
-                // RANDOM rotation
                 const rotation = Math.random() * 360
                 lightning.style.transform = `rotate(${rotation}deg)`
 
-                // Create jagged lightning path
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
                 const pathData = generateRandomLightningPath(width, height)
                 path.setAttribute('d', pathData)
@@ -79,7 +75,6 @@ function Intro() {
                 path.setAttribute('fill', 'none')
                 path.setAttribute('stroke-linecap', 'round')
 
-                // Add glow
                 const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
                 const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter')
                 filter.setAttribute('id', `glow-${i}`)
@@ -97,7 +92,7 @@ function Intro() {
                 setTimeout(() => {
                     lightning.remove()
                 }, 1500)
-            }, Math.random() * 1500) // RANDOM timing
+            }, Math.random() * 1500) 
         }
     }
 
@@ -109,18 +104,15 @@ function Intro() {
         let x = startX
         let y = startY
 
-        // RANDOM number of segments
         const segments = 5 + Math.floor(Math.random() * 8)
         const segmentHeight = maxHeight / segments
 
         for (let i = 0; i < segments; i++) {
-            // RANDOM zigzag
             x += (Math.random() - 0.5) * (maxWidth * 0.6)
             y += segmentHeight + (Math.random() - 0.5) * 30
 
             path += ` L ${x} ${y}`
 
-            // RANDOM branches
             if (Math.random() > 0.5) {
                 const branchX = x + (Math.random() - 0.5) * 80
                 const branchY = y + 20 + Math.random() * 50

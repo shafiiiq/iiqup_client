@@ -627,14 +627,6 @@
   color: var(--color-warning);
 }
 
-.status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-6xl);
-  corner-shape: squircle;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
 .status-badge.completed {
   background: rgba(16, 185, 129, 0.2);
   color: var(--color-success);

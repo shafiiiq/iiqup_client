@@ -1,55 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import './Mechanics.css';
 import { END_POINT } from '../../constants';
-import { apiRequest } from '../../utils/0auth';
-import Button from '../../common/Button/Button';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import { apiRequest } from '../../utils/api';
+import Button from '../../Common/Button/Button';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 const Mechanics = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentDateTime, setCurrentDateTime] = useState('');
   const [selectedMechanic, setSelectedMechanic] = useState(null);
   const [attendanceFilter, setAttendanceFilter] = useState('weekly');
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(null);
-  const [overtimeView, setOvertimeView] = useState('monthly'); // 'monthly' or 'daily'
+  const [overtimeView, setOvertimeView] = useState('monthly'); 
   const [attendanceData, setAttendanceData] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
-  const [recentActivityLoading, setRecentActivityLoading] = useState([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  // Get current date and time
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString} | ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Fetch mechanics data
   useEffect(() => {
     const fetchMechanics = async () => {
       try {
@@ -76,8 +49,6 @@ const Mechanics = () => {
   useEffect(() => {
     const fetchRecentActivity = async () => {
       if (!selectedMechanic?.zktecoPin) return;
-
-      setRecentActivityLoading(true);
       try {
         const today = new Date().toISOString().split('T')[0];
 
@@ -93,14 +64,13 @@ const Mechanics = () => {
         console.error('Error fetching attendance:', error);
         setRecentActivity([]);
       } finally {
-        setRecentActivityLoading(false);
+        return;
       }
     };
 
     fetchRecentActivity()
   }, [recentActivity, selectedMechanic])
 
-  // Generate avatar with initials
   const generateAvatar = (name) => {
     const initials = name
       .split(' ')
@@ -124,20 +94,16 @@ const Mechanics = () => {
     );
   };
 
-  // Filter mechanics based on search term
   const filteredMechanics = mechanics.filter(mechanic =>
     mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mechanic.userId?.toString().includes(searchTerm)
   );
 
-  // Format time to AM/PM
   const formatTime = (date) => {
     if (!date) return 'N/A';
 
     const time = new Date(date);
 
-    // The time in DB is already in Qatar time but stored as UTC
-    // So we need to subtract 3 hours to get back to Qatar local time
     const qatarTime = new Date(time.getTime() - (3 * 60 * 60 * 1000));
 
     let hours = qatarTime.getHours();
@@ -148,31 +114,18 @@ const Mechanics = () => {
     return `${hours}:${minutes} ${ampm}`;
   };
 
-  // Format total time (minutes to hours)
   const formatTotalTime = (minutes) => {
     if (!minutes) return '0h 0m';
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
-
-  // Format month display
-  const formatMonthYear = (monthData) => {
-    if (!monthData.month || !monthData.year) return 'Unknown';
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return `${monthNames[monthData.month - 1]} ${monthData.year}`;
-  };
-
-  // Calculate total time for a month
+  
   const calculateMonthTotalTime = (monthData) => {
     if (!monthData.entries || monthData.entries.length === 0) return 0;
     return monthData.entries.reduce((total, entry) => total + (entry.totalTime || 0), 0);
   };
 
-  // Handle edit mechanic
   const handleEdit = () => {
     setIsEditing(true);
     setEditForm({
@@ -249,7 +202,6 @@ const Mechanics = () => {
     setEditForm({});
   };
 
-  // Handle delete mechanic
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this mechanic?')) return;
 
@@ -264,13 +216,11 @@ const Mechanics = () => {
     }
   };
 
-  // Handle month selection for overtime
   const handleMonthSelect = (monthData) => {
     setSelectedMonth(monthData.month);
     setOvertimeView('daily');
   };
 
-  // Handle back to monthly view
   const handleBackToMonthly = () => {
     setSelectedMonth(null);
     setOvertimeView('monthly');
@@ -687,7 +637,6 @@ const Mechanics = () => {
                             </tr>
                           ) : attendanceData.length > 0 ? (
                             (() => {
-                              // Group attendance records by date
                               const groupedByDate = attendanceData.reduce((acc, record) => {
                                 const date = record.dateOnly;
                                 if (!acc[date]) {
@@ -697,26 +646,22 @@ const Mechanics = () => {
                                 return acc;
                               }, {});
 
-                              // Process each date's records
                               return Object.entries(groupedByDate).map(([date, records]) => {
-                                // Sort records by time
                                 const sortedRecords = records.sort((a, b) =>
                                   new Date(a.punchDateTime) - new Date(b.punchDateTime)
                                 );
 
-                                const checkIn = sortedRecords[0]; // First punch
-                                const checkOut = sortedRecords[sortedRecords.length - 1]; // Last punch
-                                const breakOut = sortedRecords[1]; // Second punch (if exists)
-                                const breakIn = sortedRecords[2]; // Third punch (if exists)
+                                const checkIn = sortedRecords[0];
+                                const checkOut = sortedRecords[sortedRecords.length - 1]; 
+                                const breakOut = sortedRecords[1];
+                                const breakIn = sortedRecords[2];
 
-                                // Calculate total hours
                                 let totalMinutes = 0;
                                 if (checkIn && checkOut) {
                                   const start = new Date(checkIn.punchDateTime);
                                   const end = new Date(checkOut.punchDateTime);
                                   totalMinutes = Math.floor((end - start) / (1000 * 60));
 
-                                  // Subtract break time if exists
                                   if (breakOut && breakIn) {
                                     const breakStart = new Date(breakOut.punchDateTime);
                                     const breakEnd = new Date(breakIn.punchDateTime);
