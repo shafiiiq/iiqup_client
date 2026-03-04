@@ -9,9 +9,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { END_POINT }              from '../../constants';
 import { apiRequest }             from '../../utils/api';
-import { useHeaderTitle }         from '../../Context/HeaderTitleContext';
-import { useAlert }               from '../../Context/AlertContext';
-import { useHeaderVibration }     from '../../Context/HeaderVibrationContext';
+import { useHeaderTitle }         from '../../context/HeaderTitleContext';
+import { useAlert }               from '../../context/AlertContext';
+import { useHeaderVibration }     from '../../context/HeaderVibrationContext';
 
 import Button from '../../Common/Button/Button';
 import Input  from '../../Common/Input/Input';

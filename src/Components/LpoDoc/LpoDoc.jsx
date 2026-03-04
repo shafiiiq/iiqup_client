@@ -16,7 +16,7 @@ import footer       from '../../assets/images/footer.png';
 import { END_POINT }                              from '../../constants';
 import { apiRequest }                             from '../../utils/api';
 import { getDeviceFingerprint, getLocationInfo }  from '../../utils/deviceFingerprint';
-import { useHeaderTitle }                         from '../../Context/HeaderTitleContext';
+import { useHeaderTitle }                         from '../../context/HeaderTitleContext';
 
 import DevModal from '../../Common/DevModal/DevModal';
 import Button   from '../../Common/Button/Button';

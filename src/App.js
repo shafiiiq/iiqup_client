@@ -7,10 +7,10 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavig
 import { useState, createContext, useEffect } from 'react';
 
 import { AuthUtils, checkAutoLogin } from './utils/authUtils';
-import { SearchProvider }           from './Context/SearchContext';
-import { HeaderTitleProvider }      from './Context/HeaderTitleContext';
-import { HeaderVibrationProvider }  from './Context/HeaderVibrationContext';
-import { AlertProvider }            from './Context/AlertContext';
+import { SearchProvider }           from './context/SearchContext';
+import { HeaderTitleProvider }      from './context/HeaderTitleContext';
+import { HeaderVibrationProvider }  from './context/HeaderVibrationContext';
+import { AlertProvider }            from './context/AlertContext';
 import { END_POINT }                from './constants';
 import { apiRequest }               from './utils/api';
 

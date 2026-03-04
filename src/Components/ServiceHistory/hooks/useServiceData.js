@@ -6,8 +6,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useHeaderTitle } from '../../../Context/HeaderTitleContext';
-import { useSearch }      from '../../../Context/SearchContext';
+import { useHeaderTitle } from '../../../context/HeaderTitleContext';
+import { useSearch }      from '../../../context/SearchContext';
 import { apiRequest }     from '../../../utils/api';
 import { END_POINT }      from '../../../constants';
 import { formatDate, isDateInRange } from '../utils/serviceHelpers';

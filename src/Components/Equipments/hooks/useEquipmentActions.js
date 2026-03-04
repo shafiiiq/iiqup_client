@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { useNavigate }           from 'react-router-dom';
-import { useHeaderVibration }    from '../../../Context/HeaderVibrationContext';
+import { useHeaderVibration }    from '../../../context/HeaderVibrationContext';
 import { apiRequest }            from '../../../utils/api';
 import { END_POINT }             from '../../../constants';
 import {

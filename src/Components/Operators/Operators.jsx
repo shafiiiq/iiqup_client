@@ -9,7 +9,7 @@ import './Operators.css';
 
 import { END_POINT }  from '../../constants';
 import { apiRequest } from '../../utils/api';
-import { useSearch }  from '../../Context/SearchContext';
+import { useSearch }  from '../../context/SearchContext';
 
 import Button   from '../../Common/Button/Button';
 import Loader   from '../../Common/Loader/Loader';

@@ -5,7 +5,7 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import jsPDF from 'jspdf';
 import DevModal from '../../Common/DevModal/DevModal';
-import { useHeaderTitle } from '../../Context/HeaderTitleContext';
+import { useHeaderTitle } from '../../context/HeaderTitleContext';
 import Button from '../../Common/Button/Button';
 import Input from '../../Common/Input/Input';
 import PDFPreviewModal from '../../Common/PDFPreviewModal/PDFPreviewModal';

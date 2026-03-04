@@ -7,7 +7,7 @@
 import { useEffect, useCallback } from 'react';
 import { apiRequest }             from '../../../utils/api';
 import { END_POINT }              from '../../../constants';
-import { useSearch }              from '../../../Context/SearchContext';
+import { useSearch }              from '../../../context/SearchContext';
 
 const SEARCH_DEBOUNCE_MS = 500;
 

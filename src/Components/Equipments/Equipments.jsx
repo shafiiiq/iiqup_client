@@ -6,7 +6,7 @@
 
 import './Equipments.css';
 import { useState }            from 'react';
-import { useSearch }           from '../../Context/SearchContext';
+import { useSearch }           from '../../context/SearchContext';
 
 // Hooks
 import { useImageCache }       from './hooks/useImageCache';

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './BackchargeList.css';
 import { apiRequest } from '../../utils/api';
-import { useSearch } from '../../Context/SearchContext';
+import { useSearch } from '../../context/SearchContext';
 import Button from '../../Common/Button/Button';
 import DevModal from '../../Common/DevModal/DevModal';
 
 function BackchargeList() {
-  const { searchTerm, setSearchTerm } = useSearch();
+  const { searchTerm } = useSearch();
   const navigate = useNavigate();
   const tableRef = useRef(null);
 
@@ -18,7 +18,6 @@ function BackchargeList() {
   const [selectedBackcharge, setSelectedBackcharge] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [currentDateTime, setCurrentDateTime] = useState('');
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [filters, setFilters] = useState({
     dateFilter: 'all',
@@ -29,30 +28,6 @@ function BackchargeList() {
     customStartDate: '',
     customEndDate: ''
   });
-
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateString = `${day}-${month}-${year}`;
-
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const timeString = `${hours}:${minutes} ${ampm}`;
-
-      setCurrentDateTime(`${dateString}   |   ${timeString}`);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     fetchBackcharges();
@@ -148,6 +123,7 @@ function BackchargeList() {
 
   useEffect(() => {
     applyAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backcharges, searchTerm, filters]);
 
   const handleApplyFilters = () => {

@@ -9,10 +9,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate }     from 'react-router-dom';
 
 import { LoginLogic }           from '../../../utils/authUtils';
-import { useSearch }            from '../../../Context/SearchContext';
-import { useHeaderTitle }       from '../../../Context/HeaderTitleContext';
-import { useHeaderVibration }   from '../../../Context/HeaderVibrationContext';
-import { useAlert }             from '../../../Context/AlertContext';
+import { useSearch }            from '../../../context/SearchContext';
+import { useHeaderTitle }       from '../../../context/HeaderTitleContext';
+import { useHeaderVibration }   from '../../../context/HeaderVibrationContext';
+import { useAlert }             from '../../../context/AlertContext';
 
 import logoImage from '../../../assets/images/al-ansari.png';
 import '../Header/Header.css';

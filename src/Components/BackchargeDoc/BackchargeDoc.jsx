@@ -19,7 +19,7 @@ import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import { END_POINT }                             from '../../constants';
 import { apiRequest }                            from '../../utils/api';
 import { getDeviceFingerprint, getLocationInfo } from '../../utils/deviceFingerprint';
-import { useHeaderTitle }                        from '../../Context/HeaderTitleContext';
+import { useHeaderTitle }                        from '../../context/HeaderTitleContext';
 import Button                                    from '../../Common/Button/Button';
 import DevModal                                  from '../../Common/DevModal/DevModal';
 
