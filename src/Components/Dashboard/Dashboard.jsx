@@ -22,18 +22,18 @@ import {
   prepareComparisonChartData
 } from './dashboardApi';
 import DashboardHeader from './DashboardHeader';
-import StatusBar from './common/StatusBar';
-import DashboardTabs from './common/DashboardTabs';
-import MetricsGrid from './common/MetricsGrid';
-import ChartsSection from './common/ChartsSection';
-import ActivityTimeline from './common/ActivityTimeline';
-import DataTable from './common/DataTable';
-import SummaryInsights from './common/SummaryInsights';
+import StatusBar from './Common/StatusBar';
+import DashboardTabs from './Common/DashboardTabs';
+import MetricsGrid from './Common/MetricsGrid';
+import ChartsSection from './Common/ChartsSection';
+import ActivityTimeline from './Common/ActivityTimeline';
+import DataTable from './Common/DataTable';
+import SummaryInsights from './Common/SummaryInsights';
 import './Dashboard.css';
 import { formatDate, formatDateTime, getStatusColor, COLORS } from './utils/dasboard-utils';
 import Notifications from '../Notification/Notification';
 import LiveChat from '../LiveChat/LiveChat';
-import Loader from '../../common/Loader/Loader';
+import Loader from '../../Common/Loader/Loader';
 
 const Dashboard = () => {
   const statusBarRef = useRef(null);

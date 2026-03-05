@@ -4,7 +4,7 @@
 // Each modal is clearly labelled and receives only the props it needs.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import DevModal from '../../../common/DevModal/DevModal';
+import DevModal from '../../../Common/DevModal/DevModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Static field config — defined outside the component so they're not

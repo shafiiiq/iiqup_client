@@ -9,13 +9,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { END_POINT }              from '../../constants';
 import { apiRequest }             from '../../utils/api';
-import { useHeaderTitle }         from '../../context/HeaderTitleContext';
-import { useAlert }               from '../../context/AlertContext';
-import { useHeaderVibration }     from '../../context/HeaderVibrationContext';
+import { useHeaderTitle }         from '../../Context/HeaderTitleContext';
+import { useAlert }               from '../../Context/AlertContext';
+import { useHeaderVibration }     from '../../Context/HeaderVibrationContext';
 
-import Button from '../../common/Button/Button';
-import Input  from '../../common/Input/Input';
-import Toast  from '../../common/Toast/Toast';
+import Button from '../../Common/Button/Button';
+import Input  from '../../Common/Input/Input';
+import Toast  from '../../Common/Toast/Toast';
 
 import './ServiceForm.css';
 

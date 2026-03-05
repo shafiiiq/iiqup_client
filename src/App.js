@@ -7,10 +7,10 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavig
 import { useState, createContext, useEffect } from 'react';
 
 import { AuthUtils, checkAutoLogin } from './utils/authUtils';
-import { SearchProvider }           from './context/SearchContext';
-import { HeaderTitleProvider }      from './context/HeaderTitleContext';
-import { HeaderVibrationProvider }  from './context/HeaderVibrationContext';
-import { AlertProvider }            from './context/AlertContext';
+import { SearchProvider }           from './Context/SearchContext';
+import { HeaderTitleProvider }      from './Context/HeaderTitleContext';
+import { HeaderVibrationProvider }  from './Context/HeaderVibrationContext';
+import { AlertProvider }            from './Context/AlertContext';
 import { END_POINT }                from './constants';
 import { apiRequest }               from './utils/api';
 
@@ -39,13 +39,13 @@ import FormNavigation          from './Components/FormNavigation/FormNavigation'
 import OperationsActivities    from './Components/OperationsActivities/OperationsActivities';
 
 // ── Common / Shared Components ───────────────────────────────────────────────
-import Header            from './Components/common/Header/Header';
-import EquipBypass       from './Components/common/EquipBypass/EquipBypass';
-import Login             from './Components/common/Login/Login';
-import NavigationButtons from './Components/common/NavigationButtons/NavigationButtons';
+import Header            from './Components/Common/Header/Header';
+import EquipBypass       from './Components/Common/EquipBypass/EquipBypass';
+import Login             from './Components/Common/Login/Login';
+import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
 import Spacer            from './Components/Spacer/Spacer';
 import SplashScreen      from './splash/SplashScreen';
-import NotFound          from './common/NotFound/NotFound';
+import NotFound          from './Common/NotFound/NotFound';
 
 import './App.css';
 import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';

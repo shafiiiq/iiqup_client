@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './LpoList.css';
 import { apiRequest } from '../../utils/api';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
-import DevModal from '../../common/DevModal/DevModal';
-import Button from '../../common/Button/Button';
-import Loader from '../../common/Loader/Loader';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
+import DevModal from '../../Common/DevModal/DevModal';
+import Button from '../../Common/Button/Button';
+import Loader from '../../Common/Loader/Loader';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();

@@ -18,9 +18,9 @@ import {
 
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
-import Button from '../../common/Button/Button';
-import Loader from '../../common/Loader/Loader';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
+import Button from '../../Common/Button/Button';
+import Loader from '../../Common/Loader/Loader';
 
 import './Complaints.css';
 

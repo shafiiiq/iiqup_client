@@ -9,11 +9,11 @@ import './Operators.css';
 
 import { END_POINT }  from '../../constants';
 import { apiRequest } from '../../utils/api';
-import { useSearch }  from '../../context/SearchContext';
+import { useSearch }  from '../../Context/SearchContext';
 
-import Button   from '../../common/Button/Button';
-import Loader   from '../../common/Loader/Loader';
-import DevModal from '../../common/DevModal/DevModal';
+import Button   from '../../Common/Button/Button';
+import Loader   from '../../Common/Loader/Loader';
+import DevModal from '../../Common/DevModal/DevModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Static option lists — defined outside the component so they are never

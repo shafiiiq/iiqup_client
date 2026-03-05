@@ -11,8 +11,8 @@ import Spline                         from '@splinetool/react-spline';
 import { LoginLogic }       from '../../../utils/authUtils';
 import { END_POINT }        from '../../../constants';
 import { checkWebGLSupport } from '../../../utils/compatibility';
-import Button               from '../../../common/Button/Button';
-import Input                from '../../../common/Input/Input';
+import Button               from '../../../Common/Button/Button';
+import Input                from '../../../Common/Input/Input';
 
 import './Login.css';
 

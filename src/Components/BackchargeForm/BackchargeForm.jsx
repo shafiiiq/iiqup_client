@@ -3,8 +3,8 @@ import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import { apiRequest } from '../../utils/api';
 import { END_POINT } from '../../constants';
-import Button from '../../common/Button/Button';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import Button from '../../Common/Button/Button';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
 const BackchargeForm = () => {
     const scopeLine1Ref = useRef(null);

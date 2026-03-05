@@ -3,8 +3,8 @@
 // Renders one site group with all its equipment items inside.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import Loader              from '../../../common/Loader/Loader';
-import Button              from '../../../common/Button/Button';
+import Loader              from '../../../Common/Loader/Loader';
+import Button              from '../../../Common/Button/Button';
 import { getOperatorName } from '../utils/equipmentHelpers';
 
 // Shared button defaults for all action buttons inside a site card.

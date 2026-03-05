@@ -4,10 +4,10 @@ import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
-import DevModal from '../../common/DevModal/DevModal';
-import { useSearch } from '../../context/SearchContext';
-import Button from '../../common/Button/Button';
-import Loader from '../../common/Loader/Loader';
+import DevModal from '../../Common/DevModal/DevModal';
+import { useSearch } from '../../Context/SearchContext';
+import Button from '../../Common/Button/Button';
+import Loader from '../../Common/Loader/Loader';
 
 function StockManage() {
   const { searchTerm } = useSearch();

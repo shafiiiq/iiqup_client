@@ -3,10 +3,10 @@ import io from 'socket.io-client';
 import { END_POINT } from '../../constants';
 import './Notification.css';
 import { apiRequest } from '../../utils/api';
-import Button from '../../common/Button/Button';
-import { useAlert } from '../../context/AlertContext';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import Button from '../../Common/Button/Button';
+import { useAlert } from '../../Context/AlertContext';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 const Notifications = ({ islivemodeON, scrollContainerRef }) => {
 

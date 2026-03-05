@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './Mechanics.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
-import Button from '../../common/Button/Button';
-import Input from '../../common/Input/Input';
-import Loader from '../../common/Loader/Loader';
+import Button from '../../Common/Button/Button';
+import Input from '../../Common/Input/Input';
+import Loader from '../../Common/Loader/Loader';
 
 const Mechanics = () => {
   const [activeTab, setActiveTab] = useState('overview');

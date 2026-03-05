@@ -16,9 +16,9 @@ import footer from '../../assets/images/footer.png';
 
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
-import Button from '../../common/Button/Button';
+import Button from '../../Common/Button/Button';
 
 import './Lpo.css';
 

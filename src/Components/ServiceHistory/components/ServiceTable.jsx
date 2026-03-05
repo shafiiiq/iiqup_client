@@ -7,7 +7,7 @@
 
 import React                   from 'react';
 import { useNavigate }         from 'react-router-dom';
-import Button                  from '../../../common/Button/Button';
+import Button                  from '../../../Common/Button/Button';
 import { formatDate, getServiceTypeBadge, getRemarksText } from '../utils/serviceHelpers';
 
 // Shared button defaults for action buttons inside table cells.

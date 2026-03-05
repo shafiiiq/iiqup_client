@@ -6,9 +6,9 @@
 import './ServiceHistory.css';
 import React, { useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import DevModal                   from '../../common/DevModal/DevModal';
-import Button                     from '../../common/Button/Button';
-import Loader                     from '../../common/Loader/Loader';
+import DevModal                   from '../../Common/DevModal/DevModal';
+import Button                     from '../../Common/Button/Button';
+import Loader                     from '../../Common/Loader/Loader';
 
 // Hooks
 import { useServiceData }     from './hooks/useServiceData';

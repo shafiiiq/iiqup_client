@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { END_POINT } from '../../constants';
 import './BackchargeList.css';
 import { apiRequest } from '../../utils/api';
-import { useSearch } from '../../context/SearchContext';
-import Button from '../../common/Button/Button';
-import DevModal from '../../common/DevModal/DevModal';
+import { useSearch } from '../../Context/SearchContext';
+import Button from '../../Common/Button/Button';
+import DevModal from '../../Common/DevModal/DevModal';
 
 function BackchargeList() {
   const { searchTerm } = useSearch();

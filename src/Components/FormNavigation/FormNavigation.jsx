@@ -8,7 +8,7 @@
 import { useEffect }               from 'react';
 import { useNavigate, useParams }  from 'react-router-dom';
 
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
 import BatteryService from '../../assets/images/battery-service.png';
 import OilService     from '../../assets/images/oil-service.png';

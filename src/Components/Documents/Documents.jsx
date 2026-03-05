@@ -4,12 +4,12 @@ import './Documents.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import jsPDF from 'jspdf';
-import DevModal from '../../common/DevModal/DevModal';
-import { useHeaderTitle } from '../../context/HeaderTitleContext';
-import Button from '../../common/Button/Button';
-import Input from '../../common/Input/Input';
-import PDFPreviewModal from '../../common/PDFPreviewModal/PDFPreviewModal';
-import Loader from '../../common/Loader/Loader';
+import DevModal from '../../Common/DevModal/DevModal';
+import { useHeaderTitle } from '../../Context/HeaderTitleContext';
+import Button from '../../Common/Button/Button';
+import Input from '../../Common/Input/Input';
+import PDFPreviewModal from '../../Common/PDFPreviewModal/PDFPreviewModal';
+import Loader from '../../Common/Loader/Loader';
 
 // ─── Static config ────────────────────────────────────────────────────────────
 
