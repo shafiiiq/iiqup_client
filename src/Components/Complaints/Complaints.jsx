@@ -289,7 +289,7 @@ function Complaints() {
 
       const data = await response.json();
 
-      const raw = complaintId ? [data] : data.data;
+      const raw = complaintId ? [data.data] : Array.isArray(data.data?.data) ? data.data.data : [];
       if (!Array.isArray(raw)) throw new Error('Invalid data format: expected array');
 
       // Sort newest first.

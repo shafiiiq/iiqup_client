@@ -1251,7 +1251,7 @@ function BackchargeDoc() {
                     <div className="bcr-cost-value-container">
                       <span className="price-colon">:</span>
                       <span className="bcr-currency">QR</span>
-                      <input type="text" value={formData[field]}
+                      <input type="text" value={isEditing ? formData[field] : (formData[field] ? `${formData[field]}.00` : '')}
                         onChange={(e) => handleInputChange(field, e.target.value)}
                         disabled={!isEditing}
                         className="bcr-cost-amount"
@@ -1266,7 +1266,7 @@ function BackchargeDoc() {
                 <div className="bcr-deduction-value-container">
                   <span className="price-colon">:</span>
                   <span className="bcr-currency">QR</span>
-                  <input type="text" value={formData.approvedDeduction}
+                  <input type="text" value={isEditing ? formData.approvedDeduction : (formData.approvedDeduction ? `${formData.approvedDeduction}.00` : '')}
                     onChange={(e) => handleInputChange('approvedDeduction', e.target.value)}
                     disabled={!isEditing}
                     className="bcr-cost-amount"

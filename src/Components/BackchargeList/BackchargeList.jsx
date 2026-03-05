@@ -200,11 +200,10 @@ function BackchargeList() {
                   <td>${item.equipmentType}</td>
                   <td>${item.plateNo}</td>
                   <td>${item.contactPerson}</td>
-                  <td>${(item.scopeOfWork?.combinedText || '').substring(0, 50)}...</td>
-                  <td class="print-money">QR ${item.costSummary?.sparePartsCost || 0}</td>
-                  <td class="print-money">QR ${item.costSummary?.labourCharges || 0}</td>
-                  <td class="print-money">QR ${item.costSummary?.totalCost || 0}</td>
-                  <td class="print-money">QR ${item.costSummary?.approvedDeduction || 0}</td>
+                  <td class="print-money">QR ${(item.costSummary?.sparePartsCost || 0).toFixed(2)}</td>
+                  <td class="print-money">QR ${(item.costSummary?.labourCharges || 0).toFixed(2)}</td>
+                  <td class="print-money">QR ${(item.costSummary?.totalCost || 0).toFixed(2)}</td>
+                  <td class="print-money">QR ${(item.costSummary?.approvedDeduction || 0).toFixed(2)}</td>
                 </tr>
               `).join('')}
             </tbody>

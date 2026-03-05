@@ -145,28 +145,24 @@ export const generateRealTimeAnalytics = async (data) => {
         totalEquipment: 0,
         activeEquipment: 0,
         idleEquipment: 0,
-        pendingApplications: 0,
         trends: [],
         stockHealth: [],
         toolkitStatus: [],
         performanceMetrics: []
     };
 
-    const [complaints, equipData, application, allStocks] = await Promise.all([
+    const [complaints, equipData, allStocks] = await Promise.all([
         apiRequest(`${END_POINT}/complaints/get-all-complaints`).then(res => res.json()),
         getEquipmentData(),
-        apiRequest(`${END_POINT}/applications/get-all-requests`).then(res => res.json()),
         apiRequest(`${END_POINT}/stocks/get-all-stocks`).then(res => res.json())
     ]);
 
     const allEquipments = equipData.data;
-    const allApplication = application.data;
     const stocks = allStocks.data;
-    const pendingComplaints = complaints.data.filter(c => c.status === 'pending');
+    const complaintsArray = Array.isArray(complaints.data?.data) ? complaints.data.data : Array.isArray(complaints.data) ? complaints.data : [];
+    const pendingComplaints = complaintsArray.filter(c => c.status === 'pending');
     analytics.pendingComplaints = pendingComplaints;
     analytics.pendingMaintenance = pendingComplaints.length || 0;
-    const pendingApplications = allApplication.filter(app => app.status === 'pending');
-    analytics.pendingApplications = pendingApplications.length || 0;
     analytics.totalEquipment = allEquipments.length || 0;
     analytics.activeEquipment = allEquipments.filter(eq => eq.status === 'active').length || 0;
     analytics.idleEquipment = allEquipments.filter(eq => eq.status === 'idle').length || 0;

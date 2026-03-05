@@ -939,6 +939,14 @@
   color: #004499;
 }
 
+.pending-lpo-list .info-label{
+  font-size: 14px;
+}
+
+.pending-lpo-list .info-value{
+  font-size: 14px;
+}
+
 /* Responsive Design */
 @media (max-width: 600px) {
   .discount-popup {

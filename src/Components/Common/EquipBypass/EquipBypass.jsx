@@ -7,6 +7,18 @@ import { useSearch } from '../../../Context/SearchContext';
 import Button from '../../../Common/Button/Button';
 import Loader from '../../../Common/Loader/Loader';
 
+/** Shared Button props applied to every action button in the controls bar. */
+const SHARED_BTN = {
+  variant: 'gradient',
+  font: 'md',
+  animation: '',
+  squircle: '4xl',
+  height: '38px',
+  textColor: 'white-200',
+  shadowPosition: 'to-bottom',
+  shadowColor: 'white-600',
+};
+
 function EquipBypass({ equipStocks, documents, isLPO }) {
     const { searchTerm } = useSearch();
     const [equipments, setEquipments] = useState([]);
@@ -186,7 +198,8 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
         try {
             const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
             const data = await response.json();
-            const pendingItems = data.filter(item => item.workflowStatus === "sent_to_workshop");
+            const complaints = Array.isArray(data.data?.data) ? data.data.data : Array.isArray(data.data) ? data.data : [];
+            const pendingItems = complaints.filter(item => item.workflowStatus === "sent_to_workshop");
 
             setPendingLpos(pendingItems);
 
@@ -295,8 +308,8 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
             {isLPO && showPendingAlert && pendingLpos.length > 0 && (
                 <div className="pending-lpo-alert">
                     <div className="alert-header">
-                        <h3 className="alert-title">⚠️ Pending LPO Requests ({pendingLpos.length})</h3>
-                        <button className="alert-close-btn" onClick={handleClosePendingAlert}>
+                        <h3 className="alert-title">Pending LPO Requests ({pendingLpos.length})</h3>
+                        <button className="alert-close-btn close-btn" onClick={handleClosePendingAlert}>
                             <span className="material-symbols-rounded">
                                 close
                             </span>
@@ -335,12 +348,16 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
                                         <span className="info-value">{lpoItem.assignedMechanic?.mechanicName || 'N/A'}</span>
                                     </div>
                                 </div>
-                                <button
-                                    className="action-btn create-lpo"
+                                <Button
+                                    {...SHARED_BTN}
+                                    text={"Create LPO"}
                                     onClick={() => handleCreateLpoFromComplaint(lpoItem)}
-                                >
-                                    Create LPO
-                                </button>
+                                    colorScheme="amber-400"
+                                    width="fit-content"
+                                    textColor='black-200'
+                                    type='submit'
+                                    cursor="allowed"
+                                />
                             </div>
                         ))}
                     </div>
