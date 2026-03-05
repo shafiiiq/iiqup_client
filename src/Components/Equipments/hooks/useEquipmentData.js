@@ -166,7 +166,8 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
     try {
       const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
       const data     = await response.json();
-      const completed = data.data.filter(item => item.workflowStatus === 'completed');
+      const list     = Array.isArray(data.data) ? data.data : data.data?.complaints || data.complaints || [];
+      const completed = list.filter(item => item.workflowStatus === 'completed');
       setCompletedWorks(completed);
       setShowCompletedWorkAlert(completed.length > 0);
     } catch (err) {

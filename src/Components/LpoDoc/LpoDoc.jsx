@@ -678,9 +678,10 @@ function LpoDoc() {
 
   // ── Modal visibility state ─────────────────────────────────────────────────
 
-  const [showActivationModal,  setShowActivationModal]  = useState(false);
-  const [showTrustModal,       setShowTrustModal]       = useState(false);
-  const [showNotTrustedModal,  setShowNotTrustedModal]  = useState(false);
+  const [showActivationModal,    setShowActivationModal]    = useState(false);
+  const [showTrustModal,         setShowTrustModal]         = useState(false);
+  const [showNotTrustedModal,    setShowNotTrustedModal]    = useState(false);
+  const [showUploadSuccessModal, setShowUploadSuccessModal] = useState(false);
 
   // ── Effect: Sync header title / subtitle ──────────────────────────────────
 
@@ -887,7 +888,8 @@ function LpoDoc() {
       // ── Resolve complaint job code (best-effort) ──
       let jobCode = null;
       try {
-        const complaintRes = await apiRequest(`${END_POINT}/complaints/get-complaints/${lpo.complaintId}`, 'GET');
+        if (!lpo.complaintId) throw new Error('No complaint ID');
+          const complaintRes = await apiRequest(`${END_POINT}/complaints/get-complaints/${lpo.complaintId}`, 'GET');
         if (complaintRes.ok) {
           const complaintData = await complaintRes.json();
           jobCode = complaintData.complaintId || null;
@@ -1093,7 +1095,7 @@ function LpoDoc() {
   const confirmBrowserTrust = () => {
     setShowTrustModal(false);
     setGlobalActivation({ isActivated: true, isTrusted: true, checked: true });
-    loadAllSignatures();
+    loadAllSignatures(deviceInfo, signatureFlags);
   };
 
   // ── PDF handlers ───────────────────────────────────────────────────────────
@@ -1156,11 +1158,11 @@ function LpoDoc() {
         );
 
         const uploadResult = await uploadResponse.json();
-        if (!uploadResponse.ok || uploadResult.status !== 200) {
+        if (!uploadResponse.ok || !uploadResult.success) {
           throw new Error(uploadResult.message || 'Upload failed');
         }
 
-        const s3Response = await fetch(uploadResult.uploadUrl, {
+        const s3Response = await fetch(uploadResult.data?.uploadUrl || uploadResult.uploadUrl, {
           method:  'PUT',
           headers: { 'Content-Type': 'application/pdf' },
           body:    pdfBlob,
@@ -1168,7 +1170,7 @@ function LpoDoc() {
 
         if (!s3Response.ok) throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
 
-        alert('LPO uploaded successfully!');
+        setShowUploadSuccessModal(true);
 
       } catch (err) {
         console.error('[LpoDoc] sendToApprove error:', err);
@@ -1442,6 +1444,19 @@ function LpoDoc() {
         formFields={[{ name: 'email', label: vendorMail ? 'Saved Email (tap to edit)' : 'Vendor Email', type: 'email', placeholder: 'vendor@example.com', required: true }]}
         formValues={emailFormValues}
         onFormChange={(field, value) => setEmailFormValues((prev) => ({ ...prev, [field]: value }))}
+      />
+
+      {/* ── Lpo upload success modal ── */}
+      <DevModal
+        isOpen={showUploadSuccessModal}
+        onClose={() => setShowUploadSuccessModal(false)}
+        type="success"
+        title="LPO Uploaded"
+        message="The LPO document has been uploaded successfully for approval."
+        buttonText="OK"
+        onButtonClick={() => setShowUploadSuccessModal(false)}
+        autoClose
+        autoCloseDelay={3000}
       />
     </div>
   );

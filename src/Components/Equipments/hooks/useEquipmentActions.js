@@ -242,10 +242,11 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
     const updatedEquipment = {
       ...editEquipment,
-      machine: editFormData.machine, regNo:   editFormData.regNo,
-      brand:   editFormData.brand,   year:    editFormData.year,
-      company: editFormData.company, site:    editFormData.site,
-      status:  editFormData.status,
+      machine:   editFormData.machine, regNo:   editFormData.regNo,
+      brand:     editFormData.brand,   year:    editFormData.year,
+      company:   editFormData.company, site:    editFormData.site,
+      status:    editFormData.status,
+      hiredFrom: editFormData.hiredFrom,
     };
 
     // Only include operator fields if the operator was actually changed
