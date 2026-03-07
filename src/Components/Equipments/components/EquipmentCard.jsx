@@ -161,7 +161,7 @@ function EquipmentCard({
           </div>
           <div className="detail-item-equipment">
             <span className="detail-label">Site</span>
-            <span className="detail-value">{item.site || 'N/A'}</span>
+            <span className="detail-value">{item.site?.at(-1) || 'N/A'}</span>
           </div>
         </div>
 

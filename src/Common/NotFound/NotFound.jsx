@@ -48,8 +48,6 @@ function NotFound() {
                         textColor="black-200"
                         shadowPosition="to-bottom"
                         shadowColor="white-600"
-                        iconLeft={'arrow_back_ios'}
-                        iconColor={"black-200"}
                     />
                 </div>
             </div>

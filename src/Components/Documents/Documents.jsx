@@ -10,6 +10,7 @@ import Button from '../../Common/Button/Button';
 import Input from '../../Common/Input/Input';
 import PDFPreviewModal from '../../Common/PDFPreviewModal/PDFPreviewModal';
 import Loader from '../../Common/Loader/Loader';
+import Toast from '../../Common/Toast/Toast';
 
 // ─── Static config ────────────────────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ function DocumentDetails() {
   const [previewImage,       setPreviewImage]       = useState(null);
   const [isDragging,         setIsDragging]         = useState(false);
   const [isLoading,          setIsLoading]          = useState(false);
-  const [message,            setMessage]            = useState({ text: '', type: '' });
+  const [toast,              setToast]              = useState({ isOpen: false, message: '', type: 'success' });
   const [uploadProgress,     setUploadProgress]     = useState(0);
   const [showProgressModal,  setShowProgressModal]  = useState(false);
 
@@ -129,6 +130,10 @@ function DocumentDetails() {
   const [splitDocument,      setSplitDocument]      = useState(null);
   const [splitDocumentUrl,   setSplitDocumentUrl]   = useState(null);
   const [splitDocumentName,  setSplitDocumentName]  = useState('');
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  const showToast = (message, type = 'success') => setToast({ isOpen: true, message, type });
 
   // ─── Derived ───────────────────────────────────────────────────────────────
 
@@ -165,13 +170,13 @@ function DocumentDetails() {
   const processFile = useCallback(async (file) => {
     try {
       if (isImageFile(file)) {
-        setMessage({ text: 'Converting image to PDF...', type: 'info' });
+        showToast('Converting image to PDF...', 'info');
         const converted = await convertImageToPDF(file);
         setSelectedFile(converted);
         const reader = new FileReader();
         reader.onloadend = () => setPreviewImage(reader.result);
         reader.readAsDataURL(file);
-        setMessage({ text: 'Image converted to PDF successfully!', type: 'success' });
+        showToast('Image converted to PDF successfully!', 'success');
       } else {
         setSelectedFile(file);
         if (file.type.startsWith('image/')) {
@@ -183,7 +188,7 @@ function DocumentDetails() {
         }
       }
     } catch (err) {
-      setMessage({ text: `Error processing file: ${err.message}`, type: 'error' });
+      showToast(`Error processing file: ${err.message}`, 'error');
     }
   }, []);
 
@@ -283,7 +288,7 @@ function DocumentDetails() {
       });
       setDocumentsList(out);
     } catch (err) {
-      setMessage({ text: `Error: ${err.message}`, type: 'error' });
+      showToast(`Error: ${err.message}`, 'error');
     } finally { setIsLoading(false); }
   };
 
@@ -292,14 +297,14 @@ function DocumentDetails() {
   const handleInputChange   = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
   const handleDocTypeChange = (e) => { setDocTypeInput(e.target.value); setFormData(p => ({ ...p, documentType: e.target.value })); };
   const handleFileChange    = async (e) => { const f = e.target.files?.[0]; if (f) processFile(f); };
-  const handleReset         = () => { setFormData(EMPTY_FORM); setDocTypeInput(''); setSelectedFile(null); setPreviewImage(null); setMessage({ text: '', type: '' }); };
+  const handleReset         = () => { setFormData(EMPTY_FORM); setDocTypeInput(''); setSelectedFile(null); setPreviewImage(null); };
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!selectedFile || !id || !sourceType || !formData.documentType) {
-      setMessage({ text: 'Please fill all required fields and select a file', type: 'error' }); return;
+      showToast('Please fill all required fields and select a file', 'error'); return;
     }
-    setIsLoading(true); setMessage({ text: '', type: '' });
+    setIsLoading(true);
     setShowProgressModal(true); setUploadProgress(0);
     const iv = setInterval(() => setUploadProgress(p => p >= 90 ? p : p + Math.random() * 15), 150);
     try {
@@ -314,13 +319,13 @@ function DocumentDetails() {
       const s3 = await fetch(result.uploadUrl, { method: 'PUT', body: selectedFile, headers: { 'Content-Type': selectedFile.type } });
       if (!s3.ok) throw new Error(`S3 upload failed: ${s3.status}`);
       clearInterval(iv); setUploadProgress(100);
-      setMessage({ text: 'Document uploaded successfully!', type: 'success' });
+      showToast('Document uploaded successfully!', 'success');
       if (!documentTypes.includes(formData.documentType))
         setDocumentTypes(p => [...p, formData.documentType].sort());
       setTimeout(() => { setShowProgressModal(false); setUploadProgress(0); handleReset(); }, 2000);
     } catch (err) {
       clearInterval(iv);
-      setMessage({ text: `Error: ${err.message}`, type: 'error' });
+      showToast(`Error: ${err.message}`, 'error');
       setTimeout(() => { setShowProgressModal(false); setUploadProgress(0); }, 3000);
     } finally { setIsLoading(false); }
   };
@@ -331,10 +336,10 @@ function DocumentDetails() {
     const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     try {
-      setMessage({ text: 'Opening document...', type: 'info' });
+      showToast('Opening document...', 'info');
       if (isIOS) {
         window.location.href = `${END_POINT}/documents/view/${documentId}`;
-        setMessage({ text: "Document opened. Use Safari's share button to save if needed.", type: 'success' });
+        showToast("Document opened. Use Safari's share button to save if needed.", 'success');
         return;
       }
       const res    = await apiRequest(`${END_POINT}/documents/view/${documentId}`);
@@ -352,16 +357,15 @@ function DocumentDetails() {
           else window.location.href = url;
         } else { window.location.href = url; }
       } else {
-        if (!window.open(url, '_blank')) { setMessage({ text: 'Popup blocked. Please allow popups and try again.', type: 'error' }); return; }
+        if (!window.open(url, '_blank')) { showToast('Popup blocked. Please allow popups and try again.', 'error'); return; }
       }
-      setMessage({ text: 'Document opened successfully.', type: 'success' });
-    } catch (err) { setMessage({ text: `Error viewing: ${err.message}`, type: 'error' }); }
-    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      showToast('Document opened successfully.', 'success');
+    } catch (err) { showToast(`Error viewing: ${err.message}`, 'error'); }
   };
 
   const handleDownload = async (documentId, fileName) => {
     try {
-      setMessage({ text: 'Preparing download...', type: 'info' });
+      showToast('Preparing download...', 'info');
       const res    = await apiRequest(`${END_POINT}/documents/download/${documentId}`);
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data   = await res.json();
@@ -373,32 +377,31 @@ function DocumentDetails() {
       const link = Object.assign(document.createElement('a'), { href: url, download: fileName, style: 'display:none' });
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      setMessage({ text: 'Download completed!', type: 'success' });
-    } catch (err) { setMessage({ text: `Error downloading: ${err.message}`, type: 'error' }); }
+      showToast('Download completed!', 'success');
+    } catch (err) { showToast(`Error downloading: ${err.message}`, 'error'); }
   };
 
   const handleDelete = async () => {
     if (!deleteDocumentId) return;
     try {
-      setMessage({ text: 'Deleting document...', type: 'info' }); setShowDeleteModal(false);
+      showToast('Deleting document...', 'info'); setShowDeleteModal(false);
       const res = await apiRequest(`${END_POINT}/documents/delete/${deleteDocumentId}`, 'DELETE');
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || 'Delete failed'); }
-      setMessage({ text: 'Document deleted successfully!', type: 'success' });
+      showToast('Document deleted successfully!', 'success');
       setDeleteDocumentId(null); setDeleteDocumentName('');
       fetchDocuments();
-      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
-    } catch (err) { setMessage({ text: `Error deleting: ${err.message}`, type: 'error' }); }
+    } catch (err) { showToast(`Error deleting: ${err.message}`, 'error'); }
   };
 
   const handleSaveRename = async (docId) => {
-    if (!newFileName.trim()) { setMessage({ text: 'File name cannot be empty', type: 'error' }); return; }
+    if (!newFileName.trim()) { showToast('File name cannot be empty', 'error'); return; }
     try {
       const res    = await apiRequest(`${END_POINT}/documents/rename-file/${docId}`, 'PUT', { newFileName: newFileName.trim() });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Rename failed');
-      setMessage({ text: 'File renamed successfully!', type: 'success' });
+      showToast('File renamed successfully!', 'success');
       setRenamingDocId(null); setNewFileName(''); fetchDocuments();
-    } catch (err) { setMessage({ text: `Error: ${err.message}`, type: 'error' }); }
+    } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
   };
 
   const handleSplitPDF = async (documentId, fileName, filePath) => {
@@ -406,7 +409,7 @@ function DocumentDetails() {
       const res  = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
       const data = await res.json();
       setSplitDocument(documentId); setSplitDocumentUrl(data.dataUrl); setSplitDocumentName(fileName); setShowSplitModal(true);
-    } catch { setMessage({ text: 'Failed to load PDF preview', type: 'error' }); }
+    } catch { showToast('Failed to load PDF preview', 'error'); }
   };
 
   const handleMergePages = async (documentId, pageNumbers) => {
@@ -414,9 +417,9 @@ function DocumentDetails() {
       const res    = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', { sourceId: id, sourceType, documentId, splitOptions: { pages: pageNumbers, splitType: 'specific' }, category: currentCategory === 'all' ? 'merged' : currentCategory });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Merge failed');
-      setMessage({ text: `Merged ${pageNumbers.length} pages successfully!`, type: 'success' });
+      showToast(`Merged ${pageNumbers.length} pages successfully!`, 'success');
       setShowSplitModal(false); fetchDocuments();
-    } catch (err) { setMessage({ text: `Error: ${err.message}`, type: 'error' }); }
+    } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
   };
 
   const handleSplitAllPages = async (documentId, totalPages) => {
@@ -424,20 +427,20 @@ function DocumentDetails() {
       const res    = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', { sourceId: id, sourceType, documentId, splitOptions: { pages: [1], splitType: 'every' }, category: currentCategory === 'all' ? 'split' : currentCategory });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Split failed');
-      setMessage({ text: `Split all ${totalPages} pages successfully!`, type: 'success' });
+      showToast(`Split all ${totalPages} pages successfully!`, 'success');
       setShowSplitModal(false); fetchDocuments();
-    } catch (err) { setMessage({ text: `Error: ${err.message}`, type: 'error' }); }
+    } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
   };
 
   const handleMergePDFs = async () => {
-    if (selectedDocuments.length < 2) { setMessage({ text: 'Please select at least 2 PDFs to merge', type: 'error' }); return; }
+    if (selectedDocuments.length < 2) { showToast('Please select at least 2 PDFs to merge', 'error'); return; }
     try {
       const res    = await apiRequest(`${END_POINT}/documents/merge-pdfs`, 'POST', { sourceId: id, sourceType, documentIds: selectedDocuments, category: currentCategory === 'all' ? 'merged' : currentCategory, documentType: 'Merged Document' });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Merge failed');
-      setMessage({ text: 'PDFs merged successfully!', type: 'success' });
+      showToast('PDFs merged successfully!', 'success');
       setTimeout(() => { setSelectionMode(false); setSelectedDocuments([]); fetchDocuments(); }, 2000);
-    } catch (err) { setMessage({ text: `Error: ${err.message}`, type: 'error' }); }
+    } catch (err) { showToast(`Error: ${err.message}`, 'error'); }
   };
 
   // ─── Navigation ────────────────────────────────────────────────────────────
@@ -536,12 +539,13 @@ function DocumentDetails() {
   return (
     <div className={`doc-details-container ${isDragging ? 'dragging-active' : ''}`}>
 
+      <Toast isOpen={toast.isOpen} message={toast.message} type={toast.type}
+        onClose={() => setToast(p => ({ ...p, isOpen: false }))} />
+
       <div className="doc-details-tabs">
         <Button {...TAB_BTN} text="Add Document"   onClick={() => setActiveTab('add')}  colorScheme={activeTab === 'add'  ? 'amber-300' : 'amber-900'} textColor={activeTab === 'add'  ? 'black-300' : 'white-900'} />
         <Button {...TAB_BTN} text="View Documents" onClick={() => setActiveTab('view')} colorScheme={activeTab === 'view' ? 'amber-400' : 'amber-900'} textColor={activeTab === 'view' ? 'black-300' : 'white-900'} />
       </div>
-
-      {message.text && <div className={`doc-details-message ${message.type}`}>{message.text}</div>}
 
       <DevModal isOpen={showProgressModal} type="progress" title="Uploading Document"
         message={selectedFile ? `Uploading: ${selectedFile.name}` : 'Uploading to cloud storage...'}
@@ -650,7 +654,6 @@ function DocumentDetails() {
 
               <div className="doc-details-explorer-content">
 
-                {/* CATEGORIES */}
                 {currentView === 'categories' && (
                   <div className="doc-details-grid-container">
                     {Object.keys(groupedDocuments).length > 0 ? (
@@ -673,7 +676,6 @@ function DocumentDetails() {
                   </div>
                 )}
 
-                {/* DOC TYPES */}
                 {currentView === 'docTypes' && currentCategory && (() => {
                   const byType = (groupedDocuments[currentCategory] || []).reduce((acc, doc) => {
                     const t = doc.documentType || 'Unknown';
@@ -694,7 +696,6 @@ function DocumentDetails() {
                   );
                 })()}
 
-                {/* SUBFOLDERS */}
                 {currentView === 'subfolders' && currentCategory && currentDocType && (() => {
                   const sorted = sortByUploadDate(
                     (groupedDocuments[currentCategory] || []).filter(d => (d.documentType || 'Unknown') === currentDocType.name)
@@ -723,7 +724,6 @@ function DocumentDetails() {
                   );
                 })()}
 
-                {/* ALL DOCS FILES */}
                 {currentView === 'allDocsFiles' && (
                   <>
                     <div className="doc-details-selection-toolbar">
@@ -745,7 +745,6 @@ function DocumentDetails() {
                   </>
                 )}
 
-                {/* CATEGORY FILES */}
                 {currentView === 'files' && currentCategory && currentDocType && (() => {
                   const isSM = currentDocType.name.includes('(Split)') || currentDocType.name.includes('(Merged)');
                   const sorted = sortByUploadDate(

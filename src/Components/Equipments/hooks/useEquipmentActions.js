@@ -225,7 +225,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       machine:    equipment.machine,
       regNo:      equipment.regNo,
       brand:      equipment.brand,
-      site:       equipment.site,
+      site:       equipment.site?.at(-1) || '',
       status:     equipment.status,
       year:       equipment.year,
       company:    equipment.company,

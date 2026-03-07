@@ -46,6 +46,7 @@ import NavigationButtons from './Components/Common/NavigationButtons/NavigationB
 import Spacer            from './Components/Spacer/Spacer';
 import SplashScreen      from './splash/SplashScreen';
 import NotFound          from './Common/NotFound/NotFound';
+import Intro          from './Common/Intro/Intro';
 
 import './App.css';
 import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';
@@ -374,6 +375,8 @@ function App() {
                 <Routes>
 
                   {/* ── Public ──────────────────────────────────────────── */}
+
+                  <Route path="/intro" element={<Intro />} />
 
                   <Route
                     path="/login"
