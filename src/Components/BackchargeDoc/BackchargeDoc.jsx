@@ -586,6 +586,7 @@ function BackchargeDoc() {
       if (!keyRes.ok) throw new Error('Failed to get signature key');
       const keyData = await keyRes.json();
 
+      console.log("keyData", keyData);
       const s3Res = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', {
         key: keyData.data.sign_key,
         isLong: false,
@@ -593,6 +594,9 @@ function BackchargeDoc() {
       });
       if (!s3Res.ok) throw new Error('Failed to get S3 URL');
       const s3Data = await s3Res.json();
+
+      console.log("s3Data", s3Data);
+      
 
       setSignatureStates((prev) => ({ ...prev, [roleField]: { url: s3Data.dataUrl, loading: false } }));
 

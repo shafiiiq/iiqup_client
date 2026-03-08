@@ -308,6 +308,7 @@ function EquipmentModals({
           { name: 'site',           label: 'Site',                 type: 'search-select', placeholder: 'Search or add site...',        required: mobilizeForm.deployType === 'site',    disabled: mobilizeForm.deployType === 'company',    options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'clientCompany',  label: 'Client Company',       type: 'text',          placeholder: 'Enter client company name',    disabled: mobilizeForm.deployType === 'site' },
           { name: 'date',           label: 'Date (Optional)',      type: 'date' },
+          { name: 'time',           label: 'Time (Optional)',      type: 'time' },
           { name: 'remarks',        label: 'Remarks (Optional)',   type: 'textarea',      placeholder: 'Add any additional notes' },
           { name: 'withOperator',   label: 'With Operator',        type: 'checkbox',      description: 'Check if equipment has an operator' },
           { name: 'operator',       label: 'Operator Name',        type: 'search-select', placeholder: 'Search operator...',           required: mobilizeForm.withOperator,             disabled: !mobilizeForm.withOperator,            options: operatorOptions(operator) },
@@ -342,6 +343,7 @@ function EquipmentModals({
         message="Select the demobilization date"
         formFields={[
           { name: 'date', label: 'Demobilization Date', type: 'date', required: true },
+          { name: 'time', label: 'Time (Optional)',     type: 'time' },
           { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Add any notes' },
         ]}
         formValues={demobilizeForm}
@@ -360,9 +362,10 @@ function EquipmentModals({
         title={`Replace Operator - ${selectedEquipmentForAction?.regNo || ''}`}
         message="Enter the new operator details"
         formFields={[
-          { name: 'currentOperator',  label: 'Current Operator',  type: 'text',          disabled: true },
-          { name: 'replacedOperator', label: 'New Operator',       type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
+          { name: 'currentOperator',  label: 'Current Operator',    type: 'text',          disabled: true },
+          { name: 'replacedOperator', label: 'New Operator',        type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
           { name: 'date',             label: 'Date (Optional)',     type: 'date' },
+          { name: 'time',             label: 'Time (Optional)',     type: 'time' },
           { name: 'remarks',          label: 'Remarks (Optional)',  type: 'textarea',      placeholder: 'Reason for replacement or notes' },
         ]}
         formValues={replaceOperatorForm}
@@ -381,10 +384,11 @@ function EquipmentModals({
         title={`Replace Equipment - ${selectedEquipmentForAction?.regNo || ''}`}
         message={`Current equipment will be replaced. Current site: ${selectedEquipmentForAction?.site || 'N/A'}`}
         formFields={[
-          { name: 'replacedEquipmentRegNo',   label: 'New Equipment Reg No',                    type: 'search-select', placeholder: 'Search equipment by reg no...', required: true, options: replaceEquipmentResults.map(eq => ({ label: `${eq.regNo} - ${eq.machine}`, value: eq.regNo })) },
-          { name: 'replacedEquipmentMachine', label: 'New Equipment Machine',                    type: 'text',          placeholder: 'Auto-filled', disabled: true },
+          { name: 'replacedEquipmentRegNo',   label: 'New Equipment Reg No',                      type: 'search-select', placeholder: 'Search equipment by reg no...', required: true, options: replaceEquipmentResults.map(eq => ({ label: `${eq.regNo} - ${eq.machine}`, value: eq.regNo })) },
+          { name: 'replacedEquipmentMachine', label: 'New Equipment Machine',                      type: 'text',          placeholder: 'Auto-filled', disabled: true },
           { name: 'newSiteForReplaced',        label: 'New Site for Current Equipment (Optional)', type: 'search-select', placeholder: 'Search or add site...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'date',                      label: 'Date (Optional)',                           type: 'date' },
+          { name: 'time',                      label: 'Time (Optional)',                           type: 'time' },
           { name: 'remarks',                   label: 'Remarks (Optional)',                        type: 'textarea',      placeholder: 'Reason for replacement or notes' },
         ]}
         formValues={replaceEquipmentForm}

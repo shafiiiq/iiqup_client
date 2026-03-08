@@ -6,10 +6,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react';
-import { useNavigate }           from 'react-router-dom';
-import { useHeaderVibration }    from '../../../Context/HeaderVibrationContext';
-import { apiRequest }            from '../../../utils/api';
-import { END_POINT }             from '../../../constants';
+import { useNavigate } from 'react-router-dom';
+import { useHeaderVibration } from '../../../Context/HeaderVibrationContext';
+import { apiRequest } from '../../../utils/api';
+import { END_POINT } from '../../../constants';
 import {
   getOperatorName,
   getOperatorId,
@@ -36,23 +36,21 @@ const EMPTY_OUTSIDE_FORM = {
   machine: '', regNo: '', brand: '', operator: '', company: 'OUTSIDE', hired: true,
 };
 
-const EMPTY_DEMOBILIZE_FORM = {
-  date: '', remarks: '',
-};
+const EMPTY_DEMOBILIZE_FORM = { date: '', time: '', remarks: '' };
 
 const EMPTY_MOBILIZE_FORM = {
-  site: '', operator: '', operatorId: '', withOperator: false, remarks: '',
-  deployType: 'site', clientCompany: '', date: '',
+  site: '', operator: '', operatorId: '', withOperator: false,
+  remarks: '', deployType: 'site', clientCompany: '', date: '', time: ''
 };
 
 const EMPTY_REPLACE_OPERATOR_FORM = {
   currentOperator: '', currentOperatorId: '',
-  replacedOperator: '', replacedOperatorId: '', remarks: '', date: '',
+  replacedOperator: '', replacedOperatorId: '', remarks: '', date: '', time: ''
 };
 
 const EMPTY_REPLACE_EQUIPMENT_FORM = {
   replacedEquipmentId: '', replacedEquipmentRegNo: '',
-  replacedEquipmentMachine: '', newSiteForReplaced: '', remarks: '', date: '',
+  replacedEquipmentMachine: '', newSiteForReplaced: '', remarks: '', date: '', time: ''
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,48 +65,48 @@ const EMPTY_REPLACE_EQUIPMENT_FORM = {
  * }} params
  */
 export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, operator }) => {
-  const navigate         = useNavigate();
+  const navigate = useNavigate();
   const { triggerVibration } = useHeaderVibration();
 
   // ── Shared Status / Feedback ───────────────────────────────────────────────
-  const [deleteStatus,    setDeleteStatus]    = useState({ message: '', isError: false });
+  const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
 
   // ── Selection Mode (multi-select for batch history) ────────────────────────
-  const [isSelectMode,       setIsSelectMode]       = useState(false);
-  const [selectedEquipment,  setSelectedEquipment]  = useState([]);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState([]);
 
   // ── Add Equipment ──────────────────────────────────────────────────────────
-  const [showAddModal,      setShowAddModal]      = useState(false);
-  const [addEquipmentForm,  setAddEquipmentForm]  = useState(EMPTY_ADD_FORM);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addEquipmentForm, setAddEquipmentForm] = useState(EMPTY_ADD_FORM);
 
   // ── Edit Equipment ─────────────────────────────────────────────────────────
-  const [showEditModal,  setShowEditModal]  = useState(false);
-  const [editEquipment,  setEditEquipment]  = useState(null);
-  const [editFormData,   setEditFormData]   = useState(EMPTY_EDIT_FORM);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editEquipment, setEditEquipment] = useState(null);
+  const [editFormData, setEditFormData] = useState(EMPTY_EDIT_FORM);
 
   // ── Delete Equipment ───────────────────────────────────────────────────────
-  const [showDeleteModal,     setShowDeleteModal]     = useState(false);
-  const [equipmentToDelete,   setEquipmentToDelete]   = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [equipmentToDelete, setEquipmentToDelete] = useState(null);
 
   // ── Outside / Hired Equipment ──────────────────────────────────────────────
   const [showOutsideEquipmentModal, setShowOutsideEquipmentModal] = useState(false);
-  const [outsideEquipmentForm,      setOutsideEquipmentForm]      = useState(EMPTY_OUTSIDE_FORM);
+  const [outsideEquipmentForm, setOutsideEquipmentForm] = useState(EMPTY_OUTSIDE_FORM);
 
   // ── Sidebar ────────────────────────────────────────────────────────────────
-  const [showSidebar,    setShowSidebar]    = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [sidebarContent, setSidebarContent] = useState(null);
-  const [sidebarTitle,   setSidebarTitle]   = useState('');
+  const [sidebarTitle, setSidebarTitle] = useState('');
   const [isLoadingFuels, setIsLoadingFuels] = useState(false);
   const [showFuelProgressModal, setShowFuelProgressModal] = useState(false);
-  const [fuelProgress,   setFuelProgress]   = useState(0);
+  const [fuelProgress, setFuelProgress] = useState(0);
 
   // ── No Results ─────────────────────────────────────────────────────────────
   const [showNoResultsModal, setShowNoResultsModal] = useState(false);
 
   // ── Mobilize ───────────────────────────────────────────────────────────────
   const [showMobilizeModal, setShowMobilizeModal] = useState(false);
-  const [mobilizeForm,      setMobilizeForm]      = useState(EMPTY_MOBILIZE_FORM);
+  const [mobilizeForm, setMobilizeForm] = useState(EMPTY_MOBILIZE_FORM);
 
   // ── Demobilize ─────────────────────────────────────────────────────────────
   const [showDemobilizeModal, setShowDemobilizeModal] = useState(false);
@@ -117,19 +115,19 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
   // ── Replace Operator ───────────────────────────────────────────────────────
   const [showReplaceOperatorModal, setShowReplaceOperatorModal] = useState(false);
-  const [replaceOperatorForm,      setReplaceOperatorForm]      = useState(EMPTY_REPLACE_OPERATOR_FORM);
+  const [replaceOperatorForm, setReplaceOperatorForm] = useState(EMPTY_REPLACE_OPERATOR_FORM);
 
   // ── Replace Equipment ──────────────────────────────────────────────────────
   const [showReplaceEquipmentModal, setShowReplaceEquipmentModal] = useState(false);
-  const [replaceEquipmentForm,      setReplaceEquipmentForm]      = useState(EMPTY_REPLACE_EQUIPMENT_FORM);
-  const [replaceEquipmentResults,   setReplaceEquipmentResults]   = useState([]);
+  const [replaceEquipmentForm, setReplaceEquipmentForm] = useState(EMPTY_REPLACE_EQUIPMENT_FORM);
+  const [replaceEquipmentResults, setReplaceEquipmentResults] = useState([]);
 
   // ── Shared selected equipment target (for action modals) ───────────────────
   const [selectedEquipmentForAction, setSelectedEquipmentForAction] = useState(null);
 
   // ── Export ─────────────────────────────────────────────────────────────────
   const [showExportModal, setShowExportModal] = useState(false);
-  const [exportColumns,   setExportColumns]   = useState({
+  const [exportColumns, setExportColumns] = useState({
     machine: true, regNo: true, brand: true, year: true,
     company: true, operator: true, site: true, status: true,
     istimaraExpiry: false, insuranceExpiry: false, tpcExpiry: false,
@@ -170,8 +168,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
   // Navigation
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleRowClick       = (regNo) => navigate(`/service-history/${regNo}`);
-  const handleQuickServices  = ()      => navigate('/service-histoy/summary');
+  const handleRowClick = (regNo) => navigate(`/service-history/${regNo}`);
+  const handleQuickServices = () => navigate('/service-histoy/summary');
 
   // ─────────────────────────────────────────────────────────────────────────
   // Add Equipment
@@ -189,10 +187,10 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     const { operator: _op, operatorId: _oid, ...rest } = addEquipmentForm;
     const newEquipment = {
       ...rest,
-      year:              parseInt(addEquipmentForm.year),
+      year: parseInt(addEquipmentForm.year),
       certificationBody,
-      site:              addEquipmentForm.site ? [addEquipmentForm.site] : [],
-      hired:             addEquipmentForm.company === 'HIRED',
+      site: addEquipmentForm.site ? [addEquipmentForm.site] : [],
+      hired: addEquipmentForm.company === 'HIRED',
     };
 
     try {
@@ -222,16 +220,16 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     triggerVibration();
     setEditEquipment(equipment);
     setEditFormData({
-      machine:    equipment.machine,
-      regNo:      equipment.regNo,
-      brand:      equipment.brand,
-      site:       equipment.site?.at(-1) || '',
-      status:     equipment.status,
-      year:       equipment.year,
-      company:    equipment.company,
-      operator:   getOperatorName(equipment.certificationBody),
+      machine: equipment.machine,
+      regNo: equipment.regNo,
+      brand: equipment.brand,
+      site: equipment.site?.at(-1) || '',
+      status: equipment.status,
+      year: equipment.year,
+      company: equipment.company,
+      operator: getOperatorName(equipment.certificationBody),
       operatorId: getOperatorId(equipment.certificationBody, operator),
-      hiredFrom:  equipment.hiredFrom || '',
+      hiredFrom: equipment.hiredFrom || '',
     });
     setShowEditModal(true);
   };
@@ -242,10 +240,10 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
     const updatedEquipment = {
       ...editEquipment,
-      machine:   editFormData.machine, regNo:   editFormData.regNo,
-      brand:     editFormData.brand,   year:    editFormData.year,
-      company:   editFormData.company, site:    editFormData.site,
-      status:    editFormData.status,
+      machine: editFormData.machine, regNo: editFormData.regNo,
+      brand: editFormData.brand, year: editFormData.year,
+      company: editFormData.company, site: editFormData.site,
+      status: editFormData.status,
       hiredFrom: editFormData.hiredFrom,
     };
 
@@ -253,13 +251,13 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     const currentOpName = editEquipment.certificationBody?.at(-1);
     const currentOp = typeof currentOpName === 'string' ? currentOpName : currentOpName?.operatorName;
     if (editFormData.operator !== currentOp) {
-      updatedEquipment.operator   = editFormData.operator;
+      updatedEquipment.operator = editFormData.operator;
       updatedEquipment.operatorId = editFormData.operatorId;
     }
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/update-equipment/${editEquipment.regNo}`, 'PUT', updatedEquipment);
-      const data     = await response.json();
+      const data = await response.json();
       handleActionResult(data, `Equipment ${editEquipment.regNo} successfully updated.`, closeEditModal);
     } catch (err) {
       closeEditModal();
@@ -284,7 +282,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     if (!equipmentToDelete) return;
     try {
       const response = await apiRequest(`${END_POINT}/equipments/delete-equipment/${equipmentToDelete.regNo}`, 'DELETE');
-      const data     = await response.json();
+      const data = await response.json();
       setShowDeleteModal(false);
       showStatus(
         data.ok
@@ -315,7 +313,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/add-equipment`, 'POST', payload);
-      const data     = await response.json();
+      const data = await response.json();
       setShowOutsideEquipmentModal(false);
       showStatus(
         data.ok
@@ -354,7 +352,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
     try {
       const response = await apiRequest(`${END_POINT}/fuels/equipment-consumption`);
-      const data     = await response.json();
+      const data = await response.json();
       const fuelData = data.data.filter(item => item.regNo === regNo);
 
       if (data.success) {
@@ -393,28 +391,28 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     if (!selectedEquipmentForAction) return;
 
     const { month, year, time } = mobilizeForm.date
-      ? (() => { const d = new Date(mobilizeForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: getCurrentDateTime().time }; })()
-      : getCurrentDateTime();
+      ? (() => { const d = new Date(mobilizeForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: mobilizeForm.time || getCurrentDateTime().time }; })()
+      : { ...getCurrentDateTime(), time: mobilizeForm.time || getCurrentDateTime().time };
+      
     const found = operator.find(op => op.name === mobilizeForm.operator);
-
     const payload = {
-      equipmentId:   selectedEquipmentForAction._id,
-      regNo:         selectedEquipmentForAction.regNo,
-      machine:       selectedEquipmentForAction.machine,
-      site:          mobilizeForm.deployType === 'site' ? mobilizeForm.site : '',
-      operator:      mobilizeForm.withOperator ? mobilizeForm.operator : null,
-      operatorId:    mobilizeForm.withOperator ? (found?._id || found?.id || '') : null,
-      withOperator:  mobilizeForm.withOperator,
-      deployType:    mobilizeForm.deployType,
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
+      site: mobilizeForm.deployType === 'site' ? mobilizeForm.site : '',
+      operator: mobilizeForm.withOperator ? mobilizeForm.operator : null,
+      operatorId: mobilizeForm.withOperator ? (found?._id || found?.id || '') : null,
+      withOperator: mobilizeForm.withOperator,
+      deployType: mobilizeForm.deployType,
       clientCompany: mobilizeForm.deployType === 'company' ? mobilizeForm.clientCompany : '',
       month, year, time,
-      selectedDate:  mobilizeForm.date || null,
-      remarks:       mobilizeForm.remarks,
+      selectedDate: mobilizeForm.date || null,
+      remarks: mobilizeForm.remarks,
     };
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/mobilize-equipment`, 'POST', payload);
-      const data     = await response.json();
+      const data = await response.json();
       handleActionResult(data, `Equipment ${selectedEquipmentForAction.regNo} mobilized to ${mobilizeForm.site}.`, closeMobilizeModal);
     } catch (err) {
       closeMobilizeModal();
@@ -450,20 +448,20 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     if (!selectedEquipmentForAction) return;
 
     const { month, year, time } = demobilizeForm.date
-      ? (() => { const d = new Date(demobilizeForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: getCurrentDateTime().time }; })()
-      : getCurrentDateTime();
+      ? (() => { const d = new Date(demobilizeForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: demobilizeForm.time || getCurrentDateTime().time }; })()
+      : { ...getCurrentDateTime(), time: demobilizeForm.time || getCurrentDateTime().time };
     const payload = {
-      equipmentId:  selectedEquipmentForAction._id,
-      regNo:        selectedEquipmentForAction.regNo,
-      machine:      selectedEquipmentForAction.machine,
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
       month, year, time,
       selectedDate: demobilizeForm.date || null,
-      remarks:      demobilizeForm.remarks || '',
+      remarks: demobilizeForm.remarks || '',
     };
-    
+
     try {
       const response = await apiRequest(`${END_POINT}/equipments/demobilize-equipment`, 'POST', payload);
-      const data     = await response.json();
+      const data = await response.json();
       handleActionResult(data, `Equipment ${selectedEquipmentForAction.regNo} successfully demobilized.`, closeDemobilizeModal);
     } catch (err) {
       closeDemobilizeModal();
@@ -487,7 +485,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     triggerVibration();
     setSelectedEquipmentForAction(equipment);
     setReplaceOperatorForm({
-      currentOperator:   getOperatorName(equipment.certificationBody),
+      currentOperator: getOperatorName(equipment.certificationBody),
       currentOperatorId: getOperatorId(equipment.certificationBody, operator),
       replacedOperator: '', replacedOperatorId: '', remarks: '',
     });
@@ -499,20 +497,20 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     if (!selectedEquipmentForAction) return;
 
     const { month, year, time } = replaceOperatorForm.date
-      ? (() => { const d = new Date(replaceOperatorForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: getCurrentDateTime().time }; })()
-      : getCurrentDateTime();
+      ? (() => { const d = new Date(replaceOperatorForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: replaceOperatorForm.time || getCurrentDateTime().time }; })()
+      : { ...getCurrentDateTime(), time: replaceOperatorForm.time || getCurrentDateTime().time };
     const payload = {
-      equipmentId:      selectedEquipmentForAction._id,
-      regNo:            selectedEquipmentForAction.regNo,
-      machine:          selectedEquipmentForAction.machine,
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
       ...replaceOperatorForm,
       month, year, time,
-      selectedDate:     replaceOperatorForm.date || null,
+      selectedDate: replaceOperatorForm.date || null,
     };
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/replace-operator`, 'POST', payload);
-      const data     = await response.json();
+      const data = await response.json();
       if (data.ok) closeSidebar();
       handleActionResult(data, `Operator replaced. New: ${replaceOperatorForm.replacedOperator}`, closeReplaceOperatorModal);
     } catch (err) {
@@ -555,8 +553,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
   const handleReplaceEquipmentSelect = (equipment) => {
     setReplaceEquipmentForm(prev => ({
       ...prev,
-      replacedEquipmentId:      equipment._id,
-      replacedEquipmentRegNo:   equipment.regNo,
+      replacedEquipmentId: equipment._id,
+      replacedEquipmentRegNo: equipment.regNo,
       replacedEquipmentMachine: equipment.machine,
     }));
   };
@@ -566,24 +564,24 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     if (!selectedEquipmentForAction) return;
 
     const { month, year, time } = replaceEquipmentForm.date
-      ? (() => { const d = new Date(replaceEquipmentForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: getCurrentDateTime().time }; })()
-      : getCurrentDateTime();
+      ? (() => { const d = new Date(replaceEquipmentForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: replaceEquipmentForm.time || getCurrentDateTime().time }; })()
+      : { ...getCurrentDateTime(), time: replaceEquipmentForm.time || getCurrentDateTime().time };
     const payload = {
-      equipmentId:              selectedEquipmentForAction._id,
-      regNo:                    selectedEquipmentForAction.regNo,
-      machine:                  selectedEquipmentForAction.machine,
-      replacedEquipmentId:      replaceEquipmentForm.replacedEquipmentId,
-      replacedEquipmentRegNo:   replaceEquipmentForm.replacedEquipmentRegNo,
+      equipmentId: selectedEquipmentForAction._id,
+      regNo: selectedEquipmentForAction.regNo,
+      machine: selectedEquipmentForAction.machine,
+      replacedEquipmentId: replaceEquipmentForm.replacedEquipmentId,
+      replacedEquipmentRegNo: replaceEquipmentForm.replacedEquipmentRegNo,
       replacedEquipmentMachine: replaceEquipmentForm.replacedEquipmentMachine,
-      newSiteForReplaced:       replaceEquipmentForm.newSiteForReplaced || null,
+      newSiteForReplaced: replaceEquipmentForm.newSiteForReplaced || null,
       month, year, time,
-      selectedDate:             replaceEquipmentForm.date || null,
-      remarks:                  replaceEquipmentForm.remarks,
+      selectedDate: replaceEquipmentForm.date || null,
+      remarks: replaceEquipmentForm.remarks,
     };
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/replace-equipment`, 'POST', payload);
-      const data     = await response.json();
+      const data = await response.json();
       handleActionResult(
         data,
         `Equipment replaced. ${replaceEquipmentForm.replacedEquipmentRegNo} now at site.`,
