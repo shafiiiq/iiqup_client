@@ -168,16 +168,22 @@ function EquipmentModals({
           { name: 'brand',           label: 'Brand',            type: 'text',   placeholder: 'Enter brand',         required: true },
           { name: 'year',            label: 'Year',             type: 'number', placeholder: 'Enter year',          required: true },
           { name: 'company',         label: 'Company',          type: 'select', required: true, options: COMPANY_OPTIONS },
-          ...(addEquipmentForm.company === 'HIRED' ? [{
-            name: 'hiredFrom', label: 'Hired From', type: 'text',
-            placeholder: 'Enter company/organization name', required: true,
-          }] : []),
+          ...(addEquipmentForm.company === 'HIRED' ? [
+            { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
+            { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
+              { value: 'daily', label: 'Daily' },
+              { value: 'hourly', label: 'Hourly' },
+              { value: 'monthly', label: 'Monthly' },
+            ]},
+            { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
+          ] : []),
           { name: 'istimaraExpiry',  label: 'Istimara Expiry',  type: 'date' },
           { name: 'insuranceExpiry', label: 'Insurance Expiry', type: 'date' },
           { name: 'tpcExpiry',       label: 'TPC Expiry',       type: 'date' },
           { name: 'status',          label: 'Status',           type: 'select', required: true, options: STATUS_OPTIONS_ADD },
           { name: 'operator',        label: 'Operator',         type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
           { name: 'site',            label: 'Site',             type: 'search-select', placeholder: 'Search or add site...', required: true, options: siteOptions(sites), onSearchFocus: onSiteFocus },
+          { name: 'location', label: 'Location (Optional)', type: 'search-select', placeholder: 'Search or add location...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
         ]}
         formValues={addEquipmentForm}
         onFormChange={onAddFormChange}
@@ -200,10 +206,15 @@ function EquipmentModals({
           { name: 'brand',   label: 'Brand',           type: 'text',   placeholder: 'Enter brand',        required: true },
           { name: 'year',    label: 'Year',            type: 'text',   placeholder: 'Enter year',         required: true },
           { name: 'company', label: 'Company',         type: 'select', required: true, options: COMPANY_OPTIONS },
-          ...(editFormData.company === 'HIRED' ? [{
-            name: 'hiredFrom', label: 'Hired From', type: 'text',
-            placeholder: 'Enter company/organization name', required: true,
-          }] : []),
+          ...(editFormData.company === 'HIRED' ? [
+            { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
+            { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
+             { value: 'daily', label: 'Daily' },
+             { value: 'hourly', label: 'Hourly' },
+             { value: 'monthly', label: 'Monthly' },
+            ]},
+           { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
+          ] : []),
           { name: 'operator', label: 'Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
           { name: 'site',     label: 'Site',     type: 'search-select', placeholder: 'Search or add site...', required: true, options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'status',   label: 'Status',   type: 'select', required: true, options: STATUS_OPTIONS_EDIT },

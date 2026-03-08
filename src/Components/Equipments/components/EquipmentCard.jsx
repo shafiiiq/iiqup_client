@@ -163,6 +163,26 @@ function EquipmentCard({
             <span className="detail-label">Site</span>
             <span className="detail-value">{item.site?.at(-1) || 'N/A'}</span>
           </div>
+          {item.location?.length > 0 && (
+            <div className="detail-item-equipment">
+              <span className="detail-label">Location</span>
+              <span className="detail-value">{item.location.at(-1)}</span>
+            </div>
+          )}
+          {item.hired && item.rentRate && (
+            <>
+              <div className="detail-item-equipment">
+                <span className="detail-label">Rent Basis</span>
+                <span className="detail-value">{item.rentRate.basis || 'N/A'}</span>
+              </div>
+              <div className="detail-item-equipment">
+                <span className="detail-label">Rent Rate</span>
+                <span className="detail-value">
+                  {item.rentRate.rate ? `${item.rentRate.currency || 'QAR'} ${item.rentRate.rate}` : 'N/A'}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="card-footer">

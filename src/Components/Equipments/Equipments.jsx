@@ -229,6 +229,9 @@ function Equipments() {
             actions.setAddEquipmentForm(prev => ({ ...prev, operator: value, operatorId: op?._id || op?.id || '' }));
           } else if (field === 'site') {
             actions.setAddEquipmentForm(prev => ({ ...prev, site: typeof value === 'string' ? value : value?.value || value }));
+          } else if (field.startsWith('rentRate.')) {
+            const key = field.split('.')[1];
+            actions.setAddEquipmentForm(prev => ({ ...prev, rentRate: { ...prev.rentRate, [key]: value } }));
           } else {
             actions.setAddEquipmentForm(prev => ({ ...prev, [field]: value }));
           }
@@ -244,6 +247,9 @@ function Equipments() {
             actions.setEditFormData(prev => ({ ...prev, operator: value, operatorId: op?._id || op?.id || '' }));
           } else if (field === 'site') {
             actions.setEditFormData(prev => ({ ...prev, site: typeof value === 'string' ? value : value?.value || value }));
+          } else if (field.startsWith('rentRate.')) {
+            const key = field.split('.')[1];
+            actions.setEditFormData(prev => ({ ...prev, rentRate: { ...prev.rentRate, [key]: value } }));
           } else {
             actions.setEditFormData(prev => ({ ...prev, [field]: value }));
           }

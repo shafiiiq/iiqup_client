@@ -25,11 +25,15 @@ const EMPTY_ADD_FORM = {
   istimaraExpiry: '', insuranceExpiry: '', tpcExpiry: '',
   operator: '', operatorId: '', company: 'ATE',
   hiredFrom: '', hired: false, status: 'Active', site: '',
+  location: '',
+  rentRate: { basis: 'daily', rate: '', currency: 'QAR' },
 };
 
 const EMPTY_EDIT_FORM = {
   machine: '', regNo: '', year: '', company: '',
   operator: '', operatorId: '', brand: '', hiredFrom: '', site: '', status: '',
+  location: '',
+  rentRate: { basis: 'daily', rate: '', currency: 'QAR' },
 };
 
 const EMPTY_OUTSIDE_FORM = {
@@ -189,8 +193,12 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       ...rest,
       year: parseInt(addEquipmentForm.year),
       certificationBody,
-      site: addEquipmentForm.site ? [addEquipmentForm.site] : [],
-      hired: addEquipmentForm.company === 'HIRED',
+      site:     addEquipmentForm.site     ? [addEquipmentForm.site]     : [],
+      location: addEquipmentForm.location ? [addEquipmentForm.location] : [],
+      hired:    addEquipmentForm.company === 'HIRED',
+      rentRate: addEquipmentForm.company === 'HIRED' && addEquipmentForm.rentRate?.rate
+        ? { basis: addEquipmentForm.rentRate.basis, rate: Number(addEquipmentForm.rentRate.rate), currency: 'QAR' }
+         : null,
     };
 
     try {
@@ -230,6 +238,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       operator: getOperatorName(equipment.certificationBody),
       operatorId: getOperatorId(equipment.certificationBody, operator),
       hiredFrom: equipment.hiredFrom || '',
+      location: equipment.location?.at(-1) || '',
+      rentRate: equipment.rentRate || { basis: 'daily', rate: '', currency: 'QAR' },
     });
     setShowEditModal(true);
   };
@@ -245,6 +255,12 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       company: editFormData.company, site: editFormData.site,
       status: editFormData.status,
       hiredFrom: editFormData.hiredFrom,
+      location: editFormData.location
+         ? [...(editEquipment.location || []), editFormData.location]  // push new location
+        : editEquipment.location || [],
+      rentRate: editFormData.company === 'HIRED' && editFormData.rentRate?.rate
+         ? { basis: editFormData.rentRate.basis, rate: Number(editFormData.rentRate.rate), currency: 'QAR' }
+        : null,
     };
 
     // Only include operator fields if the operator was actually changed
@@ -393,7 +409,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     const { month, year, time } = mobilizeForm.date
       ? (() => { const d = new Date(mobilizeForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: mobilizeForm.time || getCurrentDateTime().time }; })()
       : { ...getCurrentDateTime(), time: mobilizeForm.time || getCurrentDateTime().time };
-      
+
     const found = operator.find(op => op.name === mobilizeForm.operator);
     const payload = {
       equipmentId: selectedEquipmentForAction._id,
