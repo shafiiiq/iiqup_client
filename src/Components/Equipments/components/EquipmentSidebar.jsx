@@ -84,15 +84,15 @@ function DetailsContent({
           )}
         </div>
 
-        {item.certificationBody?.length > 1 && (
+        {item.lastCertificationBody?.length > 0 && (
           <div className="detail-row-actions">
             <div className="detail-row">
               <span className="detail-row-label">All Operators</span>
             </div>
             {!isSelectMode && (
               <Button
-                text={`View All (${item.certificationBody.length})`}
-                onClick={(e) => onViewAllOperators(e, item.certificationBody)}
+                text={`View All (${item.lastCertificationBody.length + 1})`}
+                onClick={(e) => onViewAllOperators(e, [...item.certificationBody, ...item.lastCertificationBody])}
                 colorScheme="amber-500" variant="gradient" font="xl"
                 squircle="4xl" width="160px" height="58px"
                 textColor="black-200" shadowPosition="to-bottom" shadowColor="white-600"
