@@ -484,6 +484,15 @@
   color: var(--bcl-error);
 }
 
+.bcl-row-pending-sign {
+  background-color: rgba(234, 179, 8, 0.12);
+  border-left: 3px solid #ca8a04;
+}
+
+.bcl-row-pending-sign:hover {
+  background-color: rgba(234, 179, 8, 0.2);
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .bcl-data-table {

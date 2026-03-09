@@ -7,6 +7,7 @@ import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 import DevModal from '../../Common/DevModal/DevModal';
 import Button from '../../Common/Button/Button';
 import Loader from '../../Common/Loader/Loader';
+import Toast from '../../Common/Toast/Toast';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -23,6 +24,8 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [pendingSignatures, setPendingSignatures] = useState([]);
+  const [showPendingToast,  setShowPendingToast]  = useState(false);
   const [filters, setFilters] = useState({
     dateFilter: 'all',
     vendors: [],
@@ -58,6 +61,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
 
   useEffect(() => {
     fetchLpos();
+    fetchPendingSignatures();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAll, isEquip, isStock, isForAllEquip, regNo]);
 
@@ -84,6 +88,32 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       console.error(`Error fetching LPO records:`, error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const isPendingForUser = (lpoRef) =>
+     pendingSignatures.some(p => p.lpoRef === lpoRef); 
+
+  const fetchPendingSignatures = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user?.uniqueCode) return;
+
+      const response = await apiRequest(
+        `${END_POINT}/lpo/pending-signatures`,
+        'POST',
+        {
+          uniqueCode: encodeURIComponent(user.uniqueCode)
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setPendingSignatures(data.data || []);
+        if (data.count > 0) setShowPendingToast(true);
+      }
+    } catch (error) {
+      console.error('[LpoList] fetchPendingSignatures:', error);
     }
   };
 
@@ -394,8 +424,9 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
               filteredData.map((lpo) => (
                 <tr
                   key={lpo._id}
+                  data-lporef={lpo.lpoRef}
                   onClick={() => handleRowClick(lpo.lpoRef)}
-                  className="lpo-row"
+                  className={`lpo-row ${isPendingForUser(lpo.lpoRef) ? 'lpo-row-pending-sign' : ''}`}
                 >
                   <td>{lpo.lpoRef}</td>
                   <td>{lpo.date}</td>
@@ -591,6 +622,25 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
         onApplyFilters={handleApplyFilters}
         onResetFilters={handleResetFilters}
         buttonText="Apply Filters"
+      />
+
+      <Toast
+        isOpen={showPendingToast}
+        onClose={() => setShowPendingToast(false)}
+        type="warning"
+        message={`You have ${pendingSignatures.length} LPO${pendingSignatures.length > 1 ? 's' : ''} pending your signature`}
+        duration={6000}
+        position="top-center"
+        showActionButton
+        actionButtonText="View"
+        onActionClick={() => {
+          setShowPendingToast(false);
+          const firstPending = pendingSignatures[0];
+          if (firstPending && tableRef.current) {
+            const row = tableRef.current.querySelector(`[data-lporef="${firstPending.lpoRef}"]`);
+            row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
       />
     </div>
   );

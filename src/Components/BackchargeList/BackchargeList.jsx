@@ -6,6 +6,7 @@ import { apiRequest } from '../../utils/api';
 import { useSearch } from '../../Context/SearchContext';
 import Button from '../../Common/Button/Button';
 import DevModal from '../../Common/DevModal/DevModal';
+import Toast from '../../Common/Toast/Toast';
 
 function BackchargeList() {
   const { searchTerm } = useSearch();
@@ -19,6 +20,8 @@ function BackchargeList() {
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [pendingSignatures, setPendingSignatures] = useState([]);
+  const [showPendingToast,  setShowPendingToast]  = useState(false); 
   const [filters, setFilters] = useState({
     dateFilter: 'all',
     suppliers: [],
@@ -31,7 +34,11 @@ function BackchargeList() {
 
   useEffect(() => {
     fetchBackcharges();
+    fetchPendingSignatures();
   }, []);
+
+  const isPendingForUser = (refNo) =>
+     pendingSignatures.some(p => p.refNo === refNo);
 
   const fetchBackcharges = async () => {
     try {
@@ -49,6 +56,29 @@ function BackchargeList() {
       console.error('Error fetching backcharge reports:', error);
     }
   };
+
+  const fetchPendingSignatures = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user?.uniqueCode) return;
+
+      const response = await apiRequest(
+        `${END_POINT}/backcharge/pending-signatures`,
+        'POST',
+        {
+          uniqueCode: encodeURIComponent(user.uniqueCode)
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setPendingSignatures(data.data || []);
+        if (data.count > 0) setShowPendingToast(true);
+      }
+    } catch (error) {
+      console.error('[BackchargeList] fetchPendingSignatures:', error);
+    }
+  };  
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -375,8 +405,9 @@ function BackchargeList() {
               filteredData.map((backcharge) => (
                 <tr
                   key={backcharge._id}
+                  data-refno={backcharge.refNo}
                   onClick={() => handleRowClick(backcharge.reportNo)}
-                  className="bcl-table-row"
+                  className={`bcl-table-row ${isPendingForUser(backcharge.refNo) ? 'bcl-row-pending-sign' : ''}`}
                 >
                   <td>{formatDate(backcharge.date)}</td>
                   <td>{backcharge.refNo}</td>
@@ -546,6 +577,26 @@ function BackchargeList() {
         onApplyFilters={handleApplyFilters}
         onResetFilters={handleResetFilters}
         buttonText="Apply Filters"
+      />
+
+      <Toast
+        isOpen={showPendingToast}
+        onClose={() => setShowPendingToast(false)}
+        type="warning"
+        message={`You have ${pendingSignatures.length} backcharge document${pendingSignatures.length > 1 ? 's' : ''} pending your signature`}
+        duration={6000}
+        position="top-center"
+        showActionButton
+        actionButtonText="View"
+        onActionClick={() => {
+          setShowPendingToast(false);
+          // Scroll the first pending row into view
+          const firstPending = pendingSignatures[0];
+          if (firstPending && tableRef.current) {
+            const row = tableRef.current.querySelector(`[data-refno="${firstPending.refNo}"]`);
+            row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
       />
     </div>
   );

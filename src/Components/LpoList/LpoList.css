@@ -547,6 +547,15 @@
   font-weight: 600;
 }
 
+.lpo-row-pending-sign {
+  background-color: rgba(234, 179, 8, 0.12);
+  border-left: 3px solid #ca8a04;
+}
+
+.lpo-row-pending-sign:hover {
+  background-color: rgba(234, 179, 8, 0.2);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .lpo-header {
