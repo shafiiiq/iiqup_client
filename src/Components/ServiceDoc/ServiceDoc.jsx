@@ -677,7 +677,7 @@ function ServiceDoc() {
       setLoadingMessage('Generating signature key...');
 
       const keyResponse = await apiRequest(
-        `${END_POINT}/users/doc-api-sign-key`,
+        `${END_POINT}/users/doc-oauth-sign-key`,
         'POST',
         { password: docAUTHmiddle }
       );

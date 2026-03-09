@@ -203,7 +203,7 @@ export const useDocumentSigning = ({ onSigned } = {}) => {
 
       setLoadingMessage('Generating signature key...');
 
-      const keyRes = await apiRequest(`${END_POINT}/users/doc-api-sign-key`, 'POST', { password: docAUTHmiddle });
+      const keyRes = await apiRequest(`${END_POINT}/users/doc-oauth-sign-key`, 'POST', { password: docAUTHmiddle });
       if (!keyRes.ok) throw new Error('Failed to generate signature key');
 
       setDocAUTHmiddle(''); // immediately clear the intermediate password from memory
