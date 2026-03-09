@@ -238,7 +238,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       operator: getOperatorName(equipment.certificationBody),
       operatorId: getOperatorId(equipment.certificationBody, operator),
       hiredFrom: equipment.hiredFrom || '',
-      location: equipment.location?.at(-1) || '',
+      location: equipment.location || '',
       rentRate: equipment.rentRate || { basis: 'daily', rate: '', currency: 'QAR' },
     });
     setShowEditModal(true);
@@ -255,9 +255,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       company: editFormData.company, site: editFormData.site,
       status: editFormData.status,
       hiredFrom: editFormData.hiredFrom,
-      location: editFormData.location
-         ? [...(editEquipment.location || []), editFormData.location]  // push new location
-        : editEquipment.location || [],
+      location: editFormData.location || '',
       rentRate: editFormData.company === 'HIRED' && editFormData.rentRate?.rate
          ? { basis: editFormData.rentRate.basis, rate: Number(editFormData.rentRate.rate), currency: 'QAR' }
         : null,

@@ -55,7 +55,7 @@ function DetailsContent({
         <div className="detail-row-actions">
           <div className="detail-row">
             <span className="detail-row-label">Site</span>
-            <span className="detail-row-value">{item.site || 'N/A'}</span>
+            <span className="detail-row-value">{item.site?.at(-1) || 'N/A'}</span>
           </div>
           {!isSelectMode && (
             <Button

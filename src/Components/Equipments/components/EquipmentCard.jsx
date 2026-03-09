@@ -166,7 +166,7 @@ function EquipmentCard({
           {item.location?.length > 0 && (
             <div className="detail-item-equipment">
               <span className="detail-label">Location</span>
-              <span className="detail-value">{item.location.at(-1)}</span>
+              <span className="detail-value">{item.location}</span>
             </div>
           )}
           {item.hired && item.rentRate && (
