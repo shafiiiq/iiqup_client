@@ -260,17 +260,27 @@ export const exportToPDF = async ({
   // ── Logos ──────────────────────────────────────────────────────────────────
 
   try {
-    const [leftLogo, rightLogo] = await Promise.all([
-      loadImageAsDataURL(logoImage),
-      loadImageAsDataURL(alAnsariText),
-    ]);
-    doc.addImage(leftLogo,  'PNG', 10,  currentY, 40, 24);
-    doc.addImage(rightLogo, 'PNG', 237, currentY, 50, 24);
-  } catch {
-    // Logos are decorative — continue without them if they fail to load
-  }
+      const [leftLogoData, rightLogoData] = await Promise.all([
+        loadImageAsDataURL(logoImage),
+        loadImageAsDataURL(alAnsariText),
+      ]);
 
-  currentY += 30;
+      const leftProps  = doc.getImageProperties(leftLogoData);
+      const leftWidth  = 40;
+      const leftHeight = (leftProps.height / leftProps.width) * leftWidth;
+      doc.addImage(leftLogoData, 'PNG', 10, currentY, leftWidth, leftHeight);
+
+      const rightProps  = doc.getImageProperties(rightLogoData);
+      const rightWidth  = 80;
+      const rightHeight = (rightProps.height / rightProps.width) * rightWidth;
+      doc.addImage(rightLogoData, 'PNG', 210, currentY, rightWidth, rightHeight);
+
+      currentY += Math.max(leftHeight, rightHeight) + 6;
+    } catch {
+      currentY += 30;
+    }
+
+    currentY += 30;
 
   // ── Title block ────────────────────────────────────────────────────────────
 
@@ -349,7 +359,7 @@ export const exportToPDF = async ({
     margin: { top: 10, left: 10, right: 10 },
   });
 
-  // ── Signature block ────────────────────────────────────────────────────────
+    // ── Signature block ────────────────────────────────────────────────────────
 
   const signY = doc.lastAutoTable.finalY + 15;
   doc.setTextColor(0, 0, 0);
@@ -357,7 +367,7 @@ export const exportToPDF = async ({
   if (supervisorSignUrl) {
     try {
       const sigData = await loadImageAsDataURL(supervisorSignUrl);
-      doc.addImage(sigData, 'PNG', 10, signY, 50, 20);
+      doc.addImage(sigData, 'PNG', 10, signY, 50, 45);
     } catch {
       doc.setFontSize(10); doc.setFont(undefined, 'italic'); doc.setTextColor(150, 150, 150);
       doc.text('Not Signed', 10, signY);
@@ -368,7 +378,7 @@ export const exportToPDF = async ({
   }
 
   doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'normal');
-  const detailsY = signY + 25;
+  const detailsY = signY + 45;
   doc.text('Firoz Khan',       10, detailsY);
   doc.text('Workshop Manager', 10, detailsY + 6);
   doc.text('+974 5170 0481',   10, detailsY + 12);
@@ -426,54 +436,54 @@ export const printServiceHistory = ({
     : `${equipmentData?.machine ?? 'Equipment'} ${regNoArray[0]}`;
 
   const signatureHtml = supervisorSignUrl
-    ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="max-width: 150px; max-height: 60px;" />`
-    : '<span style="font-style: italic; color: #999;">Not Signed</span>';
+  ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="width: 150px; height: auto; display: block;" />`
+  : '<span style="font-style: italic; color: #999;">Not Signed</span>';
 
   const content = `
-    <html>
+   <html>
       <head>
         <title>${tabName} History</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; }
-          h1, p { text-align: center; }
+          h1 { text-align: center; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
           th, td { border: 1px solid #000; padding: 4px 8px; text-align: center; }
-          th { background-color: #f2f2f2; font-weight: bold; }
-          .no-results { text-align: center; font-style: italic; }
-          .oil-service         { background-color: #e8f5e8 !important; }
-          .maintenance-service { background-color: #fff3cd !important; }
+         th { background-color: #f2f2f2; font-weight: bold; }
+         .no-results { text-align: center; font-style: italic; }
+         .oil-service         { background-color: #e8f5e8 !important; }
+         .maintenance-service { background-color: #fff3cd !important; }
           .tyre-service        { background-color: #d1ecf1 !important; }
           .battery-service     { background-color: #f8d7da !important; }
-          .full-service-row, .replacement-row { background-color: #ffd3a5 !important; }
-          .view-more-btn, .document-column { display: none !important; }
-          td:nth-child(3) { max-width: 170px; white-space: normal; word-wrap: break-word; }
-          td:nth-child(10) { max-width: 230px; white-space: normal; word-wrap: break-word; }
-        </style>
+         .full-service-row, .replacement-row { background-color: #ffd3a5 !important; }
+         .view-more-btn, .document-column { display: none !important; }
+         td:nth-child(3) { max-width: 170px; white-space: normal; word-wrap: break-word; }
+         td:nth-child(10) { max-width: 230px; white-space: normal; word-wrap: break-word; }
+       </style>
       </head>
-      <body>
-        <div style="display:flex; justify-content:space-between; padding:0 1rem; align-items:center;">
-          <img style="width:10rem; max-height:6rem;" src="${logoImage}" alt="Logo" />
-          <img style="width:18rem; max-height:6rem;" src="${alAnsariText}" alt="Company" />
-        </div>
-        <div style="display:flex; gap:1rem; justify-content:center; align-items:center;">
-          <h2>${tabName} History -</h2>
-          <h3>${equipmentTitle} -</h3>
-          <p>Date Range: ${getDateRangeText(filterState)}</p>
-        </div>
-        ${searchTerm ? `<p>Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
-        <div style="overflow-x:auto;">
-          ${tableRef.current?.outerHTML ?? '<p>No table data</p>'}
-        </div>
-        <div style="margin-top:10px; text-align:center;">
-          Showing ${filteredData.length} ${searchTerm ? 'matching entries' : 'entries'}
-        </div>
-        <div style="display:flex; gap:0.5rem; flex-direction:column; margin-top:1rem;">
+     <body>
+       <div style="display:flex; justify-content:space-between; padding:0 1rem; align-items:center;">
+         <img style="width:10rem; max-height:6rem;" src="${logoImage}" alt="Logo" />
+         <img style="width:18rem; max-height:6rem;" src="${alAnsariText}" alt="Company" />
+       </div>
+       <div style="display:flex; gap:1rem; justify-content:center; align-items:center;">
+         <h2>${tabName} History -</h2>
+         <h3>${equipmentTitle} -</h3>
+         <p style="text-align:center;">Date Range: ${getDateRangeText(filterState)}</p>
+       </div>
+       ${searchTerm ? `<p style="text-align:center;">Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
+       <div style="overflow-x:auto;">
+         ${tableRef.current?.outerHTML ?? '<p style="text-align:center;">No table data</p>'}
+       </div>
+       <div style="margin-top:10px; text-align:center;">
+         Showing ${filteredData.length} ${searchTerm ? 'matching entries' : 'entries'}
+       </div>
+       <div style="display:flex; gap:0.5rem; flex-direction:column; margin-top:1rem; text-align:left;">
           ${signatureHtml}
           <p style="font-size:18px; margin:0;">Firoz Khan</p>
           <p style="font-size:18px; margin:0;">Workshop Manager</p>
           <p style="font-size:18px; margin:0;">+974 5170 0481</p>
         </div>
-      </body>
+     </body>
     </html>
   `;
 
