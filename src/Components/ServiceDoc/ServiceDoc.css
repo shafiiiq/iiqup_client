@@ -468,7 +468,7 @@ td.tick {
 
 /* Signature display styles */
 .supervisor-sign {
-  top: -15px;
+  top: -45px;
   width: 7rem;
   object-fit: contain;
 }
