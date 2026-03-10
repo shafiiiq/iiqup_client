@@ -26,6 +26,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [pendingSignatures, setPendingSignatures] = useState([]);
   const [showPendingToast,  setShowPendingToast]  = useState(false);
+  const [signedByUser, setSignedByUser] = useState([]);
   const [filters, setFilters] = useState({
     dateFilter: 'all',
     vendors: [],
@@ -91,26 +92,28 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     }
   };
 
-  const isPendingForUser = (lpoRef) =>
-     pendingSignatures.some(p => p.lpoRef === lpoRef); 
+  const isPendingForUser = (lpoRef) => pendingSignatures.some(p => p.lpoRef === lpoRef);
+  const isSignedByUser   = (lpoRef) => signedByUser.some(s => s.lpoRef === lpoRef);
 
   const fetchPendingSignatures = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.uniqueCode) return;
 
-      const response = await apiRequest(
-        `${END_POINT}/lpo/pending-signatures`,
-        'POST',
-        {
-          uniqueCode: encodeURIComponent(user.uniqueCode)
-        }
-      );
+      const [pendingRes, signedRes] = await Promise.all([
+        apiRequest(`${END_POINT}/lpo/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+        apiRequest(`${END_POINT}/lpo/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+      ]);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (pendingRes.ok) {
+        const data = await pendingRes.json();
         setPendingSignatures(data.data || []);
         if (data.count > 0) setShowPendingToast(true);
+      }
+
+      if (signedRes.ok) {
+        const data = await signedRes.json();
+        setSignedByUser(data.data || []);
       }
     } catch (error) {
       console.error('[LpoList] fetchPendingSignatures:', error);
@@ -426,7 +429,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   key={lpo._id}
                   data-lporef={lpo.lpoRef}
                   onClick={() => handleRowClick(lpo.lpoRef)}
-                  className={`lpo-row ${isPendingForUser(lpo.lpoRef) ? 'lpo-row-pending-sign' : ''}`}
+                  className={`lpo-row ${isSignedByUser(lpo.lpoRef) ? 'lpo-row-signed' : isPendingForUser(lpo.lpoRef) ? 'lpo-row-pending-sign' : ''}`}
                 >
                   <td>{lpo.lpoRef}</td>
                   <td>{lpo.date}</td>

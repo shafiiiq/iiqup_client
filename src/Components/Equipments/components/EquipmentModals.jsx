@@ -167,16 +167,16 @@ function EquipmentModals({
           { name: 'coc',             label: 'COC',              type: 'text',   placeholder: 'Enter COC'            },
           { name: 'brand',           label: 'Brand',            type: 'text',   placeholder: 'Enter brand',         required: true },
           { name: 'year',            label: 'Year',             type: 'number', placeholder: 'Enter year',          required: true },
-          { name: 'company',         label: 'Company',          type: 'select', required: true, options: COMPANY_OPTIONS },
+          { name: 'company', label: 'Company', type: 'select', required: true, options: COMPANY_OPTIONS },
           ...(addEquipmentForm.company === 'HIRED' ? [
-            { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
-            { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
-              { value: 'daily', label: 'Daily' },
-              { value: 'hourly', label: 'Hourly' },
-              { value: 'monthly', label: 'Monthly' },
-            ]},
-            { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
+  { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
           ] : []),
+          { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
+            { value: 'daily',   label: 'Daily'   },
+            { value: 'hourly',  label: 'Hourly'  },
+            { value: 'monthly', label: 'Monthly' },
+          ]},
+          { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
           { name: 'istimaraExpiry',  label: 'Istimara Expiry',  type: 'date' },
           { name: 'insuranceExpiry', label: 'Insurance Expiry', type: 'date' },
           { name: 'tpcExpiry',       label: 'TPC Expiry',       type: 'date' },
@@ -205,18 +205,19 @@ function EquipmentModals({
           { name: 'regNo',   label: 'Registration No', type: 'text',   placeholder: 'Enter reg number',   required: true },
           { name: 'brand',   label: 'Brand',           type: 'text',   placeholder: 'Enter brand',        required: true },
           { name: 'year',    label: 'Year',            type: 'text',   placeholder: 'Enter year',         required: true },
-          { name: 'company', label: 'Company',         type: 'select', required: true, options: COMPANY_OPTIONS },
+          { name: 'company', label: 'Company', type: 'select', required: true, options: COMPANY_OPTIONS },
           ...(editFormData.company === 'HIRED' ? [
             { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
-            { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
-             { value: 'daily', label: 'Daily' },
-             { value: 'hourly', label: 'Hourly' },
-             { value: 'monthly', label: 'Monthly' },
-            ]},
-           { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
           ] : []),
+          { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
+            { value: 'daily',   label: 'Daily'   },
+            { value: 'hourly',  label: 'Hourly'  },
+            { value: 'monthly', label: 'Monthly' },
+          ]},
+          { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
           { name: 'operator', label: 'Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
           { name: 'site',     label: 'Site',     type: 'search-select', placeholder: 'Search or add site...', required: true, options: siteOptions(sites), onSearchFocus: onSiteFocus },
+          { name: 'location', label: 'Location (Optional)', type: 'search-select', placeholder: 'Search or add location...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'status',   label: 'Status',   type: 'select', required: true, options: STATUS_OPTIONS_EDIT },
         ]}
         formValues={editFormData}
@@ -315,14 +316,18 @@ function EquipmentModals({
         title={`Mobilize Equipment - ${selectedEquipmentForAction?.regNo || ''}`}
         message="Fill in the mobilization details"
         formFields={[
-          { name: 'deployType',     label: 'Deploy To',            type: 'select',        required: true, options: [{ value: 'site', label: 'Site' }, { value: 'company', label: 'Client Company (Lease)' }] },
-          { name: 'site',           label: 'Site',                 type: 'search-select', placeholder: 'Search or add site...',        required: mobilizeForm.deployType === 'site',    disabled: mobilizeForm.deployType === 'company',    options: siteOptions(sites), onSearchFocus: onSiteFocus },
-          { name: 'clientCompany',  label: 'Client Company',       type: 'text',          placeholder: 'Enter client company name',    disabled: mobilizeForm.deployType === 'site' },
-          { name: 'date',           label: 'Date (Optional)',      type: 'date' },
-          { name: 'time',           label: 'Time (Optional)',      type: 'time' },
-          { name: 'remarks',        label: 'Remarks (Optional)',   type: 'textarea',      placeholder: 'Add any additional notes' },
-          { name: 'withOperator',   label: 'With Operator',        type: 'checkbox',      description: 'Check if equipment has an operator' },
-          { name: 'operator',       label: 'Operator Name',        type: 'search-select', placeholder: 'Search operator...',           required: mobilizeForm.withOperator,             disabled: !mobilizeForm.withOperator,            options: operatorOptions(operator) },
+          { name: 'deployType',     label: 'Deploy To',             type: 'select',        required: true, options: [{ value: 'site',   label: 'Site' }, { value: 'company', label: 'Client Company (Lease)' }] },
+          { name: 'site',           label: 'Site',                  type: 'search-select', placeholder: 'Search or add site...',        required: mobilizeForm.deployType === 'site',    disabled: mobilizeForm.deployType === 'company',  options: siteOptions(sites), onSearchFocus: onSiteFocus },
+          { name: 'clientCompany',  label: 'Client Company',        type: 'text',          placeholder: 'Enter client company name',    disabled: mobilizeForm.deployType === 'site' },
+          { name: 'date',           label: 'Date (Optional)',       type: 'date' },
+          { name: 'time',           label: 'Time (Optional)',       type: 'time' },
+          { name: 'remarks',        label: 'Remarks (Optional)',    type: 'textarea',      placeholder: 'Add any additional notes' },
+          { name: 'isOneDayMob',    label: 'One Day Mobilization',  type: 'checkbox',      description: 'Equipment will be mobilized and demobilized on the same day' },
+          { name: 'demobDate',      label: 'Demob Date',            type: 'date',          required: mobilizeForm.isOneDayMob,           disabled: !mobilizeForm.isOneDayMob },
+          { name: 'demobTime',      label: 'Demob Time (Optional)', type: 'time',          disabled: !mobilizeForm.isOneDayMob },
+          { name: 'demobRemarks',   label: 'Demob Remarks',         type: 'textarea',      placeholder: 'Add demob notes',               disabled: !mobilizeForm.isOneDayMob },
+          { name: 'withOperator',   label: 'With Operator',         type: 'checkbox',      description: 'Check if equipment has an operator' },
+          { name: 'operator',       label: 'Operator Name',         type: 'search-select', placeholder: 'Search operator...',            required: mobilizeForm.withOperator,             disabled: !mobilizeForm.withOperator,            options: operatorOptions(operator) },
         ]}
         formValues={mobilizeForm}
         onFormChange={onMobilizeFormChange}

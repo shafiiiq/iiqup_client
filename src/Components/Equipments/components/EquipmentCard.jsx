@@ -169,7 +169,7 @@ function EquipmentCard({
               <span className="detail-value">{item.location}</span>
             </div>
           )}
-          {item.hired && item.rentRate && (
+          {item.rentRate?.basis && (
             <>
               <div className="detail-item-equipment">
                 <span className="detail-label">Rent Basis</span>
@@ -178,7 +178,9 @@ function EquipmentCard({
               <div className="detail-item-equipment">
                 <span className="detail-label">Rent Rate</span>
                 <span className="detail-value">
-                  {item.rentRate.rate ? `${item.rentRate.currency || 'QAR'} ${item.rentRate.rate}` : 'N/A'}
+                  {item.rentRate.rate
+                    ? `${item.rentRate.currency || 'QAR'} ${item.rentRate.rate}`
+                    : 'N/A'}
                 </span>
               </div>
             </>

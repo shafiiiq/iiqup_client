@@ -667,6 +667,8 @@ function LpoDoc() {
   const [showEmailModal,        setShowEmailModal]        = useState(false);
   const [emailFormValues,       setEmailFormValues]       = useState({ email: '' });
   const [isSendingEmail,        setIsSendingEmail]        = useState(false);
+  const [showOverrideModal,     setShowOverrideModal]     = useState(false);
+  const [unsignedAboveRoles,    setUnsignedAboveRoles]    = useState([]);
 
   // ── Device / activation state ──────────────────────────────────────────────
 
@@ -992,57 +994,75 @@ function LpoDoc() {
       alert(`Could not verify device trust: ${err.message}`);
     }
   };
+
   // ── Signature confirmation ──────────────────────────────────────────
 
   /** Handle signature confirmation and signing. */
-  const handleConfirmSign = async () => {
-    if (!deviceInfo) return;
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user._id) { alert('User session not found. Please log in again.'); return; }
+  const handleConfirmSign = async (override = false) => {
+     if (!deviceInfo) return;
+     const user = JSON.parse(localStorage.getItem('user') || '{}');
+     if (!user._id) { alert('User session not found. Please log in again.'); return; }
 
-    setIsSigningDoc(true);
-    setShowSignConfirmModal(false);
+     setIsSigningDoc(true);
+     setShowSignConfirmModal(false);
+     setShowOverrideModal(false);
 
-    try {
-      const response = await apiRequest(
-        `${END_POINT}/lpo/sign/${encodeURIComponent(decodeURIComponent(refNo))}`,
-        'POST',
-        {
-          uniqueCode: user.uniqueCode,
-          signedDate: new Date().toISOString(),
-          signedFrom: deviceInfo.browserInfo,
-          signedIP: deviceInfo.ipAddress,
-          signedDevice: deviceInfo.userAgent,
-          signedLocation: deviceInfo.location,
-        }
-      );
+     try {
+       const response = await apiRequest(
+         `${END_POINT}/lpo/sign/${encodeURIComponent(decodeURIComponent(refNo))}`,
+         'POST',
+         {
+           uniqueCode:     user.uniqueCode,
+           signedDate:     new Date().toISOString(),
+           signedFrom:     deviceInfo.browserInfo,
+           signedIP:       deviceInfo.ipAddress,
+           signedDevice:   deviceInfo.userAgent,
+           signedLocation: deviceInfo.location,
+           override,                               
+         }
+       );
 
-      const result = await response.json();
+       const result = await response.json();
 
-      if (response.status === 403) { setShowUnauthorisedModal(true); return; }
-      if (response.status === 409) { setSignResult('already_signed'); return; }
-      if (!response.ok) throw new Error(result.message || 'Signing failed');
+       if (response.status === 403) { setShowUnauthorisedModal(true); return; }
+       if (response.status === 409) { setSignResult('already_signed'); return; }
 
-      // Update flags from response and reload signature images
-      const lpo = result.data;
-      const newFlags = {
-        pmSigned: lpo.pmSigned || false,
-        accountsSigned: lpo.accountsSigned || false,
-        managerSigned: lpo.managerSigned || false,
-        ceoSigned: lpo.ceoSigned || false,
-      };
-      setSignatureFlags(newFlags);
-      setSignResult('success');
-      await loadAllSignatures(deviceInfo, newFlags);
+       // ── Out-of-order: backend returned 202 requireOverride ──────────────────
+       if (response.status === 202 && result.requireOverride) {
+         const roleLabels = {
+           PURCHASE_MANAGER:  'Purchase Manager',
+           MANAGER:           'Operations Manager',
+           CEO:               'CEO',
+           MANAGING_DIRECTOR: 'Managing Director',
+           ACCOUNTS:          'Accounts Dept',
+         };
+         const labels = (result.unsignedAbove || []).map(r => roleLabels[r] || r);
+         setUnsignedAboveRoles(labels);
+         setShowOverrideModal(true);
+         return;
+       }
 
-    } catch (err) {
-      console.error('[LpoDoc] handleConfirmSign error:', err);
-      alert(`Signing failed: ${err.message}`);
-    } finally {
-      setIsSigningDoc(false);
-    }
-  };
+       if (!response.ok) throw new Error(result.message || 'Signing failed');
 
+       // ── Success ──────────────────────────────────────────────────────────────
+       const lpo      = result.data;
+       const newFlags = {
+         pmSigned:       lpo.pmSigned       || false,
+         accountsSigned: lpo.accountsSigned || false,
+         managerSigned:  lpo.managerSigned  || false,
+         ceoSigned:      lpo.ceoSigned      || false,
+       };
+       setSignatureFlags(newFlags);
+       setSignResult('success');
+       await loadAllSignatures(deviceInfo, newFlags);
+
+     } catch (err) {
+       console.error('[LpoDoc] handleConfirmSign error:', err);
+       alert(`Signing failed: ${err.message}`);
+     } finally {
+       setIsSigningDoc(false);
+     }
+   };
   // ── Signature activation handlers ──────────────────────────────────────────
 
   /** Checks activation status and opens the appropriate modal. */
@@ -1297,7 +1317,7 @@ function LpoDoc() {
             <Button {...SHARED_BTN} text="Download as PDF"                               onClick={handleDownloadPdf}     colorScheme="violet-800" />
           </div>
           <div className='managerial-actions'>
-            <Button   {...SHARED_BTN} text="Send to Client" onClick={() => { if (vendorMail) setEmailFormValues({ email: vendorMail }); setShowEmailModal(true); }} colorScheme="rose-700" />
+            <Button   {...SHARED_BTN} text="Send to Supplier" onClick={() => { if (vendorMail) setEmailFormValues({ email: vendorMail }); setShowEmailModal(true); }} colorScheme="rose-700" />
             <Button {...SHARED_BTN} text="Edit"             onClick={handleEditLpo} colorScheme="sky-800" />
           </div>
         </div>
@@ -1417,6 +1437,19 @@ function LpoDoc() {
         onButtonClick={() => setSignResult(null)}
       />
 
+      {/* ── Out-of-order override modal ── */}
+      <DevModal
+        isOpen={showOverrideModal}
+        onClose={() => setShowOverrideModal(false)}
+        type="warning"
+        title="Signatures Pending"
+        message={`The following ${unsignedAboveRoles.length > 1 ? 'people have' : 'person has'} not yet signed this document:\n\n${unsignedAboveRoles.join(', ')}\n\nYou can wait for them to sign first, or override and sign now. If you override, they will be notified to sign.`}
+        buttonText="Override & Sign"
+        onButtonClick={() => handleConfirmSign(true)}
+        secondaryButtonText="Wait"
+        onSecondaryClick={() => setShowOverrideModal(false)}
+      />
+
       {/* ── Signing completed success modal ── */}
       <DevModal
         isOpen={signResult === 'success'}
@@ -1430,12 +1463,12 @@ function LpoDoc() {
         autoCloseDelay={3000}
       />
 
-      {/* ── Send to client email modal ── */}
+      {/* ── Send to Supplier email modal ── */}
       <DevModal
         isOpen={showEmailModal}
         onClose={() => { setShowEmailModal(false); setEmailFormValues({ email: '' }); }}
         type="form"
-        title={vendorMail ? 'Confirm Email' : 'Send to Client'}
+        title={vendorMail ? 'Confirm Email' : 'Send to Supplier'}
         message={vendorMail ? 'Sending to saved email. You can change it if needed.' : "Enter the vendor's email address"}
         buttonText={isSendingEmail ? 'Sending...' : 'Send'}
         onButtonClick={handleSendEmail}

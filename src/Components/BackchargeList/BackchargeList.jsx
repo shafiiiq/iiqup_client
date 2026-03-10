@@ -22,6 +22,7 @@ function BackchargeList() {
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [pendingSignatures, setPendingSignatures] = useState([]);
   const [showPendingToast,  setShowPendingToast]  = useState(false); 
+  const [signedByUser,     setSignedByUser]     = useState([]);
   const [filters, setFilters] = useState({
     dateFilter: 'all',
     suppliers: [],
@@ -37,8 +38,8 @@ function BackchargeList() {
     fetchPendingSignatures();
   }, []);
 
-  const isPendingForUser = (refNo) =>
-     pendingSignatures.some(p => p.refNo === refNo);
+  const isPendingForUser = (refNo) => pendingSignatures.some(p => p.refNo === refNo);
+  const isSignedByUser   = (refNo) => signedByUser.some(s => s.refNo === refNo);
 
   const fetchBackcharges = async () => {
     try {
@@ -62,23 +63,25 @@ function BackchargeList() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.uniqueCode) return;
 
-      const response = await apiRequest(
-        `${END_POINT}/backcharge/pending-signatures`,
-        'POST',
-        {
-          uniqueCode: encodeURIComponent(user.uniqueCode)
-        }
-      );
+      const [pendingRes, signedRes] = await Promise.all([
+        apiRequest(`${END_POINT}/backcharge/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+        apiRequest(`${END_POINT}/backcharge/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+      ]);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (pendingRes.ok) {
+        const data = await pendingRes.json();
         setPendingSignatures(data.data || []);
         if (data.count > 0) setShowPendingToast(true);
+      }
+
+      if (signedRes.ok) {
+        const data = await signedRes.json();
+        setSignedByUser(data.data || []);
       }
     } catch (error) {
       console.error('[BackchargeList] fetchPendingSignatures:', error);
     }
-  };  
+  };
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -407,7 +410,7 @@ function BackchargeList() {
                   key={backcharge._id}
                   data-refno={backcharge.refNo}
                   onClick={() => handleRowClick(backcharge.reportNo)}
-                  className={`bcl-table-row ${isPendingForUser(backcharge.refNo) ? 'bcl-row-pending-sign' : ''}`}
+                  className={`bcl-table-row ${ isSignedByUser(backcharge.refNo)   ? 'bcl-row-signed' : isPendingForUser(backcharge.refNo) ? 'bcl-row-pending-sign' : '' }`}
                 >
                   <td>{formatDate(backcharge.date)}</td>
                   <td>{backcharge.refNo}</td>

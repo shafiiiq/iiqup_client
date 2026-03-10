@@ -27,6 +27,8 @@ const EMPTY_ADD_FORM = {
   hiredFrom: '', hired: false, status: 'Active', site: '',
   location: '',
   rentRate: { basis: 'daily', rate: '', currency: 'QAR' },
+  'rentRate.basis': 'daily',
+  'rentRate.rate':  '',
 };
 
 const EMPTY_EDIT_FORM = {
@@ -44,7 +46,8 @@ const EMPTY_DEMOBILIZE_FORM = { date: '', time: '', remarks: '' };
 
 const EMPTY_MOBILIZE_FORM = {
   site: '', operator: '', operatorId: '', withOperator: false,
-  remarks: '', deployType: 'site', clientCompany: '', date: '', time: ''
+  remarks: '', deployType: 'site', clientCompany: '', date: '', time: '',
+  isOneDayMob: false, demobDate: '', demobTime: '', demobRemarks: '',
 };
 
 const EMPTY_REPLACE_OPERATOR_FORM = {
@@ -194,11 +197,11 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       year: parseInt(addEquipmentForm.year),
       certificationBody,
       site:     addEquipmentForm.site     ? [addEquipmentForm.site]     : [],
-      location: addEquipmentForm.location ? [addEquipmentForm.location] : [],
+      location: addEquipmentForm.location || null,
       hired:    addEquipmentForm.company === 'HIRED',
-      rentRate: addEquipmentForm.company === 'HIRED' && addEquipmentForm.rentRate?.rate
-        ? { basis: addEquipmentForm.rentRate.basis, rate: Number(addEquipmentForm.rentRate.rate), currency: 'QAR' }
-         : null,
+      rentRate: (addEquipmentForm.rentRate?.rate || addEquipmentForm.rentRate?.basis)
+        ? { basis: addEquipmentForm.rentRate.basis || 'daily', rate: Number(addEquipmentForm.rentRate.rate) || 0, currency: 'QAR' }
+        : null,
     };
 
     try {
@@ -240,6 +243,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       hiredFrom: equipment.hiredFrom || '',
       location: equipment.location || '',
       rentRate: equipment.rentRate || { basis: 'daily', rate: '', currency: 'QAR' },
+      'rentRate.basis': equipment.rentRate?.basis || 'daily',
+      'rentRate.rate':  equipment.rentRate?.rate  || '',
     });
     setShowEditModal(true);
   };
@@ -256,8 +261,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       status: editFormData.status,
       hiredFrom: editFormData.hiredFrom,
       location: editFormData.location || '',
-      rentRate: editFormData.company === 'HIRED' && editFormData.rentRate?.rate
-         ? { basis: editFormData.rentRate.basis, rate: Number(editFormData.rentRate.rate), currency: 'QAR' }
+      rentRate: (editFormData.rentRate?.rate || editFormData.rentRate?.basis)
+        ? { basis: editFormData.rentRate.basis || 'daily', rate: Number(editFormData.rentRate.rate) || 0, currency: 'QAR' }
         : null,
     };
 
@@ -422,6 +427,10 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       month, year, time,
       selectedDate: mobilizeForm.date || null,
       remarks: mobilizeForm.remarks,
+      isOneDayMob:  mobilizeForm.isOneDayMob  || false,
+      demobDate:    mobilizeForm.demobDate    || null,
+      demobTime:    mobilizeForm.demobTime    || '',
+      demobRemarks: mobilizeForm.demobRemarks || '',
     };
 
     try {

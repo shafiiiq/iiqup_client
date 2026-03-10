@@ -234,6 +234,8 @@ function BackchargeDoc() {
   const [activationLoading,    setActivationLoading]    = useState(false);
   const [globalActivation,     setGlobalActivation]     = useState({ isActivated: false, isTrusted: false, checked: false });
   const [isSigningDoc,         setIsSigningDoc]         = useState(false);
+  const [showOverrideModal,    setShowOverrideModal]    = useState(false);
+   const [unsignedAboveRoles,  setUnsignedAboveRoles]   = useState([]);
 
   // ── Signature modal visibility ─────────────────────────────────────────────
 
@@ -593,10 +595,7 @@ function BackchargeDoc() {
         isLpoSign: true,
       });
       if (!s3Res.ok) throw new Error('Failed to get S3 URL');
-      const s3Data = await s3Res.json();
-
-      console.log("s3Data", s3Data);
-      
+      const s3Data = await s3Res.json();      
 
       setSignatureStates((prev) => ({ ...prev, [roleField]: { url: s3Data.dataUrl, loading: false } }));
 
@@ -628,70 +627,82 @@ function BackchargeDoc() {
    * Submits the signature to the backend after user confirms.
    * The server resolves which role is signing via uniqueCode.
    */
-  const handleConfirmSign = async () => {
-    if (!deviceInfo) return;
+  const handleConfirmSign = async (override = false) => {
+     if (!deviceInfo) return;
 
-    // ── Resolve the logged-in user's _id for role matching on the server ──
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user._id) {
-      alert('User session not found. Please log in again.');
-      return;
-    }
+     const user = JSON.parse(localStorage.getItem('user') || '{}');
+     if (!user._id) {
+       alert('User session not found. Please log in again.');
+       return;
+     }
 
-    setIsSigningDoc(true);
-    setShowSignConfirmModal(false);
+     setIsSigningDoc(true);
+     setShowSignConfirmModal(false);
 
-    try {
-      const response = await apiRequest(
-        `${END_POINT}/backcharge/sign/${encodeURIComponent(refNo)}`,
-        'POST',
-        {
-          uniqueCode: user.uniqueCode,
-          signedDate: new Date().toISOString(),
-          signedFrom: deviceInfo.browserInfo,
-          signedIP: deviceInfo.ipAddress,
-          signedDevice: deviceInfo.userAgent,
-          signedLocation: deviceInfo.location,
-        }
-      );
+     try {
+       const response = await apiRequest(
+         `${END_POINT}/backcharge/sign/${encodeURIComponent(refNo)}`,
+         'POST',
+         {
+           uniqueCode:     user.uniqueCode,
+           signedDate:     new Date().toISOString(),
+           signedFrom:     deviceInfo.browserInfo,
+           signedIP:       deviceInfo.ipAddress,
+           signedDevice:   deviceInfo.userAgent,
+           signedLocation: deviceInfo.location,
+           override,
+         }
+       );
 
-      const result = await response.json();
+       const result = await response.json();
 
-      if (response.status === 403) {
-        // uniqueCode not in any env var — not an authorised signatory
-        setShowUnauthorisedModal(true);
-        return;
-      }
+       if (response.status === 403) {
+         setShowUnauthorisedModal(true);
+         return;
+       }
 
-      if (response.status === 409) {
-        // Already signed by this role
-        setSignResult('already_signed');
-        return;
-      }
+       if (response.status === 409) {
+         setSignResult('already_signed');
+         return;
+       }
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Signing failed');
-      }
+       // ── Out-of-order detected — show override prompt ───────────────────
+       if (response.status === 202 && result.requireOverride) {
+         const roleLabels = {
+           WORKSHOP_MANAGER:  'Workshop Manager',
+           PURCHASE_MANAGER:  'Purchase Manager',
+           MANAGER:           'Operations Manager',
+           CEO:               'CEO',
+           MANAGING_DIRECTOR: 'Managing Director',
+         };
+         setUnsignedAboveRoles(result.unsignedAbove.map(r => roleLabels[r] || r));
+         setShowOverrideModal(true);
+         return;
+       }
 
-      // ── Success: update local flags and reload signatures ──────────────
-      const updatedData = result.data;
-      const newFlags = {
-        workshopManager: updatedData.signatures?.workshopManager?.signed || false,
-        purchaseManager: updatedData.signatures?.purchaseManager?.signed || false,
-        operationsManager: updatedData.signatures?.operationsManager?.signed || false,
-        authorizedSignatory: updatedData.signatures?.authorizedSignatory?.signed || false,
-      };
+       if (!response.ok) {
+         throw new Error(result.message || 'Signing failed');
+       }
 
-      setSignatureFlags(newFlags);
-      setSignResult('success');
-      await loadAllSignatures(newFlags);
+       // ── Success: update local flags and reload signatures ──────────────
+       const updatedData = result.data;
+       const newFlags = {
+         workshopManager:     updatedData.signatures?.workshopManager?.signed     || false,
+         purchaseManager:     updatedData.signatures?.purchaseManager?.signed     || false,
+         operationsManager:   updatedData.signatures?.operationsManager?.signed   || false,
+         authorizedSignatory: updatedData.signatures?.authorizedSignatory?.signed || false,
+       };
 
-    } catch (err) {
-      console.error('[BackchargeDoc] handleConfirmSign error:', err);
-      alert(`Signing failed: ${err.message}`);
-    } finally {
-      setIsSigningDoc(false);
-    }
+       setSignatureFlags(newFlags);
+       setSignResult('success');
+       await loadAllSignatures(newFlags);
+
+     } catch (err) {
+       console.error('[BackchargeDoc] handleConfirmSign error:', err);
+       alert(`Signing failed: ${err.message}`);
+     } finally {
+       setIsSigningDoc(false);
+     }
   };
 
   /** Submits the 20-digit activation key (same flow as LpoDoc). */
@@ -1452,6 +1463,19 @@ function BackchargeDoc() {
         message="This signature position has already been signed on this document."
         buttonText="OK"
         onButtonClick={() => setSignResult(null)}
+      />
+
+      {/* ── Override modal — out-of-order signing ── */}
+      <DevModal
+        isOpen={showOverrideModal}
+        onClose={() => setShowOverrideModal(false)}
+        type="warning"
+        title="Signatures Pending"
+        message={`The following signatories have not yet signed:\n\n${unsignedAboveRoles.join(', ')}\n\nYou can wait or override and sign now. If you override, office will be notified.`}
+        buttonText="Override & Sign"
+        onButtonClick={() => { setShowOverrideModal(false); handleConfirmSign(true); }}
+        secondaryButtonText="Wait"
+        onSecondaryClick={() => setShowOverrideModal(false)}
       />
 
       {/* ── Sign success modal ── */}
