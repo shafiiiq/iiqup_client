@@ -46,7 +46,7 @@ import NavigationButtons from './Components/Common/NavigationButtons/NavigationB
 import Spacer            from './Components/Spacer/Spacer';
 import SplashScreen      from './splash/SplashScreen';
 import NotFound          from './Common/NotFound/NotFound';
-import Intro          from './Common/Intro/Intro';
+import Intro             from './Common/Intro/Intro';
 
 import './App.css';
 import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';
@@ -95,122 +95,29 @@ const isValidRoute = (pathname) =>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProtectedRoute
-// Blocks unauthenticated users. Optionally restricts to CEO-only access.
+// Blocks unauthenticated users from accessing protected routes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ProtectedRoute({ children, ceoOnly = false }) {
+function ProtectedRoute({ children }) {
   const { isValid } = AuthUtils.checkUserSession();
-  const [isCEO,   setIsCEO]   = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkCEOStatus = async () => {
-      if (isValid) {
-        const ceoStatus = await AuthUtils.isCEO();
-        setIsCEO(ceoStatus);
-      }
-      setLoading(false);
-    };
-
-    checkCEOStatus();
-  }, [isValid]);
-
-  // Redirect unauthenticated users to login
   if (!isValid) return <Navigate to="/login" replace />;
 
-  if (loading) return <div />;
-
-  // CEO-only route accessed by non-CEO → redirect home
-  if (ceoOnly && !isCEO) return <Navigate to="/" replace />;
-
-  // Non-CEO-only route accessed by CEO → redirect to dashboard
-  if (isCEO && !ceoOnly && window.location.pathname !== '/dashboard') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return children;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CEOGuard
-// Prevents CEO from accessing non-dashboard routes.
-// ─────────────────────────────────────────────────────────────────────────────
-
-function CEOGuard({ children }) {
-  const [isCEO,   setIsCEO]   = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkCEOStatus = async () => {
-      const ceoStatus = await AuthUtils.isCEO();
-      setIsCEO(ceoStatus);
-      setLoading(false);
-    };
-
-    checkCEOStatus();
-  }, []);
-
-  if (loading) return <div />;
-  if (isCEO)   return <Navigate to="/dashboard" replace />;
-
-  return children;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CEORedirect
-// After login, redirects CEO → /dashboard, everyone else → /.
-// ─────────────────────────────────────────────────────────────────────────────
-
-function CEORedirect() {
-  const [isCEO,   setIsCEO]   = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkCEOStatus = async () => {
-      const ceoStatus = await AuthUtils.isCEO();
-      setIsCEO(ceoStatus);
-      setLoading(false);
-    };
-
-    checkCEOStatus();
-  }, []);
-
-  if (loading) return <div />;
-
-  return isCEO
-    ? <Navigate to="/dashboard" replace />
-    : <Navigate to="/" replace />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HeaderWrapper
-// Conditionally renders the Header based on route and user role.
+// Conditionally renders the Header based on route.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
   const location = useLocation();
-  const [isCEO,   setIsCEO]   = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkCEOStatus = async () => {
-      if (userLoggedIn) {
-        const ceoStatus = await AuthUtils.isCEO();
-        setIsCEO(ceoStatus);
-      }
-      setLoading(false);
-    };
-
-    checkCEOStatus();
-  }, [userLoggedIn]);
-
-  if (loading) return null;
 
   const hideHeader =
     HEADERLESS_ROUTES.includes(location.pathname) ||
     HEADERLESS_PREFIXES.some((prefix) => location.pathname.startsWith(prefix)) ||
-    !isValidRoute(location.pathname) ||
-    isCEO;
+    !isValidRoute(location.pathname);
 
   if (hideHeader || !userLoggedIn) return null;
 
@@ -226,7 +133,6 @@ function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // SpacerWrapper
 // Renders a vertical spacer on all valid, non-headerless routes.
-// Defined inside App to access router context via useLocation.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SpacerWrapper() {
@@ -380,111 +286,111 @@ function App() {
 
                   <Route
                     path="/login"
-                    element={userLoggedIn ? <CEORedirect /> : <Login setUserLoggedIn={setUserLoggedIn} />}
+                    element={userLoggedIn ? <Navigate to="/" replace /> : <Login setUserLoggedIn={setUserLoggedIn} />}
                   />
 
                   {/* ── Home ────────────────────────────────────────────── */}
 
                   <Route path="/" element={
-                    <ProtectedRoute><CEOGuard>
+                    <ProtectedRoute>
                       <Home
                         user_logged_in={userLoggedIn}
                         currentUser={AuthUtils.getCurrentUser()}
                         setUserLoggedIn={setUserLoggedIn}
                       />
-                    </CEOGuard></ProtectedRoute>
+                    </ProtectedRoute>
                   } />
 
                   {/* ── Service Documents ───────────────────────────────── */}
 
-                  <Route path="/all/all-histories/:regNo"                              element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/all/oil-service/:regNo"                                element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/all/maintenance-service/:regNo"                        element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/all/tyre-service/:regNo"                               element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/all/battery-service/:regNo"                            element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/all/date-range/:serviceType/:regNo/:startDate/:endDate" element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/all/last-months/:serviceType/:regNo/:monthsCount"       element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/service-document/:historyId"                           element={<ProtectedRoute><CEOGuard><ServiceDoc /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/all/all-histories/:regNo"                               element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/all/oil-service/:regNo"                                 element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/all/maintenance-service/:regNo"                         element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/all/tyre-service/:regNo"                                element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/all/battery-service/:regNo"                             element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/all/date-range/:serviceType/:regNo/:startDate/:endDate"  element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/all/last-months/:serviceType/:regNo/:monthsCount"        element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                  <Route path="/service-document/:historyId"                            element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
 
                   {/* ── Service Forms ────────────────────────────────────── */}
 
-                  <Route path="/service-form-nav/:regNo"                element={<ProtectedRoute><CEOGuard><FormNavigation /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/service-form/:serviceType/:historyId"   element={<ProtectedRoute><CEOGuard><ServiceForm /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/service-form/update/:serviceType/:reportId" element={<ProtectedRoute><CEOGuard><ServiceForm /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/service-form-nav/:regNo"                  element={<ProtectedRoute><FormNavigation /></ProtectedRoute>} />
+                  <Route path="/service-form/:serviceType/:historyId"     element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
+                  <Route path="/service-form/update/:serviceType/:reportId" element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
 
                   {/* ── Equipment & Tools ────────────────────────────────── */}
 
-                  <Route path="/equipments" element={<ProtectedRoute><CEOGuard><Equipments /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/toolkits"   element={<ProtectedRoute><CEOGuard><Toolkits /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/equipments" element={<ProtectedRoute><Equipments /></ProtectedRoute>} />
+                  <Route path="/toolkits"   element={<ProtectedRoute><Toolkits /></ProtectedRoute>} />
 
                   {/* ── Service History ──────────────────────────────────── */}
 
-                  <Route path="/service-history"           element={<ProtectedRoute><CEOGuard><ServiceHistory /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/service-history/:regNos"   element={<ProtectedRoute><CEOGuard><ServiceHistory /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/service-histoy/summary"    element={<ProtectedRoute><CEOGuard><ServiceHistorySummary /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/service-history"           element={<ProtectedRoute><ServiceHistory /></ProtectedRoute>} />
+                  <Route path="/service-history/:regNos"   element={<ProtectedRoute><ServiceHistory /></ProtectedRoute>} />
+                  <Route path="/service-histoy/summary"    element={<ProtectedRoute><ServiceHistorySummary /></ProtectedRoute>} />
 
                   {/* ── History Forms ────────────────────────────────────── */}
 
-                  <Route path="/service-history-form/:type/:regNo" element={<ProtectedRoute><CEOGuard><ServiceHistoryEntryForm /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/service-history-form/:type"        element={<ProtectedRoute><CEOGuard><ServiceHistoryEntryForm /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/service-history-form/:type/:regNo" element={<ProtectedRoute><ServiceHistoryEntryForm /></ProtectedRoute>} />
+                  <Route path="/service-history-form/:type"        element={<ProtectedRoute><ServiceHistoryEntryForm /></ProtectedRoute>} />
 
                   {/* ── Notifications ────────────────────────────────────── */}
 
-                  <Route path="/notification" element={<ProtectedRoute><CEOGuard><Notification /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/notification" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
 
                   {/* ── Stocks & Documents ───────────────────────────────── */}
 
-                  <Route path="/stocks/equipment-stocks" element={<ProtectedRoute><CEOGuard><EquipBypass equipStocks={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/stock-manage"            element={<ProtectedRoute><CEOGuard><StockManage /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/documents"               element={<ProtectedRoute><CEOGuard><EquipBypass documents={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/documents/:type/:id"     element={<ProtectedRoute><CEOGuard><Documents /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/stocks/equipment-stocks" element={<ProtectedRoute><EquipBypass equipStocks={true} /></ProtectedRoute>} />
+                  <Route path="/stock-manage"            element={<ProtectedRoute><StockManage /></ProtectedRoute>} />
+                  <Route path="/documents"               element={<ProtectedRoute><EquipBypass documents={true} /></ProtectedRoute>} />
+                  <Route path="/documents/:type/:id"     element={<ProtectedRoute><Documents /></ProtectedRoute>} />
 
                   {/* ── Backcharge ───────────────────────────────────────── */}
 
-                  <Route path="/backcharge-form"       element={<ProtectedRoute><CEOGuard><BackchargeForm /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/backcharge-list"       element={<ProtectedRoute><CEOGuard><BackchargeList /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/backcharge-doc/:refNo" element={<ProtectedRoute><CEOGuard><BackchargeDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/backcharge-doc"        element={<ProtectedRoute><CEOGuard><BackchargeDoc /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/backcharge-form"       element={<ProtectedRoute><BackchargeForm /></ProtectedRoute>} />
+                  <Route path="/backcharge-list"       element={<ProtectedRoute><BackchargeList /></ProtectedRoute>} />
+                  <Route path="/backcharge-doc/:refNo" element={<ProtectedRoute><BackchargeDoc /></ProtectedRoute>} />
+                  <Route path="/backcharge-doc"        element={<ProtectedRoute><BackchargeDoc /></ProtectedRoute>} />
 
                   {/* ── Complaints ───────────────────────────────────────── */}
 
-                  <Route path="/complaints"                          element={<ProtectedRoute><CEOGuard><Complaints /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/complaints/:complaintId/:regNo"      element={<ProtectedRoute><CEOGuard><Complaints /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/complaints"                     element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
+                  <Route path="/complaints/:complaintId/:regNo" element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
 
                   {/* ── LPO Forms ────────────────────────────────────────── */}
 
-                  <Route path="/lpo-form/for-stock"                              element={<ProtectedRoute><CEOGuard><Lpo isStock={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-form/for-all-equipments"                     element={<ProtectedRoute><CEOGuard><Lpo isAllEquip={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-form/edit/:refNo"                            element={<ProtectedRoute><CEOGuard><Lpo edit={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-form/amendment-edit/:amendment/:refNo"       element={<ProtectedRoute><CEOGuard><Lpo amendmentEdit={true} amendment={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-form/amendment/:refNo"                       element={<ProtectedRoute><CEOGuard><Lpo amendment={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-form/:regNo/:complaintId"                    element={<ProtectedRoute><CEOGuard><Lpo /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-form/:regNo"                                 element={<ProtectedRoute><CEOGuard><Lpo /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/lpo-form/for-stock"                              element={<ProtectedRoute><Lpo isStock={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-form/for-all-equipments"                     element={<ProtectedRoute><Lpo isAllEquip={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-form/edit/:refNo"                            element={<ProtectedRoute><Lpo edit={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-form/amendment-edit/:amendment/:refNo"       element={<ProtectedRoute><Lpo amendmentEdit={true} amendment={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-form/amendment/:refNo"                       element={<ProtectedRoute><Lpo amendment={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-form/:regNo/:complaintId"                    element={<ProtectedRoute><Lpo /></ProtectedRoute>} />
+                  <Route path="/lpo-form/:regNo"                                 element={<ProtectedRoute><Lpo /></ProtectedRoute>} />
 
                   {/* ── LPO Documents ────────────────────────────────────── */}
 
-                  <Route path="/lpo-doc/:lpoRef"                                       element={<ProtectedRoute><CEOGuard><LpoDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-doc/:lpoRef/:complaintId"                          element={<ProtectedRoute><CEOGuard><LpoDoc /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"     element={<ProtectedRoute><CEOGuard><LpoDoc /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/lpo-doc/:lpoRef"                                       element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
+                  <Route path="/lpo-doc/:lpoRef/:complaintId"                          element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
+                  <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"     element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
 
                   {/* ── LPO Lists ─────────────────────────────────────────── */}
 
-                  <Route path="/lpo-list"                    element={<ProtectedRoute><CEOGuard><EquipBypass isLPO={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-list/of-all-equipments"  element={<ProtectedRoute><CEOGuard><LpoList isForAllEquip={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-list/all-list"           element={<ProtectedRoute><CEOGuard><LpoList isAll={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-list/:regNo"             element={<ProtectedRoute><CEOGuard><LpoList isEquip={true} /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/lpo-list/of-stocks"          element={<ProtectedRoute><CEOGuard><LpoList isStock={true} /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/lpo-list"                    element={<ProtectedRoute><EquipBypass isLPO={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-list/of-all-equipments"  element={<ProtectedRoute><LpoList isForAllEquip={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-list/all-list"           element={<ProtectedRoute><LpoList isAll={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-list/:regNo"             element={<ProtectedRoute><LpoList isEquip={true} /></ProtectedRoute>} />
+                  <Route path="/lpo-list/of-stocks"          element={<ProtectedRoute><LpoList isStock={true} /></ProtectedRoute>} />
 
                   {/* ── People ───────────────────────────────────────────── */}
 
-                  <Route path="/mechanics" element={<ProtectedRoute><CEOGuard><Mechanics /></CEOGuard></ProtectedRoute>} />
-                  <Route path="/operators" element={<ProtectedRoute><CEOGuard><Operators /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/mechanics" element={<ProtectedRoute><Mechanics /></ProtectedRoute>} />
+                  <Route path="/operators" element={<ProtectedRoute><Operators /></ProtectedRoute>} />
 
                   {/* ── Operations ───────────────────────────────────────── */}
 
-                  <Route path="/operations-recent-activities" element={<ProtectedRoute><CEOGuard><OperationsActivities /></CEOGuard></ProtectedRoute>} />
+                  <Route path="/operations-recent-activities" element={<ProtectedRoute><OperationsActivities /></ProtectedRoute>} />
 
-                  {/* ── CEO Dashboard (no CEOGuard — CEO-accessible route) ── */}
+                  {/* ── Dashboard ────────────────────────────────────────── */}
 
                   <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
