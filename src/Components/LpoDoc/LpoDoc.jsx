@@ -665,10 +665,11 @@ function LpoDoc() {
   const [signResult,            setSignResult]            = useState(null);
   const [vendorMail,            setVendorMail]            = useState(null);
   const [showEmailModal,        setShowEmailModal]        = useState(false);
-  const [emailFormValues,       setEmailFormValues]       = useState({ email: '' });
+  const [emailFormValues,       setEmailFormValues]       = useState({ emails: [''] });
   const [isSendingEmail,        setIsSendingEmail]        = useState(false);
   const [showOverrideModal,     setShowOverrideModal]     = useState(false);
   const [unsignedAboveRoles,    setUnsignedAboveRoles]    = useState([]);
+  const [pendingAttachments,    setPendingAttachments]    = useState([]);
 
   // ── Device / activation state ──────────────────────────────────────────────
 
@@ -684,6 +685,7 @@ function LpoDoc() {
   const [showTrustModal,         setShowTrustModal]         = useState(false);
   const [showNotTrustedModal,    setShowNotTrustedModal]    = useState(false);
   const [showUploadSuccessModal, setShowUploadSuccessModal] = useState(false);
+  const [showAttachmentModal,    setShowAttachmentModal]    = useState(false);
 
   // ── Effect: Sync header title / subtitle ──────────────────────────────────
 
@@ -1216,11 +1218,12 @@ function LpoDoc() {
   // ── Email handler ──────────────────────────────────────────────────────────
 
   /** Generates PDF and sends LPO to vendor via email. */
-  const handleSendEmail = async () => {
-    const { email } = emailFormValues;
-    if (!email || !email.includes('@')) { alert('Please enter a valid email'); return; }
+  const handleSendEmail = async (extraFiles = []) => {
+    const validEmails = emailFormValues.emails.filter(e => e?.includes('@'));
+    if (!validEmails.length) { alert('Please enter at least one valid email'); return; }
 
     setIsSendingEmail(true);
+    setShowAttachmentModal(false);
     const controls = document.querySelector('.controls');
     if (controls) controls.style.visibility = 'hidden';
 
@@ -1228,23 +1231,25 @@ function LpoDoc() {
       await new Promise((r) => setTimeout(r, 200));
       const pdf = await buildPdf();
       const pdfBlob = pdf.output('blob');
-
       const extractName = (str) => str ? str.split('-')[0].trim() : '';
 
       const formDataToSend = new FormData();
       formDataToSend.append('pdf', pdfBlob, `${getFileName()}.pdf`);
-      formDataToSend.append('email', email);
+      formDataToSend.append('emails', JSON.stringify(validEmails));
       formDataToSend.append('recipientName', extractName(lpoData.attention));
       formDataToSend.append('vendorName', extractName(lpoData.vendor));
       formDataToSend.append('equipment', lpoData.equipments.join(', '));
       formDataToSend.append('lpoRef', decodeURIComponent(refNo));
 
+      // append any extra attachments
+      extraFiles.forEach((file) => formDataToSend.append('attachments', file));
+
       const response = await apiRequest(`${END_POINT}/lpo/send-via-email`, 'POST', formDataToSend, true);
 
       if (response.ok) {
         setShowEmailModal(false);
-        setEmailFormValues({ email: '' });
-        alert('Document sent successfully!');
+        setEmailFormValues({ emails: [''] });
+        setSignResult('email_sent');
       } else {
         alert('Failed to send email. Please try again.');
       }
@@ -1320,7 +1325,7 @@ function LpoDoc() {
             <Button {...SHARED_BTN} text="Download as PDF"                               onClick={handleDownloadPdf}     colorScheme="violet-800" />
           </div>
           <div className='managerial-actions'>
-            <Button   {...SHARED_BTN} text="Send to Supplier" onClick={() => { if (vendorMail) setEmailFormValues({ email: vendorMail }); setShowEmailModal(true); }} colorScheme="rose-700" />
+            <Button   {...SHARED_BTN} text="Send to Supplier" onClick={() => { if (vendorMail?.length) setEmailFormValues({ emails: vendorMail }); setShowEmailModal(true); }} colorScheme="rose-700" />
             <Button {...SHARED_BTN} text="Edit"             onClick={handleEditLpo} colorScheme="sky-800" />
           </div>
         </div>
@@ -1480,17 +1485,36 @@ function LpoDoc() {
       {/* ── Send to Supplier email modal ── */}
       <DevModal
         isOpen={showEmailModal}
-        onClose={() => { setShowEmailModal(false); setEmailFormValues({ email: '' }); }}
+        onClose={() => { setShowEmailModal(false); setEmailFormValues({ emails: [''] }); }}
         type="form"
-        title={vendorMail ? 'Confirm Email' : 'Send to Supplier'}
-        message={vendorMail ? 'Sending to saved email. You can change it if needed.' : "Enter the vendor's email address"}
+        title="Send to Supplier"
+        message="Enter recipient email addresses. Add more than one if needed."
         buttonText={isSendingEmail ? 'Sending...' : 'Send'}
-        onButtonClick={handleSendEmail}
+        onButtonClick={() => {
+          const validEmails = emailFormValues.emails.filter(e => e?.includes('@'));
+          if (!validEmails.length) { alert('Please enter at least one valid email'); return; }
+          setShowEmailModal(false);
+          setShowAttachmentModal(true);
+        }}
         secondaryButtonText="Cancel"
-        onSecondaryClick={() => { setShowEmailModal(false); setEmailFormValues({ email: '' }); }}
-        formFields={[{ name: 'email', label: vendorMail ? 'Saved Email (tap to edit)' : 'Vendor Email', type: 'email', placeholder: 'vendor@example.com', required: true }]}
-        formValues={emailFormValues}
-        onFormChange={(field, value) => setEmailFormValues((prev) => ({ ...prev, [field]: value }))}
+        onSecondaryClick={() => { setShowEmailModal(false); setEmailFormValues({ emails: [''] }); }}
+        formFields={[{  name: 'emails', label: 'Recipient Emails (comma-separated)', type: 'text', placeholder: 'vendor@example.com, other@example.com', required: true, }]}
+        formValues={{ emails: emailFormValues.emails.join(', ') }}
+        onFormChange={(field, value) => setEmailFormValues({ emails: value.split(',').map(e => e.trim()).filter(Boolean) })}
+      />
+
+      {/* ── Addown files attachement modal ── */}
+
+      <DevModal
+        isOpen={showAttachmentModal}
+        onClose={() => setShowAttachmentModal(false)}
+        type="fileupload"
+        title="Attach Documents"
+        message="Add any additional documents to send with the LPO, or skip to send now."
+        buttonText={isSendingEmail ? 'Sending...' : 'Send'}
+        onButtonClick={(files) => handleSendEmail(files || [])}
+        secondaryButtonText="Skip"
+        onSecondaryClick={() => { setShowAttachmentModal(false); handleSendEmail([]); }}
       />
 
       {/* ── Lpo upload success modal ── */}
@@ -1502,6 +1526,19 @@ function LpoDoc() {
         message="The LPO document has been uploaded successfully for approval."
         buttonText="OK"
         onButtonClick={() => setShowUploadSuccessModal(false)}
+        autoClose
+        autoCloseDelay={3000}
+      />
+
+      {/* ── Lpo mailed success modal ── */}
+      <DevModal
+        isOpen={signResult === 'email_sent'}
+        onClose={() => setSignResult(null)}
+        type="success"
+        title="LPO Sent Successfully"
+        message="LPO sent successfully to supplier."
+        buttonText="OK"
+        onButtonClick={() => setSignResult(null)}
         autoClose
         autoCloseDelay={3000}
       />

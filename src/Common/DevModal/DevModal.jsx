@@ -28,15 +28,15 @@ const DevModal = ({
   useCellInput = false,
   cellCount = 20,
   formFields = [],
-  onFormChange = () => { }, 
-  formValues = {}, 
-  unauthorizedReason = '', 
+  onFormChange = () => { },
+  formValues = {},
+  unauthorizedReason = '',
   contactEmail = 'support@example.com',
   filterGroups = [],
-  onFilterChange = () => { }, 
-  filterValues = {}, 
-  onApplyFilters = () => { }, 
-  onResetFilters = () => { }, 
+  onFilterChange = () => { },
+  filterValues = {},
+  onApplyFilters = () => { },
+  onResetFilters = () => { },
   onFileChange = () => { },
   fileValues = {},
 }) => {
@@ -45,11 +45,14 @@ const DevModal = ({
   const [pageInput, setPageInput] = React.useState('');
   const [splitError, setSplitError] = React.useState('');
   const [filePreviews, setFilePreviews] = React.useState({});
+  const [dragging, setDragging] = React.useState(false);
+  const [uploadedFiles, setUploadedFiles] = React.useState([]);
 
   const modalRef = React.useRef(null);
   const autoCloseRef = React.useRef(null);
   const lastActive = React.useRef(null);
   const cellRefs = React.useRef([]);
+  const fileInputRef = React.useRef(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -69,6 +72,7 @@ const DevModal = ({
         lastActive.current.focus();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, autoClose, autoCloseDelay, type]);
 
   React.useEffect(() => {
@@ -76,6 +80,7 @@ const DevModal = ({
       clearTimeout(autoCloseRef.current);
       document.removeEventListener('keydown', handleKey);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleKey = (e) => {
@@ -125,6 +130,7 @@ const DevModal = ({
     if (type === 'progress' || preventClose) return;
     clearTimeout(autoCloseRef.current);
     setVisible(false);
+    setUploadedFiles([]);
     setTimeout(() => {
       onClose();
       if (lastActive.current && lastActive.current.focus) lastActive.current.focus();
@@ -173,6 +179,8 @@ const DevModal = ({
             return;
           }
           pages = [interval];
+        } else if (onButtonClick) {
+          type === 'fileupload' ? onButtonClick(uploadedFiles) : onButtonClick();
         }
 
         onButtonClick({ splitType, pages });
@@ -239,6 +247,23 @@ const DevModal = ({
     setFilePreviews(prev => ({ ...prev, [fieldName]: preview }));
     onFileChange(fieldName, file);
   };
+
+  const handleDropZoneClick = () => fileInputRef.current?.click();
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const incoming = Array.from(e.dataTransfer.files);
+    setUploadedFiles((prev) => [...prev, ...incoming]);
+  };
+
+  const handleDropZoneChange = (e) => {
+    const incoming = Array.from(e.target.files);
+    setUploadedFiles((prev) => [...prev, ...incoming]);
+  };
+
+  const handleRemoveUploadedFile = (index) =>
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
 
   const palette = {
     success: {
@@ -344,6 +369,14 @@ const DevModal = ({
       textColor: '#ffffffff',
       ctaColor: 'rgb(117, 124, 11)',
       svg: 'filter'
+    },
+    fileupload: {
+      primary: '#0f172a',
+      secondary: '#1e293b',
+      accent: '#38bdf8',
+      textColor: '#ffffff',
+      ctaColor: '#0c4a6e',
+      svg: 'form'
     },
   }[type] || {
     primary: '#10b981',
@@ -537,7 +570,7 @@ const DevModal = ({
                 </div>
               )}
 
-              {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && type !== 'filters' && !showInput && (
+              {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && type !== 'filters' && type !== 'fileupload' && !showInput && (
                 <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
                   {message}
                 </p>
@@ -985,6 +1018,53 @@ const DevModal = ({
                   </div>
                 </div>
               )}
+
+              {type === 'fileupload' && (
+                <div className="dm-fileupload-section">
+                  {message && (
+                    <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+
+                  {/* ── Drop zone — entire area clickable ── */}
+                  <div
+                    className={`dm-dropzone ${dragging ? 'dm-dropzone--dragging' : ''}`}
+                    onClick={handleDropZoneClick}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                    onDragLeave={() => setDragging(false)}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={handleDropZoneChange}
+                    />
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor" style={{ opacity: 0.7 }}>
+                      <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                    </svg>
+                    <span className="dm-dropzone-text">Drag the file or click here to upload</span>
+                  </div>
+
+                  {/* ── Uploaded file list ── */}
+                  {uploadedFiles.length > 0 && (
+                    <ul className="dm-uploaded-file-list">
+                      {uploadedFiles.map((file, i) => (
+                        <li key={i} className="dm-uploaded-file-item">
+                          <span className="dm-uploaded-file-name">{file.name}</span>
+                          <button
+                            className="dm-uploaded-file-remove"
+                            onClick={(e) => { e.stopPropagation(); handleRemoveUploadedFile(i); }}
+                          >✕</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
               {type === 'unauthorized' && (
                 <div className="dm-unauthorized-section">
                   <div className="dm-unauthorized-icon">
