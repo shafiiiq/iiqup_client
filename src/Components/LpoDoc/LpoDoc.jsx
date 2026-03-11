@@ -1024,7 +1024,10 @@ function LpoDoc() {
 
        const result = await response.json();
 
-       if (response.status === 403) { setShowUnauthorisedModal(true); return; }
+       if (response.status === 403) {
+         result.message === 'LPO_NOT_UPLOADED' ? setSignResult('not_uploaded') : setShowUnauthorisedModal(true);
+         return;
+       }
        if (response.status === 409) { setSignResult('already_signed'); return; }
 
        // ── Out-of-order: backend returned 202 requireOverride ──────────────────
@@ -1425,6 +1428,17 @@ function LpoDoc() {
         buttonText="Close"
         onButtonClick={() => setShowUnauthorisedModal(false)}
       />
+
+      {/* ── LPO not yet uploaded for approval ── */}
+      <DevModal
+        isOpen={signResult === 'not_uploaded'}
+        onClose={() => setSignResult(null)}
+        type="warning"
+        title="LPO Not Ready for Signing"
+        message="This LPO has been created but not yet uploaded for approval. Please ask the creator to upload the document first before signing."
+        buttonText="OK"
+        onButtonClick={() => setSignResult(null)}
+      />     
 
       {/* ── User is alread signed if the user is authorized ── */}
       <DevModal
