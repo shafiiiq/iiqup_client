@@ -1,5 +1,6 @@
 import { END_POINT } from "../constants";
 import { apiRequest } from "./api";
+
 export const AuthUtils = {
     saveUserSession: (user, rememberMe = false) => {
         const userSession = {
@@ -49,7 +50,7 @@ export const AuthUtils = {
                     uniqueCode: userSession.uniqueCode,
                     loginTime: userSession.loginTime,
                     name: userData.name,
-                    ...userData 
+                    ...userData
                 }
             };
         } catch (error) {
@@ -62,7 +63,6 @@ export const AuthUtils = {
         localStorage.removeItem('userSession');
         localStorage.removeItem('user');
         localStorage.removeItem('isUserLoggedIn');
-        localStorage.removeItem('ceoUniqueCode'); 
     },
 
     getCurrentUser: () => {
@@ -72,41 +72,6 @@ export const AuthUtils = {
 
     isAuthenticated: () => {
         return AuthUtils.checkUserSession().isValid;
-    },
-
-    isCEO: async () => {
-        const currentUser = AuthUtils.getCurrentUser();
-        if (!currentUser || !currentUser.uniqueCode || !currentUser.email) {
-            return false;
-        }
-
-        try {
-            const cachedCEOCode = localStorage.getItem('ceoUniqueCode');
-            if (cachedCEOCode) {
-                return currentUser.uniqueCode === cachedCEOCode;
-            }
-
-            const body = {
-                email: currentUser.email
-            }
-
-            const response = await apiRequest(`${END_POINT}/users/verify-ceo`,
-                'POST',
-                body
-            );
-
-            const data = await response.json();
-
-            if (response.ok && data.success && data.data) {
-                localStorage.setItem('ceoUniqueCode', data.data);
-                return currentUser.uniqueCode === data.data;
-            }
-
-            return false;
-        } catch (error) {
-            console.error('Error checking CEO status:', error);
-            return false;
-        }
     },
 
     extendSession: (days = 30) => {
@@ -120,17 +85,10 @@ export const AuthUtils = {
 };
 
 export const LoginLogic = {
-    handleLoginSuccess: async (userData, rememberMe, navigate, setUserLoggedIn) => {
+    handleLoginSuccess: (userData, rememberMe, navigate, setUserLoggedIn) => {
         AuthUtils.saveUserSession(userData, rememberMe);
-
         setUserLoggedIn(true);
-
-        const isCEO = await AuthUtils.isCEO();
-        if (isCEO) {
-            navigate('/dashboard');
-        } else {
-            navigate('/');
-        }
+        navigate('/');
     },
 
     handleLogout: (navigate, setUserLoggedIn) => {
@@ -139,7 +97,7 @@ export const LoginLogic = {
         navigate('/login');
     },
 
-    enhancedLogin: async (email, password, rememberMe, navigate, setUserLoggedIn) => {
+    enhancedLogin: async (email, password) => {
         try {
             const response = await fetch(`${END_POINT}/users/verify-user`, {
                 method: 'POST',
@@ -167,8 +125,7 @@ export const LoginLogic = {
 
     enhancedOTPVerification: async (otp, userData, rememberMe, navigate, setUserLoggedIn) => {
         try {
-            const response = await apiRequest(`${END_POINT}/otp/verify`,
-                'POST', {
+            const response = await apiRequest(`${END_POINT}/otp/verify`, 'POST', {
                 email: userData.authMail,
                 otp,
                 userId: userData._id
@@ -184,14 +141,7 @@ export const LoginLogic = {
                 const finalUserData = data.data.user || userData;
                 AuthUtils.saveUserSession(finalUserData, rememberMe);
                 setUserLoggedIn(true);
-
-                const isCEO = await AuthUtils.isCEO();
-                if (isCEO) {
-                    navigate('/dashboard');
-                } else {
-                    navigate('/');
-                }
-
+                navigate('/');
                 return { success: true };
             } else {
                 throw new Error('OTP verification failed');
@@ -203,11 +153,7 @@ export const LoginLogic = {
 
     requestOTP: async (email) => {
         try {
-            const response = await apiRequest(`${END_POINT}/otp/request`,
-                'POST',
-                { email }
-            );
-
+            const response = await apiRequest(`${END_POINT}/otp/request`, 'POST', { email });
             const data = await response.json();
 
             if (!response.ok || !data.success) {
@@ -236,9 +182,5 @@ export const checkAutoLogin = async (setUserLoggedIn, navigate) => {
     const { isValid } = AuthUtils.checkUserSession();
     if (isValid) {
         setUserLoggedIn(true);
-        const isCEO = await AuthUtils.isCEO();
-        if (isCEO && navigate && window.location.pathname !== '/dashboard') {
-            navigate('/dashboard');
-        }
     }
 };
