@@ -57,7 +57,8 @@ const EMPTY_REPLACE_OPERATOR_FORM = {
 
 const EMPTY_REPLACE_EQUIPMENT_FORM = {
   replacedEquipmentId: '', replacedEquipmentRegNo: '',
-  replacedEquipmentMachine: '', newSiteForReplaced: '', remarks: '', date: '', time: ''
+  replacedEquipmentMachine: '', newSiteForReplaced: '', remarks: '', date: '', time: '',
+  operator: '', operatorId: '',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -556,7 +557,11 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     e.stopPropagation();
     triggerVibration();
     setSelectedEquipmentForAction(equipment);
-    setReplaceEquipmentForm(EMPTY_REPLACE_EQUIPMENT_FORM);
+    setReplaceEquipmentForm({
+      ...EMPTY_REPLACE_EQUIPMENT_FORM,
+      operator:   equipment.certificationBody?.at(-1)?.operatorName || '',
+      operatorId: equipment.certificationBody?.at(-1)?.operatorId   || '',
+    });
     setShowReplaceEquipmentModal(true);
   };
 
@@ -600,6 +605,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       month, year, time,
       selectedDate: replaceEquipmentForm.date || null,
       remarks: replaceEquipmentForm.remarks,
+      operator:   replaceEquipmentForm.operator   || '',
+      operatorId: replaceEquipmentForm.operatorId || '',
     };
 
     try {

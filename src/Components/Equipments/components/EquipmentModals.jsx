@@ -18,9 +18,9 @@ const COMPANY_OPTIONS = [
 ];
 
 const STATUS_OPTIONS_ADD = [
-  { value: 'Active',      label: 'Active'      },
-  { value: 'Inactive',    label: 'Inactive'    },
-  { value: 'Maintenance', label: 'Maintenance' },
+  { value: 'active',      label: 'Active'      },
+  { value: 'idle',        label: 'Idle'        },
+  { value: 'maintenance', label: 'Maintenance' },
 ];
 
 const STATUS_OPTIONS_EDIT = [
@@ -402,6 +402,7 @@ function EquipmentModals({
         formFields={[
           { name: 'replacedEquipmentRegNo',   label: 'New Equipment Reg No',                      type: 'search-select', placeholder: 'Search equipment by reg no...', required: true, options: replaceEquipmentResults.map(eq => ({ label: `${eq.regNo} - ${eq.machine}`, value: eq.regNo })) },
           { name: 'replacedEquipmentMachine', label: 'New Equipment Machine',                      type: 'text',          placeholder: 'Auto-filled', disabled: true },
+          { name: 'operator',                 label: 'Operator (Current Equipment)',               type: 'search-select', placeholder: 'Search operator...', options: operatorOptions(operator) },
           { name: 'newSiteForReplaced',        label: 'New Site for Current Equipment (Optional)', type: 'search-select', placeholder: 'Search or add site...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'date',                      label: 'Date (Optional)',                           type: 'date' },
           { name: 'time',                      label: 'Time (Optional)',                           type: 'time' },

@@ -39,7 +39,7 @@ function Equipments() {
 
   const imageCache = useImageCache();
 
-  const data = useEquipmentData({ getMediaUrlWithCache: imageCache.getMediaUrlWithCache });
+  const data = useEquipmentData({ getMediaUrlWithCache: imageCache.getMediaUrlWithCache, searchTerm });
 
   const actions = useEquipmentActions({
     fetchEquipments:       data.fetchEquipments,
@@ -343,6 +343,9 @@ function Equipments() {
             selected
               ? actions.handleReplaceEquipmentSelect(selected)
               : actions.setReplaceEquipmentForm(prev => ({ ...prev, replacedEquipmentRegNo: value, replacedEquipmentMachine: '', replacedEquipmentId: '' }));
+          } else if (field === 'operator') {
+            const op = data.operator.find(o => o.name === value);
+            actions.setReplaceEquipmentForm(prev => ({ ...prev, operator: value, operatorId: op?._id || op?.id || '' }));
           } else {
             actions.setReplaceEquipmentForm(prev => ({ ...prev, [field]: value }));
           }

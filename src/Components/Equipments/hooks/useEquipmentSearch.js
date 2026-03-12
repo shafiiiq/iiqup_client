@@ -59,7 +59,7 @@ export const useEquipmentSearch = ({
           page:       1,
           limit:      100,
           // Site-based tab searches by site field only; others search all fields
-          searchField: activeTab === 'site-based' ? 'site' : 'all',
+          searchField: 'all',
           hired:       hiredFilter,
         }
       );

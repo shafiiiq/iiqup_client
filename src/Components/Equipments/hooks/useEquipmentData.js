@@ -26,7 +26,7 @@ const SLIDESHOW_INTERVAL = 3000; // ms — auto-advance multi-image cards
  * @param {{ getMediaUrlWithCache: Function }} imageCache
  *   — injected from useImageCache so this hook doesn't own caching logic
  */
-export const useEquipmentData = ({ getMediaUrlWithCache }) => {
+export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
 
   // ── Tab & Pagination ───────────────────────────────────────────────────────
   const [activeTab,           setActiveTab]           = useState('equipment-based');
@@ -272,10 +272,20 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
 
   useEffect(() => {
     if (activeTab !== 'site-based') return;
-    const all   = Object.entries(siteGroupedEquipment);
+    const all = Object.entries(siteGroupedEquipment).map(([site, equipments]) => {
+      if (!searchTerm?.trim()) return [site, equipments];
+      const term = searchTerm.toLowerCase();
+      const filtered = equipments.filter(eq =>
+        eq.machine?.toLowerCase().includes(term) ||
+        eq.regNo?.toLowerCase().includes(term) ||
+        eq.brand?.toLowerCase().includes(term) ||
+        site?.toLowerCase().includes(term)
+      );
+      return [site, filtered];
+    }).filter(([, equipments]) => equipments.length > 0);
     const count = Math.min(all.length, SITES_PER_LOAD + siteScrollPosition);
     setDisplayedSites(all.slice(0, count));
-  }, [siteGroupedEquipment, siteScrollPosition, activeTab]);
+  }, [siteGroupedEquipment, siteScrollPosition, activeTab, searchTerm]);
 
   useEffect(() => {
     if (activeTab !== 'site-based') return;

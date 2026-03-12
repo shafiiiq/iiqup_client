@@ -23,6 +23,8 @@ function DetailsContent({
   onReplaceOperator,
   onViewAllOperators,
   onViewFuels,
+  onSetContent,
+  onSetTitle,
 }) {
   const istimaraInfo = formatDateWithExpiry(item.istimaraExpiry);
 
@@ -98,6 +100,58 @@ function DetailsContent({
                 textColor="black-200" shadowPosition="to-bottom" shadowColor="white-600"
               />
             )}
+          </div>
+        )}
+      </div>
+
+      <h3>Mobilization History</h3>
+      <div className="details-list">
+        {item.mobDate ? (
+          <div className="detail-row-actions">
+            <div className="detail-row">
+              <span className="detail-row-label">Last Mobilized</span>
+              <span className="detail-row-value">{new Date(item.mobDate).toLocaleDateString('en-GB')}</span>
+            </div>
+            {item.lastMobDate?.length > 0 && !isSelectMode && (
+              <Button
+                text={`View All (${item.lastMobDate.length + 1})`}
+                onClick={() => {
+                  onSetContent({ type: 'mob-history', data: [item.mobDate, ...item.lastMobDate] });
+                  onSetTitle('Mobilization History');
+                }}
+                colorScheme="lime-500" variant="gradient" font="xl"
+                squircle="4xl" width="160px" height="58px"
+                textColor="black-200" shadowPosition="to-bottom" shadowColor="white-600"
+              />
+            )}
+          </div>
+        ) : (
+          <div className="detail-row">
+            <span className="detail-row-value">No mobilization history</span>
+          </div>
+        )}
+        {item.demobDate ? (
+          <div className="detail-row-actions">
+            <div className="detail-row">
+              <span className="detail-row-label">Last Demobilized</span>
+              <span className="detail-row-value">{new Date(item.demobDate).toLocaleDateString('en-GB')}</span>
+            </div>
+            {item.lastDemobDate?.length > 0 && !isSelectMode && (
+              <Button
+                text={`View All (${item.lastDemobDate.length + 1})`}
+                onClick={() => {
+                  onSetContent({ type: 'demob-history', data: [item.demobDate, ...item.lastDemobDate] });
+                  onSetTitle('Demobilization History');
+                }}
+                colorScheme="fuchsia-500" variant="gradient" font="xl"
+                squircle="4xl" width="160px" height="58px"
+                textColor="black-200" shadowPosition="to-bottom" shadowColor="white-600"
+              />
+            )}
+          </div>
+        ) : (
+          <div className="detail-row">
+            <span className="detail-row-value">No demobilization history</span>
           </div>
         )}
       </div>
@@ -239,6 +293,33 @@ function FuelsContent({ data }) {
   );
 }
 
+/**
+ * Mobilizaton history.
+ */
+function MobHistoryContent({ dates }) {
+  const sorted = [...dates].sort((a, b) => new Date(b) - new Date(a));
+  return (
+    <div className="operators-list">
+      <table className="operators-table">
+        <thead>
+          <tr>
+            <th>SL No</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((d, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -289,12 +370,16 @@ function EquipmentSidebar({
             onSetTitle('All Operators');
           }}
           onViewFuels={onViewFuels}
+          onSetContent={onSetContent}
+          onSetTitle={onSetTitle}
         />
       );
     }
 
-    if (content.type === 'operators') return <OperatorsContent operators={content.data} />;
-    if (content.type === 'fuels')     return <FuelsContent data={content.data} />;
+    if (content.type === 'operators')    return <OperatorsContent operators={content.data} />;
+    if (content.type === 'fuels')        return <FuelsContent data={content.data} />;
+    if (content.type === 'mob-history')  return <MobHistoryContent dates={content.data} />;
+    if (content.type === 'demob-history') return <MobHistoryContent dates={content.data} />;
     return null;
   };
 

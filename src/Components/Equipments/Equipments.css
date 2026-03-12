@@ -253,6 +253,20 @@
   white-space: nowrap;
 }
 
+.detail-item-equipment.demob-data,
+.detail-item-equipment.mob-data {
+  flex-direction: row !important;
+  width: 15rem;
+  align-items: center !important;
+}
+
+.detail-item-equipment.mob-data .detail-value{
+  margin-left: -48px;
+}
+.detail-item-equipment.demob-data .detail-value{
+  margin-left: -18px;
+} 
+
 /* Status Badge */
 .status-badge {
   display: inline-flex;
