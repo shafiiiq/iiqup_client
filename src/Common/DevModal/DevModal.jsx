@@ -6,6 +6,8 @@ const DevModal = ({
   isOpen = false,
   onClose = () => { },
   type = 'success',
+  modalWidth = null,
+  modalHeight = null,
   title = '',
   message = '',
   buttonText = null,
@@ -378,12 +380,20 @@ const DevModal = ({
       ctaColor: '#0c4a6e',
       svg: 'form'
     },
+    hint: {
+      primary: '#0f172a',
+      secondary: '#1e293b',
+      accent: '#38bdf8',
+      textColor: '#ffffff',
+      ctaColor: '#0c4a6e',
+      svg: 'filter'
+    },
   }[type] || {
-    primary: '#10b981',
-    secondary: '#059669',
-    accent: '#34d399',
-    textColor: '#ffffff',
-    ctaColor: '#065f46',
+    primary: '#b97010',
+    secondary: '#969405',
+    accent: '#d3b634',
+    textColor: '#eeff04',
+    ctaColor: '#595f06',
     svg: 'check'
   };
 
@@ -519,8 +529,8 @@ const DevModal = ({
         <div className='dm-modal-wrapper'>
           <div
             className={`dm-card dm-card-${type} ${visible ? 'dm-enter' : ''} 
-              ${showInput ? 'dm-card-input' : ''} 
-             ${useCellInput ? 'dm-card-cells' : ''}`}
+    ${showInput ? 'dm-card-input' : ''} 
+    ${useCellInput ? 'dm-card-cells' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-label={title || 'Notification'}
@@ -529,6 +539,8 @@ const DevModal = ({
             tabIndex={-1}
             style={{
               background: `linear-gradient(135deg, ${palette.primary} 0%, ${palette.secondary} 100%)`,
+              ...(modalWidth ? { width: modalWidth } : {}),
+              ...(modalHeight ? { height: modalHeight } : {}),
             }}
           >
             <div className="dm-shapes-overlay">
@@ -570,7 +582,7 @@ const DevModal = ({
                 </div>
               )}
 
-              {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && type !== 'filters' && type !== 'fileupload' && !showInput && (
+              {type !== 'updates' && type !== 'progress' && type !== 'form' && type !== 'unauthorized' && type !== 'filters' && type !== 'fileupload' && type !== 'hint' && !showInput && (
                 <p className="dm-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
                   {message}
                 </p>
@@ -632,6 +644,29 @@ const DevModal = ({
                   {inputError && (
                     <div className="dm-input-error">{inputError}</div>
                   )}
+                </div>
+              )}
+
+              {type === 'hint' && (
+                <div className="dm-hint-section">
+                  {message && (
+                    <p className="dm-message dm-hint-message" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {message}
+                    </p>
+                  )}
+                  {filterGroups.map((group, i) => (
+                    <div key={i} className="dm-hint-group">
+                      {group.label && <div className="dm-hint-group-label">{group.label}</div>}
+                      <div className="dm-hint-grid">
+                        {group.items.map((item, j) => (
+                          <div key={j} className="dm-hint-item">
+                            <div className="dm-hint-swatch" style={{ background: item.color }}></div>
+                            <span className="dm-hint-text">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 

@@ -8,6 +8,7 @@ import DevModal from '../../Common/DevModal/DevModal';
 import Button from '../../Common/Button/Button';
 import Loader from '../../Common/Loader/Loader';
 import Toast from '../../Common/Toast/Toast';
+import Tutorial from '../../Common/Tutorial/Tutorial';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -25,8 +26,10 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [pendingSignatures, setPendingSignatures] = useState([]);
-  const [showPendingToast,  setShowPendingToast]  = useState(false);
+  const [showPendingToast, setShowPendingToast] = useState(false);
   const [signedByUser, setSignedByUser] = useState([]);
+  const [showLegendModal, setShowLegendModal] = useState(false);
+  const [sigToast, setSigToast] = useState({ show: false, message: '', key: 0 });
   const [filters, setFilters] = useState({
     dateFilter: 'all',
     vendors: [],
@@ -93,7 +96,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   };
 
   const isPendingForUser = (lpoRef) => pendingSignatures.some(p => p.lpoRef === lpoRef);
-  const isSignedByUser   = (lpoRef) => signedByUser.some(s => s.lpoRef === lpoRef);
+  const isSignedByUser = (lpoRef) => signedByUser.some(s => s.lpoRef === lpoRef);
 
   const fetchPendingSignatures = async () => {
     try {
@@ -118,6 +121,48 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
     } catch (error) {
       console.error('[LpoList] fetchPendingSignatures:', error);
     }
+  };
+
+  const getSignatureCount = (lpo) =>
+    [lpo.pmSigned, lpo.managerSigned, lpo.ceoSigned, lpo.accountsSigned]
+      .filter(Boolean).length;
+
+  const getRowClass = (lpo) => {
+    const { pmSigned, managerSigned, accountsSigned, ceoSigned } = lpo;
+    const uploaded = ['lpo_uploaded', 'lpo_amended'].includes(lpo.workflowStatus);
+    if (!uploaded) return '';
+
+    // All signed
+    if (managerSigned && pmSigned && accountsSigned && ceoSigned)
+      return 'lpo-sig-all';
+
+    // Your turn — highest priority after all-signed
+    if (isPendingForUser(lpo.lpoRef))
+      return 'lpo-sig-pending';
+
+    // Specific signed combinations — listed from most complete to least
+    // 3 signed
+    if (managerSigned && pmSigned && accountsSigned && !ceoSigned) return 'lpo-sig-mgr-pm-acc';
+    if (managerSigned && pmSigned && !accountsSigned && ceoSigned) return 'lpo-sig-mgr-pm-ceo';
+    if (managerSigned && !pmSigned && accountsSigned && ceoSigned) return 'lpo-sig-mgr-acc-ceo';
+    if (!managerSigned && pmSigned && accountsSigned && ceoSigned) return 'lpo-sig-pm-acc-ceo';
+
+    // 2 signed
+    if (managerSigned && pmSigned && !accountsSigned && !ceoSigned) return 'lpo-sig-mgr-pm';
+    if (managerSigned && !pmSigned && accountsSigned && !ceoSigned) return 'lpo-sig-mgr-acc';
+    if (managerSigned && !pmSigned && !accountsSigned && ceoSigned) return 'lpo-sig-mgr-ceo';
+    if (!managerSigned && pmSigned && accountsSigned && !ceoSigned) return 'lpo-sig-pm-acc';
+    if (!managerSigned && pmSigned && !accountsSigned && ceoSigned) return 'lpo-sig-pm-ceo';
+    if (!managerSigned && !pmSigned && accountsSigned && ceoSigned) return 'lpo-sig-acc-ceo';
+
+    // 1 signed
+    if (managerSigned && !pmSigned && !accountsSigned && !ceoSigned) return 'lpo-sig-mgr-only';
+    if (!managerSigned && pmSigned && !accountsSigned && !ceoSigned) return 'lpo-sig-pm-only';
+    if (!managerSigned && !pmSigned && accountsSigned && !ceoSigned) return 'lpo-sig-acc-only';
+    if (!managerSigned && !pmSigned && !accountsSigned && ceoSigned) return 'lpo-sig-ceo-only';
+
+    // Nobody signed yet but uploaded
+    return 'lpo-sig-none';
   };
 
   useEffect(() => {
@@ -342,6 +387,27 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           )}
         </div>
         <div className="buttons-container">
+          <Tutorial
+            title="New: Hint Button"
+            description="Click 'Color Hint' to see what each color means."
+            order={2}
+          >
+            <Button
+              text="Color Hint"
+              onClick={() => setShowLegendModal(true)}
+              colorScheme="cyan-700"
+              variant="gradient"
+              font="md"
+              animation=""
+              squircle="4xl"
+              width="160px"
+              height="38px"
+              type="submit"
+              textColor="white-200"
+              shadowPosition="to-bottom"
+              shadowColor="white-600"
+            />
+          </Tutorial>
           <Button
             text="Filters"
             onClick={() => setShowFiltersModal(true)}
@@ -414,7 +480,13 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
               <th>Items</th>
               <th>Complaint No</th>
               <th>Workflow Status</th>
-              <th>Sign Status</th>
+              <Tutorial
+                title="New: Sign Status"
+                description="Hover over the color to see who has signed each LPO."
+                order={1}
+              >
+                <th>Sign Status</th>
+              </Tutorial>
               <th>Amenmended</th>
               <th>Total Amount</th>
               <th>Actions</th>
@@ -429,7 +501,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   key={lpo._id}
                   data-lporef={lpo.lpoRef}
                   onClick={() => handleRowClick(lpo.lpoRef)}
-                  className={`lpo-row ${isSignedByUser(lpo.lpoRef) ? 'lpo-row-signed' : isPendingForUser(lpo.lpoRef) ? 'lpo-row-pending-sign' : ''}`}
+                  className={`lpo-row ${getRowClass(lpo)}`}
                 >
                   <td>{lpo.lpoRef}</td>
                   <td>{lpo.date}</td>
@@ -438,8 +510,23 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   <td>{lpo.workingHrs || lpo.runningKM || 'N/A'}</td>
                   <td>{lpo.items[0].description}</td>
                   <td>{lpo.complaintId ? lpo.complaintId : 'Normal LPO'}</td>
-                  <td>{lpo.workflowStatus}</td>
-                  <td>{lpo.accoaccountsSignedunts && lpo.pmSigned && lpo.managerSigned && lpo.ceoSigned ? 'Signed and Approved' : 'Pending'}</td>
+                  <td>{lpo.workflowStatus === "lpo_created" ? 'In Creation' : 'In Approval'}</td>
+                  <td
+                    className={`sig-cell ${getRowClass(lpo)}`}
+                    onMouseEnter={() => {
+                      const signed = [
+                        lpo.managerSigned && 'Manager',
+                        lpo.pmSigned && 'PM',
+                        lpo.accountsSigned && 'Accounts',
+                        lpo.ceoSigned && 'CEO',
+                      ].filter(Boolean);
+                      setSigToast({
+                        show: true,
+                        message: signed.length > 0 ? 'Signed by: ' + signed.join(' | ') : 'Nobody signed yet'
+                      });
+                    }}
+                    onMouseLeave={() => setSigToast({ show: false, message: '' })}
+                  ></td>
                   <td>{lpo.isAmendmented ? 'YES' : 'NO'}</td>
                   <td>{lpo.totalAmount.toFixed(2)}</td>
                   <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
@@ -627,6 +714,74 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
         buttonText="Apply Filters"
       />
 
+      {/* ── Signature colour legend — shown once on mount, user must close ── */}
+      <DevModal
+        isOpen={showLegendModal}
+        onClose={() => setShowLegendModal(false)}
+        type="hint"
+        title="Signature Status Color Hint"
+        modalWidth="680px"
+        buttonText="Got it"
+        onButtonClick={() => setShowLegendModal(false)}
+        filterGroups={[
+          {
+            label: 'General',
+            items: [
+              { color: '#f52a2a', label: 'Nobody signed yet' },
+              { color: '#3cbe15', label: 'All 4 signed — complete' },
+              { color: '#d5e21f', label: 'Your signature is needed' },
+            ]
+          },
+          {
+            label: '1 Signed',
+            items: [
+              { color: '#ff600a', label: 'Manager only' },
+              { color: '#12a5ca', label: 'PM only' },
+              { color: '#db2777', label: 'Accounts only' },
+              { color: '#eca50b', label: 'CEO only' },
+            ]
+          },
+          {
+            label: '2 Signed',
+            items: [
+              { color: '#0a9185', label: 'Manager + PM' },
+              { color: '#7c3aed', label: 'Manager + Accounts' },
+              { color: '#57534e', label: 'Manager + CEO' },
+              { color: '#1d4ed8', label: 'PM + Accounts' },
+              { color: '#65a30d', label: 'PM + CEO' },
+              { color: '#be123c', label: 'Accounts + CEO' },
+            ]
+          },
+          {
+            label: '3 Signed',
+            items: [
+              { color: '#92400e', label: 'Manager + PM + Accounts' },
+              { color: '#e40faf', label: 'Manager + PM + CEO' },
+              { color: '#5a6b0d', label: 'Manager + Accounts + CEO' },
+              { color: '#8924db', label: 'PM + Accounts + CEO' },
+            ]
+          },
+          {
+            label: 'No colour',
+            items: [
+              { color: 'rgba(255,255,255,0.08)', label: 'LPO not yet uploaded' },
+            ]
+          },
+        ]}
+      />
+
+      {/* Signature status */}
+      <Toast
+        isOpen={sigToast.show}
+        onClose={() => setSigToast({ show: false, message: '' })}
+        type="info"
+        message={sigToast.message}
+        duration={0}
+        position="top-center"
+        showCloseButton={false}
+      />
+
+      {/* Signature alert */}
       <Toast
         isOpen={showPendingToast}
         onClose={() => setShowPendingToast(false)}

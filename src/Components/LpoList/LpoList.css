@@ -547,23 +547,26 @@
   font-weight: 600;
 }
 
-.lpo-row-pending-sign {
-  background-color: rgba(234, 179, 8, 0.12);
-  border-left: 3px solid #ca8a04;
-}
+.lpo-table tbody tr td.sig-cell.lpo-sig-none        { background: #f52a2a !important; } /* RED             */
+.lpo-table tbody tr td.sig-cell.lpo-sig-all         { background: #3cbe15 !important; } /* GREEN           */
+.lpo-table tbody tr td.sig-cell.lpo-sig-pending     { background: #d5e21f !important; } /* DARK INDIGO     */
 
-.lpo-row-pending-sign:hover {
-  background-color: rgba(234, 179, 8, 0.2);
-}
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-only    { background: #ff600a !important; } /* ORANGE          */
+.lpo-table tbody tr td.sig-cell.lpo-sig-pm-only     { background: #12a5ca !important; } /* CYAN            */
+.lpo-table tbody tr td.sig-cell.lpo-sig-acc-only    { background: #db2777 !important; } /* HOT PINK        */
+.lpo-table tbody tr td.sig-cell.lpo-sig-ceo-only    { background: #eca50b !important; } /* GOLD            */
 
-.lpo-row-signed {
-  background-color: rgba(34, 197, 94, 0.12);
-  border-left: 3px solid #16a34a;
-}
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-pm      { background: #0a9185 !important; } /* TEAL            */
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-acc     { background: #7c3aed !important; } /* VIOLET          */
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-ceo     { background: #57534e !important; } /* WARM GREY       */
+.lpo-table tbody tr td.sig-cell.lpo-sig-pm-acc      { background: #1d4ed8 !important; } /* ROYAL BLUE      */
+.lpo-table tbody tr td.sig-cell.lpo-sig-pm-ceo      { background: #65a30d !important; } /* LIME            */
+.lpo-table tbody tr td.sig-cell.lpo-sig-acc-ceo     { background: #be123c !important; } /* ROSE RED        */
 
-.lpo-row-signed:hover {
-  background-color: rgba(34, 197, 94, 0.2);
-}
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-pm-acc  { background: #92400e !important; } /* BROWN           */
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-pm-ceo  { background: #e40faf !important; } /* DARK NAVY       */  
+.lpo-table tbody tr td.sig-cell.lpo-sig-mgr-acc-ceo { background: #5a6b0d !important; } /* DARK EMERALD    */
+.lpo-table tbody tr td.sig-cell.lpo-sig-pm-acc-ceo  { background: #8924db !important; } /* DEEP PURPLE     */
 
 /* Responsive Design */
 @media (max-width: 768px) {

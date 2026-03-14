@@ -11,8 +11,13 @@ import { SearchProvider }           from './Context/SearchContext';
 import { HeaderTitleProvider }      from './Context/HeaderTitleContext';
 import { HeaderVibrationProvider }  from './Context/HeaderVibrationContext';
 import { AlertProvider }            from './Context/AlertContext';
+import { TutorialProvider }         from './Context/TutorialContext';
 import { END_POINT }                from './constants';
 import { apiRequest }               from './utils/api';
+
+// ── Websocket ──────────────────────────────────────────────────────────
+import WebSocketService             from './websocket/websocket';
+import { registerServiceWorker, requestNotificationPermission, subscribeToPush, showNativeNotification, saveSubscriptionToServer } from './utils/webPush';
 
 // ── Page Components ──────────────────────────────────────────────────────────
 import Home                    from './Components/Home/Home';
@@ -21,7 +26,7 @@ import ServiceForm             from './Components/ServiceForm/ServiceForm';
 import Equipments              from './Components/Equipments/Equipments';
 import ServiceHistory          from './Components/ServiceHistory/ServiceHistory';
 import ServiceHistorySummary   from './Components/ServiceHistorySummary/ServiceHistorySummary';
-import Notification            from './Components/Notification/Notification';
+import NotificationPage        from './Components/Notification/Notification';
 import Documents               from './Components/Documents/Documents';
 import Dashboard               from './Components/Dashboard/Dashboard';
 import Lpo                     from './Components/Lpo/Lpo';
@@ -37,6 +42,7 @@ import BackchargeDoc           from './Components/BackchargeDoc/BackchargeDoc';
 import BackchargeList          from './Components/BackchargeList/BackchargeList';
 import FormNavigation          from './Components/FormNavigation/FormNavigation';
 import OperationsActivities    from './Components/OperationsActivities/OperationsActivities';
+import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';
 
 // ── Common / Shared Components ───────────────────────────────────────────────
 import Header            from './Components/Common/Header/Header';
@@ -49,7 +55,6 @@ import NotFound          from './Common/NotFound/NotFound';
 import Intro             from './Common/Intro/Intro';
 
 import './App.css';
-import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Global Contexts
@@ -155,6 +160,7 @@ function SpacerWrapper() {
 function App() {
   const navigate = useNavigate();
 
+  const [liveNotification,  setLiveNotification]  = useState(null);
   const [serviceReportData, setServiceReportData] = useState(null);
   const [userLoggedIn,      setUserLoggedIn]      = useState(false);
   const [loading,           setLoading]           = useState(true);
@@ -215,6 +221,72 @@ function App() {
     initializeAuth();
   }, [navigate, splashComplete]);
 
+  // ── WebSocket Lifecycle ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!userLoggedIn) {
+      WebSocketService.disconnect();
+      return;
+    }
+
+    const init = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const uniqueCode = userData.uniqueCode || '';
+        const sessionToken = userData.sessionToken || '';
+        if (!uniqueCode) return;
+
+        WebSocketService.connect(uniqueCode, sessionToken);
+
+        const reg = await registerServiceWorker();
+        console.log('[App] SW registered:', reg);
+        const permitted = await requestNotificationPermission();
+        console.log('[App] notification permission:', permitted);
+        if (!reg || !permitted) return;
+
+        const subscription = await subscribeToPush(reg);
+        await saveSubscriptionToServer(subscription, uniqueCode);
+
+      } catch (error) {
+        console.error('[App] init error:', error);
+      }
+    };
+
+    init();
+
+    const unsubscribe = WebSocketService.on('new_notification', (data) => {
+      console.log('[App] new_notification received:', data);
+      setLiveNotification({ ...data, _wsTimestamp: Date.now() });
+
+      if (!('Notification' in window)) return;
+
+      const fire = () => {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.showNotification(data.title || 'New Notification', {
+            body: data.description || data.message || '',
+            icon: '/logo192.png',
+            badge: '/logo192.png',
+          });
+        }).catch(() => {
+          new Notification(data.title || 'New Notification', {
+            body: data.description || data.message || '',
+            icon: '/logo192.png',
+          });
+        });
+      };
+
+      if (Notification.permission === 'granted') {
+        fire();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') fire();
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [userLoggedIn]);
+
   // ── New Release Check ──────────────────────────────────────────────────────
   // After login, redirect to /explorer if user hasn't seen the latest release.
 
@@ -268,145 +340,147 @@ function App() {
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
       <ServiceReportContext.Provider value={{ serviceReportData, setServiceReportData }}>
-        <AlertProvider>
-          <SearchProvider>
-            <HeaderTitleProvider>
-              <HeaderVibrationProvider>
+        <TutorialProvider>
+          <AlertProvider>
+            <SearchProvider>
+              <HeaderTitleProvider>
+                <HeaderVibrationProvider>
 
-                {/* Persistent UI — always rendered above routes */}
-                <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
-                <SpacerWrapper />
-                <NavigationButtons />
+                  {/* Persistent UI — always rendered above routes */}
+                  <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
+                  <SpacerWrapper />
+                  <NavigationButtons />
 
-                <Routes>
+                  <Routes>
 
-                  {/* ── Public ──────────────────────────────────────────── */}
+                    {/* ── Public ──────────────────────────────────────────── */}
 
-                  <Route path="/intro" element={<Intro />} />
+                    <Route path="/intro" element={<Intro />} />
 
-                  <Route
-                    path="/login"
-                    element={userLoggedIn ? <Navigate to="/" replace /> : <Login setUserLoggedIn={setUserLoggedIn} />}
-                  />
+                    <Route
+                      path="/login"
+                      element={userLoggedIn ? <Navigate to="/" replace /> : <Login setUserLoggedIn={setUserLoggedIn} />}
+                    />
 
-                  {/* ── Home ────────────────────────────────────────────── */}
+                    {/* ── Home ────────────────────────────────────────────── */}
 
-                  <Route path="/" element={
-                    <ProtectedRoute>
-                      <Home
-                        user_logged_in={userLoggedIn}
-                        currentUser={AuthUtils.getCurrentUser()}
-                        setUserLoggedIn={setUserLoggedIn}
-                      />
-                    </ProtectedRoute>
-                  } />
+                    <Route path="/" element={
+                      <ProtectedRoute>
+                        <Home
+                          user_logged_in={userLoggedIn}
+                          currentUser={AuthUtils.getCurrentUser()}
+                          setUserLoggedIn={setUserLoggedIn}
+                        />
+                      </ProtectedRoute>
+                    } />
 
-                  {/* ── Service Documents ───────────────────────────────── */}
+                    {/* ── Service Documents ───────────────────────────────── */}
 
-                  <Route path="/all/all-histories/:regNo"                               element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/all/oil-service/:regNo"                                 element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/all/maintenance-service/:regNo"                         element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/all/tyre-service/:regNo"                                element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/all/battery-service/:regNo"                             element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/all/date-range/:serviceType/:regNo/:startDate/:endDate"  element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/all/last-months/:serviceType/:regNo/:monthsCount"        element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
-                  <Route path="/service-document/:historyId"                            element={<ProtectedRoute><ServiceDoc /></ProtectedRoute>} />
+                    <Route path="/all/all-histories/:regNo"                                element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/oil-service/:regNo"                                  element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/maintenance-service/:regNo"                          element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/tyre-service/:regNo"                                 element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/battery-service/:regNo"                              element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/date-range/:serviceType/:regNo/:startDate/:endDate"  element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/last-months/:serviceType/:regNo/:monthsCount"        element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/service-document/:historyId"                             element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
 
-                  {/* ── Service Forms ────────────────────────────────────── */}
+                    {/* ── Service Forms ────────────────────────────────────── */}
 
-                  <Route path="/service-form-nav/:regNo"                  element={<ProtectedRoute><FormNavigation /></ProtectedRoute>} />
-                  <Route path="/service-form/:serviceType/:historyId"     element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
-                  <Route path="/service-form/update/:serviceType/:reportId" element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
+                    <Route path="/service-form-nav/:regNo"                                 element={<ProtectedRoute><FormNavigation />                                  </ProtectedRoute>} />
+                    <Route path="/service-form/:serviceType/:historyId"                    element={<ProtectedRoute><ServiceForm />                                     </ProtectedRoute>} />
+                    <Route path="/service-form/update/:serviceType/:reportId"              element={<ProtectedRoute><ServiceForm />                                     </ProtectedRoute>} />
 
-                  {/* ── Equipment & Tools ────────────────────────────────── */}
+                    {/* ── Equipment & Tools ────────────────────────────────── */}
 
-                  <Route path="/equipments" element={<ProtectedRoute><Equipments /></ProtectedRoute>} />
-                  <Route path="/toolkits"   element={<ProtectedRoute><Toolkits /></ProtectedRoute>} />
+                    <Route path="/equipments"                                              element={<ProtectedRoute><Equipments />                                      </ProtectedRoute>} />
+                    <Route path="/toolkits"                                                element={<ProtectedRoute><Toolkits />                                        </ProtectedRoute>} />
 
-                  {/* ── Service History ──────────────────────────────────── */}
+                    {/* ── Service History ──────────────────────────────────── */}
 
-                  <Route path="/service-history"           element={<ProtectedRoute><ServiceHistory /></ProtectedRoute>} />
-                  <Route path="/service-history/:regNos"   element={<ProtectedRoute><ServiceHistory /></ProtectedRoute>} />
-                  <Route path="/service-histoy/summary"    element={<ProtectedRoute><ServiceHistorySummary /></ProtectedRoute>} />
+                    <Route path="/service-history"                                         element={<ProtectedRoute><ServiceHistory />                                  </ProtectedRoute>} />
+                    <Route path="/service-history/:regNos"                                 element={<ProtectedRoute><ServiceHistory />                                  </ProtectedRoute>} />
+                    <Route path="/service-histoy/summary"                                  element={<ProtectedRoute><ServiceHistorySummary />                           </ProtectedRoute>} />
 
-                  {/* ── History Forms ────────────────────────────────────── */}
+                    {/* ── History Forms ────────────────────────────────────── */}
 
-                  <Route path="/service-history-form/:type/:regNo" element={<ProtectedRoute><ServiceHistoryEntryForm /></ProtectedRoute>} />
-                  <Route path="/service-history-form/:type"        element={<ProtectedRoute><ServiceHistoryEntryForm /></ProtectedRoute>} />
+                    <Route path="/service-history-form/:type/:regNo"                       element={<ProtectedRoute><ServiceHistoryEntryForm />                         </ProtectedRoute>} />
+                    <Route path="/service-history-form/:type"                              element={<ProtectedRoute><ServiceHistoryEntryForm />                         </ProtectedRoute>} />
 
-                  {/* ── Notifications ────────────────────────────────────── */}
+                    {/* ── Notifications ────────────────────────────────────── */}
 
-                  <Route path="/notification" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
+                    <Route path="/notification" element={<ProtectedRoute><NotificationPage liveNotification={liveNotification} /></ProtectedRoute>} />
 
-                  {/* ── Stocks & Documents ───────────────────────────────── */}
+                    {/* ── Stocks & Documents ───────────────────────────────── */}
 
-                  <Route path="/stocks/equipment-stocks" element={<ProtectedRoute><EquipBypass equipStocks={true} /></ProtectedRoute>} />
-                  <Route path="/stock-manage"            element={<ProtectedRoute><StockManage /></ProtectedRoute>} />
-                  <Route path="/documents"               element={<ProtectedRoute><EquipBypass documents={true} /></ProtectedRoute>} />
-                  <Route path="/documents/:type/:id"     element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+                    <Route path="/stocks/equipment-stocks"                                 element={<ProtectedRoute><EquipBypass equipStocks={true} /></ProtectedRoute>} />
+                    <Route path="/stock-manage"                                            element={<ProtectedRoute><StockManage /></ProtectedRoute>} />
+                    <Route path="/documents"                                               element={<ProtectedRoute><EquipBypass documents={true} /></ProtectedRoute>} />
+                    <Route path="/documents/:type/:id"                                     element={<ProtectedRoute><Documents /></ProtectedRoute>} />
 
-                  {/* ── Backcharge ───────────────────────────────────────── */}
+                    {/* ── Backcharge ───────────────────────────────────────── */}
 
-                  <Route path="/backcharge-form"       element={<ProtectedRoute><BackchargeForm /></ProtectedRoute>} />
-                  <Route path="/backcharge-list"       element={<ProtectedRoute><BackchargeList /></ProtectedRoute>} />
-                  <Route path="/backcharge-doc/:refNo" element={<ProtectedRoute><BackchargeDoc /></ProtectedRoute>} />
-                  <Route path="/backcharge-doc"        element={<ProtectedRoute><BackchargeDoc /></ProtectedRoute>} />
+                    <Route path="/backcharge-form"                                         element={<ProtectedRoute><BackchargeForm /></ProtectedRoute>} />
+                    <Route path="/backcharge-list"                                         element={<ProtectedRoute><BackchargeList /></ProtectedRoute>} />
+                    <Route path="/backcharge-doc/:refNo"                                   element={<ProtectedRoute><BackchargeDoc /></ProtectedRoute>} />
+                    <Route path="/backcharge-doc"                                          element={<ProtectedRoute><BackchargeDoc /></ProtectedRoute>} />
 
-                  {/* ── Complaints ───────────────────────────────────────── */}
+                    {/* ── Complaints ───────────────────────────────────────── */}
 
-                  <Route path="/complaints"                     element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
-                  <Route path="/complaints/:complaintId/:regNo" element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
+                    <Route path="/complaints"                                              element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
+                    <Route path="/complaints/:complaintId/:regNo"                          element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
 
-                  {/* ── LPO Forms ────────────────────────────────────────── */}
+                    {/* ── LPO Forms ────────────────────────────────────────── */}
 
-                  <Route path="/lpo-form/for-stock"                              element={<ProtectedRoute><Lpo isStock={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-form/for-all-equipments"                     element={<ProtectedRoute><Lpo isAllEquip={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-form/edit/:refNo"                            element={<ProtectedRoute><Lpo edit={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-form/amendment-edit/:amendment/:refNo"       element={<ProtectedRoute><Lpo amendmentEdit={true} amendment={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-form/amendment/:refNo"                       element={<ProtectedRoute><Lpo amendment={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-form/:regNo/:complaintId"                    element={<ProtectedRoute><Lpo /></ProtectedRoute>} />
-                  <Route path="/lpo-form/:regNo"                                 element={<ProtectedRoute><Lpo /></ProtectedRoute>} />
+                    <Route path="/lpo-form/for-stock"                                      element={<ProtectedRoute><Lpo isStock={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-form/for-all-equipments"                             element={<ProtectedRoute><Lpo isAllEquip={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-form/edit/:refNo"                                    element={<ProtectedRoute><Lpo edit={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-form/amendment-edit/:amendment/:refNo"               element={<ProtectedRoute><Lpo amendmentEdit={true} amendment={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-form/amendment/:refNo"                               element={<ProtectedRoute><Lpo amendment={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-form/:regNo/:complaintId"                            element={<ProtectedRoute><Lpo /></ProtectedRoute>} />
+                    <Route path="/lpo-form/:regNo"                                         element={<ProtectedRoute><Lpo /></ProtectedRoute>} />
 
-                  {/* ── LPO Documents ────────────────────────────────────── */}
+                    {/* ── LPO Documents ────────────────────────────────────── */}
 
-                  <Route path="/lpo-doc/:lpoRef"                                       element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
-                  <Route path="/lpo-doc/:lpoRef/:complaintId"                          element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
-                  <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"     element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
+                    <Route path="/lpo-doc/:lpoRef"                                         element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
+                    <Route path="/lpo-doc/:lpoRef/:complaintId"                            element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
+                    <Route path="/lpo-doc/:lpoRef/amendment/:amendment/:complaintId"       element={<ProtectedRoute><LpoDoc /></ProtectedRoute>} />
 
-                  {/* ── LPO Lists ─────────────────────────────────────────── */}
+                    {/* ── LPO Lists ─────────────────────────────────────────── */}
 
-                  <Route path="/lpo-list"                    element={<ProtectedRoute><EquipBypass isLPO={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-list/of-all-equipments"  element={<ProtectedRoute><LpoList isForAllEquip={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-list/all-list"           element={<ProtectedRoute><LpoList isAll={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-list/:regNo"             element={<ProtectedRoute><LpoList isEquip={true} /></ProtectedRoute>} />
-                  <Route path="/lpo-list/of-stocks"          element={<ProtectedRoute><LpoList isStock={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-list"                                                element={<ProtectedRoute><EquipBypass isLPO={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-list/of-all-equipments"                              element={<ProtectedRoute><LpoList isForAllEquip={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-list/all-list"                                       element={<ProtectedRoute><LpoList isAll={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-list/:regNo"                                         element={<ProtectedRoute><LpoList isEquip={true} /></ProtectedRoute>} />
+                    <Route path="/lpo-list/of-stocks"                                      element={<ProtectedRoute><LpoList isStock={true} /></ProtectedRoute>} />
 
-                  {/* ── People ───────────────────────────────────────────── */}
+                    {/* ── People ───────────────────────────────────────────── */}
 
-                  <Route path="/mechanics" element={<ProtectedRoute><Mechanics /></ProtectedRoute>} />
-                  <Route path="/operators" element={<ProtectedRoute><Operators /></ProtectedRoute>} />
+                    <Route path="/mechanics"                                               element={<ProtectedRoute><Mechanics /></ProtectedRoute>} />
+                    <Route path="/operators"                                               element={<ProtectedRoute><Operators /></ProtectedRoute>} />
 
-                  {/* ── Operations ───────────────────────────────────────── */}
+                    {/* ── Operations ───────────────────────────────────────── */}
 
-                  <Route path="/operations-recent-activities" element={<ProtectedRoute><OperationsActivities /></ProtectedRoute>} />
+                    <Route path="/operations-recent-activities"                            element={<ProtectedRoute><OperationsActivities /></ProtectedRoute>} />
 
-                  {/* ── Dashboard ────────────────────────────────────────── */}
+                    {/* ── Dashboard ────────────────────────────────────────── */}
 
-                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                    <Route path="/dashboard"                                               element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
-                  {/* ── Fallbacks ────────────────────────────────────────── */}
+                    {/* ── Fallbacks ────────────────────────────────────────── */}
 
-                  <Route path="/not-found" element={<NotFound />} />
-                  <Route path="*"          element={<NotFound />} />
+                    <Route path="/not-found"                                               element={<NotFound />} />
+                    <Route path="*"                                                        element={<NotFound />} />
 
-                </Routes>
+                  </Routes>
 
-                <SpacerWrapper />
+                  <SpacerWrapper />
 
-              </HeaderVibrationProvider>
-            </HeaderTitleProvider>
-          </SearchProvider>
-        </AlertProvider>
+                </HeaderVibrationProvider>
+              </HeaderTitleProvider>
+            </SearchProvider>
+          </AlertProvider>
+      </TutorialProvider>
       </ServiceReportContext.Provider>
     </AuthContext.Provider>
   );

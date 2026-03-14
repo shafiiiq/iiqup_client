@@ -447,7 +447,7 @@ function OperationsActivities() {
                         )}
 
                         <div className="activity-details-grid">
-                            {item.withOperator && item.operatorDetails && (
+                            {(item.withOperator || item.action === 'demobilized') && item.operatorDetails && (
                                 <div className="detail-item operator-detail">
                                     <span className="detail-label">Operator</span>
                                     <div className="operator-info-with-profile">
@@ -469,6 +469,27 @@ function OperationsActivities() {
                                 <div className="detail-item">
                                     <span className="detail-label">Site</span>
                                     <span className="detail-value">{item.site}</span>
+                                </div>
+                            )}
+                            {item.deployType === 'company' && item.clientCompany && (
+                                <div className="detail-item">
+                                    <span className="detail-label">Leased To</span>
+                                    <span className="detail-value">{item.clientCompany}</span>
+                                </div>
+                            )}
+                            {item.equipmentDetails?.rentRate && (
+                                <div className="detail-item">
+                                    <span className="detail-label">{item.equipmentDetails?.hired ? 'Hire Rate' : 'Working Rate'}</span>
+                                    <span className="detail-value">
+                                        {item.equipmentDetails.rentRate.basis?.charAt(0).toUpperCase() + item.equipmentDetails.rentRate.basis?.slice(1)}
+                                        {item.equipmentDetails.rentRate.rate ? ` — ${item.equipmentDetails.rentRate.rate} ${item.equipmentDetails.rentRate.currency || 'QAR'}` : ''}
+                                    </span>
+                                </div>
+                            )}
+                            {item.equipmentDetails?.location && (
+                                <div className="detail-item">
+                                    <span className="detail-label">Location</span>
+                                    <span className="detail-value">{item.equipmentDetails.location}</span>
                                 </div>
                             )}
                         </div>
@@ -579,6 +600,15 @@ function OperationsActivities() {
                                     )}
                                     {item.currentEquipmentDetails?.site && (
                                         <p className="brand-year">Site: {item.currentEquipmentDetails.site}</p>
+                                    )}
+                                    {item.currentOperator && (
+                                        <p className="brand-year">Operator: {item.currentOperator}</p>
+                                    )}
+                                    {item.currentEquipmentDetails?.rentRate && (
+                                        <p className="brand-year">
+                                            Rate: {item.currentEquipmentDetails.rentRate.basis?.charAt(0).toUpperCase() + item.currentEquipmentDetails.rentRate.basis?.slice(1)}
+                                            {item.currentEquipmentDetails.rentRate.rate ? ` — ${item.currentEquipmentDetails.rentRate.rate} ${item.currentEquipmentDetails.rentRate.currency || 'QAR'}` : ''}
+                                        </p>
                                     )}
                                 </div>
                             </div>

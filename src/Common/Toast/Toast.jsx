@@ -37,6 +37,16 @@ const Toast = ({
         }
     }, [isOpen, duration]);
 
+    React.useEffect(() => {
+        if (!isOpen && visible) {
+            setExiting(true);
+            setTimeout(() => {
+                setVisible(false);
+                setExiting(false);
+            }, 300);
+        }
+    }, [isOpen]);
+
     const handleClose = () => {
         setExiting(true);
         setTimeout(() => {

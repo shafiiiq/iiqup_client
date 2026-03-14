@@ -290,19 +290,15 @@ function SignaturesTable({ data, signatureFlags, signatureStates, page1 = true }
 
         {/* ── Role header row ── */}
         <tr>
-          {page1 ? (
-            <>
-              <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">Purchase Manager</td>
-              <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">Accounts Dept:</td>
-              <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">Operations Manager</td>
-            </>
-          ) : (
-            <>
-              <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">Purchase Manager</td>
-              <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">Operations Manager</td>
-              <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">Accounts Dept:</td>
-            </>
-          )}
+          <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+            Operations Manager
+          </td>
+          <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+            Purchase Manager
+          </td>
+          <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+            Accounts Dept:
+          </td>
           <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
             Authorized Signatory<br />{signatoryRole(data.signatures.authorizedSignatory)}
           </td>
@@ -311,15 +307,9 @@ function SignaturesTable({ data, signatureFlags, signatureStates, page1 = true }
 
         {/* ── Signature image row ── */}
         <tr className="signature-spaces-large">
-          <SignatureCell isSigned={pmSigned}       url={pm.url}         alt="PM Signature" />
-          {page1
-            ? <SignatureCell isSigned={accountsSigned} url={accounts.url}   alt="Accounts Signature" />
-            : <SignatureCell isSigned={managerSigned}  url={manager.url}    alt="Manager Signature"  />
-          }
-          {page1
-            ? <SignatureCell isSigned={managerSigned}  url={manager.url}    alt="Manager Signature"  />
-            : <SignatureCell isSigned={accountsSigned} url={accounts.url}   alt="Accounts Signature" />
-          }
+          <SignatureCell isSigned={managerSigned}   url={manager.url}    alt="Manager Signature"   />
+          <SignatureCell isSigned={pmSigned}         url={pm.url}         alt="PM Signature"        />
+          <SignatureCell isSigned={accountsSigned}   url={accounts.url}   alt="Accounts Signature"  />
           <SignatureCell
             isSigned={ceoSigned}
             url={authorized.url}
@@ -332,16 +322,18 @@ function SignaturesTable({ data, signatureFlags, signatureStates, page1 = true }
 
         {/* ── Signatory name row ── */}
         <tr>
-          <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">{data.signatures.purchasingManager}</td>
-          {page1
-            ? <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">{data.signatures.accountsDept}</td>
-            : <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">{data.signatures.operationsManager}</td>
-          }
-          {page1
-            ? <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">{data.signatures.operationsManager}</td>
-            : <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">{data.signatures.accountsDept}</td>
-          }
-          <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">{data.signatures.authorizedSignatory}</td>
+          <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">
+            {data.signatures.operationsManager}
+          </td>
+          <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">
+            {data.signatures.purchasingManager}
+          </td>
+          <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">
+            {data.signatures.accountsDept}
+          </td>
+          <td className="sign-table sign-border-td-r sign-border-td-t text-align-center">
+            {data.signatures.authorizedSignatory}
+          </td>
           <td className="date-no-border" />
         </tr>
 
