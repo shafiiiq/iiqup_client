@@ -22,6 +22,7 @@ import DevModal from '../../Common/DevModal/DevModal';
 import Button   from '../../Common/Button/Button';
 
 import './LpoDoc.css';
+import Tutorial from '../../Common/Tutorial/Tutorial';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -291,32 +292,50 @@ function SignaturesTable({ data, signatureFlags, signatureStates, page1 = true }
         {/* ── Role header row ── */}
         <tr>
           <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+          <Tutorial
+            title="Order Changed : Operation Manager"
+            description="Signatory order updated."
+            order={1}
+          >
             Operations Manager
+          </Tutorial>
           </td>
           <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+          <Tutorial
+            title="Order Changed : Purchase Manager / Workshop Manager"
+            description="Signatory order updated. Either one can sign."
+            order={2}
+          >
             Purchase Manager
+          </Tutorial>
           </td>
           <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+          <Tutorial
+            title="Order Changed : Accounts"
+            description="Signatory order updated."
+            order={3}
+          >
             Accounts Dept:
+          </Tutorial>
           </td>
           <td className="sign-table sign-border-td-r sign-border-td-b sign-border-td-t text-align-center">
+          <Tutorial
+            title="Order Changed : CEO / MD"
+            description="Signatory order updated. Either one can sign."
+            order={4}
+          >
             Authorized Signatory<br />{signatoryRole(data.signatures.authorizedSignatory)}
+          </Tutorial>
           </td>
           <td className="sign-table-date sign-border-td-t">(Date &amp; Sign with Stamp)</td>
         </tr>
 
         {/* ── Signature image row ── */}
         <tr className="signature-spaces-large">
-          <SignatureCell isSigned={managerSigned}   url={manager.url}    alt="Manager Signature"   />
-          <SignatureCell isSigned={pmSigned}         url={pm.url}         alt="PM Signature"        />
-          <SignatureCell isSigned={accountsSigned}   url={accounts.url}   alt="Accounts Signature"  />
-          <SignatureCell
-            isSigned={ceoSigned}
-            url={authorized.url}
-            alt="Authorized Signature"
-            withSeal
-            sealUrl={seal.url}
-          />
+          <SignatureCell isSigned={managerSigned}  url={manager.url}    alt="Manager Signature"                                 />
+          <SignatureCell isSigned={pmSigned}       url={pm.url}         alt="PM Signature"                                      />
+          <SignatureCell isSigned={accountsSigned} url={accounts.url}   alt="Accounts Signature"                                />
+          <SignatureCell isSigned={ceoSigned}      url={authorized.url} alt="Authorized Signature" withSeal  sealUrl={seal.url} />
           <td />
         </tr>
 
