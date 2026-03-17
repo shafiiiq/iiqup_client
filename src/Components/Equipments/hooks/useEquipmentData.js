@@ -26,7 +26,7 @@ const SLIDESHOW_INTERVAL = 3000; // ms — auto-advance multi-image cards
  * @param {{ getMediaUrlWithCache: Function }} imageCache
  *   — injected from useImageCache so this hook doesn't own caching logic
  */
-export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
+export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', activeStatusFilter = 'all' }) => {
 
   // ── Tab & Pagination ───────────────────────────────────────────────────────
   const [activeTab,           setActiveTab]           = useState('equipment-based');
@@ -47,6 +47,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
 
   // ── Search Guard ───────────────────────────────────────────────────────────
   const [isSearchActive,      setIsSearchActive]      = useState(false);
+  const [statusCounts,        setStatusCounts]        = useState({ total: 0, active: 0, idle: 0, maintenance: 0 });
 
   // ── Virtual Scroll (equipment-based / hired tabs) ──────────────────────────
   const [displayedEquipment,  setDisplayedEquipment]  = useState([]);
@@ -122,7 +123,11 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
       // Map activeTab to the API's hired query param
       const hiredMap = { hired: 'hired', 'equipment-based': 'own' };
       const hiredParam = hiredMap[activeTab] ? `&hired=${hiredMap[activeTab]}` : '';
-      const statusParam = activeTab === 'leased' ? '&status=leased' : '';
+      const statusParam = activeTab === 'leased'
+        ? '&status=leased'
+        : (activeTab === 'equipment-based' && activeStatusFilter !== 'all')
+          ? `&status=${activeStatusFilter}`
+          : '';
 
       const response = await apiRequest(
         `${END_POINT}/equipments/get-equipments?page=${page}&limit=${ITEMS_PER_PAGE}${hiredParam}${statusParam}`,
@@ -138,6 +143,16 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
       const hydrated = await hydrateWithImages(data.data);
 
       setEquipmentProgress(100);
+      if (!append && activeTab === 'equipment-based' && activeStatusFilter === 'all') {
+        const counts = { total: data.pagination?.totalCount || hydrated.length, active: 0, idle: 0, maintenance: 0 };
+        hydrated.forEach(eq => {
+          const s = eq.status?.toLowerCase();
+          if (s === 'active') counts.active++;
+          else if (s === 'idle') counts.idle++;
+          else if (s === 'maintenance') counts.maintenance++;
+        });
+        setStatusCounts(counts);
+      }
       append
         ? setFilteredData(prev => [...prev, ...hydrated])
         : setFilteredData(hydrated);
@@ -228,7 +243,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
     setDisplayedEquipment([]);
     fetchEquipments(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, activeStatusFilter]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Effects — Grouping (site-based tab)
@@ -407,5 +422,6 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '' }) => {
     fetchSitesForDropdown,
     hydrateWithImages,
     isSearchActive, setIsSearchActive,
+    statusCounts,
   };
 };

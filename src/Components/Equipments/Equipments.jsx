@@ -28,6 +28,7 @@ import { buildAndDownloadExcel, printEquipmentTable } from './utils/exportHelper
 
 function Equipments() {
   const { searchTerm, setSearchTerm } = useSearch();
+  const [activeStatusFilter, setActiveStatusFilter] = useState('all');
 
   // ── Fullscreen viewer state (owned here, passed to viewer + cards) ─────────
   const [fullscreenImage,     setFullscreenImage]     = useState(null);
@@ -39,7 +40,7 @@ function Equipments() {
 
   const imageCache = useImageCache();
 
-  const data = useEquipmentData({ getMediaUrlWithCache: imageCache.getMediaUrlWithCache, searchTerm });
+  const data = useEquipmentData({ getMediaUrlWithCache: imageCache.getMediaUrlWithCache, searchTerm, activeStatusFilter });
 
   const actions = useEquipmentActions({
     fetchEquipments:       data.fetchEquipments,
@@ -122,7 +123,10 @@ function Equipments() {
         onClearCache={handleClearCache}
         onQuickServices={actions.handleQuickServices}
         activeTab={data.activeTab}
-        onTabChange={data.setActiveTab}
+        onTabChange={(tab) => { data.setActiveTab(tab); setActiveStatusFilter('all'); }}
+        activeStatusFilter={activeStatusFilter}
+        onStatusFilterChange={setActiveStatusFilter}
+        statusCounts={data.statusCounts}
         searchTerm={searchTerm}
         filteredData={data.filteredData}
         displayedEquipment={data.displayedEquipment}

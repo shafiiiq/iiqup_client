@@ -1,0 +1,442 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Viewer.css — Native-feel file preview window
+─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Window shell ─────────────────────────────────────────────────────────── */
+
+.viewer__window {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.1em;
+  overflow: hidden;
+  background: var(--color-black);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 100px rgba(0, 0, 0, 0.6),
+    0 8px 28px   rgba(0, 0, 0, 0.4);
+  animation: viewer-slide-up 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: all;
+
+  /* ── MASTER FONT SIZE — change this one value to scale the entire Viewer ── */
+  font-size: 22px;
+}
+
+.viewer__overlay--maximised {
+  padding: 0;
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.viewer__overlay--minimised {
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 0 0 1.5em 1.5em;
+  pointer-events: none;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+@keyframes viewer-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes viewer-slide-up {
+  from { transform: translateY(24px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+/* ── Window states ────────────────────────────────────────────────────────── */
+
+.viewer__window--maximised {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.viewer__window--minimised {
+  max-width: 380px;
+  border-radius: 1.1em;
+  overflow: hidden;
+  pointer-events: all;
+}
+
+.viewer__window--minimised .viewer__body,
+.viewer__window--minimised .viewer__info-panel {
+  display: none;
+}
+
+/* ── Title bar ────────────────────────────────────────────────────────────── */
+
+.viewer__titlebar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.7em 1em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: default;
+  flex-shrink: 0;
+  user-select: none;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+/* ── Traffic-light buttons ────────────────────────────────────────────────── */
+
+.viewer__traffic {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-shrink: 0;
+}
+
+.viewer__traffic-btn {
+  width: 0.875em;   /* was 14px */
+  height: 0.875em;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: filter 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.viewer__traffic-btn:hover {
+  filter: brightness(1.18);
+  transform: scale(1.15);
+}
+
+.viewer__traffic-btn:active {
+  transform: scale(0.92);
+}
+
+.viewer__traffic-btn--close {
+  background: #ff5f57;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2) inset, 0 1px 3px rgba(255,95,87,0.5);
+}
+
+.viewer__traffic-btn--minimise {
+  background: #ffbd2e;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2) inset, 0 1px 3px rgba(255,189,46,0.5);
+}
+
+.viewer__traffic-btn--maximise {
+  background: #28c840;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2) inset, 0 1px 3px rgba(40,200,64,0.5);
+}
+
+/* Icons — appear only on hover */
+.viewer__traffic-icon {
+  font-size: 0.5625em !important;  /* was 9px */
+  color: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  line-height: 1;
+  pointer-events: none;
+  font-variation-settings: 'wght' 700;
+}
+
+.viewer__traffic-btn:hover .viewer__traffic-icon {
+  opacity: 1;
+}
+
+/* ── Title bar centre ─────────────────────────────────────────────────────── */
+
+.viewer__titlebar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.viewer__titlebar-icon {
+  font-size: 1.25em;    /* was 20px */
+  color: var(--color-primary);
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.viewer__titlebar-name {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+
+.viewer__titlebar-size {
+  font-size: 0.88em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Right toolbar ────────────────────────────────────────────────────────── */
+
+.viewer__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  flex-shrink: 0;
+}
+
+.viewer__toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.4em 0.65em;
+  border: none;
+  background: transparent;
+  border-radius: 0.55em;
+  color: var(--text-secondary);
+  font-size: 0.95em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.viewer__toolbar-btn span.material-symbols-rounded {
+  font-size: 1.25em;   /* was 20px */
+}
+
+.viewer__toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-color);
+}
+
+.viewer__toolbar-btn--active {
+  background: rgba(255, 255, 255, 0.11);
+  color: var(--color-primary);
+}
+
+.viewer__toolbar-label {
+  display: none;
+}
+
+@media (min-width: 700px) {
+  .viewer__toolbar-label {
+    display: inline;
+  }
+}
+
+/* ── Info panel ───────────────────────────────────────────────────────────── */
+
+.viewer__info-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15em 2.5em;
+  padding: 0.65em 1.25em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.1);
+  animation: viewer-fade-in 0.15s ease;
+}
+
+.viewer__info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+}
+
+.viewer__info-key {
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.viewer__info-val {
+  font-size: 0.92em;
+  color: var(--text-color);
+  word-break: break-all;
+}
+
+/* ── Preview body ─────────────────────────────────────────────────────────── */
+
+.viewer__body {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  background: transparent;
+}
+
+/* ── Image ────────────────────────────────────────────────────────────────── */
+
+.viewer__body-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5em;
+  background: transparent;
+}
+
+.viewer__image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 0.5em;
+  filter: drop-shadow(0 6px 32px rgba(0,0,0,0.45));
+}
+
+/* ── PDF ──────────────────────────────────────────────────────────────────── */
+
+.viewer__iframe {
+  width: 100%;
+  height: 80vh;
+  border: none;
+  background: #fff;
+}
+
+/* ── Video ────────────────────────────────────────────────────────────────── */
+
+.viewer__body-media {
+  width: 100%;
+  padding: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.viewer__video {
+  max-width: 100%;
+  max-height: 74vh;
+  border-radius: 0.5em;
+}
+
+/* ── Audio ────────────────────────────────────────────────────────────────── */
+
+.viewer__body-audio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5em;
+  padding: 4em 2em;
+  background: transparent;
+}
+
+.viewer__audio-icon {
+  font-size: 5.5em;    /* was 88px */
+  color: var(--color-primary);
+  opacity: 0.7;
+}
+
+.viewer__audio-name {
+  font-size: 1.2em;
+  font-weight: 500;
+  color: var(--text-color);
+  margin: 0;
+  text-align: center;
+}
+
+.viewer__audio {
+  width: 26.25em;   /* was 420px */
+  max-width: 100%;
+}
+
+/* ── Text / Code ──────────────────────────────────────────────────────────── */
+
+.viewer__body-text {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 1.5em;
+  align-self: stretch;
+  background: transparent;
+}
+
+.viewer__code {
+  margin: 0;
+  font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+  font-size: 1em;
+  line-height: 1.75;
+  color: var(--text-color);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Unsupported / Office / Unknown ──────────────────────────────────────── */
+
+.viewer__body-unsupported {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1em;
+  padding: 4em 2em;
+  text-align: center;
+  background: transparent;
+}
+
+.viewer__unsupported-icon {
+  font-size: 5.5em;    /* was 88px */
+  color: var(--color-primary);
+  opacity: 0.45;
+}
+
+.viewer__unsupported-title {
+  font-size: 1.25em;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.viewer__unsupported-msg {
+  font-size: 1em;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ── Minimised bar ────────────────────────────────────────────────────────── */
+
+.viewer__minimised-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.6em 0.9em;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: 1em;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.viewer__minimised-bar:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.viewer__minimised-bar .material-symbols-rounded {
+  font-size: 1.25em;   /* was 20px */
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.viewer__minimised-size {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin-left: auto;
+}

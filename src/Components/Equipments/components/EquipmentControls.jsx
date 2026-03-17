@@ -59,6 +59,9 @@ function EquipmentControls({
   displayedEquipment,
   displayedSites,
   siteGroupedEquipment,
+  activeStatusFilter,
+  onStatusFilterChange,
+  statusCounts,
 }) {
   const navigate = useNavigate();
 
@@ -139,6 +142,29 @@ function EquipmentControls({
           />
         ))}
       </div>
+
+      {/* ── Status Sub-tabs (own equipment only) ── */}
+      {activeTab === 'equipment-based' && (
+        <div className="doc-details-tabs" style={{ marginTop: '8px' }}>
+          {[
+            { key: 'all',         label: `All (${statusCounts?.total || 0})`                        },
+            { key: 'active',      label: `Active (${statusCounts?.active || 0})`                    },
+            { key: 'idle',        label: `Idle (${statusCounts?.idle || 0})`                        },
+            { key: 'maintenance', label: `Under Maintenance (${statusCounts?.maintenance || 0})`    },
+          ].map(({ key, label }) => (
+            <Button
+              key={key}
+              {...BTN}
+              text={label}
+              onClick={() => onStatusFilterChange(key)}
+              colorScheme={activeStatusFilter === key ? 'lime-400' : 'lime-900'}
+              width="25%"
+              height="40px"
+              textColor={activeStatusFilter === key ? 'black-300' : 'white-900'}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── Results Count ── */}
       <div className="table-info">{resultsLabel}</div>

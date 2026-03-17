@@ -65,12 +65,13 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
 
   // ── State ──────────────────────────────────────────────────────────────────
 
-  const [isVibrating,     setIsVibrating]     = useState(false);
-  const [scrolled,        setScrolled]        = useState(false);
-  const [activeLink,      setActiveLink]      = useState('/');
-  const [showNav,         setShowNav]         = useState(false);   // true on nav hover
-  const [isDarkMode,      setIsDarkMode]      = useState(false);
-  const [searchExpanded,  setSearchExpanded]  = useState(false);
+  const [isVibrating,         setIsVibrating]         = useState(false);
+  const [scrolled,            setScrolled]            = useState(false);
+  const [activeLink,          setActiveLink]          = useState('/');
+  const [showNav,             setShowNav]             = useState(false);  
+  const [isDarkMode,          setIsDarkMode]          = useState(false);
+  const [searchExpanded,      setSearchExpanded]      = useState(false);
+  const [userSectionExpanded, setUserSectionExpanded] = useState(false);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Effects
@@ -142,6 +143,9 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   /** Returns the first letter of the current user's name, or 'W' as fallback. */
   const getProfileInitial = () => currentUser?.name?.charAt(0).toUpperCase() ?? 'W';
 
+  /** Navigates to the Download Center route. */
+  const handleDownloadCenterClick = () => navigate('/download-center');
+
   // ─────────────────────────────────────────────────────────────────────────
   // Derived Values
   // ─────────────────────────────────────────────────────────────────────────
@@ -162,62 +166,83 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
 
         {/* ── User Controls ────────────────────────────────────────────── */}
         {user_logged_in && (
-          <div className="user-section">
-            <div className="user-details">
-              <div className="profile-icon">{getProfileInitial()}</div>
-              <span className="user-name">{currentUser?.name}</span>
+          <div
+            className={`user-section ${userSectionExpanded ? 'expanded' : ''}`}
+            onMouseEnter={() => setUserSectionExpanded(true)}
+            onMouseLeave={() => setUserSectionExpanded(false)}
+          >
+            {/* Top row: profile + theme toggle + logout */}
+            <div className="user-section__top">
+              <div className="user-details">
+                <div className="profile-icon">{getProfileInitial()}</div>
+                <span className="user-name">{currentUser?.name}</span>
+              </div>
+
+              <div className="user-actions">
+                {/* BB8 animated day/night theme toggle */}
+                <label className="bb8-toggle">
+                  <input
+                    className="bb8-toggle__checkbox"
+                    type="checkbox"
+                    onChange={toggleTheme}
+                    checked={isDarkMode}
+                  />
+                  <div className="bb8-toggle__container">
+                    <div className="bb8-toggle__scenery">
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="bb8-toggle__star"></div>
+                      <div className="tatto-1"></div>
+                      <div className="tatto-2"></div>
+                      <div className="gomrassen"></div>
+                      <div className="hermes"></div>
+                      <div className="chenini"></div>
+                      <div className="bb8-toggle__cloud"></div>
+                      <div className="bb8-toggle__cloud"></div>
+                      <div className="bb8-toggle__cloud"></div>
+                    </div>
+                    <div className="bb8">
+                      <div className="bb8__head-container">
+                        <div className="bb8__antenna"></div>
+                        <div className="bb8__antenna"></div>
+                        <div className="bb8__head"></div>
+                      </div>
+                      <div className="bb8__body"></div>
+                    </div>
+                    <div className="artificial__hidden">
+                      <div className="bb8__shadow"></div>
+                    </div>
+                  </div>
+                </label>
+
+                <button onClick={handleLogout} className="logout-btn" title="Logout">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <polyline points="16,17 21,12 16,7"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <line x1="21" y1="12" x2="9" y2="12"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <div className="user-actions">
-              {/* BB8 animated day/night theme toggle */}
-              <label className="bb8-toggle">
-                <input
-                  className="bb8-toggle__checkbox"
-                  type="checkbox"
-                  onChange={toggleTheme}
-                  checked={isDarkMode}
-                />
-                <div className="bb8-toggle__container">
-                  <div className="bb8-toggle__scenery">
-                    <div className="bb8-toggle__star"></div>
-                    <div className="bb8-toggle__star"></div>
-                    <div className="bb8-toggle__star"></div>
-                    <div className="bb8-toggle__star"></div>
-                    <div className="bb8-toggle__star"></div>
-                    <div className="bb8-toggle__star"></div>
-                    <div className="bb8-toggle__star"></div>
-                    <div className="tatto-1"></div>
-                    <div className="tatto-2"></div>
-                    <div className="gomrassen"></div>
-                    <div className="hermes"></div>
-                    <div className="chenini"></div>
-                    <div className="bb8-toggle__cloud"></div>
-                    <div className="bb8-toggle__cloud"></div>
-                    <div className="bb8-toggle__cloud"></div>
-                  </div>
-                  <div className="bb8">
-                    <div className="bb8__head-container">
-                      <div className="bb8__antenna"></div>
-                      <div className="bb8__antenna"></div>
-                      <div className="bb8__head"></div>
-                    </div>
-                    <div className="bb8__body"></div>
-                  </div>
-                  <div className="artificial__hidden">
-                    <div className="bb8__shadow"></div>
-                  </div>
-                </div>
-              </label>
-
-              <button onClick={handleLogout} className="logout-btn" title="Logout">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="16,17 21,12 16,7"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="21" y1="12" x2="9" y2="12"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+            {/* Expansion panel: Download Center shortcut — visible on hover */}
+            <div className="user-section__download-panel">
+              <button
+                className="download-center-btn"
+                onClick={handleDownloadCenterClick}
+                title="Open Download Center"
+              >
+                <span className="material-symbols-rounded download-center-btn__icon">
+                  download
+                </span>
+                <span className="download-center-btn__label">Download Center</span>
               </button>
             </div>
           </div>

@@ -55,6 +55,7 @@ import NotFound          from './Common/NotFound/NotFound';
 import Intro             from './Common/Intro/Intro';
 
 import './App.css';
+import DownloadCenter from './Common/DownloadCenter/DownloadCenter';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Global Contexts
@@ -349,7 +350,7 @@ function App() {
                   {/* Persistent UI — always rendered above routes */}
                   <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
                   <SpacerWrapper />
-                  <NavigationButtons />
+                  {/* <NavigationButtons /> */}
 
                   <Routes>
 
@@ -466,6 +467,10 @@ function App() {
                     {/* ── Dashboard ────────────────────────────────────────── */}
 
                     <Route path="/dashboard"                                               element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+                    {/* ── Download Center ────────────────────────────────────────── */}
+
+                    <Route path="/download-center"                                        element={<ProtectedRoute><DownloadCenter /></ProtectedRoute>} />
 
                     {/* ── Fallbacks ────────────────────────────────────────── */}
 

@@ -387,6 +387,9 @@
   --gradient-primary-900: linear-gradient(295deg, #8f8d65 0%, #c7bf76 100%);
   --gradient-primary-1000: linear-gradient(295deg, #3c3f18 0%, #fffb00 100%);
   --gradient-primary-1100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);
+  --gradient-primary-1200: linear-gradient(180deg, rgb(214 156 25 / 33%) 0%, #feeb9dcf 100%);
+  --gradient-primary-1300: linear-gradient(180deg, rgba(214, 157, 25, 0.822) 0%, #feeb9dfb 100%);
+  --gradient-primary-1400: linear-gradient(180deg, rgba(214, 157, 25, 0.699) 0%, #e7d07369 100%);
 
   /* ========== GRADIENT GLASS ========== */
   --gradient-glass-100: linear-gradient(295deg, #f3fc926b 0%, #fffc3825 100%);
