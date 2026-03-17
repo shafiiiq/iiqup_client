@@ -5,6 +5,7 @@
 
 import { useNavigate }  from 'react-router-dom';
 import Button           from '../../../Common/Button/Button';
+import Tutorial from '../../../Common/Tutorial/Tutorial';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared Button defaults — every button in this bar uses these same props.
@@ -144,6 +145,11 @@ function EquipmentControls({
       </div>
 
       {/* ── Status Sub-tabs (own equipment only) ── */}
+      <Tutorial
+         title="Category Tabs Added"
+         description="Easily filter equipment by status using the Active, Idle, and Under Maintenance tabs"
+         order={1}
+      >
       {activeTab === 'equipment-based' && (
         <div className="doc-details-tabs" style={{ marginTop: '8px' }}>
           {[
@@ -157,14 +163,15 @@ function EquipmentControls({
               {...BTN}
               text={label}
               onClick={() => onStatusFilterChange(key)}
-              colorScheme={activeStatusFilter === key ? 'lime-400' : 'lime-900'}
+              colorScheme={activeStatusFilter === key ? 'indigo-200' : 'indigo-900'}
               width="25%"
-              height="40px"
+              height="45px"
               textColor={activeStatusFilter === key ? 'black-300' : 'white-900'}
             />
           ))}
         </div>
       )}
+      </Tutorial>
 
       {/* ── Results Count ── */}
       <div className="table-info">{resultsLabel}</div>

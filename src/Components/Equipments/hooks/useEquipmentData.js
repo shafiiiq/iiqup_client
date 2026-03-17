@@ -125,9 +125,11 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
       const hiredParam = hiredMap[activeTab] ? `&hired=${hiredMap[activeTab]}` : '';
       const statusParam = activeTab === 'leased'
         ? '&status=leased'
-        : (activeTab === 'equipment-based' && activeStatusFilter !== 'all')
-          ? `&status=${activeStatusFilter}`
-          : '';
+        : (activeTab === 'equipment-based' && activeStatusFilter === 'active')
+          ? '&status=active&status=leased&status=going&status=loading'
+          : (activeTab === 'equipment-based' && activeStatusFilter !== 'all')
+            ? `&status=${activeStatusFilter}`
+            : '';
 
       const response = await apiRequest(
         `${END_POINT}/equipments/get-equipments?page=${page}&limit=${ITEMS_PER_PAGE}${hiredParam}${statusParam}`,
@@ -144,14 +146,22 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
 
       setEquipmentProgress(100);
       if (!append && activeTab === 'equipment-based' && activeStatusFilter === 'all') {
-        const counts = { total: data.pagination?.totalCount || hydrated.length, active: 0, idle: 0, maintenance: 0 };
-        hydrated.forEach(eq => {
-          const s = eq.status?.toLowerCase();
-          if (s === 'active') counts.active++;
-          else if (s === 'idle') counts.idle++;
-          else if (s === 'maintenance') counts.maintenance++;
-        });
-        setStatusCounts(counts);
+        // Fetch actual counts from stats API instead of counting only the current page
+        try {
+          const statsResponse = await apiRequest(`${END_POINT}/equipments/equipment-stats?hired=own`, 'GET');
+          const statsData = await statsResponse.json();
+          if (statsData.ok) {
+            const s = statsData.data?.stats?.statusBreakdown || {};
+            setStatusCounts({
+                total:       s.total || 0,
+                active:      (s.active || 0) + (s.leased || 0) + (s.going || 0) + (s.loading || 0),
+                idle:        s.idle        || 0,
+                maintenance: s.maintenance || 0,
+              });
+          }
+        } catch (e) {
+          console.error('Failed to fetch status counts:', e);
+        }
       }
       append
         ? setFilteredData(prev => [...prev, ...hydrated])
@@ -171,7 +181,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
     } finally {
       clearInterval(progressInterval);
     }
-  }, [activeTab, hydrateWithImages]);
+  }, [activeTab, activeStatusFilter, hydrateWithImages]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Fetch: Completed Works Alert
