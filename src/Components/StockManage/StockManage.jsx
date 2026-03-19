@@ -27,12 +27,16 @@ function StockManage() {
   const [equipmentSearchTerm, setEquipmentSearchTerm] = useState('');
   const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false);
   const [filteredEquipmentOptions, setFilteredEquipmentOptions] = useState([]);
+  const [userOptions, setUserOptions] = useState([]);
+  const [filteredUserOptions, setFilteredUserOptions] = useState([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
 
   const [reduceFormData, setReduceFormData] = useState({
     stockCount: '',
     equipmentName: '',
     equipmentNumber: '',
     mechanicName: '',
+    reduceType: 'stock',
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   });
@@ -51,7 +55,10 @@ function StockManage() {
     serialNumber: '',
     date: new Date().toISOString().split('T')[0],
     rate: '',
-    stockCount: ''
+    stockCount: '',
+    hasSubUnits: false,
+    subUnitName: '',
+    subUnitCapacity: ''
   });
 
 
@@ -113,6 +120,40 @@ function StockManage() {
     };
 
     fetchEquipments();
+  }, []);
+
+  // Fetch all users (office, mechanic, operator) for mechanic name dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await apiRequest(`${END_POINT}/users/get-all-users`, 'GET');
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const result = await response.json();
+
+        // Flatten all user types into a single options array with role label
+        const allUsers = [
+          ...result.data.office.map(u => ({
+            value: u.name || u.username || u.email,
+            label: `${u.name || u.username} (Office)`
+          })),
+          ...result.data.mechanic.map(u => ({
+            value: u.name || u.username || u.email,
+            label: `${u.name || u.username} (Mechanic)`
+          })),
+          ...result.data.operator.map(u => ({
+            value: u.name || u.username || u.email,
+            label: `${u.name || u.username} (Operator)`
+          }))
+        ];
+
+        setUserOptions(allUsers);
+        setFilteredUserOptions(allUsers);
+      } catch (err) {
+        console.error('[StockManage] fetchUsers error:', err);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -243,6 +284,7 @@ function StockManage() {
         date: reduceFormData.date,
         time: reduceFormData.time,
         type: 'deduct',
+        reduceType: reduceFormData.reduceType,
         equipmentName: reduceFormData.equipmentName,
         equipmentNumber: reduceFormData.equipmentNumber,
         mechanicName: reduceFormData.mechanicName
@@ -267,6 +309,7 @@ function StockManage() {
         equipmentName: '',
         equipmentNumber: '',
         mechanicName: '',
+        reduceType: 'stock',
         date: new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
@@ -290,7 +333,10 @@ function StockManage() {
       serialNumber: '',
       date: new Date().toISOString().split('T')[0],
       rate: '',
-      stockCount: ''
+      stockCount: '',
+      hasSubUnits: false,
+      subUnitName: '',
+      subUnitCapacity: ''
     });
     setEquipmentSearchTerm('');
     setShowEquipmentDropdown(false);
@@ -307,7 +353,10 @@ function StockManage() {
       serialNumber: stock.serialNumber,
       date: stock.date ? new Date(stock.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       rate: stock.rate,
-      stockCount: stock.stockCount
+      stockCount: stock.stockCount,
+      hasSubUnits: stock.hasSubUnits || false,
+      subUnitName: stock.subUnitName || '',
+      subUnitCapacity: stock.subUnitCapacity || ''
     });
     setShowForm(true);
   };
@@ -316,7 +365,11 @@ function StockManage() {
     try {
       const submitData = {
         ...formData,
-        equipments: formData.equipments || []
+        equipments: formData.equipments || [],
+        hasSubUnits: formData.hasSubUnits,
+        subUnitName: formData.hasSubUnits ? formData.subUnitName : '',
+        subUnitCapacity: formData.hasSubUnits ? parseFloat(formData.subUnitCapacity) || 0 : 0,
+        subUnitRemaining: formData.hasSubUnits ? parseFloat(formData.subUnitCapacity) || 0 : 0,
       };
 
       let url, method;
@@ -973,7 +1026,7 @@ function StockManage() {
             summaryStartCol = 1;
           }
 
-          const colSpan = index < 4 ? 3 : 2; 
+          const colSpan = index < 4 ? 3 : 2;
           const startCol = summaryStartCol;
           const endCol = summaryStartCol + colSpan - 1;
 
@@ -1093,7 +1146,7 @@ function StockManage() {
       )}
 
       {loading ? (
-       <Loader/>
+        <Loader />
       ) : error ? (
         <div className="stock-manage-error">{error}</div>
       ) : (
@@ -1231,6 +1284,23 @@ function StockManage() {
                   calculateStatus(selectedStock.stockCount) === 'low' ? 'Low Stock' : 'Out of Stock'}
               </span>
             </div>
+
+            {selectedStock.hasSubUnits && (
+              <>
+                <div className="stock-manage-detail-item">
+                  <span className="stock-manage-label">Sub-Unit:</span>
+                  <span className="stock-manage-value">{selectedStock.subUnitName}</span>
+                </div>
+                <div className="stock-manage-detail-item">
+                  <span className="stock-manage-label">Capacity per Container:</span>
+                  <span className="stock-manage-value">{selectedStock.subUnitCapacity} {selectedStock.subUnitName}</span>
+                </div>
+                <div className="stock-manage-detail-item">
+                  <span className="stock-manage-label">Open Container Remaining:</span>
+                  <span className="stock-manage-value">{selectedStock.subUnitRemaining} {selectedStock.subUnitName}</span>
+                </div>
+              </>
+            )}
 
             <div className="stock-manage-stock-progress">
               <h3>Stock Level</h3>
@@ -1460,7 +1530,9 @@ function StockManage() {
         formFields={[
           {
             name: 'stockCount',
-            label: 'Quantity to Reduce',
+            label: selectedStock?.hasSubUnits && reduceFormData.reduceType === 'subunit'
+              ? `Amount in ${selectedStock.subUnitName || 'sub-units'} to deduct`
+              : 'Quantity to Reduce',
             type: 'number',
             placeholder: 'Enter quantity to reduce',
             required: true
@@ -1482,16 +1554,35 @@ function StockManage() {
           {
             name: 'mechanicName',
             label: 'Mechanic Name',
-            type: 'text',
-            placeholder: 'Search or enter mechanic name',
-            required: true
+            type: 'search-select',
+            required: true,
+            placeholder: 'Search or type to add new...',
+            options: [
+              ...filteredUserOptions,
+              ...(userSearchTerm && !filteredUserOptions.some(u => u.value === userSearchTerm || u.label.includes(userSearchTerm))
+                ? [{ label: `Add "${userSearchTerm}" as new`, value: userSearchTerm }]
+                : [])
+            ],
+            onSearchFocus: () => setUserSearchTerm('')
           },
           {
             name: 'date',
             label: 'Date',
             type: 'date',
             required: true
-          }
+          },
+          ...(selectedStock?.hasSubUnits ? [
+            {
+              name: 'reduceType',
+              label: 'What are you reducing?',
+              type: 'select',
+              required: true,
+              options: [
+                { value: 'subunit', label: `${selectedStock.subUnitName || 'Sub-Units'} (e.g. litres)` },
+                { value: 'stock', label: 'Full Container(s)' }
+              ]
+            }
+          ] : []),
         ]}
         formValues={reduceFormData}
         onFormChange={(field, value) => {
@@ -1508,6 +1599,11 @@ function StockManage() {
               equipmentNumber: ''
             });
           } else if (field === 'mechanicName') {
+            setUserSearchTerm(value);
+            const filtered = userOptions.filter(u =>
+              u.label.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredUserOptions(filtered);
             setReduceFormData({
               ...reduceFormData,
               mechanicName: value
@@ -1631,13 +1727,43 @@ function StockManage() {
             type: 'number',
             placeholder: 'Enter stock count',
             required: true
-          }
+          },
+          {
+            name: 'hasSubUnits',
+            label: 'Has Sub-Units?',
+            type: 'select',
+            required: false,
+            options: [
+              { value: false, label: 'No' },
+              { value: true, label: 'Yes' }
+            ]
+          },
+          ...(formData.hasSubUnits ? [
+            {
+              name: 'subUnitName',
+              label: 'Sub-Unit Name (e.g. litre, kg, ml)',
+              type: 'text',
+              placeholder: 'e.g. litre',
+              required: false
+            },
+            {
+              name: 'subUnitCapacity',
+              label: 'Capacity per Item (e.g. 100)',
+              type: 'number',
+              placeholder: 'e.g. 100',
+              required: false
+            }
+          ] : [])
         ]}
         formValues={formData}
         onFormChange={(field, value) => {
           setFormData({
             ...formData,
-            [field]: (field === 'rate' || field === 'stockCount') ? parseFloat(value) || 0 : value
+            [field]: (field === 'rate' || field === 'stockCount' || field === 'subUnitCapacity')
+              ? parseFloat(value) || 0
+              : field === 'hasSubUnits'
+                ? value === 'true' || value === true
+                : value
           });
         }}
         buttonText={formMode === 'add' ? 'Add Stock' : 'Update Stock'}

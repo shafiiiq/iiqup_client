@@ -77,11 +77,11 @@ const Toolkits = () => {
   const [showToolkitHistory, setShowToolkitHistory] = useState(false);
   const [toolkitHistory, setToolkitHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState({
-    type: 'all', 
+    type: 'all',
     dateFrom: '',
     dateTo: '',
     lastN: 7,
-    lastUnit: 'days' 
+    lastUnit: 'days'
   });
 
   useEffect(() => {
@@ -1447,32 +1447,18 @@ const Toolkits = () => {
           {
             name: 'person',
             label: 'Assigned To',
-            type: 'searchable-select',
+            type: 'search-select',
             placeholder: 'Search for a person...',
             required: true,
-            allowCustom: true,
-            showDropdown: showUserDropdown,
-            dropdownItems: filteredUsers.map(u => ({
-              value: u.name,
-              label: u.name,
-              subtitle: u.type
-            })),
+            options: [
+              ...filteredUsers.map(u => ({ label: `${u.name} (${u.type})`, value: u.name })),
+              ...(userSearchTerm && !filteredUsers.some(u => u.name.toLowerCase() === userSearchTerm.toLowerCase())
+                ? [{ label: `Add "${userSearchTerm}" as new`, value: userSearchTerm }]
+                : [])
+            ],
             onSearchFocus: () => {
               setShowUserDropdown(true);
-            },
-            onSearch: (value) => {
-              setUserSearchTerm(value);
-              setShowUserDropdown(value.length > 0);
-            },
-            onSearchBlur: () => {
-              setShowUserDropdown(false);
-            },
-            onItemSelect: (item) => {
-              const selectedUser = allUsers.find(u => u.name === item.value);
-              if (selectedUser) {
-                handleUserSelect(selectedUser);
-              }
-              setShowUserDropdown(false);
+              setUserSearchTerm('');
             }
           },
           {
@@ -1494,6 +1480,18 @@ const Toolkits = () => {
         onFormChange={(field, value) => {
           if (field === 'person') {
             setUserSearchTerm(value);
+            setReduceStockData({
+              ...reduceStockData,
+              person: value,
+              personId: null,
+              reason: value ? `Handovered to ${value}` : 'Used'
+            });
+          } else if (field === 'person') {
+            setUserSearchTerm(value);
+            const filtered = allUsers.filter(u =>
+              u.name.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredUsers(filtered);
             setReduceStockData({
               ...reduceStockData,
               person: value,
