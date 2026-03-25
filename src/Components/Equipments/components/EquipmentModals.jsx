@@ -174,6 +174,7 @@ function EquipmentModals({
           { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
             { value: 'daily',   label: 'Daily'   },
             { value: 'hourly',  label: 'Hourly'  },
+            { value: 'weekly',  label: 'Weekly'  },
             { value: 'monthly', label: 'Monthly' },
           ]},
           { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
@@ -212,6 +213,7 @@ function EquipmentModals({
           { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
             { value: 'daily',   label: 'Daily'   },
             { value: 'hourly',  label: 'Hourly'  },
+            { value: 'weekly',  label: 'Weekly'  },
             { value: 'monthly', label: 'Monthly' },
           ]},
           { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },

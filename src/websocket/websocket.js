@@ -122,6 +122,9 @@ const _bindSocketEvents = (uniqueCode) => {
   socket.on('webrtc_offer',         (data) => _dispatch('webrtc_offer',         data));
   socket.on('webrtc_answer',        (data) => _dispatch('webrtc_answer',        data));
   socket.on('webrtc_ice_candidate', (data) => _dispatch('webrtc_ice_candidate', data));
+
+  // ── Dashboard Update ─────────────────────────────────────────────────────────
+  socket.on('dashboard_update', (data) => _dispatch('dashboard_update', data));
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

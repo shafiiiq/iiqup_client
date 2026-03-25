@@ -1,105 +1,63 @@
 import React from 'react';
-import {
-  CheckCircle, AlertTriangle, TrendingUp, Package, TrendingDown,
-  Truck,
-  Wrench,
-} from 'lucide-react';
+import { Truck, CheckCircle, Clock, Wrench, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const StatusBar = ({ realTimeData }) => {
-
   if (!realTimeData) return null;
+
+  const items = [
+    {
+      icon:    <Truck className="status-icon" />,
+      value:   realTimeData.totalEquipment,
+      label:   'Total Equipment',
+      link:    '/equipments',
+    },
+    {
+      icon:    <CheckCircle className="status-icon success" />,
+      value:   realTimeData.activeEquipment,
+      label:   'Active Units',
+      link:    null,
+    },
+    {
+      icon:    <Clock className="status-icon warning" />,
+      value:   realTimeData.idleEquipment,
+      label:   'Idle Units',
+      link:    null,
+    },
+    {
+      icon:    <Wrench className="status-icon danger" />,
+      value:   realTimeData.inMaintenance,
+      label:   'In Maintenance',
+      link:    null,
+    },
+    {
+      icon:    <TrendingUp className="status-icon info" />,
+      value:   `${realTimeData.efficiency}%`,
+      label:   'Fleet Efficiency',
+      link:    null,
+    },
+  ];
 
   return (
     <div className="status-bar">
-      <Link to="/equipments" className='status-item'>
-        <div className="complaints-item">
-          <Truck className="status-icon" />
-          <div className="status-content">
-            <span className="status-value">{realTimeData.totalEquipment}</span>
-            <span className="status-label">Total Equipment</span>
+      {items.map(({ icon, value, label, link }) => {
+        const content = (
+          <div className="complaints-item">
+            {icon}
+            <div className="status-content">
+              <span className="status-value">{value ?? 0}</span>
+              <span className="status-label">{label}</span>
+              {link && <span className="status-view">Click to view</span>}
+            </div>
           </div>
-        </div>
-      </Link>
-      <div className="status-item">
-        <CheckCircle className="status-icon success" />
-        <div className="status-content">
-          <span className="status-value">{realTimeData.activeEquipment}</span>
-          <span className="status-label">Active Units</span>
-        </div>
-      </div>
-      <Link to="/complaints" className='status-item'>
-        <div className="complaints-item">
-          <AlertTriangle className="status-icon warning" />
-          <div className="status-content">
-            <span className="status-value">{realTimeData.idleEquipment}</span>
-            <span className="status-label">Idle Units</span>
-            <br />
-            <span className="status-view">Click to view</span>
-          </div>
-        </div>
-      </Link>
-      <div className="status-item">
-        <AlertTriangle className="status-icon danger" />
-        <div className="status-content">
-          <span className="status-value">{realTimeData.criticalAlerts}</span>
-          <span className="status-label">Critical Alerts</span>
-        </div>
-      </div>
-      <div className="status-item">
-        <TrendingUp className="status-icon info" />
-        <div className="status-content">
-          <span className="status-value">{realTimeData.efficiency}%</span>
-          <span className="status-label">Fleet Efficiency</span>
-        </div>
-      </div>
-      <div className="status-item">
-        <Package className="status-icon info" />
-        <div className="status-content">
-          <span className="status-value">{realTimeData?.stockMetrics?.totalStockItems || 0}</span>
-          <span className="status-label">Stock Items</span>
-        </div>
-      </div>
-      <div className="status-item">
-        <div className="status-icon success">
-          QR
-        </div>
-        <div className="status-content">
-          {/* <span className="status-value">{(realTimeData?.stockMetrics?.totalStockValue || 0).toLocaleString()}</span> */}
-          <span className="status-label">Stock Value</span>
-          <br />
-          <span className="status-label">Not implemented</span>
-        </div>
-      </div>
-      <div className="status-item">
-        <TrendingDown className="status-icon warning" />
-        <div className="status-content">
-          <span className="status-value">{realTimeData?.stockMetrics?.lowStockAlerts || 0}</span>
-          <span className="status-label">Low Stock Alerts</span>
-        </div>
-      </div>
-      <Link to="/complaints" className='status-item'>
-        <div className="complaints-item">
-          <Wrench className="status-icon warning" />
-          <div className="status-content">
-            <span className="status-value">{realTimeData.pendingMaintenance}</span>
-            <span className="status-label">Pending Maintenance</span>
-            <br />
-            <span className="status-view">Click to view</span>
-          </div>
-        </div>
-      </Link>
-      {/* <Link to="/application-hr" className='status-item'>
-        <div className="complaints-item">
-          <TrendingDown className="status-icon warning" />
-          <div className="status-content">
-            <span className="status-value">{realTimeData.pendingApplications || 0}</span>
-            <span className="status-label">Applications</span>
-            <br />
-            <span className="status-view">Click to view</span>
-          </div>
-        </div>
-      </Link> */}
+        );
+
+        return link ? (
+          <Link key={label} to={link} className="status-item">{content}</Link>
+        ) : (
+          <div key={label} className="status-item">{content}</div>
+        );
+      })}
     </div>
   );
 };

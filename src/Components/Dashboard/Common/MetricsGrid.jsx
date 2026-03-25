@@ -1,14 +1,20 @@
 import React from 'react';
-import {
-  Activity, Wrench, AlertTriangle,
-  Package, Archive, ArrowUp, ArrowDown,
-  Car,
-  Battery
-} from 'lucide-react';
+import { Activity, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 
-const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
+const MetricsGrid = ({ currentStats, realTimeData }) => {
+  // Status bar items — these come from realTimeData (equipment API, not models)
+  const statusItems = [
+    { label: 'Total Equipment',    value: realTimeData?.totalEquipment     ?? 0 },
+    { label: 'Active Units',       value: realTimeData?.activeEquipment    ?? 0 },
+    { label: 'Idle Units',         value: realTimeData?.idleEquipment      ?? 0 },
+    { label: 'Pending Complaints', value: realTimeData?.pendingMaintenance ?? 0 },
+    { label: 'Critical Alerts',    value: realTimeData?.criticalAlerts     ?? 0 },
+    { label: 'Fleet Efficiency',   value: `${realTimeData?.efficiency ?? 0}%`   },
+  ];
+
   return (
     <div className="metrics-grid">
+      {/* Total — always first */}
       <div className="metric-card primary">
         <div className="metric-header">
           <Activity className="metric-icon" />
@@ -16,106 +22,37 @@ const MetricsGrid = ({ currentStats, realTimeData, COLORS }) => {
         </div>
         <div className="metric-value">{currentStats.total}</div>
         <div className="metric-change positive">
-          <ArrowUp size={14} />
-          +12% from last period
+          <ArrowUp size={14} /> Active period
         </div>
       </div>
 
-      <div className="metric-card accent">
-        <div className="metric-header">
-          <Archive className="metric-icon" />
-          <h3>Complaints Registed</h3>
+      {/* One card per collection — fully dynamic */}
+      {Object.entries(currentStats.collections).map(([label, count], i) => (
+        <div key={label} className="metric-card accent">
+          <div className="metric-header">
+            <Minus className="metric-icon" />
+            <h3>{label}</h3>
+          </div>
+          <div className="metric-value">{count}</div>
+          <div className="metric-change positive">
+            <ArrowUp size={14} /> Active tracking
+          </div>
         </div>
-        <div className="metric-value">{currentStats.collections['Compliants']}</div>
-        <div className="metric-change positive">
-          <ArrowUp size={14} />
-          Active tracking
-        </div>
-      </div>
+      ))}
 
-      <div className="metric-card success">
-        <div className="metric-header">
-          <Wrench className="metric-icon" />
-          <h3>Services Completed</h3>
+      {/* Equipment/realtime stats */}
+      {statusItems.map(({ label, value }) => (
+        <div key={label} className="metric-card success">
+          <div className="metric-header">
+            <Activity className="metric-icon" />
+            <h3>{label}</h3>
+          </div>
+          <div className="metric-value">{value}</div>
+          <div className="metric-change positive">
+            <ArrowUp size={14} /> Live
+          </div>
         </div>
-        <div className="metric-value">{currentStats.collections['Service Reports']}</div>
-        <div className="metric-change positive">
-          <ArrowUp size={14} />
-          +8% efficiency
-        </div>
-      </div>
-
-      <div className="metric-card warning">
-        <div className="metric-header">
-          <AlertTriangle className="metric-icon" />
-          <h3>Major Maintenance</h3>
-        </div>
-        <div className="metric-value">{currentStats.collections['Maintenance History']}</div>
-        <div className="metric-change neutral">
-          <ArrowDown size={14} />
-          -3% from last period
-        </div>
-      </div>
-
-      <div className="metric-card warning">
-        <div className="metric-header">
-          <Car className="metric-icon" />
-          <h3>Tyre Changes</h3>
-        </div>
-        <div className="metric-value">{currentStats.collections['Tyre History']}</div>
-        <div className="metric-change neutral">
-          <ArrowDown size={14} />
-          -3% from last period
-        </div>
-      </div>
-
-      <div className="metric-card warning">
-        <div className="metric-header">
-          <Battery className="metric-icon" />
-          <h3>Battery Changes</h3>
-        </div>
-        <div className="metric-value">{currentStats.collections['Battery History']}</div>
-        <div className="metric-change neutral">
-          <ArrowDown size={14} />
-          -3% from last period
-        </div>
-      </div>
-
-      <div className="metric-card accent">
-        <div className="metric-header">
-          <Package className="metric-icon" />
-          <h3>Stock Inventory</h3>
-        </div>
-        <div className="metric-value">{currentStats.collections['Stock Items']}</div>
-        <div className="metric-change positive">
-          <ArrowUp size={14} />
-          Active tracking
-        </div>
-      </div>
-
-      <div className="metric-card accent">
-        <div className="metric-header">
-          <Archive className="metric-icon" />
-          <h3>Toolkit Inventory</h3>
-        </div>
-        <div className="metric-value">{currentStats.collections['Toolkit Items']}</div>
-        <div className="metric-change positive">
-          <ArrowUp size={14} />
-          Active tracking
-        </div>
-      </div>
-
-      {/* <div className="metric-card danger">
-        <div className="metric-header">
-          <Archive className="metric-icon" />
-          <h3>Stock Movements</h3>
-        </div>
-        <div className="metric-value">{realTimeData?.stockMetrics?.recentMovements || 0}</div>
-        <div className="metric-change neutral">
-          <BarChart3 size={14} />
-          Recent activity
-        </div>
-      </div> */}
+      ))}
     </div>
   );
 };
