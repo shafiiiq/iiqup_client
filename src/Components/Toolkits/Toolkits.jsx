@@ -3,12 +3,10 @@ import './Toolkits.css';
 import { END_POINT } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import ExcelJS from 'exceljs';
-import Barcode from 'react-barcode';
 import DevModal from '../../Common/DevModal/DevModal';
 import Button from '../../Common/Button/Button';
-import Input from '../../Common/Input/Input';
 import Loader from '../../Common/Loader/Loader';
-import Sidebar, { SidebarSection, SidebarRow, SidebarTable, SidebarActions, SidebarInput } from '../../Common/Sidebar/Sidebar';
+import Sidebar, { SidebarSection, SidebarRow, SidebarTable, SidebarActions, SidebarInput, SidebarBarcode } from '../../Common/Sidebar/Sidebar';
 
 const Toolkits = () => {
   const userDropdownRef = useRef(null);
@@ -351,32 +349,40 @@ const Toolkits = () => {
             position="left"
             gap="8px"
             buttons={[
-              { label: 'Reduce Stock', onClick: openReduceStockModal, colorScheme: 'pink-800', textColor: 'white-100', squircle: '6xl', font: 'sm', height: '34px' },
-              { label: 'Edit', onClick: () => openUpdateVariantForm(variant, toolkit), colorScheme: 'violet-800', textColor: 'white-100', squircle: '6xl', font: 'sm', height: '34px' },
-              { label: 'Delete', onClick: () => deleteVariant(toolkit._id, variant._id), colorScheme: 'red-800', textColor: 'white-100', squircle: '6xl', font: 'sm', height: '34px' },
+              { label: 'Reduce Stock', onClick: openReduceStockModal, colorScheme: 'pink-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%' },
+              { label: 'Edit', onClick: () => openUpdateVariantForm(variant, toolkit), colorScheme: 'violet-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%'  },
+              { label: 'Delete', onClick: () => deleteVariant(toolkit._id, variant._id), colorScheme: 'red-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%'  },
             ]}
           />
-          <SidebarSection title="Variant Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
-            <SidebarRow label="Tool Name" value={String(toolkit.name)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="Size" value={String(variant.size)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="Color" value={String(variant.color)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="Stock" value={String(variant.stockCount)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="Min Level" value={String(variant.minStockLevel)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="Status" value={statusLabel} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="In Use" value={variant.inuse ? 'Yes' : 'No'} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="First Added" value={formatDate(variant.firstAddedDate)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
-            <SidebarRow label="Last Updated" value={formatDate(variant.lastUpdatedDate)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+          <SidebarSection title="Variant Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
+            <SidebarRow label="Tool Name" value={String(toolkit.name)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="Size" value={String(variant.size)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="Color" value={String(variant.color)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="Stock" value={String(variant.stockCount)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="Min Level" value={String(variant.minStockLevel)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="Status" value={statusLabel} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="In Use" value={variant.inuse ? 'Yes' : 'No'} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="First Added" value={formatDate(variant.firstAddedDate)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+            <SidebarRow label="Last Updated" value={formatDate(variant.lastUpdatedDate)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
           </SidebarSection>
-          <SidebarSection title="Barcode" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
-            <Barcode value={variant._id} width={1.8} height={50} displayValue={true} fontSize={12} />
+          <SidebarSection title="Barcode" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
+            <SidebarBarcode value={variant._id} width={1.8} height={50} displayValue={true} fontSize={12} squircle={true} radius="130px" colorScheme="black-200" lineColor="#ffffff"/>
           </SidebarSection>
-          <SidebarSection title="Stock History" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+          <SidebarSection title="Stock History" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
             <SidebarTable
               rowGap="5px"
+              headFontSize="20px"
+              headFontWeight='500'
               gap="10px"
-              headGrad="amber-700"
+              headRadius='130px'
+              rowRadius='130px'
+              rowFontSize='14px'
+              squircle={true}
+              headColor="var(--white-200)"
+              rowColor="var(--black-200)"
+              headGrad="red-600"
               headGradVariant="gradient"
-              rowGrad="amber-400"
+              rowGrad="amber-600"
               rowGradVariant="gradient"
               rowAltGrad="amber-500"
               rowAltGradVariant="gradient"
@@ -993,7 +999,7 @@ const Toolkits = () => {
         isMaximized={sidebarMaximized}
         trafficLightSize='30px'
         backButtonSize= '40px'
-        colorScheme="amber-800"
+        colorScheme="amber-900"
         variant="gradient"
         width="800px"
         squircle="6xl"
@@ -1002,22 +1008,22 @@ const Toolkits = () => {
       >
         {({ pushScreen }) => selectedToolkit && (
           <>
-            <SidebarSection title="Toolkit Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
-              <SidebarRow   label="Tool Name"    value={selectedToolkit.name}               labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px' />
-              <SidebarRow   label="Type"         value={selectedToolkit.type}               labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px' />
-              <SidebarRow   label="Total Stock"  value={String(selectedToolkit.totalStock)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px' />
-              <SidebarRow   label="Status"                                                  labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px'  value={
+            <SidebarSection title="Toolkit Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
+              <SidebarRow   label="Tool Name"    value={selectedToolkit.name}               labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+              <SidebarRow   label="Type"         value={selectedToolkit.type}               labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+              <SidebarRow   label="Total Stock"  value={String(selectedToolkit.totalStock)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
+              <SidebarRow   label="Status"                                                  labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px'  value={
                   selectedToolkit.overallStatus === 'available' ? 'In Stock' :
                   selectedToolkit.overallStatus === 'low' ? 'Low Stock' : 'Out of Stock'
                 }
               />
             </SidebarSection>
 
-            <SidebarSection title="Barcode" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
-              <Barcode value={selectedToolkit._id} width={2} height={60} displayValue={true} fontSize={14} />
+            <SidebarSection title="Barcode" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
+              <SidebarBarcode value={selectedToolkit._id} width={2.53} height={60} displayValue={true} fontSize={14} squircle={true} radius="130px" colorScheme="black-200" lineColor="#ffffff" />
             </SidebarSection>
 
-            <SidebarSection title="Variants" gap="8px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+            <SidebarSection title="Variants" gap="8px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
               <SidebarInput
                 type="search"
                 value={variantSearchTerm}
@@ -1028,8 +1034,9 @@ const Toolkits = () => {
                 variant="gradient"
                 textColor="white-100"
                 squircle="6xl"
-                height="38px"
+                height="48px"
                 width="100%"
+                paddingInline="24px"
                 placeholderColor="black-200"
               />
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1041,9 +1048,10 @@ const Toolkits = () => {
                   colorScheme="amber-400"
                   variant="gradient"
                   textColor="black-100"
+                  paddingInline="24px"
                   squircle="6xl"
-                  height="36px"
-                  width="140px"
+                  height="48px"
+                  width="208px"
                 />
                 <SidebarInput
                   type="select"
@@ -1054,8 +1062,8 @@ const Toolkits = () => {
                   variant="gradient"
                   textColor="black-100"
                   squircle="6xl"
-                  height="36px"
-                  width="140px"
+                  height="48px"
+                  width="208px"
                 />
                 <SidebarInput
                   type="select"
@@ -1071,8 +1079,8 @@ const Toolkits = () => {
                   variant="gradient"
                   textColor="black-100"
                   squircle="6xl"
-                  height="36px"
-                  width="130px"
+                  height="48px"
+                  width="208px"
                 />
                 {(variantSearchTerm || variantFilterSize !== 'all' || variantFilterColor !== 'all' || variantFilterStatus !== 'all') && (
                   <Button
@@ -1082,10 +1090,10 @@ const Toolkits = () => {
                     variant="gradient"
                     textColor="white-100"
                     squircle="6xl"
-                    font="sm"
-                    height="36px"
+                    font="lg"
+                    height="48px"
                     width="auto"
-                    padding="0 14px"
+                    padding="0 24px"
                     animation=""
                   />
                 )}
@@ -1093,7 +1101,7 @@ const Toolkits = () => {
 
               {Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).length > 0
                 ? Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).map(([color, variants]) => (
-                  <SidebarSection key={color} title={color} gap="5px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+                  <SidebarSection key={color} title={color} gap="5px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
                     <SidebarTable
                       rowGap="5px"
                       headFontSize="20px"
@@ -1103,9 +1111,11 @@ const Toolkits = () => {
                       rowRadius='130px'
                       rowFontSize='18px'
                       squircle={true}
-                      headGrad="amber-700"
+                      headColor="var(--white-200)"
+                      rowColor="var(--black-200)"
+                      headGrad="red-600"
                       headGradVariant="gradient"
-                      rowGrad="amber-400"
+                      rowGrad="amber-600"
                       rowGradVariant="gradient"
                       rowAltGrad="amber-500"
                       rowAltGradVariant="gradient"

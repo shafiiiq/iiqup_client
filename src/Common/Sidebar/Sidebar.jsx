@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Barcode from 'react-barcode';
 import './Sidebar.css';
 import {
     fontMap,
@@ -312,6 +313,62 @@ export const SidebarInput = (props) => (
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SidebarBarcode — wraps Barcode component with sidebar-aware defaults
+// Pass any Barcode props, they go through directly
+// ─────────────────────────────────────────────────────────────────────────────
+export const SidebarBarcode = ({
+    value = '',
+    width = 2,
+    height = 50,
+    displayValue = true,
+    fontSize = 12,
+    lineColor = '#000000',
+    background = 'transparent',
+    margin = 10,
+    format = 'CODE128',
+    colorScheme = 'white-100',
+    variant = 'filled',
+    radius = '12px',
+    squircle = null,
+    padding = '12px',
+    align = 'center',
+    containerWidth = '100%',
+    style = {},
+}) => {
+    const parts = colorScheme.split('-');
+    const color = parts[0];
+    const shade = parts[1];
+    const bg = variant === 'gradient'
+        ? `linear-gradient(135deg, var(--${color}-${Math.max(100, parseInt(shade) - 200)}), var(--${color}-${shade}), var(--${color}-${Math.min(900, parseInt(shade) + 100)}))`
+        : `var(--${color}-${shade})`;
+    return (
+        <div style={{
+            background: bg,
+            borderRadius: radius,
+            'corner-shape': squircle ? 'squircle' : null,
+            padding,
+            display: 'flex',
+            justifyContent: align,
+            width: containerWidth,
+            boxSizing: 'border-box',
+            ...style
+        }}>
+            <Barcode
+                value={value}
+                width={width}
+                height={height}
+                displayValue={displayValue}
+                fontSize={fontSize}
+                lineColor={lineColor}
+                background={background}
+                margin={margin}
+                format={format}
+            />
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Sidebar
 // ─────────────────────────────────────────────────────────────────────────────
 const Sidebar = ({
@@ -370,14 +427,23 @@ const Sidebar = ({
     ...props
 }) => {
     const sidebarRef = useRef(null);
-    const [screenStack, setScreenStack] = useState([]);
+    const resizeRef = useRef(null);
+    const [panelWidth, setPanelWidth] = useState(null);
+    const [splitColumns, setSplitColumns] = useState(3);
+    const [secondaryScreen, setSecondaryScreen] = useState(null);
+    const [tertiaryStack, setTertiaryStack] = useState([]);
 
-    const pushScreen = (screen) => setScreenStack(prev => [...prev, screen]);
-    const popScreen = () => setScreenStack(prev => prev.slice(0, -1));
+    const pushScreen = (screen) => { setSecondaryScreen(screen); setTertiaryStack([]); };
+    const pushTertiary = (screen) => setTertiaryStack(prev => [...prev, screen]);
+    const popTertiary = () => setTertiaryStack(prev => prev.slice(0, -1));
+    const popScreen = () => {
+        if (tertiaryStack.length > 0) popTertiary();
+        else setSecondaryScreen(null);
+    };
 
-    const currentScreen = screenStack.length > 0 ? screenStack[screenStack.length - 1] : null;
-    const currentTitle = currentScreen ? currentScreen.title : title;
-    const isOnSecondaryScreen = screenStack.length > 0;
+    const currentTertiary = tertiaryStack.length > 0 ? tertiaryStack[tertiaryStack.length - 1] : null;
+    const isOnSecondaryScreen = !!secondaryScreen || tertiaryStack.length > 0;
+    const currentTitle = isMaximized ? title : (currentTertiary ? currentTertiary.title : secondaryScreen ? secondaryScreen.title : title);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -394,12 +460,47 @@ const Sidebar = ({
         if (show) document.body.style.overflow = 'hidden';
         else {
             document.body.style.overflow = '';
-            setScreenStack([]);
+            setSecondaryScreen(null);
+            setTertiaryStack([]);
         }
         return () => { document.body.style.overflow = ''; };
     }, [show]);
 
+    useEffect(() => {
+        if (!isMaximized) {
+            setPanelWidth(null);
+            return;
+     }
+     const updateColumns = () => {
+            const w = window.innerWidth;
+         if (w < 700) setSplitColumns(1);
+         else if (w < 1100) setSplitColumns(2);
+         else setSplitColumns(3);
+        };
+        updateColumns();
+        window.addEventListener('resize', updateColumns);
+     return () => window.removeEventListener('resize', updateColumns);
+    }, [isMaximized]);
+    
     if (!show) return null;
+
+    const startResize = (e) => {
+        if (isMaximized) return;
+        e.preventDefault();
+        const startX = e.clientX;
+        const startWidth = sidebarRef.current?.getBoundingClientRect().width || parseInt(width);
+        const onMove = (me) => {
+            const delta = startX - me.clientX;
+            const newWidth = Math.max(320, Math.min(window.innerWidth - 60, startWidth + delta));
+            setPanelWidth(newWidth + 'px');
+        };
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    };
 
     const parseColor = (colorStr) => {
         if (!colorStr) return null;
@@ -454,28 +555,35 @@ const Sidebar = ({
         ? `${borderWidthMap?.[borderWidth] || borderWidth + 'px'} solid ${parseColor(borderColor) || `var(--${color}-${Math.max(100, shade - 200)})`}`
         : 'none';
 
-    const panelStyle = isMinimized ? {
-        position: 'fixed', bottom: '30px', right: '30px',
-        width: '280px', height: '60px', minWidth: 'unset', maxWidth: 'unset',
-        background: getBackground(), boxShadow: getShadow(),
-        borderRadius: getBorderRadius(), border: borderVal,
-        cornerShape: getCornerShape(),
-        overflow: 'hidden', display: 'flex', flexDirection: 'row',
-        alignItems: 'center', zIndex: 1001,
-    } : isMaximized ? {
-        position: 'fixed', top: '30px', right: '30px', bottom: '30px', left: '30px',
-        width: 'auto', height: 'auto', minWidth: 'unset', maxWidth: 'unset',
-        background: getBackground(), boxShadow: getShadow(),
-        borderRadius: getBorderRadius(), border: borderVal,
-        cornerShape: getCornerShape(),
-        overflow: 'hidden', display: 'flex', flexDirection: 'column', zIndex: 1001,
-    } : {
-        width, minWidth, maxWidth,
-        background: getBackground(), boxShadow: getShadow(),
-        borderRadius: getBorderRadius(), border: borderVal,
-        cornerShape: getCornerShape(),
-        ...style,
-    };
+const sidebarTransition = 'width 0.42s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.42s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.42s ease';
+
+const panelStyle = isMinimized ? {
+    position: 'fixed', bottom: '30px', right: '30px',
+    width: '280px', height: '60px', top: 'auto',
+    background: getBackground(), boxShadow: getShadow(),
+    borderRadius: '20px', border: borderVal,
+    cornerShape: getCornerShape(),
+    overflow: 'hidden', display: 'flex', flexDirection: 'row',
+    alignItems: 'center', zIndex: 1001,
+    transition: sidebarTransition,
+} : isMaximized ? {
+    position: 'fixed', top: '30px', right: '30px', bottom: '30px',
+    width: 'calc(100vw - 60px)',
+    background: getBackground(), boxShadow: getShadow(),
+    borderRadius: getBorderRadius(), border: borderVal,
+    cornerShape: getCornerShape(),
+    overflow: 'hidden', display: 'flex', flexDirection: 'column', zIndex: 1001,
+    transition: sidebarTransition,
+} : {
+    position: 'fixed', top: '30px', right: '30px', bottom: '30px',
+    width: panelWidth || width, minWidth, maxWidth,
+    background: getBackground(), boxShadow: getShadow(),
+    borderRadius: getBorderRadius(), border: borderVal,
+    cornerShape: getCornerShape(),
+    overflow: 'hidden', display: 'flex', flexDirection: 'column', zIndex: 1001,
+    transition: sidebarTransition,
+    ...style,
+};
 
     const titleStyle = {
         fontSize: fontMap?.[titleSize] || '2rem',
@@ -509,6 +617,9 @@ const Sidebar = ({
                 onClick={(e) => e.stopPropagation()}
                 {...props}
             >
+                {!isMaximized && !isMinimized && (
+                    <div className="sidebar-resize-handle" onMouseDown={startResize} />
+                )}
                 {/* Header */}
                 <div className={`sidebar-header ${headerClassName}`} style={{ background: headerBgColor ? parseColor(headerBgColor) : 'transparent' }}>
                     <div className="sidebar-header-left">
@@ -526,7 +637,7 @@ const Sidebar = ({
                                     style={{ width: trafficLightSize, height: trafficLightSize, background: maximizeColor }} />
                             )}
                         </div>
-                        {isOnSecondaryScreen && (
+                        {isOnSecondaryScreen && !isMaximized && (
                             <button className="sidebar-back-btn" onClick={popScreen} title="Back"
                                 style={{ width: backButtonSize, height: backButtonSize, background: backColor }} />
                         )}
@@ -537,14 +648,98 @@ const Sidebar = ({
                 </div>
 
                 {/* Body */}
-                <div className={`sidebar-body ${bodyClassName}`} style={bodyStyle}>
+                <div className={`sidebar-body ${bodyClassName}`} style={isMaximized ? { ...bodyStyle, padding: 0, flexDirection: 'row' } : bodyStyle}>
                     {isLoading
                         ? (loader || <div className="sidebar-loader-default" />)
-                        : currentScreen
-                            ? currentScreen.content
-                            : typeof children === 'function'
-                                ? children({ pushScreen, popScreen })
-                                : children
+                            : isMaximized
+                               ? (
+                                  <>
+                                      {/* Column 1 — always visible */}
+                                      <div className="sidebar-split-pane">
+                                          {splitColumns === 1
+                                                ? (currentTertiary
+                                                    ? <>
+                                                        <div className="sidebar-split-pane-title-row">
+                                                            {tertiaryStack.length > 1 && <button className="sidebar-split-back-btn" onClick={popTertiary}>←</button>}
+                                                            <div className="sidebar-split-pane-title">{currentTertiary.title}</div>
+                                                        </div>
+                                                        {currentTertiary.content}
+                                                     </>
+                                                   : secondaryScreen
+                                                       ? <>
+                                                           <div className="sidebar-split-pane-title">{secondaryScreen.title}</div>
+                                                          {secondaryScreen.content}
+                                                         </>
+                                                       : (typeof children === 'function' ? children({ pushScreen, pushTertiary, popScreen }) : children)
+                                               )
+                                               : (typeof children === 'function' ? children({ pushScreen, pushTertiary, popScreen }) : children)
+                                           }
+                                       </div>
+                            
+                                        {/* Column 2 — visible at 2+ columns */}
+                                        {splitColumns >= 2 && (
+                                            <div className="sidebar-split-pane sidebar-split-pane-right">
+                                                {splitColumns === 2
+                                                    ? (currentTertiary
+                                                        ? <>
+                                                            <div className="sidebar-split-pane-title-row">
+                                                                {tertiaryStack.length > 1 && <button className="sidebar-split-back-btn" onClick={popTertiary}>←</button>}
+                                                                <div className="sidebar-split-pane-title">{currentTertiary.title}</div>
+                                                            </div>
+                                                            {currentTertiary.content}
+                                                          </>
+                                                        : secondaryScreen
+                                                            ? <>
+                                                                <div className="sidebar-split-pane-title">{secondaryScreen.title}</div>
+                                                                {secondaryScreen.content}
+                                                              </>
+                                                           : <div className="sidebar-split-placeholder">
+                                                               <span className="sidebar-split-placeholder-icon">↖</span>
+                                                               <p>Select an item from the left to view details here</p>
+                                                              </div>
+                                                    )
+                                                    : (secondaryScreen
+                                                        ? <>
+                                                            <div className="sidebar-split-pane-title">{secondaryScreen.title}</div>
+                                                            {secondaryScreen.content}
+                                                          </>
+                                                        : <div className="sidebar-split-placeholder">
+                                                            <span className="sidebar-split-placeholder-icon">↖</span>
+                                                            <p>Select an item from the left to view details here</p>
+                                                          </div>
+                                                    )
+                                                }
+                                            </div>
+                                        )}
+                            
+                                        {/* Column 3 — visible at 3 columns */}
+                                        {splitColumns >= 3 && (
+                                            <div className="sidebar-split-pane sidebar-split-pane-right">
+                                                {currentTertiary ? (
+                                                    <>
+                                                        <div className="sidebar-split-pane-title-row">
+                                                            {tertiaryStack.length > 1 && <button className="sidebar-split-back-btn" onClick={popTertiary}>←</button>}
+                                                            <div className="sidebar-split-pane-title">{currentTertiary.title}</div>
+                                                        </div>
+                                                        {currentTertiary.content}
+                                                    </>
+                                                ) : (
+                                                    <div className="sidebar-split-placeholder">
+                                                        <span className="sidebar-split-placeholder-icon">↖</span>
+                                                        <p>Select an item from the middle panel to view more details here</p>
+                                                 </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
+                             )
+                            : currentTertiary
+                                ? currentTertiary.content
+                                : secondaryScreen
+                                    ? secondaryScreen.content
+                                    : typeof children === 'function'
+                                        ? children({ pushScreen, pushTertiary, popScreen })
+                                        : children
                     }
                 </div>
 
