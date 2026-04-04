@@ -353,7 +353,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
     const url = urlMap[deleteReport.serviceType] || urlMap.maintenance;
     const res  = await apiRequest(url, 'DELETE');
     const data = await res.json();
-    if (data.success) window.location.reload();
+    if (data.ok) window.location.reload();
   };
 
   // ─────────────────────────────────────────────────────────────────────────

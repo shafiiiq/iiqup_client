@@ -45,16 +45,21 @@ const EMPTY_OUTSIDE_FORM = {
 const EMPTY_DEMOBILIZE_FORM = { date: '', time: '', remarks: '' };
 
 const EMPTY_MOBILIZE_FORM = {
-  site: '', operator: '', operatorId: '', withOperator: false,
+  site: '', operator: '', operatorId: '', operators: [], withOperator: false, withShift: false, moreShifts: false,
   remarks: '', deployType: 'site', clientCompany: '', date: '', time: '',
   isOneDayMob: false, demobDate: '', demobTime: '', demobRemarks: '',
+  location: '', rentRate: { basis: '', rate: '' }, 'rentRate.basis': '', 'rentRate.rate':  '',
 };
 
 const EMPTY_REPLACE_OPERATOR_FORM = {
   currentOperator: '', currentOperatorId: '',
-  replacedOperator: '', replacedOperatorId: '', remarks: '', date: '', time: ''
+  replacedOperator: '', replacedOperatorId: '',
+  targetShiftName: '', shiftName: '', shiftStart: '', shiftEnd: '',
+  remarks: '', date: '', time: '',
+  allShifts: [],
+  selectedShift: '',
+  replaceAll: false,  
 };
-
 const EMPTY_REPLACE_EQUIPMENT_FORM = {
   replacedEquipmentId: '', replacedEquipmentRegNo: '',
   replacedEquipmentMachine: '', newSiteForReplaced: '', remarks: '', date: '', time: '',
@@ -414,14 +419,22 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       ? (() => { const d = new Date(mobilizeForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: mobilizeForm.time || getCurrentDateTime().time }; })()
       : { ...getCurrentDateTime(), time: mobilizeForm.time || getCurrentDateTime().time };
 
-    const found = operator.find(op => op.name === mobilizeForm.operator);
     const payload = {
       equipmentId: selectedEquipmentForAction._id,
       regNo: selectedEquipmentForAction.regNo,
       machine: selectedEquipmentForAction.machine,
       site: mobilizeForm.deployType === 'site' ? mobilizeForm.site : '',
-      operator: mobilizeForm.withOperator ? mobilizeForm.operator : null,
-      operatorId: mobilizeForm.withOperator ? (found?._id || found?.id || '') : null,
+      location: mobilizeForm.location || null,
+      rentRate: (mobilizeForm['rentRate.rate'] || mobilizeForm['rentRate.basis'])
+       ? { basis: mobilizeForm['rentRate.basis'] || 'daily', rate: Number(mobilizeForm['rentRate.rate']) || 0, currency: 'QAR' }
+        : null,
+      operators: mobilizeForm.withOperator
+        ? (mobilizeForm.withShift
+            ? mobilizeForm.operators
+            : mobilizeForm.operator
+              ? [{ operatorName: mobilizeForm.operator, operatorId: mobilizeForm.operatorId, shiftStart: '', shiftEnd: '', shiftName: '' }]
+              : [])
+        : [],
       withOperator: mobilizeForm.withOperator,
       deployType: mobilizeForm.deployType,
       clientCompany: mobilizeForm.deployType === 'company' ? mobilizeForm.clientCompany : '',
@@ -504,16 +517,27 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
   // Replace Operator
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleReplaceOperatorClick = (e, equipment) => {
-    e.stopPropagation();
-    triggerVibration();
+  const handleReplaceOperatorClick = (e, equipment, shiftEntry = null) => {
+   e.stopPropagation();
+   triggerVibration();
     setSelectedEquipmentForAction(equipment);
+
+    const allShifts  = equipment.certificationBody || [];
+    const isSingle   = allShifts.length <= 1;
+    const entry      = shiftEntry || (isSingle ? allShifts[0] : null);
+
     setReplaceOperatorForm({
-      currentOperator: getOperatorName(equipment.certificationBody),
-      currentOperatorId: getOperatorId(equipment.certificationBody, operator),
-      replacedOperator: '', replacedOperatorId: '', remarks: '',
-    });
-    setShowReplaceOperatorModal(true);
+      currentOperator:   entry?.operatorName  || '',
+      currentOperatorId: entry?.operatorId    || '',
+      targetShiftName:   entry?.shiftName     || '',
+      shiftName:         entry?.shiftName     || '',
+     shiftStart:        entry?.shiftStart    || '',
+      shiftEnd:          entry?.shiftEnd      || '',
+      replacedOperator: '', replacedOperatorId: '', remarks: '', date: '', time: '',
+      allShifts,
+      selectedShift: isSingle ? (entry?.shiftName || entry?.operatorName || '') : '',
+   });
+   setShowReplaceOperatorModal(true);
   };
 
   const handleReplaceOperatorSubmit = async (e) => {
@@ -523,14 +547,23 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     const { month, year, time } = replaceOperatorForm.date
       ? (() => { const d = new Date(replaceOperatorForm.date); return { month: d.getMonth() + 1, year: d.getFullYear(), time: replaceOperatorForm.time || getCurrentDateTime().time }; })()
       : { ...getCurrentDateTime(), time: replaceOperatorForm.time || getCurrentDateTime().time };
-    const payload = {
-      equipmentId: selectedEquipmentForAction._id,
-      regNo: selectedEquipmentForAction.regNo,
-      machine: selectedEquipmentForAction.machine,
-      ...replaceOperatorForm,
-      month, year, time,
-      selectedDate: replaceOperatorForm.date || null,
-    };
+      const payload = {
+        equipmentId:        selectedEquipmentForAction._id,
+        regNo:              selectedEquipmentForAction.regNo,
+        machine:            selectedEquipmentForAction.machine,
+        currentOperator:    replaceOperatorForm.currentOperator,
+        currentOperatorId:  replaceOperatorForm.currentOperatorId,
+        replacedOperator:   replaceOperatorForm.replacedOperator,
+        replacedOperatorId: replaceOperatorForm.replacedOperatorId,
+       targetShiftName:    replaceOperatorForm.targetShiftName || '',
+        shiftName:          replaceOperatorForm.shiftName       || '',
+       shiftStart:         replaceOperatorForm.shiftStart      || '',
+       shiftEnd:           replaceOperatorForm.shiftEnd        || '',
+       remarks:            replaceOperatorForm.remarks         || '',
+       replaceAll:         replaceOperatorForm.replaceAll      || false, 
+       month, year, time,
+       selectedDate: replaceOperatorForm.date || null,
+      };
 
     try {
       const response = await apiRequest(`${END_POINT}/equipments/replace-operator`, 'POST', payload);

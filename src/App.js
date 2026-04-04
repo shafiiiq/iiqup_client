@@ -43,6 +43,7 @@ import BackchargeList          from './Components/BackchargeList/BackchargeList'
 import FormNavigation          from './Components/FormNavigation/FormNavigation';
 import OperationsActivities    from './Components/OperationsActivities/OperationsActivities';
 import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';
+import MultiRecord             from './Components/MultiRecord/MultiRecord';
 
 // ── Common / Shared Components ───────────────────────────────────────────────
 import Header            from './Components/Common/Header/Header';
@@ -82,7 +83,7 @@ const VALID_ROUTES = [
   '/mechanics', '/mechanics-forms', '/operators', '/live-chat',
   '/splash', '/intro', '/not-found', '/dev-modal',
   '/stocks/equipment-stocks', '/service-histoy/summary', '/lpo-list',
-  '/operations-recent-activities',
+  '/operations-recent-activities', '/batch-service-form',
 ];
 
 const VALID_PREFIXES = [
@@ -91,7 +92,7 @@ const VALID_PREFIXES = [
   '/battery-history/', '/service-history-form/', '/tyre-history-form/',
   '/battery-history-form/', '/maintenance-history-form/',
   '/equipment-stocks-form/', '/documents/', '/backcharge-doc/',
-  '/complaints/', '/lpo-form/', '/lpo-doc/', '/lpo-list/',
+  '/complaints/', '/lpo-form/', '/lpo-doc/', '/lpo-list/', '/batch-service-form',
 ];
 
 /** Returns true if the given pathname is a known app route. */
@@ -388,6 +389,7 @@ function App() {
 
                     {/* ── Service Forms ────────────────────────────────────── */}
 
+                    <Route path="/batch-service-form/:regNo?"                              element={<MultiRecord />} />
                     <Route path="/service-form-nav/:regNo"                                 element={<ProtectedRoute><FormNavigation />                                  </ProtectedRoute>} />
                     <Route path="/service-form/:serviceType/:historyId"                    element={<ProtectedRoute><ServiceForm />                                     </ProtectedRoute>} />
                     <Route path="/service-form/update/:serviceType/:reportId"              element={<ProtectedRoute><ServiceForm />                                     </ProtectedRoute>} />

@@ -162,8 +162,18 @@ function EquipmentCard({
 
         <div className="card-details-grid">
           <div className="detail-item-equipment">
-            <span className="detail-label">Operator</span>
-            <span className="detail-value">{getOperatorName(item.certificationBody)}</span>
+            <span className="detail-label">Operator{item.certificationBody?.length > 1 ? 's' : ''}</span>
+            <span className="detail-value">
+              {item.certificationBody?.length > 0
+                ? item.certificationBody.map((cb, i) => (
+                    <span key={i} style={{ display: 'block', fontSize: '18px' }}>
+                      {cb.operatorName}
+                      {cb.shiftStart && cb.shiftEnd ? ` (${cb.shiftStart}–${cb.shiftEnd})` : ''}
+                    </span>
+                  ))
+                : 'N/A'
+              }
+            </span>
           </div>
           <div className="detail-item-equipment">
             <span className="detail-label">Site</span>

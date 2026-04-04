@@ -111,7 +111,7 @@
   margin-bottom: 1rem;
 }
 
-.toolkit-details {
+/* .toolkit-details {
   position: fixed;
   top: 0;
   right: 0;
@@ -128,13 +128,13 @@
   flex-direction: column;
   border-radius: var(--radius-6xl) var(--radius-none) var(--radius-none) var(--radius-6xl);
   corner-shape: squircle;
-}
+} */
 
-.toolkit-details::-webkit-scrollbar {
+/* .toolkit-details::-webkit-scrollbar {
   display: none;
-}
+} */
 
-.details-header {
+/* .details-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -143,7 +143,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
-}
+} */
 
 .details-content {
   display: flex;

@@ -93,6 +93,10 @@ const ServiceHistory = () => {
 
   // ── Navigation Handlers ────────────────────────────────────────────────────
 
+  const addMutiServices = () => {
+    navigate(`/batch-service-form/${regNoArray[0]}`);
+  };
+
   const handleAddService = () => {
     const routes = {
       normal:      `/service-history-form/${regNoArray[0]}`,
@@ -158,6 +162,7 @@ const ServiceHistory = () => {
           <Button {...BAR_BTN} text={viewAllLabel}  onClick={handleViewAllDocuments}               colorScheme="lime-800"    width="fit-content" textColor="white-200" />
         </div>
         <div className="action-buttons right">
+          <Button {...BAR_BTN} text='Multiple Records'  onClick={addMutiServices}      colorScheme="info-800"     width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text={addServiceLabel}   onClick={handleAddService}      colorScheme="info-800"     width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Export to Excel"   onClick={handleExportToExcel}  colorScheme="primary-800"  width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Print"             onClick={handlePrint}           colorScheme="success-800"  width="160px" textColor="white-200" />

@@ -388,7 +388,7 @@ body.dark-theme .status-badge.loading {
   }
 }
 
-.sidebar-header {
+/* .sidebar-header {
   padding: 24px;
   display: flex;
   justify-content: space-between;
@@ -399,7 +399,7 @@ body.dark-theme .status-badge.loading {
   position: sticky;
   top: 0;
   z-index: 10;
-}
+} */
 
 .sidebar-header h2 {
   margin: 0;

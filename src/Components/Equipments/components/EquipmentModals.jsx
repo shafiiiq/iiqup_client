@@ -125,6 +125,9 @@ function EquipmentModals({
   mobilizeForm,
   selectedEquipmentForAction,
   onMobilizeFormChange,
+  onMobilizeOperatorAdd,
+  onMobilizeOperatorChange,
+  onMobilizeOperatorRemove,
   onMobilizeSubmit,
   onMobilizeClose,
 
@@ -321,6 +324,14 @@ function EquipmentModals({
           { name: 'deployType',     label: 'Deploy To',             type: 'select',        required: true, options: [{ value: 'site',   label: 'Site' }, { value: 'company', label: 'Client Company (Lease)' }] },
           { name: 'site',           label: 'Site',                  type: 'search-select', placeholder: 'Search or add site...',        required: mobilizeForm.deployType === 'site',    disabled: mobilizeForm.deployType === 'company',  options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'clientCompany',  label: 'Client Company',        type: 'text',          placeholder: 'Enter client company name',    disabled: mobilizeForm.deployType === 'site' },
+          { name: 'location',       label: 'Location (Optional)',    type: 'search-select', placeholder: 'Search or add location...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
+          { name: 'rentRate.basis', label: 'Rent Basis (Optional)',  type: 'select', options: [
+           { value: 'daily',   label: 'Daily'   },
+            { value: 'hourly',  label: 'Hourly'  },
+            { value: 'weekly',  label: 'Weekly'  },
+            { value: 'monthly', label: 'Monthly' },
+          ]},
+          { name: 'rentRate.rate',  label: 'Rent Rate QAR (Optional)', type: 'number', placeholder: 'Enter rate amount' },
           { name: 'date',           label: 'Date (Optional)',       type: 'date' },
           { name: 'time',           label: 'Time (Optional)',       type: 'time' },
           { name: 'remarks',        label: 'Remarks (Optional)',    type: 'textarea',      placeholder: 'Add any additional notes' },
@@ -328,8 +339,55 @@ function EquipmentModals({
           { name: 'demobDate',      label: 'Demob Date',            type: 'date',          required: mobilizeForm.isOneDayMob,           disabled: !mobilizeForm.isOneDayMob },
           { name: 'demobTime',      label: 'Demob Time (Optional)', type: 'time',          disabled: !mobilizeForm.isOneDayMob },
           { name: 'demobRemarks',   label: 'Demob Remarks',         type: 'textarea',      placeholder: 'Add demob notes',               disabled: !mobilizeForm.isOneDayMob },
-          { name: 'withOperator',   label: 'With Operator',         type: 'checkbox',      description: 'Check if equipment has an operator' },
-          { name: 'operator',       label: 'Operator Name',         type: 'search-select', placeholder: 'Search operator...',            required: mobilizeForm.withOperator,             disabled: !mobilizeForm.withOperator,            options: operatorOptions(operator) },
+          { name: 'withOperator', label: 'With Operator', type: 'checkbox', description: 'Check if equipment is deployed with an operator' },
+
+          // ── Single operator (no shift) ─────────────────────────────────────────────
+          ...(mobilizeForm.withOperator && !mobilizeForm.withShift ? [
+            { name: 'operator', label: 'Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
+          ] : []),
+
+          // ── Multiple shifts checkbox (shows when withOperator is on) ───────────────
+          ...(mobilizeForm.withOperator ? [
+            { name: 'withShift', label: 'Multiple Shifts', type: 'checkbox', description: 'Enable if operators work in different shifts' },
+          ] : []),
+
+          // ── PRIMARY: Day / Night fixed slots ──────────────────────────────────────
+          ...(mobilizeForm.withOperator && mobilizeForm.withShift && !mobilizeForm.moreShifts ? [
+            { name: 'operators[0].operatorName', label: 'Day Shift Operator',   type: 'search-select', placeholder: 'Search operator...', options: operatorOptions(operator) },
+            { name: 'operators[1].operatorName', label: 'Night Shift Operator', type: 'search-select', placeholder: 'Search operator...', options: operatorOptions(operator) },
+            { name: 'moreShifts', label: 'More Shifts', type: 'checkbox', description: 'Add additional custom shifts beyond day and night' },
+          ] : []),
+
+          // ── SECONDARY: dynamic add/remove rows ────────────────────────────────────
+          ...(mobilizeForm.withOperator && mobilizeForm.withShift && mobilizeForm.moreShifts ? [
+            { name: 'moreShifts', label: 'More Shifts', type: 'checkbox', description: 'Add additional custom shifts beyond day and night' },
+            ...mobilizeForm.operators.flatMap((op, index) => [
+              {
+                name: `operators[${index}].operatorName`,
+                label: index === 0 ? 'Operator' : `Operator ${index + 1}`,
+                type: 'search-select', placeholder: 'Search operator...', required: true,
+                options: operatorOptions(operator), groupKey: `operator-row-${index}`,
+              },
+              {
+                name: `operators[${index}].shiftStart`,
+                label: index === 0 ? 'Shift Start (optional)' : `Shift Start ${index + 1} (optional)`,
+                type: 'time', groupKey: `operator-row-${index}`,
+              },
+              {
+                name: `operators[${index}].shiftEnd`,
+                label: index === 0 ? 'Shift End (optional)' : `Shift End ${index + 1} (optional)`,
+                type: 'time', groupKey: `operator-row-${index}`,
+                groupAction: { onDelete: () => onMobilizeOperatorRemove(index), isLast: true },
+              },
+            ]),
+            {
+              name: '__add-operator-row', type: 'add-row-button', label: '+ Add Shift',
+              onAddRow: onMobilizeOperatorAdd,
+              onRemoveRow: mobilizeForm.operators.length > 0
+                ? () => onMobilizeOperatorRemove(mobilizeForm.operators.length - 1)
+                : undefined,
+            },
+          ] : []),
         ]}
         formValues={mobilizeForm}
         onFormChange={onMobilizeFormChange}
@@ -380,11 +438,36 @@ function EquipmentModals({
         title={`Replace Operator - ${selectedEquipmentForAction?.regNo || ''}`}
         message="Enter the new operator details"
         formFields={[
-          { name: 'currentOperator',  label: 'Current Operator',    type: 'text',          disabled: true },
-          { name: 'replacedOperator', label: 'New Operator',        type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
-          { name: 'date',             label: 'Date (Optional)',     type: 'date' },
-          { name: 'time',             label: 'Time (Optional)',     type: 'time' },
-          { name: 'remarks',          label: 'Remarks (Optional)',  type: 'textarea',      placeholder: 'Reason for replacement or notes' },
+          // only show if multiple shifts exist
+          ...(replaceOperatorForm.allShifts?.length > 1 ? [{
+            name:        'replaceAll',
+            label:       'Replace All Operators',
+            type:        'checkbox',
+            description: 'Replace all shift operators with a single new operator',
+          }] : []),
+
+          // shift selector — only when NOT replacing all
+          ...(replaceOperatorForm.allShifts?.length > 1 && !replaceOperatorForm.replaceAll ? [{
+            name:     'selectedShift',
+            label:    'Select Operator to Replace',
+            type:     'select',
+            required: true,
+            options:  replaceOperatorForm.allShifts.map(s => ({
+              value: s.shiftName || s.operatorName,
+              label: s.shiftName ? `${s.shiftName} — ${s.operatorName}` : s.operatorName,
+            })),
+          }] : []),
+
+          // show current operator only when NOT replacing all
+          ...(!replaceOperatorForm.replaceAll ? [
+            { name: 'currentOperator',  label: 'Current Operator',     type: 'text', disabled: true },
+            { name: 'targetShiftName',  label: 'Shift Being Replaced', type: 'text', disabled: true },
+          ] : []),
+
+          { name: 'replacedOperator', label: replaceOperatorForm.replaceAll ? 'New Operator (All Shifts)' : 'New Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
+          { name: 'date',    label: 'Date (Optional)',    type: 'date' },
+          { name: 'time',    label: 'Time (Optional)',    type: 'time' },
+          { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Reason for replacement or notes' },
         ]}
         formValues={replaceOperatorForm}
         onFormChange={onReplaceOperatorFormChange}

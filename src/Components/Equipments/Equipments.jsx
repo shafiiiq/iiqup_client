@@ -299,7 +299,42 @@ function Equipments() {
         mobilizeForm={actions.mobilizeForm}
         selectedEquipmentForAction={actions.selectedEquipmentForAction}
         onMobilizeFormChange={(field, value) => {
-          if (field === 'operator') {
+          const operatorMatch = field.match(/^operators\[(\d+)\]\.(.+)$/);
+          if (operatorMatch) {
+            const index = parseInt(operatorMatch[1]);
+            const subField = operatorMatch[2];
+            actions.setMobilizeForm(prev => {
+              const updated = [...prev.operators];
+              if (subField === 'operatorName') {
+                const op = data.operator.find(o => o.name === value);
+                updated[index] = { ...updated[index], operatorName: value, operatorId: op?._id || op?.id || '' };
+              } else {
+                updated[index] = { ...updated[index], [subField]: value };
+              }
+              return { ...prev, operators: updated };
+            });
+          } else if (field === 'withShift') {
+            // turning on withShift → seed Day + Night slots, reset moreShifts
+            actions.setMobilizeForm(prev => ({
+              ...prev,
+              withShift: value,
+              moreShifts: false,
+              operators: value ? [
+                { operatorName: '', operatorId: '', shiftName: 'Day Shift',   shiftStart: '', shiftEnd: '' },
+                { operatorName: '', operatorId: '', shiftName: 'Night Shift', shiftStart: '', shiftEnd: '' },
+              ] : [],
+            }));
+          } else if (field === 'moreShifts') {
+            // switching to more-shifts mode keeps existing operators; unchecking reseeds Day/Night
+            actions.setMobilizeForm(prev => ({
+              ...prev,
+              moreShifts: value,
+              operators: !value ? [
+                { operatorName: '', operatorId: '', shiftName: 'Day Shift',   shiftStart: '', shiftEnd: '' },
+                { operatorName: '', operatorId: '', shiftName: 'Night Shift', shiftStart: '', shiftEnd: '' },
+              ] : prev.operators,
+            }));
+          } else if (field === 'operator') {
             const op = data.operator.find(o => o.name === value);
             actions.setMobilizeForm(prev => ({ ...prev, operator: value, operatorId: op?._id || op?.id || '' }));
           } else if (field === 'deployType') {
@@ -312,6 +347,30 @@ function Equipments() {
           } else {
             actions.setMobilizeForm(prev => ({ ...prev, [field]: value }));
           }
+        }}
+        onMobilizeOperatorAdd={() => {
+          actions.setMobilizeForm(prev => ({
+            ...prev,
+            operators: [...prev.operators, { operatorName: '', operatorId: '', shiftName: '', shiftStart: '', shiftEnd: '' }]
+          }));
+        }}
+        onMobilizeOperatorChange={(index, field, value) => {
+          actions.setMobilizeForm(prev => {
+            const updated = [...prev.operators];
+            if (field === 'operatorName') {
+              const op = data.operator.find(o => o.name === value);
+              updated[index] = { ...updated[index], operatorName: value, operatorId: op?._id || op?.id || '', shiftName: value };
+            } else {
+              updated[index] = { ...updated[index], [field]: value };
+            }
+            return { ...prev, operators: updated };
+          });
+        }}
+        onMobilizeOperatorRemove={(index) => {
+          actions.setMobilizeForm(prev => ({
+            ...prev,
+            operators: prev.operators.filter((_, i) => i !== index)
+          }));
         }}
         onMobilizeSubmit={actions.handleMobilizeSubmit}
         onMobilizeClose={actions.closeMobilizeModal}
@@ -327,13 +386,43 @@ function Equipments() {
         showReplaceOperatorModal={actions.showReplaceOperatorModal}
         replaceOperatorForm={actions.replaceOperatorForm}
         onReplaceOperatorFormChange={(field, value) => {
-          if (field === 'replacedOperator') {
+          if (field === 'selectedShift') {
+            // find the shift by shiftName or operatorName and populate the fields
+            const entry = actions.replaceOperatorForm.allShifts.find(
+              s => (s.shiftName || s.operatorName) === value
+            );
+            actions.setReplaceOperatorForm(prev => ({
+              ...prev,
+              selectedShift:     value,
+              currentOperator:   entry?.operatorName  || '',
+              currentOperatorId: entry?.operatorId    || '',
+              targetShiftName:   entry?.shiftName     || '',
+              shiftName:         entry?.shiftName     || '',
+              shiftStart:        entry?.shiftStart    || '',
+              shiftEnd:          entry?.shiftEnd      || '',
+            }));
+          } else if (field === 'replacedOperator') {
             const op = data.operator.find(o => o.name === value);
-            actions.setReplaceOperatorForm(prev => ({ ...prev, replacedOperator: value, replacedOperatorId: op?._id || op?.id || '' }));
+            actions.setReplaceOperatorForm(prev => ({
+              ...prev,
+              replacedOperator:   value,
+              replacedOperatorId: op?._id || op?.id || '',
+            }));
+          } else if (field === 'replaceAll') {
+              actions.setReplaceOperatorForm(prev => ({
+              ...prev,
+              replaceAll:        value,
+              // clear the shift-specific fields when switching to replaceAll
+              selectedShift:     '',
+              currentOperator:   '',
+              currentOperatorId: '',
+              targetShiftName:   '',
+            }));
           } else {
             actions.setReplaceOperatorForm(prev => ({ ...prev, [field]: value }));
           }
         }}
+        onReplaceOperatorClick={actions.handleReplaceOperatorClick}
         onReplaceOperatorSubmit={actions.handleReplaceOperatorSubmit}
         onReplaceOperatorClose={actions.closeReplaceOperatorModal}
         // Replace equipment

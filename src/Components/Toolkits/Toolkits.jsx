@@ -8,6 +8,7 @@ import DevModal from '../../Common/DevModal/DevModal';
 import Button from '../../Common/Button/Button';
 import Input from '../../Common/Input/Input';
 import Loader from '../../Common/Loader/Loader';
+import Sidebar, { SidebarSection, SidebarRow, SidebarTable, SidebarActions, SidebarInput } from '../../Common/Sidebar/Sidebar';
 
 const Toolkits = () => {
   const userDropdownRef = useRef(null);
@@ -33,6 +34,8 @@ const Toolkits = () => {
   const [showStockHistory, setShowStockHistory] = useState(false);
   const [stockHistory, setStockHistory] = useState([]);
   const [formMode, setFormMode] = useState('add');
+  const [sidebarMinimized, setSidebarMinimized] = useState(false);
+  const [sidebarMaximized, setSidebarMaximized] = useState(false);
   const [variantFormMode, setVariantFormMode] = useState('add');
   const [exporting, setExporting] = useState(false);
   const [formData, setFormData] = useState({
@@ -326,21 +329,78 @@ const Toolkits = () => {
     setShowStockHistory(false);
   };
 
-  const showVariantDetails = async (variant, toolkit) => {
-    setSelectedToolkit(toolkit);
+  const showVariantDetails = async (variant, toolkit, pushScreen) => {
     setSelectedVariant(variant);
-    setShowStockHistory(false);
-
+    let history = [];
     try {
       const response = await apiRequest(`${END_POINT}/toolkits/stock-history/${toolkit._id}/${variant._id}`);
       if (!response.ok) throw new Error('Failed to fetch stock history');
       const result = await response.json();
-
-      setStockHistory(result.data.stockHistory);
+      history = result.data.stockHistory;
+      setStockHistory(history);
     } catch (err) {
-      console.error('Error fetching stock history:', err);
       setStockHistory([]);
     }
+    const status = calculateStatus(variant.stockCount, variant.minStockLevel);
+    const statusLabel = status === 'available' ? 'In Stock' : status === 'low' ? 'Low Stock' : 'Out of Stock';
+    pushScreen({
+      title: `${variant.size} — ${variant.color}`,
+      content: (
+        <>
+          <SidebarActions
+            position="left"
+            gap="8px"
+            buttons={[
+              { label: 'Reduce Stock', onClick: openReduceStockModal, colorScheme: 'pink-800', textColor: 'white-100', squircle: '6xl', font: 'sm', height: '34px' },
+              { label: 'Edit', onClick: () => openUpdateVariantForm(variant, toolkit), colorScheme: 'violet-800', textColor: 'white-100', squircle: '6xl', font: 'sm', height: '34px' },
+              { label: 'Delete', onClick: () => deleteVariant(toolkit._id, variant._id), colorScheme: 'red-800', textColor: 'white-100', squircle: '6xl', font: 'sm', height: '34px' },
+            ]}
+          />
+          <SidebarSection title="Variant Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+            <SidebarRow label="Tool Name" value={String(toolkit.name)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="Size" value={String(variant.size)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="Color" value={String(variant.color)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="Stock" value={String(variant.stockCount)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="Min Level" value={String(variant.minStockLevel)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="Status" value={statusLabel} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="In Use" value={variant.inuse ? 'Yes' : 'No'} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="First Added" value={formatDate(variant.firstAddedDate)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+            <SidebarRow label="Last Updated" value={formatDate(variant.lastUpdatedDate)} labelFontSize="15px" valueFontSize="15px" colorScheme="amber-600" variant="gradient" />
+          </SidebarSection>
+          <SidebarSection title="Barcode" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+            <Barcode value={variant._id} width={1.8} height={50} displayValue={true} fontSize={12} />
+          </SidebarSection>
+          <SidebarSection title="Stock History" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+            <SidebarTable
+              rowGap="5px"
+              gap="10px"
+              headGrad="amber-700"
+              headGradVariant="gradient"
+              rowGrad="amber-400"
+              rowGradVariant="gradient"
+              rowAltGrad="amber-500"
+              rowAltGradVariant="gradient"
+              columns={[
+                { key: 'date', label: 'Date', flex: 2 },
+                { key: 'action', label: 'Action', flex: 1 },
+                { key: 'prev', label: 'Prev', flex: 1, align: 'center' },
+                { key: 'change', label: 'Change', flex: 1, align: 'center' },
+                { key: 'newStock', label: 'New', flex: 1, align: 'center' },
+                { key: 'reason', label: 'Reason', flex: 2 },
+              ]}
+              rows={history.map(h => ({
+                date: formatDate(h.assignedDate),
+                action: h.action,
+                prev: String(h.previousStock),
+                change: (h.changeAmount > 0 ? '+' : '') + h.changeAmount,
+                newStock: String(h.newStock),
+                reason: h.reason,
+              }))}
+            />
+          </SidebarSection>
+        </>
+      )
+    });
   };
 
   const openAddForm = () => {
@@ -804,7 +864,7 @@ const Toolkits = () => {
           variant="gradient"
           font="md"
           animation=""
-          squircle="4xl"
+          squircle="6xl"
           width="160px"
           height="38px"
           type="submit"
@@ -822,7 +882,7 @@ const Toolkits = () => {
           variant="gradient"
           font="md"
           animation=""
-          squircle="4xl"
+          squircle="6xl"
           width="160px"
           height="38px"
           type="submit"
@@ -837,7 +897,7 @@ const Toolkits = () => {
           variant="gradient"
           font="md"
           animation=""
-          squircle="4xl"
+          squircle="6xl"
           width="160px"
           height="38px"
           type="submit"
@@ -852,7 +912,7 @@ const Toolkits = () => {
           variant="gradient"
           font="md"
           animation=""
-          squircle="4xl"
+          squircle="6xl"
           width="160px"
           height="38px"
           type="submit"
@@ -900,7 +960,7 @@ const Toolkits = () => {
                       variant="gradient"
                       font="md"
                       animation=""
-                      squircle="4xl"
+                      squircle="6xl"
                       width="160px"
                       height="38px"
                       type="submit"
@@ -917,511 +977,178 @@ const Toolkits = () => {
       )}
 
       {/* Selected toolkit details sidebar */}
-      {selectedToolkit && (
-        <div className="toolkit-details">
-          <div className="details-header">
-            <h2>Toolkit Details</h2>
-            <button className="close-btn"
-              onClick={() => {
-                setSelectedToolkit(null)
-                setVariantSearchTerm('');
-                setVariantFilterSize('all');
-                setVariantFilterColor('all');
-                setVariantFilterStatus('all');
-              }} >
-              <span class="material-symbols-rounded">
-                close
-              </span>
-            </button>
-          </div>
-          <div className="details-content">
-            <div className="detail-item detail-item-side-container">
-              <span className="label">Tool Name:</span>
-              <span className="value">{selectedToolkit.name}</span>
-            </div>
-            <div className="detail-item detail-item-side-container">
-              <span className="label">Type:</span>
-              <span className="value">{selectedToolkit.type}</span>
-            </div>
-            <div className="detail-item detail-item-side-container">
-              <span className="label">Total Stock:</span>
-              <span className="value">{selectedToolkit.totalStock}</span>
-            </div>
-            <div className="detail-item detail-item-side-container">
-              <span className="label">Overall Status:</span>
-              <span className={`value status-badge ${selectedToolkit.overallStatus}`}>
-                {selectedToolkit.overallStatus === 'available' ? 'In Stock' :
-                  selectedToolkit.overallStatus === 'low' ? 'Low Stock' : 'Out of Stock'}
-              </span>
-            </div>
+      <Sidebar
+        show={!!selectedToolkit}
+        title={selectedToolkit ? `${selectedToolkit.name}` : ''}
+        onClose={() => {
+          setSelectedToolkit(null);
+          setVariantSearchTerm('');
+          setVariantFilterSize('all');
+          setVariantFilterColor('all');
+          setVariantFilterStatus('all');
+        }}
+        onMinimize={() => setSidebarMinimized(p => !p)}
+        onMaximize={() => { setSidebarMaximized(p => !p); setSidebarMinimized(false); }}
+        isMinimized={sidebarMinimized}
+        isMaximized={sidebarMaximized}
+        trafficLightSize='30px'
+        backButtonSize= '40px'
+        colorScheme="amber-800"
+        variant="gradient"
+        width="800px"
+        squircle="6xl"
+        titleSize="15xl"
+        titleFontWeight="500"
+      >
+        {({ pushScreen }) => selectedToolkit && (
+          <>
+            <SidebarSection title="Toolkit Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+              <SidebarRow   label="Tool Name"    value={selectedToolkit.name}               labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px' />
+              <SidebarRow   label="Type"         value={selectedToolkit.type}               labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px' />
+              <SidebarRow   label="Total Stock"  value={String(selectedToolkit.totalStock)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px' />
+              <SidebarRow   label="Status"                                                  labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-600" variant="gradient" squircle={true} radius='130px'  value={
+                  selectedToolkit.overallStatus === 'available' ? 'In Stock' :
+                  selectedToolkit.overallStatus === 'low' ? 'Low Stock' : 'Out of Stock'
+                }
+              />
+            </SidebarSection>
 
-            {/* Barcode Section */}
-            <div className="barcode-section">
-              <h3>Toolkit Barcode</h3>
-              <div className="barcode-container">
-                <Barcode
-                  value={selectedToolkit._id}
-                  width={2}
-                  height={60}
-                  displayValue={true}
-                  fontSize={14}
+            <SidebarSection title="Barcode" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+              <Barcode value={selectedToolkit._id} width={2} height={60} displayValue={true} fontSize={14} />
+            </SidebarSection>
+
+            <SidebarSection title="Variants" gap="8px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+              <SidebarInput
+                type="search"
+                value={variantSearchTerm}
+                onChange={(e) => setVariantSearchTerm(e.target.value)}
+                placeholder="Search size or color"
+                iconRight="search"
+                colorScheme="amber-400"
+                variant="gradient"
+                textColor="white-100"
+                squircle="6xl"
+                height="38px"
+                width="100%"
+                placeholderColor="black-200"
+              />
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <SidebarInput
+                  type="select"
+                  value={variantFilterSize}
+                  onChange={(e) => setVariantFilterSize(e.target.value)}
+                  options={getUniqueValues(selectedToolkit.variants, 'size')}
+                  colorScheme="amber-400"
+                  variant="gradient"
+                  textColor="black-100"
+                  squircle="6xl"
+                  height="36px"
+                  width="140px"
                 />
-              </div>
-              <p className="barcode-info">Scan this code to view toolkit details</p>
-            </div>
-
-            <div className="variants-section">
-              <div className="variants-header-controls">
-                <h3>Variants</h3>
-
-                {/* Search and Filter Controls */}
-                <div className="variants-filters">
-                  <div className="filter-search">
-                    <Input
-                      type="search"
-                      name="text"
-                      value={variantSearchTerm}
-                      onChange={(e) => setVariantSearchTerm(e.target.value)}
-                      placeholder='Search size or color'
-                      iconRight="search"
-                      iconMarginRight="sm"
-                      iconFontSize='6xl'
-                      inputPaddingLeft="xl"
-                      fontWeight='400'
-                      fontSize='4xl'
-                      placeholderColor='black-100'
-                      squircle="10xl"
-                      width='760px'
-                      colorScheme='yellow-300'
-                      variant='gradient'
-                      height='44px'
-                      textColor='black-200'
-                    />
-                  </div>
-
-                  <div className="filter-dropdowns">
-                    <Input
-                      type="select"
-                      value={variantFilterSize}
-                      onChange={(e) => setVariantFilterSize(e.target.value)}
-                      options={getUniqueValues(selectedToolkit.variants, 'size')}
-                      colorScheme="lime-500"
-                      variant="gradient"
-                      font="md"
-                      squircle="4xl"
-                      width="180px"
-                      height="38px"
-                      textColor="black-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="black-600"
-                      animation="none"
-                      fontWeight='500'
-                      inputPaddingInline="xl"
-                    />
-                    <Input
-                      type="select"
-                      value={variantFilterColor}
-                      onChange={(e) => setVariantFilterColor(e.target.value)}
-                      options={getUniqueValues(selectedToolkit.variants, 'color')}
-                      colorScheme="lime-500"
-                      variant="gradient"
-                      font="md"
-                      squircle="4xl"
-                      width="150px"
-                      height="38px"
-                      textColor="black-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="black-600"
-                      animation="none"
-                      fontWeight='500'
-                      inputPaddingInline="xl"
-                    />
-                    <Input
-                      type="select"
-                      value={variantFilterStatus}
-                      onChange={(e) => setVariantFilterStatus(e.target.value)}
-                      options={[
-                        { value: 'all', label: 'All Status' },
-                        { value: 'available', label: 'In Stock' },
-                        { value: 'low', label: 'Low Stock' },
-                        { value: 'out', label: 'Out of Stock' },
-                      ]}
-                      colorScheme="lime-500"
-                      variant="gradient"
-                      font="md"
-                      squircle="4xl"
-                      width="150px"
-                      height="38px"
-                      textColor="black-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="black-600"
-                      animation="none"
-                      fontWeight='500'
-                      inputPaddingInline="xl"
-                    />
-                    {(variantSearchTerm || variantFilterSize !== 'all' || variantFilterColor !== 'all' || variantFilterStatus !== 'all') && (
-                      <Button
-                        text="Clear All"
-                        onClick={() => {
-                          setVariantSearchTerm('');
-                          setVariantFilterSize('all');
-                          setVariantFilterColor('all');
-                          setVariantFilterStatus('all');
-                        }}
-                        colorScheme="orange-600"
-                        variant="gradient"
-                        font="md"
-                        animation=""
-                        squircle="4xl"
-                        width="160px"
-                        height="38px"
-                        type="submit"
-                        textColor="white-200"
-                        shadowPosition="to-bottom"
-                        shadowColor="white-600"
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Grouped Variants Display */}
-              <div className="variants-grouped-container">
-                {Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).length > 0 ? (
-                  Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).map(([color, variants]) => (
-                    <div key={color} className="color-group">
-                      <div className="color-group-header">
-                        <div className="color-group-title">
-                          <span
-                            className="color-indicator-large"
-                            style={{
-                              backgroundColor: color.toLowerCase() === 'clear' ? 'transparent' : color.toLowerCase(),
-                              border: color.toLowerCase() === 'clear' ? '2px dashed var(--border-primary)' : '2px solid var(--border-primary)'
-                            }}
-                          ></span>
-                          <span className="color-name">{color}</span>
-                          <span className="color-count">({variants.length} variant{variants.length > 1 ? 's' : ''})</span>
-                        </div>
-                        <div className="color-group-total">
-                          Total Stock: {variants.reduce((sum, v) => sum + v.stockCount, 0)}
-                        </div>
-                      </div>
-
-                      <div className="variants-table-container">
-                        <table className="variants-table">
-                          <thead>
-                            <tr>
-                              <th>Size</th>
-                              <th>Stock</th>
-                              <th>Min Level</th>
-                              <th>Status</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {variants.map(variant => (
-                              <tr
-                                key={variant._id}
-                                className={selectedVariant && selectedVariant._id === variant._id ? 'selected-row' : ''}
-                                onClick={() => showVariantDetails(variant, selectedToolkit)}
-                              >
-                                <td><strong>{variant.size}</strong></td>
-                                <td>{variant.stockCount}</td>
-                                <td>{variant.minStockLevel}</td>
-                                <td>
-                                  <span className={`status-badge ${calculateStatus(variant.stockCount, variant.minStockLevel)}`}>
-                                    {calculateStatus(variant.stockCount, variant.minStockLevel) === 'available' ? 'In Stock' :
-                                      calculateStatus(variant.stockCount, variant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
-                                  </span>
-                                </td>
-                                <td className="variant-actions">
-                                  <Button
-                                    text="Edit"
-                                    onClick={() => openUpdateVariantForm(variant, selectedToolkit)}
-                                    colorScheme="violet-800"
-                                    variant="gradient"
-                                    font="md"
-                                    animation=""
-                                    squircle="4xl"
-                                    width="100px"
-                                    height="32px"
-                                    type="submit"
-                                    textColor="white-200"
-                                    shadowPosition="to-bottom"
-                                    shadowColor="white-600"
-                                  />
-                                  <Button
-                                    text="Delete"
-                                    onClick={() => deleteVariant(selectedToolkit._id, variant._id)}
-                                    colorScheme="red-800"
-                                    variant="gradient"
-                                    font="md"
-                                    animation=""
-                                    squircle="4xl"
-                                    width="100px"
-                                    height="32px"
-                                    type="submit"
-                                    textColor="white-200"
-                                    shadowPosition="to-bottom"
-                                    shadowColor="white-600"
-                                  />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="no-variants-found">
-                    <p>No variants found matching your filters.</p>
-                  </div>
+                <SidebarInput
+                  type="select"
+                  value={variantFilterColor}
+                  onChange={(e) => setVariantFilterColor(e.target.value)}
+                  options={getUniqueValues(selectedToolkit.variants, 'color')}
+                  colorScheme="amber-400"
+                  variant="gradient"
+                  textColor="black-100"
+                  squircle="6xl"
+                  height="36px"
+                  width="140px"
+                />
+                <SidebarInput
+                  type="select"
+                  value={variantFilterStatus}
+                  onChange={(e) => setVariantFilterStatus(e.target.value)}
+                  options={[
+                    { value: 'all', label: 'All Status' },
+                    { value: 'available', label: 'In Stock' },
+                    { value: 'low', label: 'Low Stock' },
+                    { value: 'out', label: 'Out of Stock' },
+                  ]}
+                  colorScheme="amber-400"
+                  variant="gradient"
+                  textColor="black-100"
+                  squircle="6xl"
+                  height="36px"
+                  width="130px"
+                />
+                {(variantSearchTerm || variantFilterSize !== 'all' || variantFilterColor !== 'all' || variantFilterStatus !== 'all') && (
+                  <Button
+                    text="Clear"
+                    onClick={() => { setVariantSearchTerm(''); setVariantFilterSize('all'); setVariantFilterColor('all'); setVariantFilterStatus('all'); }}
+                    colorScheme="orange-700"
+                    variant="gradient"
+                    textColor="white-100"
+                    squircle="6xl"
+                    font="sm"
+                    height="36px"
+                    width="auto"
+                    padding="0 14px"
+                    animation=""
+                  />
                 )}
               </div>
-            </div>
 
-            <div className="toolkit-actions safety-items-action">
-              <h3>Actions</h3>
-              <div className="action-btn-group">
-                <Button
-                  text="Edit Toolkit"
-                  onClick={() => openUpdateForm(selectedToolkit)}
-                  colorScheme="violet-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="40px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Add Variant"
-                  onClick={() => openAddVariantForm(selectedToolkit)}
-                  colorScheme="amber-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="40px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Print Barcode"
-                  onClick={() => window.print()}
-                  colorScheme="lime-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="40px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Delete Toolkit"
-                  onClick={() => deleteToolkit(selectedToolkit._id)}
-                  colorScheme="red-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="40px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-              </div>
-            </div>
-
-            {/* Variant details sidebar */}
-            {selectedVariant && (
-              <div className="variant-details">
-                <div className="details-header">
-                  <h2>Variant Details</h2>
-                  <button className="close-btn" onClick={() => setSelectedVariant(null)}>
-                    <span class="material-symbols-rounded">
-                      close
-                    </span>
-                  </button>
-                </div>
-                <div className="variant-actions reduce">
-                  <Button
-                    text="Reduce Stock"
-                    onClick={openReduceStockModal}
-                    colorScheme="pink-800"
-                    variant="gradient"
-                    font="md"
-                    animation=""
-                    squircle="4xl"
-                    width="fit-content"
-                    height="32px"
-                    type="submit"
-                    textColor="white-200"
-                    shadowPosition="to-bottom"
-                    shadowColor="white-600"
-                  />
-                </div>
-                <div className="details-content">
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Tool Name:</span>
-                    <span className="value">{selectedToolkit.name}</span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Size:</span>
-                    <span className="value">{selectedVariant.size}</span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Color:</span>
-                    <span className="value">
-                      <span className="color-indicator" style={{
-                        backgroundColor: selectedVariant.color.toLowerCase() === 'clear' ? 'transparent' : selectedVariant.color.toLowerCase(),
-                        border: selectedVariant.color.toLowerCase() === 'clear' ? '1px dashed #ccc' : 'none'
-                      }}></span>
-                      {selectedVariant.color}
-                    </span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Current Stock:</span>
-                    <span className="value">{selectedVariant.stockCount}</span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Minimum Level:</span>
-                    <span className="value">{selectedVariant.minStockLevel}</span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Status:</span>
-                    <span className={`value status-badge ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}>
-                      {calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'available' ? 'In Stock' :
-                        calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock'}
-                    </span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">In Use:</span>
-                    <span className="value">{selectedVariant.inuse ? 'Yes' : 'No'}</span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">First Added:</span>
-                    <span className="value">{formatDate(selectedVariant.firstAddedDate)}</span>
-                  </div>
-                  <div className="detail-item detail-item-side-container">
-                    <span className="label">Last Updated:</span>
-                    <span className="value">{formatDate(selectedVariant.lastUpdatedDate)}</span>
-                  </div>
-
-                  {/* Variant Barcode Section */}
-                  <div className="barcode-section variant-barcode">
-                    <h3>Variant Barcode</h3>
-                    <div className="barcode-container">
-                      <Barcode
-                        value={selectedVariant._id}
-                        width={1.8}
-                        height={50}
-                        displayValue={true}
-                        fontSize={12}
-                      />
-                    </div>
-                    <p className="barcode-info">
-                      {selectedVariant.size} - {selectedVariant.color}
-                    </p>
-                  </div>
-
-                  <div className="stock-progress">
-                    <h3>Stock Level</h3>
-                    <div className="progress-container">
-                      <div
-                        className={`progress-bar ${calculateStatus(selectedVariant.stockCount, selectedVariant.minStockLevel)}`}
-                        style={{
-                          width: `${Math.min(100, (selectedVariant.stockCount / (selectedVariant.minStockLevel * 2)) * 100)}%`
-                        }}
-                      >
-                        <span className="progress-text">
-                          {selectedVariant.stockCount} / {selectedVariant.minStockLevel} min
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="variant-actions">
-                    <Button
-                      text={showStockHistory ? 'Hide History' : 'Show History'}
-                      onClick={() => setShowStockHistory(!showStockHistory)}
-                      colorScheme={showStockHistory ? 'amber-800' : 'blue-800'}
-                      variant="gradient"
-                      font="md"
-                      animation=""
-                      squircle="4xl"
-                      width="fit-content"
-                      height="32px"
-                      type="submit"
-                      textColor="white-200"
-                      shadowPosition="to-bottom"
-                      shadowColor="white-600"
+              {Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).length > 0
+                ? Object.entries(getFilteredAndGroupedVariants(selectedToolkit.variants)).map(([color, variants]) => (
+                  <SidebarSection key={color} title={color} gap="5px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--black-200)'>
+                    <SidebarTable
+                      rowGap="5px"
+                      headFontSize="20px"
+                      headFontWeight='500'
+                      gap="10px"
+                      headRadius='130px'
+                      rowRadius='130px'
+                      rowFontSize='18px'
+                      squircle={true}
+                      headGrad="amber-700"
+                      headGradVariant="gradient"
+                      rowGrad="amber-400"
+                      rowGradVariant="gradient"
+                      rowAltGrad="amber-500"
+                      rowAltGradVariant="gradient"
+                      columns={[
+                        { key: 'size', label: 'Size', flex: 1 },
+                        { key: 'stock', label: 'Stock', flex: 1, align: 'center' },
+                        { key: 'min', label: 'Min', flex: 1, align: 'center' },
+                        { key: 'status', label: 'Status', flex: 1 },
+                      ]}
+                      actionPosition="right"
+                      onRowClick={(row) => showVariantDetails(row._variant, selectedToolkit, pushScreen)}
+                      rows={variants.map(variant => ({
+                        _variant: variant,
+                        size: variant.size,
+                        stock: String(variant.stockCount),
+                        min: String(variant.minStockLevel),
+                        status: calculateStatus(variant.stockCount, variant.minStockLevel) === 'available' ? 'In Stock' :
+                                calculateStatus(variant.stockCount, variant.minStockLevel) === 'low' ? 'Low Stock' : 'Out of Stock',
+                        _actions: [
+                          { label: 'Edit', onClick: () => openUpdateVariantForm(variant, selectedToolkit), colorScheme: 'violet-800', textColor: 'white-100', squircle: '6xl', font: 'lg', height: '35px' },
+                          { label: 'Delete', onClick: () => deleteVariant(selectedToolkit._id, variant._id), colorScheme: 'red-800', textColor: 'white-100', squircle: '6xl', font: 'lg', height: '35px' },
+                        ]
+                      }))}
                     />
-                  </div>
+                  </SidebarSection>
+                ))
+                : <div style={{ color: 'var(--amber-400)', fontSize: '20px', padding: '12px 0' }}>No variants found.</div>
+              }
+            </SidebarSection>
 
-                  {showStockHistory && (
-                    <div className="stock-history-section">
-                      <h3>Stock History</h3>
-                      <div className="history-table-container">
-                        <table className="history-table">
-                          <thead>
-                            <tr>
-                              <th>Date</th>
-                              <th>Action</th>
-                              <th>Previous</th>
-                              <th>Change</th>
-                              <th>New</th>
-                              <th>Reason</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {stockHistory.length > 0 ? (
-                              stockHistory.map((history, index) => (
-                                <tr key={index}>
-                                  <td>{formatDate(history.assignedDate)}</td>
-                                  <td>
-                                    <span className={`history-badge ${history.action ? history.action : ''}`}>
-                                      {history.action?.charAt(0).toUpperCase() + history.action?.slice(1)}
-                                    </span>
-                                  </td>
-                                  <td>{history.previousStock}</td>
-                                  <td className={history.changeAmount > 0 ? 'positive' : 'negative'}>
-                                    {history.changeAmount > 0 ? '+' : ''}{history.changeAmount}
-                                  </td>
-                                  <td>{history.newStock}</td>
-                                  <td>{history.reason}</td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td colSpan="6" className="no-history">No stock history available</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+            <SidebarActions
+              position="left"
+              gap="8px"
+              buttons={[
+                { label: 'Edit Toolkit', onClick: () => openUpdateForm(selectedToolkit), colorScheme: 'violet-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                { label: 'Add Variant', onClick: () => openAddVariantForm(selectedToolkit), colorScheme: 'amber-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                { label: 'Print Barcode', onClick: () => window.print(), colorScheme: 'lime-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                { label: 'Delete Toolkit', onClick: () => deleteToolkit(selectedToolkit._id), colorScheme: 'red-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%'},
+              ]}
+            />
+          </>
+        )}
+      </Sidebar>
 
       {/* Reduce Stock Modal using DevModal */}
       <DevModal

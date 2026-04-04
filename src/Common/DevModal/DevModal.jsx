@@ -1,6 +1,7 @@
 import React from 'react';
 import './DevModal.css';
 import Input from '../Input/Input';
+import Button from '../Button/Button';
 
 const DevModal = ({
   isOpen = false,
@@ -991,6 +992,39 @@ const DevModal = ({
                             squircle='10xl'
                             fullWidth={true}
                           />
+
+                        ) : field.type === 'add-row-button' ? (
+                          <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                           <Button
+                              text={field.label || '+ Add'}
+                              type="button"
+                              variant="gradient"
+                              colorScheme="amber-600"
+                              textColor="white-100"
+                              font="md"
+                              width="120px"
+                              height="56px"
+                              padding="0 12px"
+                              squircle="6xl"
+                              onClick={field.onAddRow}
+                           />
+                            {field.onRemoveRow && (
+                              <Button
+                                type="button"
+                                iconCenter="close"
+                                font='md'
+                                variant="solid"
+                                colorScheme="red-700"
+                                textColor="white-100"
+                                width="56px"
+                                height="56px"
+                                padding="0"
+                                squircle="6xl"
+                                onClick={field.onRemoveRow}
+                             />
+                            )}
+                       </div>
+                        
                         ) : field.type === 'file' ? (
                           <div className="dm-file-field">
                             <div

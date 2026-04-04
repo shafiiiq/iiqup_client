@@ -1082,7 +1082,7 @@ body.dark-theme {
   --gradient-primary-500: linear-gradient(66deg, #a089438f 0%, #000000 100%);
   --gradient-primary-600: linear-gradient(295deg, #5c5842 0%, #a3ad65 100%);
   --gradient-primary-700: linear-gradient(359deg, #1b1102 0%, #000000 100%);
-  --gradient-primary-800: linear-gradient(295deg, #3b3409 0%, #7c804a 100%);
+  --gradient-primary-800: linear-gradient(295deg, #af8336 0%, #9d6c32 100%);;
   --gradient-primary-900: linear-gradient(295deg, #000000 0%, #3b392a 100%);
   --gradient-primary-1000: linear-gradient(295deg, #3c3f18 0%, #fffb00 100%);
   --gradient-primary-1100: linear-gradient(90deg, #fffb00 0%, #9fa70b 100%);

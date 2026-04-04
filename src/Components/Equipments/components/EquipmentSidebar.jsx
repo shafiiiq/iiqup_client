@@ -5,8 +5,9 @@
 //   'fuels'     — fuel consumption summary + breakdowns
 // ─────────────────────────────────────────────────────────────────────────────
 
-import Loader              from '../../../Common/Loader/Loader';
+import React, { useState } from 'react';
 import Button              from '../../../Common/Button/Button';
+import Sidebar from '../../../Common/Sidebar/Sidebar';
 import { getOperatorName, formatDate, formatDateWithExpiry } from '../utils/equipmentHelpers';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -340,23 +341,15 @@ function MobHistoryContent({ dates }) {
  * }} props
  */
 function EquipmentSidebar({
-  show,
-  title,
-  content,
-  isLoading,
-  isSelectMode,
-  onClose,
-  onViewDetails,
-  onReplaceOperator,
-  onSetContent,
-  onSetTitle,
-  onViewFuels,
+  show, title, content, isLoading, isSelectMode,
+  onClose, onViewDetails, onReplaceOperator,
+  onSetContent, onSetTitle, onViewFuels,
 }) {
-  if (!show) return null;
+  const [isMinimized, setIsMinimized] = React.useState(false);
+  const [isMaximized, setIsMaximized] = React.useState(false);
 
   const renderContent = () => {
     if (!content) return null;
-
     if (content.type === 'details') {
       return (
         <DetailsContent
@@ -375,28 +368,32 @@ function EquipmentSidebar({
         />
       );
     }
-
-    if (content.type === 'operators')    return <OperatorsContent operators={content.data} />;
-    if (content.type === 'fuels')        return <FuelsContent data={content.data} />;
-    if (content.type === 'mob-history')  return <MobHistoryContent dates={content.data} />;
+    if (content.type === 'operators')     return <OperatorsContent operators={content.data} />;
+    if (content.type === 'fuels')         return <FuelsContent data={content.data} />;
+    if (content.type === 'mob-history')   return <MobHistoryContent dates={content.data} />;
     if (content.type === 'demob-history') return <MobHistoryContent dates={content.data} />;
     return null;
   };
 
   return (
-    <div className="sidebar-overlay" onClick={onClose}>
-      <div className="sidebar-content" onClick={(e) => e.stopPropagation()}>
-        <div className="sidebar-header">
-          <h2>{title}</h2>
-          <button className="close-btn" onClick={onClose}>
-            <span className="material-symbols-rounded">close</span>
-          </button>
-        </div>
-        <div className="sidebar-body">
-          {isLoading ? <Loader /> : renderContent()}
-        </div>
-      </div>
-    </div>
+      <Sidebar
+        show={show}
+        title={title}
+        onClose={onClose}
+        isLoading={isLoading}
+        isMinimized={isMinimized}
+        isMaximized={isMaximized}
+        onMinimize={() => setIsMinimized(p => !p)}
+        onMaximize={() => { setIsMaximized(p => !p); setIsMinimized(false); }}
+        colorScheme="amber-800"
+        variant="gradient"
+        width="800px"
+        squircle="6xl"
+        titleSize="2xl"
+        titleFontWeight="600"
+      >
+      {renderContent()}
+    </Sidebar>
   );
 }
 
