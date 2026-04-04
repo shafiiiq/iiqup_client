@@ -94,11 +94,8 @@ const ServiceHistory = () => {
     navigate(`/batch-service-form/${regNoArray[0]}`);
   };
 
-  // All history types now share a single unified form route.
-  // activeTab values: 'oil' | 'normal' | 'tyre' | 'battery' | 'major'
   const handleAddService = () => {
-    const type = data.activeTab || 'oil';
-    navigate(`/service-history-form/${type}/${regNoArray[0]}`);
+    navigate(`/service-form-nav/${regNoArray[0]}`);
   };
 
   const handleViewAllDocuments = () => {
@@ -158,7 +155,7 @@ const ServiceHistory = () => {
         </div>
         <div className="action-buttons right">
           <Button {...BAR_BTN} text="Multiple Records"  onClick={addMutiServices}      colorScheme="info-800"     width="160px" textColor="white-200" />
-          <Button {...BAR_BTN} text={addServiceLabel}   onClick={handleAddService}      colorScheme="info-800"     width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Add Service"      onClick={handleAddService}      colorScheme="info-800"     width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Export to Excel"   onClick={handleExportToExcel}  colorScheme="primary-800"  width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Print"             onClick={handlePrint}           colorScheme="success-800"  width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Export to PDF"     onClick={handleExportToPDF}    colorScheme="fuchsia-800"  width="160px" textColor="white-200" />

@@ -29,11 +29,11 @@ import './FormNavigation.css';
  * @type {{ title: string, description: string, type: string, image: string }[]}
  */
 const NAV_ITEMS = [
-  { title: 'Normal Service',  description: 'Manage normal service records',                       type: 'normal',      image: NormalService  },
-  { title: 'Oil Service',     description: 'Manage oil service records',                          type: 'oil',         image: OilService     },
-  { title: 'Battery Service', description: 'Track battery maintenance and replacements',          type: 'battery',     image: BatteryService },
-  { title: 'Tyre Service',    description: 'Monitor tyre changes and replacements',               type: 'tyre',        image: TyreService    },
-  { title: 'Major Works',     description: 'Complete maintenance or major records and reports',   type: 'maintenance', image: MajorWork      },
+  { title: 'Normal Service',  description: 'Manage normal service records',                     type: 'normal',  image: NormalService  },
+  { title: 'Oil Service',     description: 'Manage oil service records',                        type: 'oil',     image: OilService     },
+  { title: 'Battery Service', description: 'Track battery maintenance and replacements',        type: 'battery', image: BatteryService },
+  { title: 'Tyre Service',    description: 'Monitor tyre changes and replacements',             type: 'tyre',    image: TyreService    },
+  { title: 'Major Works',     description: 'Complete maintenance or major records and reports', type: 'major',   image: MajorWork      },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
