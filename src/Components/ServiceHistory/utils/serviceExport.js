@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // serviceExport.js — Excel, PDF, and browser-print export for ServiceHistory.
-// All functions are async and pure side-effectful (they trigger file downloads
-// or open print windows). No state, no React.
+// UPDATED: 'maintenance' → 'major' throughout (unified model).
+// All functions are async and pure side-effectful. No state, no React.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import ExcelJS      from 'exceljs';
@@ -23,8 +23,7 @@ import {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared Header Builder
-// Generates the column headers array based on the active tab.
-// Defined once because Excel and PDF share the same column set.
+// 'major' replaces 'maintenance' in all tab checks
 // ─────────────────────────────────────────────────────────────────────────────
 
 const buildHeaders = (activeTab) => [
@@ -34,7 +33,8 @@ const buildHeaders = (activeTab) => [
   ...(activeTab === 'oil' || activeTab === 'all'
     ? ['Serviced Hrs/Km', 'Next Service', 'Next Full Service']
     : []),
-  ...(activeTab === 'maintenance'
+  // 'major' replaces old 'maintenance'
+  ...(activeTab === 'major'
     ? ['Serviced Hrs/Km', 'Next Service']
     : []),
   ...(activeTab === 'tyre' || activeTab === 'all'
@@ -46,18 +46,27 @@ const buildHeaders = (activeTab) => [
   'Remarks',
 ];
 
-/** Builds a single data row array for a service record. */
 const buildRowData = (item, activeTab) => [
   formatDate(item.date),
   ...(activeTab === 'all' ? [item.fullService ? 'Full Service' : (item.serviceType ?? '-')] : []),
   getWorkDescription(item),
-  ...((['oil', 'normal', 'maintenance', 'all'].includes(activeTab)) ? [
-    ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-    ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-    ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : []),
+  // 'major' replaces 'maintenance' in the type check array
+  ...(['oil', 'normal', 'major', 'all'].includes(activeTab) ? [
+    ['oil', 'normal', 'major'].includes(item.serviceType)
+      ? item.serviceHrs
+      : item.serviceType === 'tyre' ? item.runningHours : '-',
+    ['oil', 'normal', 'major'].includes(item.serviceType)
+      ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs)
+      : '-',
+    ...(activeTab === 'oil' || activeTab === 'all'
+      ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-']
+      : []),
   ] : []),
   ...(activeTab === 'tyre' || activeTab === 'all'
-    ? [item.serviceType === 'tyre' && item.location ? item.location : '-', item.serviceType === 'tyre' ? item.tyreModel : '-']
+    ? [
+        item.serviceType === 'tyre' && item.location ? item.location : '-',
+        item.serviceType === 'tyre' ? item.tyreModel : '-',
+      ]
     : []),
   ...(activeTab === 'battery' || activeTab === 'all'
     ? [item.serviceType === 'battery' ? item.batteryModel : '-']
@@ -69,20 +78,6 @@ const buildRowData = (item, activeTab) => [
 // Excel Export
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Builds and downloads an ExcelJS workbook from the service history data.
- *
- * @param {{
- *   groupedData:           object,
- *   activeTab:             string,
- *   isMultipleEquipment:   boolean,
- *   multipleEquipmentData: Array,
- *   equipmentData:         object|null,
- *   regNoArray:            string[],
- *   searchTerm:            string,
- *   filterState:           object,
- * }}
- */
 export const exportToExcel = async ({
   groupedData,
   activeTab,
@@ -103,9 +98,7 @@ export const exportToExcel = async ({
 
   const headers  = buildHeaders(activeTab);
   const colCount = headers.length;
-  const lastCol  = String.fromCharCode(64 + colCount); // e.g. "J"
-
-  // ── Header rows ────────────────────────────────────────────────────────────
+  const lastCol  = String.fromCharCode(64 + colCount);
 
   let currentRow = 1;
 
@@ -128,7 +121,7 @@ export const exportToExcel = async ({
   }
 
   currentRow++;
-  worksheet.getRow(currentRow).height = 20; // spacer
+  worksheet.getRow(currentRow).height = 20;
 
   currentRow++;
   const tsCell = worksheet.getCell(`A${currentRow}`);
@@ -138,9 +131,7 @@ export const exportToExcel = async ({
   worksheet.getRow(currentRow).height = 45;
 
   currentRow++;
-  worksheet.getRow(currentRow).height = 20; // spacer
-
-  // ── Column headers ─────────────────────────────────────────────────────────
+  worksheet.getRow(currentRow).height = 20;
 
   currentRow++;
   const headerRow = worksheet.getRow(currentRow);
@@ -154,20 +145,17 @@ export const exportToExcel = async ({
   });
   headerRow.height = 45;
 
-  // Column widths
   const colWidths = [
     15,
     ...(activeTab === 'all' ? [15] : []),
     40,
     ...(activeTab === 'oil' || activeTab === 'all' ? [15, 15, 18] : []),
-    ...(activeTab === 'maintenance' ? [15, 15] : []),
+    ...(activeTab === 'major' ? [15, 15] : []),
     ...(activeTab === 'tyre' || activeTab === 'all' ? [20, 25] : []),
     ...(activeTab === 'battery' || activeTab === 'all' ? [25] : []),
     40,
   ];
   colWidths.forEach((width, i) => { worksheet.getColumn(i + 1).width = width; });
-
-  // ── Data rows ──────────────────────────────────────────────────────────────
 
   Object.entries(groupedData).forEach(([regNo, items]) => {
     if (isMultipleEquipment) {
@@ -202,7 +190,6 @@ export const exportToExcel = async ({
     });
   });
 
-  // Merge title/subtitle rows across all columns
   worksheet.mergeCells(`A1:${lastCol}1`);
   worksheet.mergeCells(`A2:${lastCol}2`);
   if (searchTerm) {
@@ -211,8 +198,6 @@ export const exportToExcel = async ({
   } else {
     worksheet.mergeCells(`A4:${lastCol}4`);
   }
-
-  // ── Download ───────────────────────────────────────────────────────────────
 
   const suffix   = getDateFilterSuffix(filterState);
   const fileName = `${tabName.replace(/\s+/g, '_')}_${isMultipleEquipment ? 'Multiple_Equipment' : regNoArray[0]}${suffix}_${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -232,10 +217,6 @@ export const exportToExcel = async ({
 // PDF Export
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Generates and downloads a jsPDF document from the service history data.
- * Requires jsPDF and jsPDF-AutoTable to be loaded as globals (window.jspdf).
- */
 export const exportToPDF = async ({
   groupedData,
   activeTab,
@@ -257,32 +238,28 @@ export const exportToPDF = async ({
 
   let currentY = 10;
 
-  // ── Logos ──────────────────────────────────────────────────────────────────
-
   try {
-      const [leftLogoData, rightLogoData] = await Promise.all([
-        loadImageAsDataURL(logoImage),
-        loadImageAsDataURL(alAnsariText),
-      ]);
+    const [leftLogoData, rightLogoData] = await Promise.all([
+      loadImageAsDataURL(logoImage),
+      loadImageAsDataURL(alAnsariText),
+    ]);
 
-      const leftProps  = doc.getImageProperties(leftLogoData);
-      const leftWidth  = 40;
-      const leftHeight = (leftProps.height / leftProps.width) * leftWidth;
-      doc.addImage(leftLogoData, 'PNG', 10, currentY, leftWidth, leftHeight);
+    const leftProps  = doc.getImageProperties(leftLogoData);
+    const leftWidth  = 40;
+    const leftHeight = (leftProps.height / leftProps.width) * leftWidth;
+    doc.addImage(leftLogoData, 'PNG', 10, currentY, leftWidth, leftHeight);
 
-      const rightProps  = doc.getImageProperties(rightLogoData);
-      const rightWidth  = 80;
-      const rightHeight = (rightProps.height / rightProps.width) * rightWidth;
-      doc.addImage(rightLogoData, 'PNG', 210, currentY, rightWidth, rightHeight);
+    const rightProps  = doc.getImageProperties(rightLogoData);
+    const rightWidth  = 80;
+    const rightHeight = (rightProps.height / rightProps.width) * rightWidth;
+    doc.addImage(rightLogoData, 'PNG', 210, currentY, rightWidth, rightHeight);
 
-      currentY += Math.max(leftHeight, rightHeight) + 6;
-    } catch {
-      currentY += 30;
-    }
-
+    currentY += Math.max(leftHeight, rightHeight) + 6;
+  } catch {
     currentY += 30;
+  }
 
-  // ── Title block ────────────────────────────────────────────────────────────
+  currentY += 30;
 
   doc.setFontSize(18); doc.setFont(undefined, 'bold');
   doc.text(`${tabName} History - ${equipmentTitle}`, 148, currentY, { align: 'center' });
@@ -302,8 +279,6 @@ export const exportToPDF = async ({
   doc.text(`Report Generated: ${new Date().toLocaleString()}`, 148, currentY, { align: 'center' });
   currentY += 10;
 
-  // ── Table ──────────────────────────────────────────────────────────────────
-
   const headers   = buildHeaders(activeTab);
   const tableData = [];
 
@@ -322,13 +297,23 @@ export const exportToPDF = async ({
         formatDate(item.date),
         ...(activeTab === 'all' ? [item.fullService ? 'Full Service' : getServiceTypeBadge(item.serviceType)?.text] : []),
         getWorkDescriptionForPDF(item),
-        ...((['oil', 'normal', 'maintenance', 'all'].includes(activeTab)) ? [
-          ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? item.serviceHrs : item.serviceType === 'tyre' ? item.runningHours : '-',
-          ['oil', 'normal', 'maintenance'].includes(item.serviceType) ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs) : '-',
-          ...(activeTab === 'oil' || activeTab === 'all' ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-'] : []),
+        // 'major' replaces 'maintenance'
+        ...(['oil', 'normal', 'major', 'all'].includes(activeTab) ? [
+          ['oil', 'normal', 'major'].includes(item.serviceType)
+            ? item.serviceHrs
+            : item.serviceType === 'tyre' ? item.runningHours : '-',
+          ['oil', 'normal', 'major'].includes(item.serviceType)
+            ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs)
+            : '-',
+          ...(activeTab === 'oil' || activeTab === 'all'
+            ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-']
+            : []),
         ] : []),
         ...(activeTab === 'tyre' || activeTab === 'all'
-          ? [item.serviceType === 'tyre' && item.location ? item.location : '-', item.serviceType === 'tyre' ? item.tyreModel : '-']
+          ? [
+              item.serviceType === 'tyre' && item.location ? item.location : '-',
+              item.serviceType === 'tyre' ? item.tyreModel : '-',
+            ]
           : []),
         ...(activeTab === 'battery' || activeTab === 'all'
           ? [item.serviceType === 'battery' ? item.batteryModel : '-']
@@ -339,7 +324,6 @@ export const exportToPDF = async ({
     });
   });
 
-  // Build a flat index so getRowColor can map rowIndex → item
   const flatItems = Object.values(groupedData).flat();
 
   doc.autoTable({
@@ -352,14 +336,12 @@ export const exportToPDF = async ({
     columnStyles: { 0: { cellWidth: 25 }, ...(activeTab === 'all' ? { 1: { cellWidth: 20 } } : {}) },
     didParseCell(data) {
       if (data.section === 'body' && data.row.index >= 0) {
-        const item  = flatItems[data.row.index];
+        const item = flatItems[data.row.index];
         if (item) data.cell.styles.fillColor = getRowBgColorForPDF(item);
       }
     },
     margin: { top: 10, left: 10, right: 10 },
   });
-
-    // ── Signature block ────────────────────────────────────────────────────────
 
   const signY = doc.lastAutoTable.finalY + 15;
   doc.setTextColor(0, 0, 0);
@@ -383,16 +365,19 @@ export const exportToPDF = async ({
   doc.text('Workshop Manager', 10, detailsY + 6);
   doc.text('+974 5170 0481',   10, detailsY + 12);
 
-  // ── Download ───────────────────────────────────────────────────────────────
-
   const suffix   = getDateFilterSuffix(filterState);
   const fileName = `${tabName.replace(/\s+/g, '_')}_${isMultipleEquipment ? 'Multiple_Equipment' : regNoArray[0]}${suffix}_${new Date().toISOString().slice(0, 10)}.pdf`;
   doc.save(fileName);
 };
 
-// Helper used in PDF row builder (import avoided by inlining here)
 const getServiceTypeBadge = (serviceType) => {
-  const badges = { normal: { text: 'Normal' }, oil: { text: 'Oil' }, maintenance: { text: 'Major Works' }, tyre: { text: 'Tyre' }, battery: { text: 'Battery' } };
+  const badges = {
+    normal:  { text: 'Normal'     },
+    oil:     { text: 'Oil'        },
+    major:   { text: 'Major Works' }, // 'maintenance' removed
+    tyre:    { text: 'Tyre'       },
+    battery: { text: 'Battery'    },
+  };
   return badges[serviceType] || { text: 'Unknown' };
 };
 
@@ -400,22 +385,6 @@ const getServiceTypeBadge = (serviceType) => {
 // Print
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Opens the browser print dialog with a formatted HTML version of the table.
- * Captures the current DOM table via tableRef.current.outerHTML.
- *
- * @param {{
- *   tableRef:            React.RefObject,
- *   activeTab:           string,
- *   isMultipleEquipment: boolean,
- *   equipmentData:       object|null,
- *   regNoArray:          string[],
- *   searchTerm:          string,
- *   filteredData:        Array,
- *   filterState:         object,
- *   supervisorSignUrl:   string,
- * }}
- */
 export const printServiceHistory = ({
   tableRef,
   activeTab,
@@ -436,11 +405,11 @@ export const printServiceHistory = ({
     : `${equipmentData?.machine ?? 'Equipment'} ${regNoArray[0]}`;
 
   const signatureHtml = supervisorSignUrl
-  ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="width: 150px; height: auto; display: block;" />`
-  : '<span style="font-style: italic; color: #999;">Not Signed</span>';
+    ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="width:150px;height:auto;display:block;" />`
+    : '<span style="font-style:italic;color:#999;">Not Signed</span>';
 
   const content = `
-   <html>
+    <html>
       <head>
         <title>${tabName} History</title>
         <style>
@@ -448,42 +417,43 @@ export const printServiceHistory = ({
           h1 { text-align: center; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
           th, td { border: 1px solid #000; padding: 4px 8px; text-align: center; }
-         th { background-color: #f2f2f2; font-weight: bold; }
-         .no-results { text-align: center; font-style: italic; }
-         .oil-service         { background-color: #e8f5e8 !important; }
-         .maintenance-service { background-color: #fff3cd !important; }
-          .tyre-service        { background-color: #d1ecf1 !important; }
-          .battery-service     { background-color: #f8d7da !important; }
-         .full-service-row, .replacement-row { background-color: #ffd3a5 !important; }
-         .view-more-btn, .document-column { display: none !important; }
-         td:nth-child(3) { max-width: 170px; white-space: normal; word-wrap: break-word; }
-         td:nth-child(10) { max-width: 230px; white-space: normal; word-wrap: break-word; }
-       </style>
+          th { background-color: #f2f2f2; font-weight: bold; }
+          .no-results { text-align: center; font-style: italic; }
+          .oil-service     { background-color: #e8f5e8 !important; }
+          .normal-service  { background-color: #e8f5e8 !important; }
+          .major-service   { background-color: #fff3cd !important; }
+          .tyre-service    { background-color: #d1ecf1 !important; }
+          .battery-service { background-color: #f8d7da !important; }
+          .full-service-row, .replacement-row { background-color: #ffd3a5 !important; }
+          .view-more-btn, .document-column { display: none !important; }
+          td:nth-child(3) { max-width: 170px; white-space: normal; word-wrap: break-word; }
+          td:nth-child(10) { max-width: 230px; white-space: normal; word-wrap: break-word; }
+        </style>
       </head>
-     <body>
-       <div style="display:flex; justify-content:space-between; padding:0 1rem; align-items:center;">
-         <img style="width:10rem; max-height:6rem;" src="${logoImage}" alt="Logo" />
-         <img style="width:18rem; max-height:6rem;" src="${alAnsariText}" alt="Company" />
-       </div>
-       <div style="display:flex; gap:1rem; justify-content:center; align-items:center;">
-         <h2>${tabName} History -</h2>
-         <h3>${equipmentTitle} -</h3>
-         <p style="text-align:center;">Date Range: ${getDateRangeText(filterState)}</p>
-       </div>
-       ${searchTerm ? `<p style="text-align:center;">Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
-       <div style="overflow-x:auto;">
-         ${tableRef.current?.outerHTML ?? '<p style="text-align:center;">No table data</p>'}
-       </div>
-       <div style="margin-top:10px; text-align:center;">
-         Showing ${filteredData.length} ${searchTerm ? 'matching entries' : 'entries'}
-       </div>
-       <div style="display:flex; gap:0.5rem; flex-direction:column; margin-top:1rem; text-align:left;">
-          ${signatureHtml}
-          <p style="font-size:18px; margin:0;">Firoz Khan</p>
-          <p style="font-size:18px; margin:0;">Workshop Manager</p>
-          <p style="font-size:18px; margin:0;">+974 5170 0481</p>
+      <body>
+        <div style="display:flex;justify-content:space-between;padding:0 1rem;align-items:center;">
+          <img style="width:10rem;max-height:6rem;" src="${logoImage}" alt="Logo" />
+          <img style="width:18rem;max-height:6rem;" src="${alAnsariText}" alt="Company" />
         </div>
-     </body>
+        <div style="display:flex;gap:1rem;justify-content:center;align-items:center;">
+          <h2>${tabName} History -</h2>
+          <h3>${equipmentTitle} -</h3>
+          <p style="text-align:center;">Date Range: ${getDateRangeText(filterState)}</p>
+        </div>
+        ${searchTerm ? `<p style="text-align:center;">Search results for: "<strong>${searchTerm}</strong>"</p>` : ''}
+        <div style="overflow-x:auto;">
+          ${tableRef.current?.outerHTML ?? '<p style="text-align:center;">No table data</p>'}
+        </div>
+        <div style="margin-top:10px;text-align:center;">
+          Showing ${filteredData.length} ${searchTerm ? 'matching entries' : 'entries'}
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-direction:column;margin-top:1rem;text-align:left;">
+          ${signatureHtml}
+          <p style="font-size:18px;margin:0;">Firoz Khan</p>
+          <p style="font-size:18px;margin:0;">Workshop Manager</p>
+          <p style="font-size:18px;margin:0;">+974 5170 0481</p>
+        </div>
+      </body>
     </html>
   `;
 

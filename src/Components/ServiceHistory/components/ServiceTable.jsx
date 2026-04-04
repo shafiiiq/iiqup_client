@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ServiceTable.jsx — Renders the service history <table>.
-// Handles: conditional columns per tab, badge rendering,
-//          expandable remarks, row-click navigation, delete button.
+// UPDATED: 'maintenance' → 'major' everywhere (unified model).
 // No API calls, no state — pure props.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -10,7 +9,6 @@ import { useNavigate }         from 'react-router-dom';
 import Button                  from '../../../Common/Button/Button';
 import { formatDate, getServiceTypeBadge, getRemarksText } from '../utils/serviceHelpers';
 
-// Shared button defaults for action buttons inside table cells.
 const TABLE_BTN = {
   variant:        'gradient',
   font:           'md',
@@ -23,19 +21,6 @@ const TABLE_BTN = {
   shadowColor:    'white-600',
 };
 
-/**
- * @param {{
- *   groupedData:           object,
- *   activeTab:             string,
- *   isMultipleEquipment:   boolean,
- *   multipleEquipmentData: Array,
- *   regNoArray:            string[],
- *   expandedRemarks:       object,
- *   onToggleRemark:        (key: string) => void,
- *   onDeleteReport:        (item: object) => void,
- *   tableRef:              React.RefObject,
- * }} props
- */
 function ServiceTable({
   groupedData,
   activeTab,
@@ -56,28 +41,22 @@ function ServiceTable({
         date,
         serviceType,
         historyId,
-        docType:   serviceType === 'maintenance' ? 'maintenance-doc'
-                 : serviceType === 'tyre'        ? 'tyre-doc'
-                 : serviceType === 'battery'     ? 'battery-doc'
+        docType:   serviceType === 'major'   ? 'maintenance-doc'
+                 : serviceType === 'tyre'    ? 'tyre-doc'
+                 : serviceType === 'battery' ? 'battery-doc'
                  : 'service-doc',
       },
     });
   };
 
-  // ── Remarks cell — shared across all service types ─────────────────────────
-
   const RemarksCell = ({ item, remarkKey }) => {
     const text = getRemarksText(item);
     if (!text) return null;
-
     const isLong     = text.length > 100;
     const isExpanded = expandedRemarks[remarkKey];
-
     return (
       <div className="remarks-content">
-        <div className={`remarks-text${isExpanded ? ' expanded' : ''}`}>
-          {text}
-        </div>
+        <div className={`remarks-text${isExpanded ? ' expanded' : ''}`}>{text}</div>
         {isLong && (
           <button
             className="view-more-btn no-print"
@@ -90,25 +69,25 @@ function ServiceTable({
     );
   };
 
-  // ── Column visibility flags — derived from activeTab ───────────────────────
-
-  const showServiceType    = activeTab === 'all';
-  const showHours          = ['oil', 'normal', 'maintenance', 'all'].includes(activeTab);
+  // ── Column visibility ──────────────────────────────────────────────────────
+  // 'major' replaces old 'maintenance'
+  const showServiceType     = activeTab === 'all';
+  const showHours           = ['oil', 'normal', 'major', 'all'].includes(activeTab);
   const showNextFullService = activeTab === 'oil' || activeTab === 'all';
-  const showTyreCols       = activeTab === 'tyre' || activeTab === 'all';
-  const showBatteryCols    = activeTab === 'battery' || activeTab === 'all';
-  const isOilOrNormal      = (type) => type === 'oil' || type === 'normal';
-  const hasHoursData       = (type) => ['oil', 'normal', 'maintenance'].includes(type);
+  const showTyreCols        = activeTab === 'tyre'    || activeTab === 'all';
+  const showBatteryCols     = activeTab === 'battery' || activeTab === 'all';
+
+  const isOilOrNormal = (type) => type === 'oil' || type === 'normal';
+  const hasHoursData  = (type) => ['oil', 'normal', 'major'].includes(type);
 
   return (
     <div className="service-table-container">
       <table className="service-table" ref={tableRef}>
 
-        {/* ── Table Head ── */}
         <thead>
           <tr>
             <th className="date-th">Date</th>
-            {showServiceType   && <th>Service Type</th>}
+            {showServiceType    && <th>Service Type</th>}
             <th>Work Description</th>
             {showHours && (
               <>
@@ -125,7 +104,6 @@ function ServiceTable({
           </tr>
         </thead>
 
-        {/* ── Table Body ── */}
         <tbody>
           {Object.keys(groupedData).length > 0 ? (
             Object.entries(groupedData).map(([regNo, items]) => {
@@ -135,7 +113,6 @@ function ServiceTable({
 
               return (
                 <React.Fragment key={regNo}>
-                  {/* Equipment group header row — only shown in multi-equipment mode */}
                   {isMultipleEquipment && (
                     <tr className="equipment-header-row">
                       <td colSpan="16">
@@ -147,19 +124,19 @@ function ServiceTable({
                   {items.map((item, index) => {
                     const badge      = getServiceTypeBadge(item.serviceType);
                     const remarkKey  = `${regNo}-${index}`;
+
+                    // 'major-service' CSS class for major work rows
                     const rowClasses = [
                       `${item.serviceType}-service`,
-                      item.fullService  ? 'full-service-row'  : '',
-                      item.replaced     ? 'replacement-row'   : '',
+                      item.fullService ? 'full-service-row' : '',
+                      item.replaced    ? 'replacement-row'  : '',
                     ].filter(Boolean).join(' ');
 
                     return (
                       <tr key={remarkKey} className={rowClasses}>
 
-                        {/* Date */}
                         <td>{formatDate(item.date)}</td>
 
-                        {/* Service Type Badge */}
                         {showServiceType && (
                           <td>
                             <span className={`service-badge ${badge.className}`}>
@@ -168,7 +145,6 @@ function ServiceTable({
                           </td>
                         )}
 
-                        {/* Work Description */}
                         <td style={{ textAlign: 'left' }}>
                           {isOilOrNormal(item.serviceType) && (
                             <div>
@@ -182,10 +158,12 @@ function ServiceTable({
                               </div>
                             </div>
                           )}
-                          {!isOilOrNormal(item.serviceType) && (item.workRemarks?.toUpperCase() || '-')}
+                          {/* major replaces maintenance */}
+                          {!isOilOrNormal(item.serviceType) && (
+                            (item.remarks || item.majorRemarks || item.workRemarks || '-').toUpperCase()
+                          )}
                         </td>
 
-                        {/* Hours columns */}
                         {showHours && (
                           <>
                             <td>
@@ -208,7 +186,6 @@ function ServiceTable({
                           </>
                         )}
 
-                        {/* Tyre columns */}
                         {showTyreCols && (
                           <>
                             <td>{item.location || '-'}</td>
@@ -216,17 +193,14 @@ function ServiceTable({
                           </>
                         )}
 
-                        {/* Battery columns */}
                         {showBatteryCols && (
                           <td>{item.serviceType === 'battery' ? item.batteryModel : '-'}</td>
                         )}
 
-                        {/* Remarks */}
                         <td style={{ textAlign: 'left' }} className="remarks-cell">
                           <RemarksCell item={item} remarkKey={remarkKey} />
                         </td>
 
-                        {/* View Document */}
                         <td className="document-column">
                           <Button
                             {...TABLE_BTN}
@@ -237,7 +211,6 @@ function ServiceTable({
                           />
                         </td>
 
-                        {/* Delete */}
                         <td className="document-column">
                           <Button
                             {...TABLE_BTN}

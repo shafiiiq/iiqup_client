@@ -1,5 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// MultiRecord.jsx  —  handleSubmit updated for all-or-nothing batch API
+// MultiRecord.jsx  —  All-or-nothing batch entry for service history records.
+// Uses unified /service-history/batch endpoint.
+// 'maintenance' type renamed to 'major' to match backend enum.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -21,12 +23,13 @@ import './MultiRecord.css';
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
+// 'maintenance' → 'major' to match the unified backend enum
 const SERVICE_TYPES = [
-  { value: 'oil',         label: 'Oil Service', icon: 'oil_barrel'            },
-  { value: 'normal',      label: 'Normal',      icon: 'build'                 },
-  { value: 'tyre',        label: 'Tyre',        icon: 'tire_repair'           },
-  { value: 'battery',     label: 'Battery',     icon: 'battery_charging_full' },
-  { value: 'maintenance', label: 'Major Work',  icon: 'construction'          },
+  { value: 'oil',    label: 'Oil Service', icon: 'oil_barrel'            },
+  { value: 'normal', label: 'Normal',      icon: 'build'                 },
+  { value: 'tyre',   label: 'Tyre',        icon: 'tire_repair'           },
+  { value: 'battery',label: 'Battery',     icon: 'battery_charging_full' },
+  { value: 'major',  label: 'Major Work',  icon: 'construction'          },
 ];
 
 const OIL_FILTER_OPTIONS = [
@@ -119,8 +122,8 @@ const uid = () => `c${++_uid}_${Date.now()}`;
 const buildCard = (regNo = '', machine = '', operator = '') => ({
   id: uid(),
   regNo, machine, operator,
-  serviceType:  'oil',
-  date:         new Date().toISOString().split('T')[0],
+  serviceType:    'oil',
+  date:           new Date().toISOString().split('T')[0],
   serviceHrs: '', nextServiceHrs: '',
   runningHours: '', fullService: false,
   tyreModel: '', tyreNumber: '',
@@ -204,10 +207,10 @@ function SectionToggle({ label, icon, isOpen, onToggle, badge }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ServiceCard({ card, index, hasUrlRegNo, onChange, onRemove }) {
-  const isOil  = card.serviceType === 'oil' || card.serviceType === 'normal';
-  const isTyre = card.serviceType === 'tyre';
-  const isBatt = card.serviceType === 'battery';
-  const isMaint= card.serviceType === 'maintenance';
+  const isOil   = card.serviceType === 'oil' || card.serviceType === 'normal';
+  const isTyre  = card.serviceType === 'tyre';
+  const isBatt  = card.serviceType === 'battery';
+  const isMajor = card.serviceType === 'major';
 
   const set    = (field, val) => onChange(card.id, field, val);
   const toggle = (section)    => set('_open', { ...card._open, [section]: !card._open[section] });
@@ -350,23 +353,41 @@ function ServiceCard({ card, index, hasUrlRegNo, onChange, onRemove }) {
             {card._open.history && (
               <div className="mr-section-body">
                 <div className="mr-form-grid">
-                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="date" id={`date-${card.id}`} name="date" value={card.date} onChange={e => set('date', e.target.value)} label="Date" squircle="10xl" /></div>
-                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`loc-${card.id}`}  name="location" value={card.location} onChange={e => set('location', e.target.value)} label="Location" placeholder="Site location" /></div>
-                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`mech-${card.id}`} name="mechanics" value={card.mechanics} onChange={e => set('mechanics', e.target.value)} label="Mechanics" placeholder="Mechanic name" /></div>
-                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`op-${card.id}`}   name="operator"  value={card.operator}  onChange={e => set('operator', e.target.value)}  label="Operator"  placeholder="Operator name"  /></div>
-                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`sHrs-${card.id}`}  name="serviceHrs"     value={card.serviceHrs}     onBlur={handleHrsBlur} onChange={e => set('serviceHrs',     e.target.value.toUpperCase())} label="Service Hrs / Km"      placeholder="e.g. 1000HRS" /></div>
-                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`nsHrs-${card.id}`} name="nextServiceHrs" value={card.nextServiceHrs}                        onChange={e => set('nextServiceHrs', e.target.value.toUpperCase())} label="Next Service Hrs / Km" placeholder="Auto-filled"   /></div>
-                  {isOil && <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="select" id={`fs-${card.id}`} name="fullService" value={String(card.fullService)} onChange={e => set('fullService', e.target.value === 'true')} label="Full Service" options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }]} /></div>}
-                  {isTyre && <>
-                    <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`tm-${card.id}`} name="tyreModel"    value={card.tyreModel}    onChange={e => set('tyreModel',    e.target.value)}                     label="Tyre Model"       placeholder="Tyre model"   /></div>
-                    <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`tn-${card.id}`} name="tyreNumber"   value={card.tyreNumber}   onChange={e => set('tyreNumber',   e.target.value)}                     label="Tyre Number"      placeholder="Tyre number"  /></div>
-                    <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`rh-${card.id}`} name="runningHours" value={card.runningHours} onChange={e => set('runningHours', e.target.value.toUpperCase())}       label="Running Hrs / Km" placeholder="e.g. 5000HRS" /></div>
-                  </>}
-                  {isBatt && <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`bm-${card.id}`} name="batteryModel" value={card.batteryModel} onChange={e => set('batteryModel', e.target.value)} label="Battery Model" placeholder="Battery model" /></div>}
+                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="date" id={`date-${card.id}`}  name="date"         value={card.date}         onChange={e => set('date',      e.target.value)}                         label="Date"                 squircle="10xl" /></div>
+                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`loc-${card.id}`}   name="location"     value={card.location}     onChange={e => set('location',  e.target.value)}                         label="Location"             placeholder="Site location"  /></div>
+                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`mech-${card.id}`}  name="mechanics"    value={card.mechanics}    onChange={e => set('mechanics', e.target.value)}                         label="Mechanics"            placeholder="Mechanic name"  /></div>
+                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`op-${card.id}`}    name="operator"     value={card.operator}     onChange={e => set('operator',  e.target.value)}                         label="Operator"             placeholder="Operator name"  /></div>
+                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`sHrs-${card.id}`}  name="serviceHrs"   value={card.serviceHrs}   onBlur={handleHrsBlur} onChange={e => set('serviceHrs',     e.target.value.toUpperCase())} label="Service Hrs / Km"     placeholder="e.g. 1000HRS"  /></div>
+                  <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`nsHrs-${card.id}`} name="nextService"  value={card.nextServiceHrs}               onChange={e => set('nextServiceHrs', e.target.value.toUpperCase())} label="Next Service Hrs / Km" placeholder="Auto-filled"   /></div>
+                  {isOil && (
+                    <div className="mr-form-group">
+                      <Input {...SHARED_INPUT_PROPS} type="select" id={`fs-${card.id}`} name="fullService"
+                        value={String(card.fullService)} onChange={e => set('fullService', e.target.value === 'true')}
+                        label="Full Service" options={[{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }]} />
+                    </div>
+                  )}
+                  {isTyre && (
+                    <>
+                      <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`tm-${card.id}`} name="tyreModel"    value={card.tyreModel}    onChange={e => set('tyreModel',    e.target.value)}                     label="Tyre Model"       placeholder="Tyre model"   /></div>
+                      <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`tn-${card.id}`} name="tyreNumber"   value={card.tyreNumber}   onChange={e => set('tyreNumber',   e.target.value)}                     label="Tyre Number"      placeholder="Tyre number"  /></div>
+                      <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`rh-${card.id}`} name="runningHours" value={card.runningHours} onChange={e => set('runningHours', e.target.value.toUpperCase())}       label="Running Hrs / Km" placeholder="e.g. 5000HRS" /></div>
+                    </>
+                  )}
+                  {isBatt && (
+                    <div className="mr-form-group">
+                      <Input {...SHARED_INPUT_PROPS} type="text" id={`bm-${card.id}`} name="batteryModel"
+                        value={card.batteryModel} onChange={e => set('batteryModel', e.target.value)}
+                        label="Battery Model" placeholder="Battery model" />
+                    </div>
+                  )}
                 </div>
-                {isMaint && (
+                {/* Major: Work Remarks inside history section */}
+                {isMajor && (
                   <div className="mr-form-group">
-                    <Input {...SHARED_INPUT_PROPS} type="textarea" id={`wr-${card.id}`} name="workRemarks" value={card.workRemarks} onChange={e => set('workRemarks', e.target.value)} label="Work Remarks" placeholder="Describe work done" height="120px" squircle="30xl" fontSize="6xl" fullWidth="true" rows={4} />
+                    <Input {...SHARED_INPUT_PROPS} type="textarea" id={`wr-${card.id}`} name="workRemarks"
+                      value={card.workRemarks} onChange={e => set('workRemarks', e.target.value)}
+                      label="Work Remarks" placeholder="Describe work done"
+                      height="120px" squircle="30xl" fontSize="6xl" fullWidth="true" rows={4} />
                   </div>
                 )}
               </div>
@@ -404,7 +425,10 @@ function ServiceCard({ card, index, hasUrlRegNo, onChange, onRemove }) {
             {card._open.report && (
               <div className="mr-section-body">
                 <div className="mr-form-group">
-                  <Input {...SHARED_INPUT_PROPS} type="textarea" id={`rem-${card.id}`} name="remarks" value={card.remarks} onChange={e => set('remarks', e.target.value)} placeholder="Service remarks…" height="120px" squircle="30xl" fontSize="6xl" fullWidth="true" rows={4} label={undefined} />
+                  <Input {...SHARED_INPUT_PROPS} type="textarea" id={`rem-${card.id}`} name="remarks"
+                    value={card.remarks} onChange={e => set('remarks', e.target.value)}
+                    placeholder="Service remarks…" height="120px" squircle="30xl"
+                    fontSize="6xl" fullWidth="true" rows={4} label={undefined} />
                 </div>
               </div>
             )}
@@ -463,7 +487,7 @@ function MultiRecord() {
         setCards(prev => prev.map(c => ({
           ...c,
           regNo:    String(found.regNo),
-          machine:  found.machine || found.machineName || found.equipmentName || found.name || '',
+          machine:  found.machine || '',
           operator: op,
         })));
       } catch (err) { console.error('[MultiRecord] fetchEquipment:', err); }
@@ -485,12 +509,13 @@ function MultiRecord() {
     const ref = cards[0];
     setCards(prev => [...prev, buildCard(ref?.regNo || urlRegNo || '', ref?.machine || '', ref?.operator || '')]);
   };
+
   const removeCard = (id) => setCards(prev => prev.length > 1 ? prev.filter(c => c.id !== id) : prev);
 
   const showToast = (msg, type = 'error', textColor = '#ffffff') =>
     setToastConfig({ isOpen: true, type, message: msg, textColor });
 
-  // ── Client-side validation ─────────────────────────────────────────────────
+  // ── Validation ─────────────────────────────────────────────────────────────
 
   const validate = () => {
     for (let i = 0; i < cards.length; i++) {
@@ -499,29 +524,25 @@ function MultiRecord() {
       if (!c.regNo && c.regNo !== 0) { showToast(`${n}: Equipment Reg No required`);              return false; }
       if (!c.machine)                { showToast(`${n}: Equipment Name required`);                return false; }
       if (!c.date)                   { showToast(`${n}: Date required`);                          return false; }
-      if (!c.location)               { showToast(`${n}: Location required`, 'warning', '#000');  return false; }
-      if (!c.mechanics)              { showToast(`${n}: Mechanics required`, 'warning', '#000'); return false; }
+      if (!c.location)               { showToast(`${n}: Location required`, 'warning', '#000');   return false; }
+      if (!c.mechanics)              { showToast(`${n}: Mechanics required`, 'warning', '#000');  return false; }
     }
     return true;
   };
 
-  // ── Submit — all-or-nothing ────────────────────────────────────────────────
+  // ── Submit ─────────────────────────────────────────────────────────────────
   //
-  // The server now runs a pre-flight check before writing anything.
-  // On ANY problem (duplicate dates, missing fields, DB error) it returns an
-  // error and writes NOTHING — the full transaction is rolled back.
-  //
-  // Re-submitting after any failure is always safe because the previous attempt
-  // left zero records in the database.
+  // Groups cards by regNo + serviceType → one batch POST per group.
+  // The server runs a pre-flight check and wraps all writes in a transaction.
+  // On any failure nothing is written — safe to resubmit after fixing errors.
 
   const handleSubmit = async () => {
     if (!validate()) return;
     setIsLoading(true);
 
-    // Reset all card statuses before the new attempt so old red/green states clear
     setCards(prev => prev.map(c => ({ ...c, _status: 'idle', _error: '' })));
 
-    // Group by regNo + serviceType (unchanged grouping logic)
+    // Group by regNo + serviceType
     const groups = {};
     cards.forEach(c => {
       const k = `${c.regNo}__${c.serviceType}`;
@@ -535,8 +556,9 @@ function MultiRecord() {
     for (const groupCards of Object.values(groups)) {
       const f = groupCards[0];
 
+      // Build unified sharedData payload — all field names match the new schema
       const payload = {
-        type: f.serviceType,
+        type: f.serviceType,   // already 'oil' | 'normal' | 'tyre' | 'battery' | 'major'
         sharedData: {
           regNo:          f.regNo,
           machine:        f.machine,
@@ -546,22 +568,27 @@ function MultiRecord() {
           operatorName:   f.operator,
           remarks:        f.remarks,
           checklistItems: f.checklistItems,
+          // Oil / normal filter flags
           oil:            f.oil,
           oilFilter:      f.oilFilter,
           fuelFilter:     f.fuelFilter,
           acFilter:       f.acFilter,
           airFilter:      f.airFilter,
           waterSeparator: f.waterSeparator,
+          // Tyre
           tyreModel:      f.tyreModel,
           tyreNumber:     f.tyreNumber,
+          // Battery
           batteryModel:   f.batteryModel,
         },
         records: groupCards.map(c => ({
           date:           c.date,
-          serviceHrs:     c.serviceHrs,
-          nextServiceHrs: c.nextServiceHrs,
-          runningHours:   c.runningHours,
-          workRemarks:    c.workRemarks || c.remarks,
+          serviceHrs:     c.serviceHrs     || null,
+          nextServiceHrs: c.nextServiceHrs || null,
+          runningHours:   c.runningHours   || null,
+          // Major type work remarks live on the record level
+          workRemarks:    c.workRemarks    || c.remarks || null,
+          remarks:        c.remarks        || null,
           fullService:    c.fullService,
         })),
       };
@@ -571,18 +598,14 @@ function MultiRecord() {
         const result = await res.json();
 
         if (result.ok) {
-          // All records in this group were committed
           groupCards.forEach(c => {
             const ci = updatedCards.findIndex(x => x.id === c.id);
             if (ci !== -1) updatedCards[ci] = { ...updatedCards[ci], _status: 'success', _error: '' };
           });
         } else {
-          // Server rejected the whole group — nothing was written (pre-flight or rollback)
-          allOk    = true === false; // eslint-disable-line
           allOk    = false;
           errorMsg = result.message || 'Server rejected this batch — fix issues and resubmit';
 
-          // Map per-record errors from result.errors[] back to each card
           const serverErrors = Array.isArray(result.errors) ? result.errors : [];
           groupCards.forEach((c, localIdx) => {
             const reason = serverErrors[localIdx] || result.message || 'Rejected by server';
@@ -592,7 +615,6 @@ function MultiRecord() {
         }
 
       } catch (err) {
-        // Network or unexpected error
         allOk    = false;
         errorMsg = err.message || 'Network error';
         groupCards.forEach(c => {
@@ -625,8 +647,6 @@ function MultiRecord() {
   const collapsedCards = cards.filter(c => c._collapsed);
   const expandedCards  = cards.filter(c => !c._collapsed);
   const hasStack       = collapsedCards.length > 0;
-  const okCount        = cards.filter(c => c._status === 'success').length;
-  const errCount       = cards.filter(c => c._status === 'failed').length;
 
   return (
     <div className="mr-container">

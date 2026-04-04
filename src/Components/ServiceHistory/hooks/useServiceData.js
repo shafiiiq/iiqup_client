@@ -1,8 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // useServiceData.js — Data fetching + processing hook for ServiceHistory.
-// Owns: fetching 4 history types in parallel, enriching records with remarks
-// and location from a secondary endpoint, applying all active filters,
-// grouping by equipment, and syncing the global header context.
+// UPDATED: Unified ServiceHistory collection — one API call per regNo instead
+// of 4 parallel calls. serviceType 'maintenance' is now 'major' everywhere.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -12,28 +11,14 @@ import { apiRequest }     from '../../../utils/api';
 import { END_POINT }      from '../../../constants';
 import { formatDate, isDateInRange } from '../utils/serviceHelpers';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Hook
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * @param {{
- *   regNoArray:          string[],
- *   regNos:              string,
- *   isMultipleEquipment: boolean,
- * }}
- */
 export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
 
-  // ── Global contexts ────────────────────────────────────────────────────────
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { searchTerm }                        = useSearch();
 
   // ── Raw API data ───────────────────────────────────────────────────────────
-  const [serviceHistory,     setServiceHistory]     = useState([]);
-  const [maintenanceHistory, setMaintenanceHistory] = useState([]);
-  const [tyreHistory,        setTyreHistory]        = useState([]);
-  const [batteryHistory,     setBatteryHistory]     = useState([]);
+  // Unified: one array instead of 4 separate ones
+  const [allHistory,         setAllHistory]         = useState([]);
   const [equipmentData,      setEquipmentData]      = useState(null);
   const [multipleEquipmentData, setMultipleEquipmentData] = useState([]);
 
@@ -42,7 +27,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   const [error,   setError]   = useState(null);
 
   // ── Filter state ───────────────────────────────────────────────────────────
-  const [activeTab,       ] = useState('all'); // tab is read-only from the shell
+  const [activeTab,       ] = useState('all');
   const [dateFilter,        setDateFilter]        = useState('all');
   const [lastMonthsCount,   setLastMonthsCount]   = useState(6);
   const [customStartDate,   setCustomStartDate]   = useState('');
@@ -61,18 +46,14 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [groupedData,  setGroupedData]  = useState({});
 
-  // ── Modal: filters form ────────────────────────────────────────────────────
+  // ── Modals ─────────────────────────────────────────────────────────────────
   const [showFiltersModal, setShowFiltersModal] = useState(false);
-
-  // ── Modal: delete report ───────────────────────────────────────────────────
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteReport,    setDeleteReport]    = useState({});
-
-  // ── Remarks expansion in table ────────────────────────────────────────────
-  const [expandedRemarks, setExpandedRemarks] = useState({});
+  const [showDeleteModal,  setShowDeleteModal]  = useState(false);
+  const [deleteReport,     setDeleteReport]     = useState({});
+  const [expandedRemarks,  setExpandedRemarks]  = useState({});
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Derived: filter state object (passed to pure helper functions)
+  // Derived filter state
   // ─────────────────────────────────────────────────────────────────────────
 
   const filterState = useMemo(() => ({
@@ -92,12 +73,12 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       setHeaderSubtitle(null);
     }
     setHeaderTitle('Service History');
-
     return () => { setHeaderTitle(null); setHeaderSubtitle(null); };
   }, [equipmentData, multipleEquipmentData, regNoArray, activeTab, dateFilter, isMultipleEquipment, setHeaderTitle, setHeaderSubtitle]);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Fetching — history records (all 4 types in parallel)
+  // Fetching — unified history (one call per regNo)
+  // GET /service-history/get/:regNo  → returns all types for that equipment
   // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -111,31 +92,20 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
 
     const fetchAllHistories = async () => {
       try {
-        // Fire one request per history type per regNo — N×4 requests in parallel
+        // One request per regNo — backend returns all serviceTypes
         const responses = await Promise.all(
-          regNoArray.flatMap(regNo => [
-            apiRequest(`${END_POINT}/service-history/get-service-history/${regNo}`),
-            apiRequest(`${END_POINT}/service-history/get-maintenance-history/${regNo}`),
-            apiRequest(`${END_POINT}/service-history/get-tyre-history/${regNo}`),
-            apiRequest(`${END_POINT}/service-history/get-battery-history/${regNo}`),
-          ])
+          regNoArray.map(regNo =>
+            apiRequest(`${END_POINT}/service-history/get/${regNo}`)
+          )
         );
         const allData = await Promise.all(responses.map(r => r.json()));
 
-        const combined = { service: [], maintenance: [], tyre: [], battery: [] };
-
-        regNoArray.forEach((_, idx) => {
-          const offset = idx * 4;
-          combined.service.push(    ...(allData[offset    ].data || []));
-          combined.maintenance.push(...(allData[offset + 1].data || []));
-          combined.tyre.push(       ...(allData[offset + 2].data || []));
-          combined.battery.push(    ...(allData[offset + 3].data || []));
+        const combined = [];
+        allData.forEach(res => {
+          if (res.data) combined.push(...res.data);
         });
 
-        setServiceHistory(combined.service);
-        setMaintenanceHistory(combined.maintenance);
-        setTyreHistory(combined.tyre);
-        setBatteryHistory(combined.battery);
+        setAllHistory(combined);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching service histories:', err);
@@ -172,20 +142,27 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   }, [regNoArray, regNos, isMultipleEquipment]);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Enrichment — fetches remarks + location for individual records
-  // These are secondary calls per item after the bulk fetch completes.
+  // Enrichment — fetches remarks + location from report for oil/normal/major
+  // Secondary calls after the bulk history fetch.
+  // Note: unified model already stores remarks/location on history —
+  // these calls are kept for backward compat with older records.
   // ─────────────────────────────────────────────────────────────────────────
 
   const fetchRemarksAndLocation = useCallback(async (items) => {
-    const OIL_TYPES = new Set(['oil', 'normal', 'tyre', 'battery']);
+    const REPORT_TYPES = new Set(['oil', 'normal', 'tyre', 'battery']);
 
     return Promise.all(items.map(async (item) => {
-      if (!OIL_TYPES.has(item.serviceType) || !item.date) return item;
+      if (!REPORT_TYPES.has(item.serviceType) || !item.date) return item;
       try {
-        const res  = await apiRequest(`${END_POINT}/service-report/${item.regNo}/${formatDate(item.date)}`);
+        // Prefer historyId-based lookup (new method)
+        const endpoint = item.reportId
+          ? `${END_POINT}/service-report/get-report/with-id/${item.reportId}`
+          : `${END_POINT}/service-report/${item.regNo}/${formatDate(item.date)}`;
+
+        const res  = await apiRequest(endpoint);
         if (!res.ok) return item;
         const data = await res.json();
-        const row  = data?.data?.[0];
+        const row  = item.reportId ? data.data : data?.data?.[0];
         if (!row) return item;
 
         const updated = { ...item, remarks: row.remarks || item.remarks };
@@ -197,15 +174,21 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
     }));
   }, []);
 
-  const fetchMaintenanceRemarks = useCallback(async (items) => {
+  const fetchMajorRemarks = useCallback(async (items) => {
     return Promise.all(items.map(async (item) => {
-      if (item.serviceType !== 'maintenance' || !item.date) return item;
+      // 'major' replaces old 'maintenance'
+      if (item.serviceType !== 'major' || !item.date) return item;
       try {
-        const res  = await apiRequest(`${END_POINT}/service-report/${item.regNo}/${formatDate(item.date)}`);
+        const endpoint = item.reportId
+          ? `${END_POINT}/service-report/get-report/with-id/${item.reportId}`
+          : `${END_POINT}/service-report/${item.regNo}/${formatDate(item.date)}`;
+
+        const res  = await apiRequest(endpoint);
         if (!res.ok) return item;
         const data = await res.json();
-        const row  = data?.data?.[0];
+        const row  = item.reportId ? data.data : data?.data?.[0];
         if (!row) return item;
+
         return {
           ...item,
           remarks:        row.remarks        || item.remarks,
@@ -220,26 +203,24 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
 
   // ─────────────────────────────────────────────────────────────────────────
   // Data Processing Effect
-  // Runs whenever the source data, filter state, or search term changes.
   // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const processData = async () => {
-      // 1. Merge all history types into one array with normalised serviceType + regNo
-      const combined = [
-        ...serviceHistory.map(i    => ({ ...i, serviceType: i.serviceType || 'oil',  regNo: i.regNo || i.equipmentId })),
-        ...maintenanceHistory.map(i => ({ ...i, serviceType: 'maintenance',           regNo: i.regNo || i.equipmentId })),
-        ...tyreHistory.map(i        => ({ ...i, serviceType: 'tyre',                  regNo: i.equipmentNo || i.equipmentId })),
-        ...batteryHistory.map(i     => ({ ...i, serviceType: 'battery',               regNo: i.equipmentNo || i.equipmentId })),
-      ];
+      // 1. Normalise regNo — unified model always uses regNo
+      const combined = allHistory.map(item => ({
+        ...item,
+        regNo: String(item.regNo || '').trim(),
+      }));
 
-      // 2. Keep only records belonging to the requested reg nos
-      const inScope = combined.filter(item => regNoArray.includes(item.regNo?.toString().trim()));
+      // 2. Keep only records belonging to requested reg nos
+      const inScope = combined.filter(item => regNoArray.includes(item.regNo));
 
       // 3. Date range filter
       let result = inScope.filter(item => isDateInRange(item.date, filterState));
 
       // 4. Service type filter
+      // 'major' is the canonical name — 'maintenance' is no longer valid
       if (filters.serviceTypes.length > 0) {
         result = result.filter(item => filters.serviceTypes.includes(item.serviceType));
       }
@@ -247,7 +228,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       // 5. Service hours range filter
       if (filters.serviceHoursRange.min || filters.serviceHoursRange.max) {
         result = result.filter(item => {
-          const hrs = item.serviceHrs || item.runningHours || 0;
+          const hrs = parseInt(item.serviceHrs || item.runningHours || 0, 10);
           const min = filters.serviceHoursRange.min ? parseInt(filters.serviceHoursRange.min) : 0;
           const max = filters.serviceHoursRange.max ? parseInt(filters.serviceHoursRange.max) : Infinity;
           return hrs >= min && hrs <= max;
@@ -256,22 +237,21 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
 
       // 6. Has-remarks filter
       if (filters.hasRemarks === 'yes') {
-        result = result.filter(item => item.remarks || item.majorRemarks || item.workRemarks);
+        result = result.filter(item => item.remarks || item.majorRemarks);
       } else if (filters.hasRemarks === 'no') {
-        result = result.filter(item => !item.remarks && !item.majorRemarks && !item.workRemarks);
+        result = result.filter(item => !item.remarks && !item.majorRemarks);
       }
 
-      // 7. Enrich with secondary API data (remarks + location) — fire both in parallel
-      const [enrichedRegular, enrichedMaintenance] = await Promise.all([
+      // 7. Enrich with secondary report data — fire both in parallel
+      const [enrichedRegular, enrichedMajor] = await Promise.all([
         fetchRemarksAndLocation(result),
-        fetchMaintenanceRemarks(result),
+        fetchMajorRemarks(result),
       ]);
 
-      // 8. Merge the two enriched arrays: maintenance items come from enrichedMaintenance,
-      //    all others come from enrichedRegular
+      // 8. Merge: major items from enrichedMajor, others from enrichedRegular
       const merged = result.map(item => {
-        if (item.serviceType === 'maintenance') {
-          return enrichedMaintenance.find(d => d._id === item._id) || item;
+        if (item.serviceType === 'major') {
+          return enrichedMajor.find(d => d._id === item._id) || item;
         }
         return enrichedRegular.find(d => d._id === item._id) || item;
       });
@@ -279,7 +259,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       // 9. Sort newest first
       merged.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      // 10. Global search term filter
+      // 10. Global search
       const searched = merged.filter(item => {
         if (!searchTerm) return true;
         return Object.values(item).some(v =>
@@ -292,7 +272,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
 
     processData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceHistory, maintenanceHistory, tyreHistory, batteryHistory, regNoArray, searchTerm, dateFilter, lastMonthsCount, customStartDate, customEndDate, filters]);
+  }, [allHistory, regNoArray, searchTerm, dateFilter, lastMonthsCount, customStartDate, customEndDate, filters]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Grouping Effect
@@ -324,7 +304,12 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   };
 
   const handleResetFilters = () => {
-    const empty = { dateFilter: 'all', serviceTypes: [], serviceHoursRange: { min: '', max: '' }, hasRemarks: '', lastMonthsCount: 6, customStartDate: '', customEndDate: '' };
+    const empty = {
+      dateFilter: 'all', serviceTypes: [],
+      serviceHoursRange: { min: '', max: '' },
+      hasRemarks: '', lastMonthsCount: 6,
+      customStartDate: '', customEndDate: '',
+    };
     setFilters(empty);
     setDateFilter('all');
     setLastMonthsCount(6);
@@ -337,20 +322,16 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   };
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Delete Report
+  // Delete — now targets unified history endpoint
+  // DELETE /service-history/delete/:type/:id  (deletes history + linked report)
   // ─────────────────────────────────────────────────────────────────────────
 
   const handleDeleteReport = (item) => { setDeleteReport(item); setShowDeleteModal(true); };
 
   const confirmDeleteReport = async () => {
-    const urlMap = {
-      oil:         `${END_POINT}/service-history/delete-service-history/oil/${deleteReport._id}`,
-      normal:      `${END_POINT}/service-history/delete-service-history/oil/${deleteReport._id}`,
-      tyre:        `${END_POINT}/service-history/delete-service-history/tyre/${deleteReport._id}`,
-      battery:     `${END_POINT}/service-history/delete-service-history/battery/${deleteReport._id}`,
-      maintenance: `${END_POINT}/service-history/delete-service-history/maintenance/${deleteReport._id}`,
-    };
-    const url = urlMap[deleteReport.serviceType] || urlMap.maintenance;
+    // Use the item's serviceType directly — all types live in one collection
+    const type = deleteReport.serviceType || 'oil';
+    const url  = `${END_POINT}/service-history/delete/${type}/${deleteReport._id}`;
     const res  = await apiRequest(url, 'DELETE');
     const data = await res.json();
     if (data.ok) window.location.reload();
@@ -369,7 +350,6 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   // ─────────────────────────────────────────────────────────────────────────
 
   return {
-    // Data
     filteredData,
     groupedData,
     equipmentData,
@@ -377,26 +357,22 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
     loading,
     error,
 
-    // Filter state (for display + export)
     filterState,
     filters, setFilters,
     dateFilter,
     searchTerm,
     activeTab,
 
-    // Filter handlers
     handleApplyFilters,
     handleResetFilters,
     handleFilterChange,
     showFiltersModal, setShowFiltersModal,
 
-    // Delete
     showDeleteModal, setShowDeleteModal,
     deleteReport,
     handleDeleteReport,
     confirmDeleteReport,
 
-    // Remarks
     expandedRemarks,
     toggleRemarkExpansion,
   };

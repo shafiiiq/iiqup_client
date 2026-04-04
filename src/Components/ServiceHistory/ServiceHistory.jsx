@@ -44,7 +44,6 @@ const ServiceHistory = () => {
   const navigate   = useNavigate();
   const tableRef   = useRef(null);
 
-  // Parsed URL param — memoised so hooks depending on it don't re-fire
   const regNoArray = useMemo(() => {
     if (!regNos) { console.error('No regNos in URL!'); return []; }
     return regNos.split(',').map(r => r.trim()).filter(Boolean);
@@ -58,7 +57,6 @@ const ServiceHistory = () => {
 
   const signing = useDocumentSigning({
     onSigned: () => {
-      // After signing succeeds, automatically fire the pending action
       if (signing.pendingAction === 'pdf')   handleExportToPDF();
       if (signing.pendingAction === 'print') handlePrint();
     },
@@ -66,7 +64,6 @@ const ServiceHistory = () => {
 
   // ── Export / Print Handlers ────────────────────────────────────────────────
 
-  // Shared context object threaded into all three export functions
   const exportContext = {
     groupedData:           data.groupedData,
     activeTab:             data.activeTab,
@@ -97,15 +94,11 @@ const ServiceHistory = () => {
     navigate(`/batch-service-form/${regNoArray[0]}`);
   };
 
+  // All history types now share a single unified form route.
+  // activeTab values: 'oil' | 'normal' | 'tyre' | 'battery' | 'major'
   const handleAddService = () => {
-    const routes = {
-      normal:      `/service-history-form/${regNoArray[0]}`,
-      oil:         `/service-history-form/${regNoArray[0]}`,
-      maintenance: `/maintenance-history-form/${regNoArray[0]}`,
-      tyre:        `/tyre-history-form/${regNoArray[0]}`,
-      battery:     `/battery-history-form/${regNoArray[0]}`,
-    };
-    navigate(routes[data.activeTab] || `/service-form-nav/${regNoArray[0]}`);
+    const type = data.activeTab || 'oil';
+    navigate(`/service-history-form/${type}/${regNoArray[0]}`);
   };
 
   const handleViewAllDocuments = () => {
@@ -129,7 +122,7 @@ const ServiceHistory = () => {
     navigate(basePath, { state: { serviceTypes: data.filters.serviceTypes } });
   };
 
-  // ── View All Documents Button Label ───────────────────────────────────────
+  // ── View All Label ─────────────────────────────────────────────────────────
 
   const viewAllLabel = (() => {
     const { dateFilter, lastMonthsCount, customStartDate, customEndDate } = data.filterState;
@@ -139,13 +132,15 @@ const ServiceHistory = () => {
     return 'View All Documents';
   })();
 
-  // ── Add Service Button Label ───────────────────────────────────────────────
+  // ── Add Service Label ──────────────────────────────────────────────────────
+  // 'major' replaces old 'maintenance' key
 
   const addServiceLabel = {
-    oil:         'Add Oil Service',
-    maintenance: 'Add Major Work',
-    tyre:        'Add Tyre Service',
-    battery:     'Add Battery Service',
+    oil:     'Add Oil Service',
+    normal:  'Add Normal Service',
+    major:   'Add Major Work',
+    tyre:    'Add Tyre Service',
+    battery: 'Add Battery Service',
   }[data.activeTab] || 'Add Service';
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -158,11 +153,11 @@ const ServiceHistory = () => {
       {/* ── Controls Bar ── */}
       <div className="controls-bar">
         <div className="action-buttons left">
-          <Button {...BAR_BTN} text="Filters"       onClick={() => data.setShowFiltersModal(true)} colorScheme="violet-800"  width="160px"    textColor="white-200" />
-          <Button {...BAR_BTN} text={viewAllLabel}  onClick={handleViewAllDocuments}               colorScheme="lime-800"    width="fit-content" textColor="white-200" />
+          <Button {...BAR_BTN} text="Filters"      onClick={() => data.setShowFiltersModal(true)} colorScheme="violet-800"    width="160px"      textColor="white-200" />
+          <Button {...BAR_BTN} text={viewAllLabel} onClick={handleViewAllDocuments}               colorScheme="lime-800"      width="fit-content" textColor="white-200" />
         </div>
         <div className="action-buttons right">
-          <Button {...BAR_BTN} text='Multiple Records'  onClick={addMutiServices}      colorScheme="info-800"     width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Multiple Records"  onClick={addMutiServices}      colorScheme="info-800"     width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text={addServiceLabel}   onClick={handleAddService}      colorScheme="info-800"     width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Export to Excel"   onClick={handleExportToExcel}  colorScheme="primary-800"  width="160px" textColor="white-200" />
           <Button {...BAR_BTN} text="Print"             onClick={handlePrint}           colorScheme="success-800"  width="160px" textColor="white-200" />
@@ -172,9 +167,7 @@ const ServiceHistory = () => {
 
       {/* ── Main Content ── */}
       {data.loading ? (
-        <div className="loading">
-          <Loader/>
-        </div>
+        <div className="loading"><Loader /></div>
       ) : data.error ? (
         <div className="error-message">{data.error}</div>
       ) : (
@@ -228,9 +221,10 @@ const ServiceHistory = () => {
             { name: 'customStartDate', label: 'Start Date', type: 'date' },
             { name: 'customEndDate',   label: 'End Date',   type: 'date' },
           ] : []),
-          { name: 'serviceTypes',   label: 'Service Types (comma-separated)', type: 'text', placeholder: 'oil, normal, maintenance, tyre, battery' },
-          { name: 'serviceHoursMin', label: 'Min Service Hours', type: 'number', placeholder: 'Minimum hours' },
-          { name: 'serviceHoursMax', label: 'Max Service Hours', type: 'number', placeholder: 'Maximum hours' },
+          // serviceTypes filter reflects new type names — 'major' not 'maintenance'
+          { name: 'serviceTypes',    label: 'Service Types (comma-separated)', type: 'text', placeholder: 'oil, normal, major, tyre, battery' },
+          { name: 'serviceHoursMin', label: 'Min Service Hours',               type: 'number', placeholder: 'Minimum hours' },
+          { name: 'serviceHoursMax', label: 'Max Service Hours',               type: 'number', placeholder: 'Maximum hours' },
           { name: 'hasRemarks', label: 'Has Remarks', type: 'select', options: [
             { value: '',    label: 'All' },
             { value: 'yes', label: 'Yes' },
@@ -238,14 +232,14 @@ const ServiceHistory = () => {
           ]},
         ]}
         formValues={{
-          dateFilter:       data.filters.dateFilter,
-          lastMonthsCount:  data.filters.lastMonthsCount,
-          customStartDate:  data.filters.customStartDate,
-          customEndDate:    data.filters.customEndDate,
-          serviceTypes:     data.filters.serviceTypes.join(', '),
-          serviceHoursMin:  data.filters.serviceHoursRange.min,
-          serviceHoursMax:  data.filters.serviceHoursRange.max,
-          hasRemarks:       data.filters.hasRemarks,
+          dateFilter:      data.filters.dateFilter,
+          lastMonthsCount: data.filters.lastMonthsCount,
+          customStartDate: data.filters.customStartDate,
+          customEndDate:   data.filters.customEndDate,
+          serviceTypes:    data.filters.serviceTypes.join(', '),
+          serviceHoursMin: data.filters.serviceHoursRange.min,
+          serviceHoursMax: data.filters.serviceHoursRange.max,
+          hasRemarks:      data.filters.hasRemarks,
         }}
         onFormChange={(name, value) => {
           if (name === 'serviceTypes') {
@@ -303,7 +297,7 @@ const ServiceHistory = () => {
         preventClose={signing.signLoading}
       />
 
-      {/* Sign Warning (unsigned document) */}
+      {/* Sign Warning */}
       <DevModal
         isOpen={signing.showWarningModal}
         onClose={() => { signing.setShowWarningModal(false); signing.setPendingAction(null); }}
@@ -343,6 +337,7 @@ const ServiceHistory = () => {
         progress={100}
         preventClose={true}
       />
+
     </div>
   );
 };

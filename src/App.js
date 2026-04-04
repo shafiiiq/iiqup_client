@@ -89,8 +89,7 @@ const VALID_ROUTES = [
 const VALID_PREFIXES = [
   '/all/', '/service-document/', '/service-form-nav/', '/service-form/',
   '/service-history/', '/maintenance-history/', '/tyre-history/',
-  '/battery-history/', '/service-history-form/', '/tyre-history-form/',
-  '/battery-history-form/', '/maintenance-history-form/',
+  '/battery-history/', '/service-history-form/',
   '/equipment-stocks-form/', '/documents/', '/backcharge-doc/',
   '/complaints/', '/lpo-form/', '/lpo-doc/', '/lpo-list/', '/batch-service-form',
 ];
@@ -378,37 +377,38 @@ function App() {
 
                     {/* ── Service Documents ───────────────────────────────── */}
 
-                    <Route path="/all/all-histories/:regNo"                                element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/all/oil-service/:regNo"                                  element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/all/maintenance-service/:regNo"                          element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/all/tyre-service/:regNo"                                 element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/all/battery-service/:regNo"                              element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/all/date-range/:serviceType/:regNo/:startDate/:endDate"  element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/all/last-months/:serviceType/:regNo/:monthsCount"        element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
-                    <Route path="/service-document/:historyId"                             element={<ProtectedRoute><ServiceDoc />                                       </ProtectedRoute>} />
+                    <Route path="/all/all-histories/:regNo"                                element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/all/oil-service/:regNo"                                  element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/all/normal-service/:regNo"                               element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/all/major-service/:regNo"                                element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />        
+                    <Route path="/all/tyre-service/:regNo"                                 element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/all/battery-service/:regNo"                              element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/all/date-range/:serviceType/:regNo/:startDate/:endDate"  element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/all/last-months/:serviceType/:regNo/:monthsCount"        element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
+                    <Route path="/service-document/:historyId"                             element={<ProtectedRoute><ServiceDoc />               </ProtectedRoute>} />
 
                     {/* ── Service Forms ────────────────────────────────────── */}
 
                     <Route path="/batch-service-form/:regNo?"                              element={<MultiRecord />} />
-                    <Route path="/service-form-nav/:regNo"                                 element={<ProtectedRoute><FormNavigation />                                  </ProtectedRoute>} />
-                    <Route path="/service-form/:serviceType/:historyId"                    element={<ProtectedRoute><ServiceForm />                                     </ProtectedRoute>} />
-                    <Route path="/service-form/update/:serviceType/:reportId"              element={<ProtectedRoute><ServiceForm />                                     </ProtectedRoute>} />
+                    <Route path="/service-form-nav/:regNo"                                 element={<ProtectedRoute><FormNavigation />           </ProtectedRoute>} />
+                    <Route path="/service-form/:serviceType/:historyId"                    element={<ProtectedRoute><ServiceForm />              </ProtectedRoute>} />
+                    <Route path="/service-form/update/:serviceType/:reportId"              element={<ProtectedRoute><ServiceForm />              </ProtectedRoute>} />
 
                     {/* ── Equipment & Tools ────────────────────────────────── */}
 
-                    <Route path="/equipments"                                              element={<ProtectedRoute><Equipments />                                      </ProtectedRoute>} />
-                    <Route path="/toolkits"                                                element={<ProtectedRoute><Toolkits />                                        </ProtectedRoute>} />
+                    <Route path="/equipments"                                              element={<ProtectedRoute><Equipments />               </ProtectedRoute>} />
+                    <Route path="/toolkits"                                                element={<ProtectedRoute><Toolkits />                 </ProtectedRoute>} />
 
                     {/* ── Service History ──────────────────────────────────── */}
 
-                    <Route path="/service-history"                                         element={<ProtectedRoute><ServiceHistory />                                  </ProtectedRoute>} />
-                    <Route path="/service-history/:regNos"                                 element={<ProtectedRoute><ServiceHistory />                                  </ProtectedRoute>} />
-                    <Route path="/service-histoy/summary"                                  element={<ProtectedRoute><ServiceHistorySummary />                           </ProtectedRoute>} />
+                    <Route path="/service-history"                                         element={<ProtectedRoute><ServiceHistory />           </ProtectedRoute>} />
+                    <Route path="/service-history/:regNos"                                 element={<ProtectedRoute><ServiceHistory />           </ProtectedRoute>} />
+                    <Route path="/service-histoy/summary"                                  element={<ProtectedRoute><ServiceHistorySummary />    </ProtectedRoute>} />
 
                     {/* ── History Forms ────────────────────────────────────── */}
 
-                    <Route path="/service-history-form/:type/:regNo"                       element={<ProtectedRoute><ServiceHistoryEntryForm />                         </ProtectedRoute>} />
-                    <Route path="/service-history-form/:type"                              element={<ProtectedRoute><ServiceHistoryEntryForm />                         </ProtectedRoute>} />
+                    <Route path="/service-history-form/:type/:regNo"                       element={<ProtectedRoute><ServiceHistoryEntryForm />  </ProtectedRoute>} />
+                    <Route path="/service-history-form/:type"                              element={<ProtectedRoute><ServiceHistoryEntryForm />  </ProtectedRoute>} />
 
                     {/* ── Notifications ────────────────────────────────────── */}
 
