@@ -335,6 +335,11 @@ function ServiceHistoryEntryForm() {
       const response = await apiRequest(HISTORY_ENDPOINT, 'POST', payload);
       const result   = await response.json();
 
+      if (response.status === 409) {
+       showAlert(result.message || 'A record for this date already exists', 'warning', '#000000');
+       return; 
+      }
+
       if (!response.ok) throw new Error(result.message || result.error || 'Failed to submit');
 
       showAlert(`${config.title.replace('Add ', '')} added successfully!`, 'done_all', '--color-primary');
