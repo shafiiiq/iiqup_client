@@ -378,9 +378,9 @@ body.dark-theme {
     background-color: var(--oil-service-color);
 }
 
-.badge-maintenance {
-    background-color: var(--maintenance-service-color);
-    color: #212529;
+.badge-major {
+  background-color: #854d0e;
+  color: #fef9c3;
 }
 
 .badge-tyre {

@@ -131,13 +131,12 @@ export const getDateFilterSuffix = ({ dateFilter, lastMonthsCount, customStartDa
 
 /** Maps service type keys to badge display config. */
 const SERVICE_TYPE_BADGES = {
-  normal:      { text: 'Normal',      className: 'badge-normal'      },
-  oil:         { text: 'Oil',         className: 'badge-oil'         },
-  maintenance: { text: 'Major Works', className: 'badge-maintenance' },
-  tyre:        { text: 'Tyre',        className: 'badge-tyre'        },
-  battery:     { text: 'Battery',     className: 'badge-battery'     },
+  normal:  { text: 'Normal',      className: 'badge-normal'  },
+  oil:     { text: 'Oil',         className: 'badge-oil'     },
+  major:   { text: 'Major Works', className: 'badge-major'   },
+  tyre:    { text: 'Tyre',        className: 'badge-tyre'    },
+  battery: { text: 'Battery',     className: 'badge-battery' },
 };
-
 /**
  * Returns the badge config for a given service type.
  * Falls back to a safe default for unknown types.
@@ -156,15 +155,15 @@ export const getServiceTypeBadge = (serviceType) =>
  */
 export const getTabName = (activeTab) => {
   const names = {
-    all:         'All Services',
-    oil:         'Oil Service',
-    maintenance: 'Major Works',
-    tyre:        'Tyre Service',
-    battery:     'Battery Service',
+    all:     'All Services',
+    oil:     'Oil Service',
+    normal:  'Normal Service',
+    major:   'Major Works',
+    tyre:    'Tyre Service',
+    battery: 'Battery Service',
   };
   return names[activeTab] || 'All Services';
 };
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Row Content Helpers
@@ -187,7 +186,7 @@ export const getWorkDescription = (item) => {
       item.acFilter ? `A/C Filter: ${item.acFilter}` : null,
     ].filter(Boolean).join(', ');
   }
-  return item.workRemarks?.toUpperCase() || '-';
+  return item.remarks?.toUpperCase()
 };
 
 /**
@@ -205,7 +204,7 @@ export const getWorkDescriptionForPDF = (item) => {
       item.acFilter ? `A/C Filter: ${item.acFilter}` : null,
     ].filter(Boolean).join(', ');
   }
-  return item.workRemarks?.toUpperCase() || '-';
+  return item.remarks?.toUpperCase() || '-';
 };
 
 /**
@@ -219,17 +218,14 @@ export const getRemarksText = (item) => {
   switch (item.serviceType) {
     case 'oil':
     case 'normal':
-      return item.remarks?.toUpperCase() || '';
-    case 'maintenance':
-      return item.majorRemarks?.toUpperCase() || item.workRemarks?.toUpperCase() || '';
+    case 'major':
     case 'tyre':
     case 'battery':
-      return item.remarks?.toUpperCase() || '';
+      return item.remarks?.toUpperCase() || '-';
     default:
       return '';
   }
 };
-
 /**
  * Returns the CSS background colour (ARGB hex) for an Excel/PDF row
  * based on the record's service type and special flags.
@@ -242,11 +238,11 @@ export const getRowBgColor = (item) => {
   if (item.fullService || item.replaced) return 'FFFFD3A5';
 
   const colors = {
-    oil:         'FFE8F5E8',
-    maintenance: 'FFFFF3CD',
-    tyre:        'FFD1ECF1',
-    battery:     'FFF8D7DA',
-    normal:      'FFF8D7DA',
+    oil:     'FFE8F5E8',
+    normal:  'FFF8D7DA',
+    major:   'FFFFF3CD',
+    tyre:    'FFD1ECF1',
+    battery: 'FFF8D7DA',
   };
   return colors[item.serviceType] || 'FFFFFFFF';
 };
@@ -261,10 +257,11 @@ export const getRowBgColorForPDF = (item) => {
   if (item.fullService || item.replaced) return [255, 211, 165];
 
   const colors = {
-    oil:         [232, 245, 232],
-    maintenance: [255, 243, 205],
-    tyre:        [209, 236, 241],
-    battery:     [248, 215, 218],
+    oil:     [232, 245, 232],
+    normal:  [248, 215, 218],
+    major:   [255, 243, 205],
+    tyre:    [209, 236, 241],
+    battery: [248, 215, 218],
   };
   return colors[item.serviceType] || [255, 255, 255];
 };
