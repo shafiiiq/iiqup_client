@@ -8,6 +8,7 @@ import DevModal from '../../Common/DevModal/DevModal';
 import { useSearch } from '../../Context/SearchContext';
 import Button from '../../Common/Button/Button';
 import Loader from '../../Common/Loader/Loader';
+import Sidebar, { SidebarSection, SidebarRow, SidebarTable, SidebarActions, SidebarBarcode } from '../../Common/Sidebar/Sidebar';
 
 function StockManage() {
   const { searchTerm } = useSearch();
@@ -30,6 +31,8 @@ function StockManage() {
   const [userOptions, setUserOptions] = useState([]);
   const [filteredUserOptions, setFilteredUserOptions] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [sidebarMinimized, setSidebarMinimized] = useState(false);
+  const [sidebarMaximized, setSidebarMaximized] = useState(false);
 
   const [reduceFormData, setReduceFormData] = useState({
     stockCount: '',
@@ -1227,249 +1230,122 @@ function StockManage() {
       )}
 
       {/* Selected stock details sidebar */}
-      {selectedStock && (
-        <div className="stock-manage-details no-print">
-          <div className="stock-manage-details-header">
-            <h2>Stock Details</h2>
-            <button className="close-btn" onClick={() => setSelectedStock(null)}>
-              <span class="material-symbols-rounded">
-                close
-              </span>
-            </button>
-          </div>
-          <div className="stock-manage-details-content">
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Type:</span>
-              <span className="stock-manage-value">{selectedStock.type}</span>
-            </div>
-
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Product:</span>
-              <span className="stock-manage-value">{selectedStock.product}</span>
-            </div>
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Serial Number:</span>
-              <span className="stock-manage-value">{selectedStock.serialNumber}</span>
-            </div>
+      {/* Selected stock details sidebar */}
+      <Sidebar
+        show={!!selectedStock}
+        title={selectedStock ? selectedStock.product : ''}
+        onClose={() => { setSelectedStock(null); setShowStockHistory(false); }}
+        onMinimize={() => setSidebarMinimized(p => !p)}
+        onMaximize={() => { setSidebarMaximized(p => !p); setSidebarMinimized(false); }}
+        isMinimized={sidebarMinimized}
+        isMaximized={sidebarMaximized}
+        trafficLightSize="30px"
+        backButtonSize="40px"
+        colorScheme="amber-900"
+        variant="gradient"
+        width="800px"
+        squircle="6xl"
+        titleSize="15xl"
+        titleFontWeight="500"
+      >
+        {({ pushScreen }) => selectedStock && (
+          <>
+            <SidebarSection title="Stock Info" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+              <SidebarRow label="Type"         value={String(selectedStock.type)}        labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+              <SidebarRow label="Product"      value={String(selectedStock.product)}     labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+              <SidebarRow label="Part Number"  value={String(selectedStock.serialNumber)} labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+              <SidebarRow label="Date"         value={formatDate(selectedStock.date)}    labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+              <SidebarRow label="Rate"         value={String(selectedStock.rate)}        labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+              <SidebarRow label="Stock Count"  value={String(selectedStock.stockCount)}  labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+              <SidebarRow
+                label="Status"
+                value={
+                  calculateStatus(selectedStock.stockCount) === 'available' ? 'In Stock' :
+                  calculateStatus(selectedStock.stockCount) === 'low' ? 'Low Stock' : 'Out of Stock'
+                }
+                labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px"
+              />
+              {selectedStock.hasSubUnits && (
+                <>
+                  <SidebarRow label="Sub-Unit"            value={String(selectedStock.subUnitName)}                                          labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+                  <SidebarRow label="Capacity"            value={`${selectedStock.subUnitCapacity} ${selectedStock.subUnitName}`}            labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+                  <SidebarRow label="Open Remaining"      value={`${selectedStock.subUnitRemaining} ${selectedStock.subUnitName}`}           labelFontSize="22px" valueFontSize="24px" colorScheme="amber-700" variant="gradient" squircle={true} radius="130px" />
+                </>
+              )}
+            </SidebarSection>
 
             {selectedStock.equipments && selectedStock.equipments.length > 0 && (
-              <div className="stock-manage-equipment-section">
-                <h3>Associated Equipment(s)</h3>
-                <div className="stock-equipment-details">
-                  {selectedStock.equipments.map((equipment, index) => (
-                    <div key={index} className="equipment-detail-card">
-                      {equipment}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <SidebarSection title="Associated Equipment(s)" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+                <SidebarTable
+                  rowGap="5px" headFontSize="20px" headFontWeight="500" gap="10px"
+                  headRadius="130px" rowRadius="130px" rowFontSize="18px" squircle={true}
+                  headColor="var(--white-200)" rowColor="var(--black-200)"
+                  headGrad="red-600" headGradVariant="gradient"
+                  rowGrad="amber-600" rowGradVariant="gradient"
+                  rowAltGrad="amber-500" rowAltGradVariant="gradient"
+                  columns={[
+                    { key: 'sl', label: '#', flex: 1 },
+                    { key: 'name', label: 'Equipment', flex: 4 },
+                  ]}
+                  rows={selectedStock.equipments.map((eq, i) => ({
+                    sl: String(i + 1),
+                    name: eq,
+                  }))}
+                />
+              </SidebarSection>
             )}
 
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Date:</span>
-              <span className="stock-manage-value">{formatDate(selectedStock.date)}</span>
-            </div>
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Rate:</span>
-              <span className="stock-manage-value">{selectedStock.rate}</span>
-            </div>
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Stock Count:</span>
-              <span className="stock-manage-value">{selectedStock.stockCount}</span>
-            </div>
-            <div className="stock-manage-detail-item">
-              <span className="stock-manage-label">Status:</span>
-              <span className={`stock-manage-value stock-manage-status-badge ${calculateStatus(selectedStock.stockCount)}`}>
-                {calculateStatus(selectedStock.stockCount) === 'available' ? 'In Stock' :
-                  calculateStatus(selectedStock.stockCount) === 'low' ? 'Low Stock' : 'Out of Stock'}
-              </span>
-            </div>
+            <SidebarSection title="Barcode" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+              <SidebarBarcode value={selectedStock._id} width={2} height={60} displayValue={true} fontSize={14} squircle={true} radius="130px" colorScheme="black-200" lineColor="#ffffff" />
+            </SidebarSection>
 
-            {selectedStock.hasSubUnits && (
-              <>
-                <div className="stock-manage-detail-item">
-                  <span className="stock-manage-label">Sub-Unit:</span>
-                  <span className="stock-manage-value">{selectedStock.subUnitName}</span>
-                </div>
-                <div className="stock-manage-detail-item">
-                  <span className="stock-manage-label">Capacity per Container:</span>
-                  <span className="stock-manage-value">{selectedStock.subUnitCapacity} {selectedStock.subUnitName}</span>
-                </div>
-                <div className="stock-manage-detail-item">
-                  <span className="stock-manage-label">Open Container Remaining:</span>
-                  <span className="stock-manage-value">{selectedStock.subUnitRemaining} {selectedStock.subUnitName}</span>
-                </div>
-              </>
-            )}
-
-            <div className="stock-manage-stock-progress">
-              <h3>Stock Level</h3>
-              <div className="stock-manage-progress-container">
-                <div
-                  className={`stock-manage-progress-bar ${calculateStatus(selectedStock.stockCount)}`}
-                  style={{
-                    width: `${Math.min(100, (selectedStock.stockCount / 10) * 100)}%`
-                  }}
-                >
-                  <span className="stock-manage-progress-text">
-                    {selectedStock.stockCount} / 20
-                  </span>
-                </div>
-              </div>
-              <div className="stock-manage-barcode-section">
-                <h3>Toolkit Barcode</h3>
-                <div className="stock-barcode-container">
-                  <Barcode
-                    value={selectedStock._id}
-                    width={2}
-                    height={60}
-                    displayValue={true}
-                    fontSize={14}
-                  />
-                </div>
-                <p className="barcode-info">Scan this code to view toolkit details</p>
-              </div>
-            </div>
-
-            <div className="stock-manage-actions-section">
-              <h3>Actions</h3>
-              <div className="stock-manage-action-btn-group">
-                <Button
-                  text="Edit Stock"
-                  onClick={() => openUpdateForm(selectedStock)}
-                  colorScheme="blue-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="38px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Add Stock"
-                  onClick={() => setShowAddForm(true)}
-                  colorScheme="success-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="38px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Reduce Stock"
-                  onClick={() => setShowReduceForm(true)}
-                  colorScheme="amber-800"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="38px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-                <Button
-                  text="Delete Stock"
-                  onClick={() => deleteStock(selectedStock._id)}
-                  colorScheme="red-700"
-                  variant="gradient"
-                  font="md"
-                  animation=""
-                  squircle="4xl"
-                  width="160px"
-                  height="38px"
-                  type="submit"
-                  textColor="white-200"
-                  shadowPosition="to-bottom"
-                  shadowColor="white-600"
-                />
-              </div>
-            </div>
-
-            <div className="stock-manage-history-section">
-              <h3>Stock Movement History</h3>
-              <Button
-                text={showStockHistory ? 'Hide History' : 'Show History'}
-                onClick={() => setShowStockHistory(!showStockHistory)}
-                colorScheme={showStockHistory ? 'indigo-900' : 'lime-700'}
-                variant="gradient"
-                font="md"
-                animation=""
-                squircle="4xl"
-                width="160px"
-                height="38px"
-                type="submit"
-                textColor="white-200"
-                shadowPosition="to-bottom"
-                shadowColor="white-600"
+            <SidebarSection title="Stock Movement History" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+              <SidebarTable
+                rowGap="5px" headFontSize="20px" headFontWeight="500" gap="10px"
+                headRadius="130px" rowRadius="130px" rowFontSize="14px" squircle={true}
+                headColor="var(--white-200)" rowColor="var(--black-200)"
+                headGrad="red-600" headGradVariant="gradient"
+                rowGrad="amber-600" rowGradVariant="gradient"
+                rowAltGrad="amber-500" rowAltGradVariant="gradient"
+                columns={[
+                  { key: 'date',    label: 'Date',    flex: 2 },
+                  { key: 'action',  label: 'Action',  flex: 1 },
+                  { key: 'prev',    label: 'Prev',    flex: 1, align: 'center' },
+                  { key: 'change',  label: 'Change',  flex: 1, align: 'center' },
+                  { key: 'newQty',  label: 'New',     flex: 1, align: 'center' },
+                  { key: 'who',     label: 'Who/Reason', flex: 2 },
+                  { key: 'regNo',   label: 'Reg No',  flex: 1 },
+                ]}
+                rows={selectedStock.movements && selectedStock.movements.length > 0
+                  ? [...selectedStock.movements].reverse().map(m => ({
+                      date:   formatDate(m.date),
+                      action: m.type.charAt(0).toUpperCase() + m.type.slice(1),
+                      prev:   String(m.previousQuantity),
+                      change: (m.type === 'add' ? '+' : '-') + m.quantity,
+                      newQty: String(m.newQuantity),
+                      who:    m.mechanicName || m.reason || 'N/A',
+                      regNo:  m.equipmentNumber || 'N/A',
+                    }))
+                  : []
+                }
               />
+            </SidebarSection>
 
-              {showStockHistory && (
-                <div className="stock-manage-history-table-container">
-                  <table className="stock-manage-history-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                        <th>Previous</th>
-                        <th>Change</th>
-                        <th>New</th>
-                        <th>
-                          Who Take it / Reason
-                        </th>
-                        <th>
-                          Reg No
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedStock.movements && selectedStock.movements.length > 0 ? (
-                        selectedStock.movements
-                          .slice()
-                          .reverse()
-                          .map((movement, index) => (
-                            <tr key={index}>
-                              <td>{formatDate(movement.date)}</td>
-                              <td>
-                                <span className={`stock-manage-history-badge ${movement.type}`}>
-                                  {movement.type.charAt(0).toUpperCase() + movement.type.slice(1)}
-                                </span>
-                              </td>
-                              <td>{movement.previousQuantity}</td>
-                              <td className={movement.type === 'add' ? 'stock-manage-positive' : 'stock-manage-negative'}>
-                                {movement.type === 'add' ? '+' : '-'}{movement.quantity}
-                              </td>
-                              <td>{movement.newQuantity}</td>
-                              <td>{movement.mechanicName || movement.reason || 'Not found'}</td>
-                              <td>{movement.equipmentNumber || movement.equipmentNumber || 'Not found'}</td>
-                            </tr>
-                          ))
-                      ) : (
-                        <tr>
-                          <td colSpan="8" className="stock-manage-no-history">
-                            No stock movement history available
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+            <SidebarSection title="Actions" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+              <SidebarActions
+                position="left"
+                gap="8px"
+                buttons={[
+                  { label: 'Edit Stock',    onClick: () => openUpdateForm(selectedStock),  colorScheme: 'blue-800',    textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                  { label: 'Add Stock',     onClick: () => setShowAddForm(true),           colorScheme: 'lime-800',    textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                  { label: 'Reduce Stock',  onClick: () => setShowReduceForm(true),        colorScheme: 'amber-800',   textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                  { label: 'Delete Stock',  onClick: () => deleteStock(selectedStock._id), colorScheme: 'red-800',     textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                ]}
+              />
+            </SidebarSection>
+          </>
+        )}
+      </Sidebar>
 
       {/* Add Stock Modal using DevModal */}
       <DevModal

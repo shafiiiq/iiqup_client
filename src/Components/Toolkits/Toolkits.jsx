@@ -345,15 +345,17 @@ const Toolkits = () => {
       title: `${variant.size} — ${variant.color}`,
       content: (
         <>
-          <SidebarActions
-            position="left"
-            gap="8px"
-            buttons={[
-              { label: 'Reduce Stock', onClick: openReduceStockModal, colorScheme: 'pink-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%' },
-              { label: 'Edit', onClick: () => openUpdateVariantForm(variant, toolkit), colorScheme: 'violet-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%'  },
-              { label: 'Delete', onClick: () => deleteVariant(toolkit._id, variant._id), colorScheme: 'red-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%'  },
-            ]}
-          />
+          <SidebarSection title="Actions" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+            <SidebarActions
+              position="left"
+              gap="8px"
+              buttons={[
+                { label: 'Reduce Stock', onClick: openReduceStockModal, colorScheme: 'pink-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%' },
+                { label: 'Edit', onClick: () => openUpdateVariantForm(variant, toolkit), colorScheme: 'violet-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%' },
+                { label: 'Delete', onClick: () => deleteVariant(toolkit._id, variant._id), colorScheme: 'red-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '48px', width: '32%' },
+              ]}
+            />
+          </SidebarSection>
           <SidebarSection title="Variant Info" gap="6px" titleFontSize='27px'             titleFontWeight='500'  titleColor='var(--white-200)'>
             <SidebarRow label="Tool Name" value={String(toolkit.name)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
             <SidebarRow label="Size" value={String(variant.size)} labelFontSize="22px"   valueFontSize="24px"           colorScheme="amber-700" variant="gradient" squircle={true} radius='130px' />
@@ -1146,16 +1148,18 @@ const Toolkits = () => {
               }
             </SidebarSection>
 
-            <SidebarActions
-              position="left"
-              gap="8px"
-              buttons={[
-                { label: 'Edit Toolkit', onClick: () => openUpdateForm(selectedToolkit), colorScheme: 'violet-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
-                { label: 'Add Variant', onClick: () => openAddVariantForm(selectedToolkit), colorScheme: 'amber-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
-                { label: 'Print Barcode', onClick: () => window.print(), colorScheme: 'lime-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
-                { label: 'Delete Toolkit', onClick: () => deleteToolkit(selectedToolkit._id), colorScheme: 'red-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%'},
-              ]}
-            />
+            <SidebarSection title="Actions" gap="6px" titleFontSize="27px" titleFontWeight="500" titleColor="var(--white-200)">
+              <SidebarActions
+                position="left"
+                gap="8px"
+                buttons={[
+                  { label: 'Edit Toolkit', onClick: () => openUpdateForm(selectedToolkit), colorScheme: 'violet-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                  { label: 'Add Variant', onClick: () => openAddVariantForm(selectedToolkit), colorScheme: 'amber-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                  { label: 'Print Barcode', onClick: () => window.print(), colorScheme: 'lime-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                  { label: 'Delete Toolkit', onClick: () => deleteToolkit(selectedToolkit._id), colorScheme: 'red-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '24%' },
+                ]}
+              />
+            </SidebarSection>
           </>
         )}
       </Sidebar>
