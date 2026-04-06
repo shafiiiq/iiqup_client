@@ -993,21 +993,21 @@ const DevModal = ({
                             fullWidth={true}
                           />
 
-                        ) : field.type === 'add-row-button' ? (
-                          <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                           <Button
-                              text={field.label || '+ Add'}
-                              type="button"
-                              variant="gradient"
-                              colorScheme="amber-600"
-                              textColor="white-100"
-                              font="md"
-                              width="120px"
-                              height="56px"
-                              padding="0 12px"
-                              squircle="6xl"
-                              onClick={field.onAddRow}
-                           />
+                          ) : field.type === 'add-row-button' ? (
+                            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                             <Button
+                                text={field.label || '+ Add'}
+                                type="button"
+                                variant="gradient"
+                                colorScheme="amber-600"
+                                textColor="white-100"
+                                font="md"
+                               width="fit-content"
+                                height="56px"
+                                padding="0 20px"
+                                squircle="6xl"
+                                onClick={field.onAddRow}
+                             />
                             {field.onRemoveRow && (
                               <Button
                                 type="button"

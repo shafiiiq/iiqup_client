@@ -155,8 +155,9 @@ function Equipments() {
               onDelete={actions.handleDeleteClick}
               onServiceHistory={actions.handleRowClick}
               onViewDetails={actions.handleViewDetails}
-              onMobilize={actions.handleMobilizeClick}
+               onMobilize={actions.handleMobilizeClick}
               onDemobilize={actions.handleDemobilizeClick}
+              onAddShift={actions.handleAddShiftClick}
             />
           ))}
         </div>
@@ -186,6 +187,35 @@ function Equipments() {
               ))
             : <div className="no-results">No equipment found</div>
           }
+        </div>
+      )}
+
+      {/* ── Ansari Office Grid ── */}
+      {data.activeTab === 'ansari-office' && (
+        <div className="equipment-grid">
+          {data.displayedEquipment.map((item) => (
+            <EquipmentCard
+              key={item.id}
+              item={item}
+              activeTab={data.activeTab}
+              isSelectMode={actions.isSelectMode}
+              isSelected={actions.selectedEquipment.includes(item.regNo)}
+              currentImageIndex={data.activeImageIndex[item.regNo] || 0}
+              isVisible={data.visibleCards.has(item.regNo)}
+              onSelect={actions.toggleEquipmentSelection}
+              onImageClick={handleImageClick}
+              onSetImageIndex={(regNo, index) =>
+                data.setActiveImageIndex(prev => ({ ...prev, [regNo]: index }))
+              }
+              onEdit={actions.handleEdit}
+              onDelete={actions.handleDeleteClick}
+              onServiceHistory={actions.handleRowClick}
+              onViewDetails={actions.handleViewDetails}
+              onMobilize={actions.handleMobilizeClick}
+              onDemobilize={actions.handleDemobilizeClick}
+              onAddShift={actions.handleAddShiftClick}
+            />
+          ))}
         </div>
       )}
 
@@ -294,6 +324,43 @@ function Equipments() {
           actions.setShowNoResultsModal(false);
           actions.setShowOutsideEquipmentModal(true);
         }}
+        // Add Shift
+        showAddShiftModal={actions.showAddShiftModal}
+        addShiftForm={actions.addShiftForm}
+        onAddShiftFormChange={(field, value) => {
+          const match = field.match(/^addShift_operators\[(\d+)\]\.(.+)$/);
+          if (match) {
+            const index = parseInt(match[1]);
+            const subField = match[2];
+            actions.setAddShiftForm(prev => {
+              const updated = [...prev.operators];
+              if (subField === 'operatorName') {
+                const op = data.operator.find(o => o.name === value);
+                updated[index] = { ...updated[index], operatorName: value, operatorId: op?._id || op?.id || '' };
+              } else {
+                updated[index] = { ...updated[index], [subField]: value };
+              }
+              return { ...prev, operators: updated };
+            });
+          } else {
+            const key = field.replace('addShift_', '');
+            actions.setAddShiftForm(prev => ({ ...prev, [key]: value }));
+          }
+        }}
+        onAddShiftOperatorAdd={() => {
+          actions.setAddShiftForm(prev => ({
+            ...prev,
+            operators: [...prev.operators, { operatorName: '', operatorId: '', shiftName: '', shiftStart: '', shiftEnd: '' }]
+          }));
+        }}
+        onAddShiftOperatorRemove={(index) => {
+          actions.setAddShiftForm(prev => ({
+            ...prev,
+            operators: prev.operators.filter((_, i) => i !== index)
+          }));
+        }}
+        onAddShiftSubmit={actions.handleAddShiftSubmit}
+        onAddShiftClose={actions.closeAddShiftModal}
         // Mobilize
         showMobilizeModal={actions.showMobilizeModal}
         mobilizeForm={actions.mobilizeForm}

@@ -83,10 +83,11 @@ function EquipmentControls({
 
   // ── Tab config — drives the 3 tab buttons ─────────────────────────────────
   const TABS = [
-    { key: 'equipment-based', label: 'Own Equipments' },
-    { key: 'hired',           label: 'Hired'          },
-    { key: 'leased',          label: 'Leased to Client' },
-    { key: 'site-based',      label: 'View By Sites'  },
+    { key: 'equipment-based', label: 'Own Equipments'    },
+    { key: 'hired',           label: 'Hired'             },
+    { key: 'leased',          label: 'Leased to Client'  },
+    { key: 'site-based',      label: 'View By Sites'     },
+    { key: 'ansari-office',   label: 'Ansari Office'     },
   ];
 
   return (

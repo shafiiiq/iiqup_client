@@ -131,6 +131,16 @@ function EquipmentModals({
   onMobilizeSubmit,
   onMobilizeClose,
 
+  // Add Shift
+  showAddShiftModal,
+  addShiftForm,
+  selectedEquipmentForActionForShift,
+  onAddShiftFormChange,
+  onAddShiftOperatorAdd,
+  onAddShiftOperatorRemove,
+  onAddShiftSubmit,
+  onAddShiftClose,
+
   // Demobilize
   showDemobilizeModal,
   demobilizeDatePrompt,
@@ -172,7 +182,7 @@ function EquipmentModals({
           { name: 'year',            label: 'Year',             type: 'number', placeholder: 'Enter year',          required: true },
           { name: 'company', label: 'Company', type: 'select', required: true, options: COMPANY_OPTIONS },
           ...(addEquipmentForm.company === 'HIRED' ? [
-  { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
+            { name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Enter company/organization name', required: true },
           ] : []),
           { name: 'rentRate.basis', label: 'Rent Basis', type: 'select', options: [
             { value: 'daily',   label: 'Daily'   },
@@ -186,7 +196,13 @@ function EquipmentModals({
           { name: 'tpcExpiry',       label: 'TPC Expiry',       type: 'date' },
           { name: 'status',          label: 'Status',           type: 'select', required: true, options: STATUS_OPTIONS_ADD },
           { name: 'operator',        label: 'Operator',         type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
-          { name: 'site',            label: 'Site',             type: 'search-select', placeholder: 'Search or add site...', required: true, options: siteOptions(sites), onSearchFocus: onSiteFocus },
+          { name: 'operatorShift', label: 'Operator Shift', type: 'select', options: [
+            { value: '',            label: 'No Shift'    },
+            { value: 'Full Shift',  label: 'Full Shift'  },
+            { value: 'Day Shift',   label: 'Day Shift'   },
+            { value: 'Night Shift', label: 'Night Shift' },
+          ]},
+          { name: 'site',     label: 'Site',     type: 'search-select', placeholder: 'Search or add site...', required: true, options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'location', label: 'Location (Optional)', type: 'search-select', placeholder: 'Search or add location...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
         ]}
         formValues={addEquipmentForm}
@@ -207,6 +223,7 @@ function EquipmentModals({
         formFields={[
           { name: 'machine', label: 'Machine',         type: 'text',   placeholder: 'Enter machine name', required: true },
           { name: 'regNo',   label: 'Registration No', type: 'text',   placeholder: 'Enter reg number',   required: true },
+          { name: 'coc',     label: 'COC',             type: 'text',   placeholder: 'Enter COC'           },
           { name: 'brand',   label: 'Brand',           type: 'text',   placeholder: 'Enter brand',        required: true },
           { name: 'year',    label: 'Year',            type: 'text',   placeholder: 'Enter year',         required: true },
           { name: 'company', label: 'Company', type: 'select', required: true, options: COMPANY_OPTIONS },
@@ -220,10 +237,19 @@ function EquipmentModals({
             { value: 'monthly', label: 'Monthly' },
           ]},
           { name: 'rentRate.rate', label: 'Rent Rate (QAR)', type: 'number', placeholder: 'Enter rate amount' },
+          { name: 'istimaraExpiry',  label: 'Istimara Expiry',  type: 'date' },
+          { name: 'insuranceExpiry', label: 'Insurance Expiry', type: 'date' },
+          { name: 'tpcExpiry',       label: 'TPC Expiry',       type: 'date' },
+          { name: 'status',   label: 'Status',   type: 'select', required: true, options: STATUS_OPTIONS_EDIT },
           { name: 'operator', label: 'Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
+          { name: 'operatorShift', label: 'Operator Shift', type: 'select', options: [
+            { value: '',            label: 'No Shift'    },
+            { value: 'Full Shift',  label: 'Full Shift'  },
+            { value: 'Day Shift',   label: 'Day Shift'   },
+            { value: 'Night Shift', label: 'Night Shift' },
+          ]},
           { name: 'site',     label: 'Site',     type: 'search-select', placeholder: 'Search or add site...', required: true, options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'location', label: 'Location (Optional)', type: 'search-select', placeholder: 'Search or add location...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
-          { name: 'status',   label: 'Status',   type: 'select', required: true, options: STATUS_OPTIONS_EDIT },
         ]}
         formValues={editFormData}
         onFormChange={onEditFormChange}
@@ -343,7 +369,12 @@ function EquipmentModals({
 
           // ── Single operator (no shift) ─────────────────────────────────────────────
           ...(mobilizeForm.withOperator && !mobilizeForm.withShift ? [
-            { name: 'operator', label: 'Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
+               { name: 'operator', label: 'Operator', type: 'search-select', placeholder: 'Search operator...', required: true, options: operatorOptions(operator) },
+               { name: 'singleOperatorShift', label: 'Shift', type: 'select', options: [
+                 { value: 'Full Shift', label: 'Full Shift' },
+                 { value: 'Day Shift',  label: 'Day Shift'  },
+                 { value: 'Night Shift', label: 'Night Shift' },
+               ]},
           ] : []),
 
           // ── Multiple shifts checkbox (shows when withOperator is on) ───────────────
@@ -395,6 +426,74 @@ function EquipmentModals({
         onButtonClick={onMobilizeSubmit}
         secondaryButtonText="Cancel"
         onSecondaryClick={onMobilizeClose}
+      />
+
+      {/* ── Add Shift ── */}
+      <DevModal
+        isOpen={showAddShiftModal}
+        onClose={onAddShiftClose}
+        type="form"
+        title={`Add Shifts - ${selectedEquipmentForAction?.regNo || ''}`}
+        message={`Current operators: ${selectedEquipmentForAction?.certificationBody?.map(cb => `${cb.operatorName}${cb.shiftName ? ` (${cb.shiftName})` : ''}`).join(', ') || 'None'}`}
+        formFields={[
+          ...addShiftForm.operators.flatMap((op, index) => [
+            {
+              name: `addShift_operators[${index}].operatorName`,
+              label: `Operator ${index + 1}`,
+              type: 'search-select', placeholder: 'Search operator...', required: true,
+              options: operatorOptions(operator), groupKey: `add-shift-row-${index}`,
+            },
+            {
+              name: `addShift_operators[${index}].shiftName`,
+              label: `Shift ${index + 1}`,
+              type: 'select',
+              options: [
+                { value: 'Day Shift',   label: 'Day Shift'   },
+                { value: 'Night Shift', label: 'Night Shift' },
+                { value: 'Full Shift',  label: 'Full Shift'  },
+              ],
+              groupKey: `add-shift-row-${index}`,
+            },
+            {
+              name: `addShift_operators[${index}].shiftStart`,
+              label: `Shift Start ${index + 1} (Optional)`,
+              type: 'time', groupKey: `add-shift-row-${index}`,
+            },
+            {
+              name: `addShift_operators[${index}].shiftEnd`,
+              label: `Shift End ${index + 1} (Optional)`,
+              type: 'time', groupKey: `add-shift-row-${index}`,
+              groupAction: { onDelete: () => onAddShiftOperatorRemove(index), isLast: true },
+            },
+          ]),
+          {
+            name: '__add-shift-row', type: 'add-row-button', label: '+ Add Operator',
+            onAddRow: onAddShiftOperatorAdd,
+            onRemoveRow: addShiftForm.operators.length > 0
+              ? () => onAddShiftOperatorRemove(addShiftForm.operators.length - 1)
+              : undefined,
+          },
+          { name: 'addShift_date',    label: 'Date (Optional)',    type: 'date' },
+          { name: 'addShift_time',    label: 'Time (Optional)',    type: 'time' },
+          { name: 'addShift_remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Notes about this shift addition' },
+        ]}
+        formValues={{
+          ...addShiftForm.operators.reduce((acc, op, i) => ({
+            ...acc,
+            [`addShift_operators[${i}].operatorName`]: op.operatorName || '',
+            [`addShift_operators[${i}].shiftName`]:    op.shiftName    || '',
+            [`addShift_operators[${i}].shiftStart`]:   op.shiftStart   || '',
+            [`addShift_operators[${i}].shiftEnd`]:     op.shiftEnd     || '',
+          }), {}),
+          addShift_date:    addShiftForm.date    || '',
+          addShift_time:    addShiftForm.time    || '',
+          addShift_remarks: addShiftForm.remarks || '',
+        }}
+        onFormChange={onAddShiftFormChange}
+        buttonText="Add Shifts"
+        onButtonClick={onAddShiftSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={onAddShiftClose}
       />
 
       {/* ── Demobilize Step 1: Ask about date ── */}

@@ -121,7 +121,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
 
     try {
       // Map activeTab to the API's hired query param
-      const hiredMap = { hired: 'hired', 'equipment-based': 'own' };
+      const hiredMap = { hired: 'hired', 'equipment-based': 'own', 'ansari-office': 'own' };
       const hiredParam = hiredMap[activeTab] ? `&hired=${hiredMap[activeTab]}` : '';
       const statusParam = activeTab === 'leased'
         ? '&status=leased'
@@ -144,6 +144,10 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
 
       const hydrated = await hydrateWithImages(data.data);
 
+      const finalData = activeTab === 'ansari-office'
+        ? hydrated.filter(eq => eq.site?.some(s => s?.toLowerCase().includes('ansari office')))
+        : hydrated;
+
       setEquipmentProgress(100);
       if (!append && activeTab === 'equipment-based' && activeStatusFilter === 'all') {
         // Fetch actual counts from stats API instead of counting only the current page
@@ -164,8 +168,8 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
         }
       }
       append
-        ? setFilteredData(prev => [...prev, ...hydrated])
-        : setFilteredData(hydrated);
+        ? setFilteredData(prev => [...prev, ...finalData])
+        : setFilteredData(finalData);
 
       // Brief pause so the progress bar reaches 100% visually before hiding
       setTimeout(() => {

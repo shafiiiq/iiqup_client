@@ -350,7 +350,7 @@ function App() {
                   {/* Persistent UI — always rendered above routes */}
                   <HeaderWrapper userLoggedIn={userLoggedIn} setUserLoggedIn={setUserLoggedIn} />
                   <SpacerWrapper />
-                  {/* <NavigationButtons /> */}
+                  <NavigationButtons />
 
                   <Routes>
 

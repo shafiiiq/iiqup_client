@@ -1204,6 +1204,23 @@ body.dark-theme .status-badge.loading {
   font-size: 40px;
 }
 
+.mob-date-hover-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.mob-date-hover-wrap .add-shift-btn {
+  display: none !important;
+}
+
+.mob-date-hover-wrap:hover .mob-date-label {
+  display: none !important;
+}
+
+.mob-date-hover-wrap:hover .add-shift-btn {
+  display: inline-flex !important;
+}
+
 @media (max-width: 768px) {
   .fullscreen-content {
     width: 95vw;
@@ -1376,6 +1393,7 @@ body.dark-theme .status-badge.loading {
     margin: 10px;
   }
 }
+
 
 /* Print Styles */
 @media print {

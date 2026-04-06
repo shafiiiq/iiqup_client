@@ -4,6 +4,7 @@
 // Receives all handlers as props — owns no state and makes no API calls.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { useState } from 'react';
 import Loader          from '../../../Common/Loader/Loader';
 import Button          from '../../../Common/Button/Button';
 import { getOperatorName } from '../utils/equipmentHelpers';
@@ -17,6 +18,35 @@ const CARD_BTN = {
   shadowPosition: 'to-bottom',
   shadowColor:    'white-600',
 };
+
+function MobDateHover({ item, onAddShift, CARD_BTN }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      className="mob-date-hover-wrap"
+      style={{ width: '225px', height: '38px', display: 'flex', alignItems: 'center' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {!hovered
+        ? <div className="detail-item-equipment mob-data" style={{ margin: 0, width: '100%' }}>
+            <span className="detail-label">Last Mob :</span>
+            <span className="detail-value" style={{ marginLeft: '8px' }}>{item.mobDate ? new Date(item.mobDate).toLocaleDateString('en-GB') : 'N/A'}</span>
+          </div>
+        : <Button
+            {...CARD_BTN}
+            text="+ Add Shift"
+            onClick={(e) => onAddShift(e, item)}
+            colorScheme="lime-600"
+            width="225px"
+            height="38px"
+            textColor="white-200"
+          />
+      }
+    </div>
+  );
+}
 
 /**
  * @param {{
@@ -53,6 +83,7 @@ function EquipmentCard({
   onViewDetails,
   onMobilize,
   onDemobilize,
+  onAddShift,
 }) {
   const hasImages = item.equipmentImage?.length > 0;
 
@@ -107,14 +138,16 @@ function EquipmentCard({
           <Button {...CARD_BTN} iconCenter="edit_square" onClick={(e) => onEdit(e, item)}              colorScheme="blue-800"    width="45px" height="45px"  textColor="white-200" type="submit"  />
           <Button {...CARD_BTN} iconCenter="backspace"   onClick={(e) => onDelete(e, item)}            colorScheme="red-600"     width="45px" height="45px"  textColor="white-200" type="submit"  />
         </div>
-        <Button {...CARD_BTN} text="Service History"     onClick={() =>  onServiceHistory(item.regNo)} colorScheme="lime-800"    width="160px" height="38px" textColor="white-200" type="submit"  />
-        <Button {...CARD_BTN} text="View More"           onClick={() =>  onViewDetails(item)}          colorScheme="warning-800" width="160px" height="38px" textColor="white-200" type="submit"  />
+        <Button {...CARD_BTN} text="Service History" onClick={() => onServiceHistory(item.regNo)} colorScheme="lime-800"    width="160px" height="38px" textColor="white-200" type="submit" />
+        <Button {...CARD_BTN} text="View More"        onClick={() => onViewDetails(item)}          colorScheme="warning-800" width="160px" height="38px" textColor="white-200" type="submit" />
+
         {item.status === 'idle'
-          ? <Button {...CARD_BTN} text="Mobilize"        onClick={(e) => onMobilize(e, item)}          colorScheme="lime-400"    width="225px" height="38px" textColor="black-200" />
-          : <div className="detail-item-equipment mob-data"><span className="detail-label">Last Mob :</span><span className="detail-value">{item.mobDate ? new Date(item.mobDate).toLocaleDateString('en-GB') : 'N/A'}</span></div>
+          ? <Button {...CARD_BTN} text="Mobilize" onClick={(e) => onMobilize(e, item)} colorScheme="lime-400" width="225px" height="38px" textColor="black-200" />
+          : <MobDateHover item={item} onAddShift={onAddShift} CARD_BTN={CARD_BTN} />
         }
+
         {item.status !== 'idle'
-          ? <Button {...CARD_BTN} text="Demobilize"      onClick={(e) => onDemobilize(e, item)}        colorScheme="fuchsia-500" width="225px" height="38px" textColor="black-200" />
+          ? <Button {...CARD_BTN} text="Demobilize" onClick={(e) => onDemobilize(e, item)} colorScheme="fuchsia-500" width="225px" height="38px" textColor="black-200" />
           : <div className="detail-item-equipment demob-data"><span className="detail-label">Last Demob :</span><span className="detail-value">{item.demobDate ? new Date(item.demobDate).toLocaleDateString('en-GB') : 'N/A'}</span></div>
         }
       </>
@@ -168,7 +201,7 @@ function EquipmentCard({
                 ? item.certificationBody.map((cb, i) => (
                     <span key={i} style={{ display: 'block', fontSize: '18px' }}>
                       {cb.operatorName}
-                      {cb.shiftStart && cb.shiftEnd ? ` (${cb.shiftStart}–${cb.shiftEnd})` : ''}
+                      {cb.shiftName ? ` (${cb.shiftName})` : cb.shiftStart && cb.shiftEnd ? ` (${cb.shiftStart}–${cb.shiftEnd})` : ''}
                     </span>
                   ))
                 : 'N/A'
