@@ -443,7 +443,9 @@ const Notifications = ({ islivemodeON, scrollContainerRef, liveNotification }) =
 
       if (response.ok && data.status === 200) {
         setHasMore(data.pagination.hasMore);
-        return data.data.map(n => ({ ...n, type: 'normal', read: true }));
+        return data.data
+          .filter(n => n.sourceId !== 'attendance')
+          .map(n => ({ ...n, type: 'normal', read: true }));
       }
 
       console.error('[Notifications] fetchNormal:', data.message);

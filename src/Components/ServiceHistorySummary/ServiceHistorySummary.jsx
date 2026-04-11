@@ -43,7 +43,7 @@ function ServiceHistorySummary() {
     const fetchServiceData = async (period, startDate = null, endDate = null, months = null) => {
         setIsLoading(true);
         if (period === 'months') {
-            setelectedMonthRange(months)
+            setelectedMonthRange(months);
         }
         try {
             let url;
@@ -81,6 +81,7 @@ function ServiceHistorySummary() {
         setSelectedPeriod(newPeriod);
         fetchServiceData(newPeriod);
     };
+
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const [year, month, day] = dateString.split('-');
@@ -94,7 +95,7 @@ function ServiceHistorySummary() {
 
     const getServiceTypeDisplay = (serviceType) => {
         const type = serviceType?.toLowerCase() || 'normal';
-        if (type === 'maintenance') return 'MAJOR SERVICE';
+        if (type === 'major') return 'MAJOR SERVICE';
         return type.toUpperCase();
     };
 
@@ -111,46 +112,28 @@ function ServiceHistorySummary() {
     };
 
     const confirmDeleteReport = async () => {
-        let url;
-        if (deleteReport.serviceType === 'oil' || deleteReport.serviceType === 'normal') {
-            url = `${END_POINT}/service-report/deletewith/${deleteReport._id}`;
-        } else if (deleteReport.serviceType === 'tyre') {
-            url = `${END_POINT}/service-history/delete-service-history/tyre/${deleteReport._id}`;
-        } else if (deleteReport.serviceType === 'battery') {
-            url = `${END_POINT}/service-history/delete-service-history/battery/${deleteReport._id}`;
-        } else {
-            url = `${END_POINT}/service-history/delete-service-history/maintenance/${deleteReport._id}`;
-        }
-
+        const type = deleteReport.serviceType || 'oil';
+        const url = `${END_POINT}/service-history/delete/${type}/${deleteReport._id}`;
         const response = await apiRequest(url, 'DELETE');
         const data = await response.json();
-
-        if (data.success) {
+        if (data.ok) {
             setShowDeleteModal(false);
             fetchServiceData(selectedPeriod);
         }
     };
 
-    const handleRowClick = (date, serviceType, regNo) => {
-        let path;
-        switch (serviceType) {
-            case 'normal':
-            case 'oil':
-                path = `/service-doc/${regNo}/${date}`;
-                break;
-            case 'maintenance':
-                path = `/maintenance-doc/${regNo}/${date}`;
-                break;
-            case 'tyre':
-                path = `/tyre-doc/${regNo}/${date}`;
-                break;
-            case 'battery':
-                path = `/battery-doc/${regNo}/${date}`;
-                break;
-            default:
-                path = `/service-doc/${regNo}/${date}`;
-        }
-        navigate(path);
+    const handleRowClick = (date, serviceType, id) => {
+        navigate(`/service-document/${id}`, {
+            state: {
+                date,
+                serviceType,
+                historyId: id,
+                docType: serviceType === 'major'   ? 'maintenance-doc'
+                       : serviceType === 'tyre'    ? 'tyre-doc'
+                       : serviceType === 'battery' ? 'battery-doc'
+                       : 'service-doc',
+            },
+        });
     };
 
     const handlePrint = () => {
@@ -175,8 +158,7 @@ function ServiceHistorySummary() {
         .service-row-normal { background-color: rgba(59, 130, 246, 0.1); }
         .service-row-battery { background-color: rgba(34, 197, 94, 0.1); }
         .service-row-tyre { background-color: rgba(139, 92, 246, 0.1); }
-        .service-row-maintenance { background-color: rgba(239, 68, 68, 0.1); }
-
+        .service-row-major { background-color: rgba(239, 68, 68, 0.1); }
         .summary-service-table td:nth-child(9) {
            max-width: 120px;
            word-wrap: break-word;
@@ -277,12 +259,12 @@ function ServiceHistorySummary() {
 
                 let bgColor = 'FFFFFFFF';
                 switch (service.serviceType) {
-                    case 'oil': bgColor = 'FFE8F5E8'; break;
-                    case 'maintenance': bgColor = 'FFFFF3CD'; break;
-                    case 'tyre': bgColor = 'FFD1ECF1'; break;
+                    case 'oil':     bgColor = 'FFE8F5E8'; break;
+                    case 'major':   bgColor = 'FFFFF3CD'; break;
+                    case 'tyre':    bgColor = 'FFD1ECF1'; break;
                     case 'battery': bgColor = 'FFF8D7DA'; break;
-                    case 'normal': bgColor = 'FFF0E6FF'; break;
-                    default: bgColor = 'FFF0E6FF'; break;
+                    case 'normal':  bgColor = 'FFF0E6FF'; break;
+                    default:        bgColor = 'FFF0E6FF'; break;
                 }
 
                 row.eachCell((cell) => {
@@ -417,7 +399,6 @@ function ServiceHistorySummary() {
                                     inputPaddingInline="2xl"
                                     inputPaddingBlock="xl"
                                 />
-
                                 <Input
                                     type="date"
                                     name="endDate"
@@ -546,7 +527,7 @@ function ServiceHistorySummary() {
                                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                                 <Button
                                                     text="View Document"
-                                                    onClick={() => handleRowClick(formatDate(service.date), service.serviceType, service.regNo)}
+                                                    onClick={() => handleRowClick(formatDate(service.date), service.serviceType, service._id)}
                                                     colorScheme="sky-800"
                                                     variant="gradient"
                                                     font="sm"
