@@ -370,6 +370,174 @@ export const exportToPDF = async ({
   doc.save(fileName);
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PDF Export Separate (One PDF per Equipment)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const exportToPDFSeparate = async ({
+  groupedData,
+  activeTab,
+  isMultipleEquipment,
+  multipleEquipmentData,
+  equipmentData,
+  regNoArray,
+  searchTerm,
+  filterState,
+  supervisorSignUrl,
+}) => {
+  const { jsPDF } = window.jspdf;
+  const tabName = getTabName(activeTab);
+  const suffix  = getDateFilterSuffix(filterState);
+
+  const equipments = Object.entries(groupedData);
+  let downloadCount = 0;
+
+  // Helper function to create a single PDF for one equipment
+  const createEquipmentPDF = async (regNo, items, eq) => {
+    const doc       = new jsPDF('landscape', 'mm', 'a4');
+    const equipName = eq?.machine ?? 'Equipment';
+    let currentY    = 10;
+
+    try {
+      const [leftLogoData, rightLogoData] = await Promise.all([
+        loadImageAsDataURL(logoImage),
+        loadImageAsDataURL(alAnsariText),
+      ]);
+
+      const leftProps  = doc.getImageProperties(leftLogoData);
+      const leftWidth  = 40;
+      const leftHeight = (leftProps.height / leftProps.width) * leftWidth;
+      doc.addImage(leftLogoData, 'PNG', 10, currentY, leftWidth, leftHeight);
+
+      const rightProps  = doc.getImageProperties(rightLogoData);
+      const rightWidth  = 80;
+      const rightHeight = (rightProps.height / rightProps.width) * rightWidth;
+      doc.addImage(rightLogoData, 'PNG', 210, currentY, rightWidth, rightHeight);
+
+      currentY += Math.max(leftHeight, rightHeight) + 6;
+    } catch {
+      currentY += 30;
+    }
+
+    currentY += 30;
+
+    doc.setFontSize(18); doc.setFont(undefined, 'bold');
+    doc.text(`${tabName} History - ${equipName} (${regNo})`, 148, currentY, { align: 'center' });
+    currentY += 7;
+
+    doc.setFontSize(12); doc.setFont(undefined, 'normal');
+    doc.text(`Date Range: ${getDateRangeText(filterState)}`, 148, currentY, { align: 'center' });
+    currentY += 6;
+
+    if (searchTerm) {
+      doc.setFontSize(10);
+      doc.text(`Search Term: "${searchTerm}"`, 148, currentY, { align: 'center' });
+      currentY += 6;
+    }
+
+    doc.setFontSize(9); doc.setTextColor(128, 128, 128);
+    doc.text(`Report Generated: ${new Date().toLocaleString()}`, 148, currentY, { align: 'center' });
+    currentY += 10;
+
+    const headers   = buildHeaders(activeTab);
+    const tableData = [];
+
+    items.forEach((item) => {
+      const row = [
+        formatDate(item.date),
+        ...(activeTab === 'all' ? [item.fullService ? 'Full Service' : getServiceTypeBadge(item.serviceType)?.text] : []),
+        getWorkDescriptionForPDF(item),
+        ...(['oil', 'normal', 'major', 'all'].includes(activeTab) ? [
+          ['oil', 'normal', 'major'].includes(item.serviceType)
+            ? item.serviceHrs
+            : item.serviceType === 'tyre' ? item.runningHours : '-',
+          ['oil', 'normal', 'major'].includes(item.serviceType)
+            ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs)
+            : '-',
+          ...(activeTab === 'oil' || activeTab === 'all'
+            ? [item.serviceType === 'oil' && item.fullService ? Number(item.serviceHrs) + 3000 : '-']
+            : []),
+        ] : []),
+        ...(activeTab === 'tyre' || activeTab === 'all'
+          ? [
+              item.serviceType === 'tyre' && item.location ? item.location : '-',
+              item.serviceType === 'tyre' ? item.tyreModel : '-',
+            ]
+          : []),
+        ...(activeTab === 'battery' || activeTab === 'all'
+          ? [item.serviceType === 'battery' ? item.batteryModel : '-']
+          : []),
+        getRemarksText(item),
+      ];
+      tableData.push(row);
+    });
+
+    doc.autoTable({
+      head:    [headers],
+      body:    tableData,
+      startY:  currentY,
+      theme:   'grid',
+      styles:  { fontSize: 8, cellPadding: 2, overflow: 'linebreak', halign: 'center', valign: 'middle' },
+      headStyles: { fillColor: [68, 114, 196], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+      columnStyles: { 0: { cellWidth: 25 }, ...(activeTab === 'all' ? { 1: { cellWidth: 20 } } : {}) },
+      didParseCell(data) {
+        if (data.section === 'body' && data.row.index >= 0) {
+          const item = items[data.row.index];
+          if (item) data.cell.styles.fillColor = getRowBgColorForPDF(item);
+        }
+      },
+      margin: { top: 10, left: 10, right: 10 },
+    });
+
+    const signY = doc.lastAutoTable.finalY + 15;
+    doc.setTextColor(0, 0, 0);
+
+    if (supervisorSignUrl) {
+      try {
+        const sigData = await loadImageAsDataURL(supervisorSignUrl);
+        doc.addImage(sigData, 'PNG', 10, signY, 50, 45);
+      } catch {
+        doc.setFontSize(10); doc.setFont(undefined, 'italic'); doc.setTextColor(150, 150, 150);
+        doc.text('Not Signed', 10, signY);
+      }
+    } else {
+      doc.setFontSize(10); doc.setFont(undefined, 'italic'); doc.setTextColor(150, 150, 150);
+      doc.text('Not Signed', 10, signY);
+    }
+
+    doc.setTextColor(0, 0, 0); doc.setFontSize(12); doc.setFont(undefined, 'normal');
+    const detailsY = signY + 45;
+    doc.text('Firoz Khan',       10, detailsY);
+    doc.text('Workshop Manager', 10, detailsY + 6);
+    doc.text('+974 5170 0481',   10, detailsY + 12);
+
+    const fileName = `${tabName.replace(/\s+/g, '_')}_${equipName.replace(/\s+/g, '_')}_${regNo}${suffix}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    doc.save(fileName);
+  };
+
+  // Download PDFs sequentially with delay to avoid browser throttling
+  for (let i = 0; i < equipments.length; i++) {
+    const [regNo, items] = equipments[i];
+    const eq = multipleEquipmentData.find(e => e.regNo?.toString().trim() === regNo?.toString().trim());
+
+    try {
+      await createEquipmentPDF(regNo, items, eq);
+      downloadCount++;
+
+      // Add delay between downloads (except for last one) to avoid browser blocking
+      if (i < equipments.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    } catch (error) {
+      console.error(`[Export] Failed to create PDF for equipment ${regNo}:`, error);
+    }
+  }
+
+  if (downloadCount === 0) {
+    throw new Error('Failed to create any PDFs');
+  }
+};
+
 const getServiceTypeBadge = (serviceType) => {
   const badges = {
     normal:  { text: 'Normal'     },

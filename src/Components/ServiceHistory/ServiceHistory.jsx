@@ -18,7 +18,7 @@ import { useDocumentSigning } from './hooks/useDocumentSigning';
 import ServiceTable from './components/ServiceTable';
 
 // Exports
-import { exportToExcel, exportToPDF, printServiceHistory } from './utils/serviceExport';
+import { exportToExcel, exportToPDF, exportToPDFSeparate, printServiceHistory } from './utils/serviceExport';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared button defaults for the controls bar
@@ -81,6 +81,10 @@ const ServiceHistory = () => {
   const handleExportToPDF = () => {
     if (!signing.isDocumentSigned) { signing.requireSignature('pdf');   return; }
     exportToPDF(exportContext).catch(console.error);
+  };
+
+  const handleExportToPDFSeparate = () => {
+    exportToPDFSeparate(exportContext).catch(console.error);
   };
 
   const handlePrint = () => {
@@ -154,11 +158,12 @@ const ServiceHistory = () => {
           <Button {...BAR_BTN} text={viewAllLabel} onClick={handleViewAllDocuments}               colorScheme="lime-800"      width="fit-content" textColor="white-200" />
         </div>
         <div className="action-buttons right">
-          <Button {...BAR_BTN} text="Multiple Records"  onClick={addMutiServices}      colorScheme="info-800"     width="160px" textColor="white-200" />
-          <Button {...BAR_BTN} text="Add Service"      onClick={handleAddService}      colorScheme="info-800"     width="160px" textColor="white-200" />
-          <Button {...BAR_BTN} text="Export to Excel"   onClick={handleExportToExcel}  colorScheme="primary-800"  width="160px" textColor="white-200" />
-          <Button {...BAR_BTN} text="Print"             onClick={handlePrint}           colorScheme="success-800"  width="160px" textColor="white-200" />
-          <Button {...BAR_BTN} text="Export to PDF"     onClick={handleExportToPDF}    colorScheme="fuchsia-800"  width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Multiple Records"       onClick={addMutiServices}                colorScheme="info-800"     width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Add Service"            onClick={handleAddService}              colorScheme="info-800"     width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Export to Excel"        onClick={handleExportToExcel}           colorScheme="primary-800"  width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Print"                  onClick={handlePrint}                   colorScheme="success-800"  width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Export to PDF"          onClick={handleExportToPDF}            colorScheme="fuchsia-800"  width="160px" textColor="white-200" />
+          <Button {...BAR_BTN} text="Export Separate PDFs"   onClick={handleExportToPDFSeparate}    colorScheme="fuchsia-900"  width="180px" textColor="white-200" />
         </div>
       </div>
 
