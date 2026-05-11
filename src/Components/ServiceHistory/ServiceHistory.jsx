@@ -57,8 +57,9 @@ const ServiceHistory = () => {
 
   const signing = useDocumentSigning({
     onSigned: () => {
-      if (signing.pendingAction === 'pdf')   handleExportToPDF();
-      if (signing.pendingAction === 'print') handlePrint();
+      if (signing.pendingAction === 'pdf')          handleExportToPDF();
+      if (signing.pendingAction === 'pdfSeparate')  handleExportToPDFSeparate();
+      if (signing.pendingAction === 'print')        handlePrint();
     },
   });
 
@@ -84,6 +85,10 @@ const ServiceHistory = () => {
   };
 
   const handleExportToPDFSeparate = () => {
+    if (!signing.isDocumentSigned) { 
+      signing.requireSignature('pdfSeparate');   
+      return; 
+    }
     exportToPDFSeparate(exportContext).catch(console.error);
   };
 
