@@ -99,7 +99,7 @@ function EquipmentControls({
             {...BTN}
             text={isSelectMode ? 'Cancel Selection' : 'Select Multiple'}
             onClick={onToggleSelectMode}
-            colorScheme={isSelectMode ? 'red-600' : 'purple-600'}
+            colorScheme={isSelectMode ? 'gray-500' : 'gray-700'}
             width="160px"
             textColor="white-200"
           />
@@ -116,15 +116,15 @@ function EquipmentControls({
             />
           )}
 
-          <Button {...BTN} text="Add Equipment"      onClick={onAdd}     colorScheme="amber-600"   width="160px" textColor="white-200" type="submit" />
-          <Button {...BTN} text="Print"              onClick={onPrint}   colorScheme="pink-800"    width="160px" textColor="white-200" type="submit" />
-          <Button {...BTN} text="Export as Excel"    onClick={onExport}  colorScheme="lime-800"    width="160px" textColor="white-200" type="submit" />
+          <Button {...BTN} text="Add Equipment"      onClick={onAdd}     colorScheme="gray-600"   width="160px" textColor="white-200" type="submit" />
+          <Button {...BTN} text="Print"              onClick={onPrint}   colorScheme="gray-800"    width="160px" textColor="white-200" type="submit" />
+          <Button {...BTN} text="Export as Excel"    onClick={onExport}  colorScheme="gray-700"    width="160px" textColor="white-200" type="submit" />
         </div>
 
         <div className="buttons-container">
-          <Button {...BTN} text="Recent Activities"       onClick={() => navigate('/operations-recent-activities')} colorScheme="blue-400" width="fit-content" textColor="black-200" type="submit" />
-          <Button {...BTN} text="Quick Service Histories" onClick={onQuickServices}                                 colorScheme="lime-400" width="fit-content" textColor="black-200" type="submit" />
-          <Button {...BTN} text="Clear Cache"             onClick={onClearCache}                                    colorScheme="emerald-800" width="160px"   textColor="white-200" type="submit" />
+          <Button {...BTN} text="Recent Activities"       onClick={() => navigate('/operations-recent-activities')} colorScheme="gray-400" width="fit-content" textColor="black-200" type="submit" />
+          <Button {...BTN} text="Quick Service Histories" onClick={onQuickServices}                                 colorScheme="gray-400" width="fit-content" textColor="black-200" type="submit" />
+          <Button {...BTN} text="Clear Cache"             onClick={onClearCache}                                    colorScheme="gray-800" width="160px"   textColor="white-200" type="submit" />
         </div>
       </div>
 
@@ -136,7 +136,7 @@ function EquipmentControls({
             {...BTN}
             text={label}
             onClick={() => onTabChange(key)}
-            colorScheme={activeTab === key ? 'amber-300' : 'amber-900'}
+            colorScheme={activeTab === key ? 'gray-300' : 'gray-900'}
             width="50%"
             height="48px"
             type="submit"
@@ -164,7 +164,7 @@ function EquipmentControls({
               {...BTN}
               text={label}
               onClick={() => onStatusFilterChange(key)}
-              colorScheme={activeStatusFilter === key ? 'indigo-200' : 'indigo-900'}
+              colorScheme={activeStatusFilter === key ? 'gray-200' : 'gray-900'}
               width="25%"
               height="45px"
               textColor={activeStatusFilter === key ? 'black-300' : 'white-900'}

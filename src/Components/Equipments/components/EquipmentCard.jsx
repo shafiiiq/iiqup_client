@@ -138,16 +138,16 @@ function EquipmentCard({
           <Button {...CARD_BTN} iconCenter="edit_square" onClick={(e) => onEdit(e, item)}              colorScheme="blue-800"    width="45px" height="45px"  textColor="white-200" type="submit"  />
           <Button {...CARD_BTN} iconCenter="backspace"   onClick={(e) => onDelete(e, item)}            colorScheme="red-600"     width="45px" height="45px"  textColor="white-200" type="submit"  />
         </div>
-        <Button {...CARD_BTN} text="Service History" onClick={() => onServiceHistory(item.regNo)} colorScheme="lime-800"    width="160px" height="38px" textColor="white-200" type="submit" />
-        <Button {...CARD_BTN} text="View More"        onClick={() => onViewDetails(item)}          colorScheme="warning-800" width="160px" height="38px" textColor="white-200" type="submit" />
+        <Button {...CARD_BTN} text="Service History" onClick={() => onServiceHistory(item.regNo)} colorScheme="gray-800"    width="160px" height="38px" textColor="white-200" type="submit" />
+        <Button {...CARD_BTN} text="View More"        onClick={() => onViewDetails(item)}          colorScheme="gray-800" width="160px" height="38px" textColor="white-200" type="submit" />
 
         {item.status === 'idle'
-          ? <Button {...CARD_BTN} text="Mobilize" onClick={(e) => onMobilize(e, item)} colorScheme="lime-400" width="225px" height="38px" textColor="black-200" />
+          ? <Button {...CARD_BTN} text="Mobilize" onClick={(e) => onMobilize(e, item)} colorScheme="gray-400" width="225px" height="38px" textColor="white-200" />
           : <MobDateHover item={item} onAddShift={onAddShift} CARD_BTN={CARD_BTN} />
         }
 
         {item.status !== 'idle'
-          ? <Button {...CARD_BTN} text="Demobilize" onClick={(e) => onDemobilize(e, item)} colorScheme="fuchsia-500" width="225px" height="38px" textColor="black-200" />
+          ? <Button {...CARD_BTN} text="Demobilize" onClick={(e) => onDemobilize(e, item)} colorScheme="gray-500" width="225px" height="38px" textColor="white-200" />
           : <div className="detail-item-equipment demob-data"><span className="detail-label">Last Demob :</span><span className="detail-value">{item.demobDate ? new Date(item.demobDate).toLocaleDateString('en-GB') : 'N/A'}</span></div>
         }
       </>
