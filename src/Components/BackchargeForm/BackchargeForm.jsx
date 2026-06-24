@@ -35,6 +35,7 @@ const BackchargeForm = () => {
         contactPerson: '',
         siteLocation: '',
         date: '',
+        workDate: '',
         scopeOfWork: '',
         scopeLine2Text: '',
         workshopComments: '',
@@ -305,6 +306,7 @@ const BackchargeForm = () => {
                 contactPerson: formData.contactPerson,
                 siteLocation: formData.siteLocation,
                 date: formData.date,
+                workDate: formData.workDate,
                 scopeOfWork: formData.scopeOfWork,
                 scopeLine2Text: formData.scopeLine2Text,
                 workshopComments: formData.workshopComments,
@@ -586,12 +588,19 @@ const BackchargeForm = () => {
 
                         {/* Information Grid */}
                         <div className="bcr-info-grid sign-border-td-l">
-                            <div className="bcr-info-full-row">
-                                <div className="bcr-info-field">
+                            <div className="bcr-info-full-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="bcr-info-field" style={{ display: 'flex', alignItems: 'center' }}>
                                     <span className="bcr-field-label">Ref No  :</span>
-                                    <span className="bcr-field-value">
-                                        {isGeneratingRef ? 'Generating...' : formData.refNo || 'Loading...'}
-                                    </span>
+                                    <span className="bcr-field-value">{isGeneratingRef ? 'Generating...' : formData.refNo || 'Loading...'}</span>
+                                </div>
+                                <div className="bcr-info-field" style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span className="bcr-field-label">Date :</span>
+                                    <input
+                                        type="date"
+                                        value={formData.date}
+                                        onChange={(e) => handleInputChange('date', e.target.value)}
+                                        style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 'inherit' }}
+                                    />
                                 </div>
                             </div>
                             <div className='sign-border-td-r sign-border-td-b sign-border-td-t bcr-title-hero'>
@@ -738,13 +747,13 @@ const BackchargeForm = () => {
                                 </div>
                                 <div className="bcr-info-full-row">
                                     <div className="bcr-info-field">
-                                        <span className="bcr-field-label-wide ">Date</span>
+                                        <span className="bcr-field-label-wide ">Work Date</span>
                                         <span>:</span>
                                         <span className="bcr-field-value-bold text-data-underline mr-l-2">
                                             <input
                                                 type="date"
-                                                value={formData.date}
-                                                onChange={(e) => handleInputChange('date', e.target.value)}
+                                                value={formData.workDate}
+                                                onChange={(e) => handleInputChange('workDate', e.target.value)}
                                                 style={{
                                                     border: 'none',
                                                     outline: 'none',

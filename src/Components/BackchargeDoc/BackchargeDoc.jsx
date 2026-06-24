@@ -45,6 +45,7 @@ const DEFAULT_FORM_DATA = {
   contactPerson:           '',
   siteLocation:            '',
   date:                    '',
+  workDate:                '',
   scopeOfWork:             '',
   scopeLine2Text:          '',
   workshopComments:        '',
@@ -81,6 +82,51 @@ const INLINE_INPUT_STYLE = {
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Parse various incoming date strings and return { yyyy, mm, dd } or null.
+ * Accepts ISO (yyyy-mm-dd or datetime), mm/dd/yyyy, dd/mm/yyyy.
+ */
+const parseDateParts = (val) => {
+  if (!val) return null;
+  // ISO datetime or date
+  if (typeof val === 'string' && val.includes('T')) {
+    const d = new Date(val);
+    if (isNaN(d)) return null;
+    return { yyyy: d.getFullYear(), mm: String(d.getMonth() + 1).padStart(2, '0'), dd: String(d.getDate()).padStart(2, '0') };
+  }
+  // ISO date-like yyyy-mm-dd
+  const isoMatch = String(val).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return { yyyy: isoMatch[1], mm: isoMatch[2], dd: isoMatch[3] };
+
+  // mm/dd/yyyy or dd/mm/yyyy (ambiguous) — detect by separator positions
+  const parts = String(val).split(/[\/\-\.]/).map(p => p.trim());
+  if (parts.length === 3) {
+    const [p1, p2, p3] = parts;
+    // if year is first or last
+    if (p1.length === 4) return { yyyy: p1, mm: p2.padStart(2, '0'), dd: p3.padStart(2, '0') };
+    if (p3.length === 4) {
+      // could be mm/dd/yyyy or dd/mm/yyyy — assume existing stored value is mm/dd/yyyy (legacy),
+      // but user requested display dd/mm/yyyy — so interpret p1 as mm and p2 as dd when ambiguous
+      return { yyyy: p3, mm: p1.padStart(2, '0'), dd: p2.padStart(2, '0') };
+    }
+  }
+  return null;
+};
+
+/** Return display string dd/mm/yyyy or empty */
+const toDisplayDate = (val) => {
+  const parts = parseDateParts(val);
+  if (!parts) return '';
+  return `${parts.dd}/${parts.mm}/${parts.yyyy}`;
+};
+
+/** Return ISO yyyy-mm-dd for input[type=date] value or empty */
+const toIsoInputDate = (val) => {
+  const parts = parseDateParts(val);
+  if (!parts) return '';
+  return `${parts.yyyy}-${parts.mm}-${parts.dd}`;
+};
 
 /**
  * Pads or trims a spare-parts table rows array to exactly TABLE_ROW_COUNT rows.
@@ -391,6 +437,7 @@ function BackchargeDoc() {
         contactPerson:           data.contactPerson     || '',
         siteLocation:            data.siteLocation      || '',
         date:                    data.date              || '',
+        workDate:                data.workDate          || data.date || '',
         scopeOfWork:             getLine(data.scopeOfWork, 1),
         scopeLine2Text:          getLine(data.scopeOfWork, 2),
         workshopComments:        getLine(data.workshopComments, 1),
@@ -841,7 +888,10 @@ function BackchargeDoc() {
    * @param {string} textBase64 - Base64 address text image.
    * @returns {string} Full HTML document string.
    */
-  const buildPrintHtml = (logoBase64, textBase64) => `
+  const buildPrintHtml = (logoBase64, textBase64) => {
+    const printDate = toDisplayDate(formData.date);
+    const printWorkDate = toDisplayDate(formData.workDate || formData.date);
+    return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -916,7 +966,16 @@ function BackchargeDoc() {
         </header>
         <h1 class="bcr-document-title">MAINTENANCE BACK CHARGE REPORT</h1>
         <div class="bcr-info-grid">
-          <div class="bcr-info-full-row"><div class="bcr-info-field"><span class="bcr-field-label">Ref No :</span><span class="bcr-field-value">${refNo}</span></div></div>
+            <div class="bcr-info-full-row" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="bcr-info-field" style="display:flex;align-items:center;">
+              <span class="bcr-field-label">Ref No :</span>
+              <span class="bcr-field-value">${refNo}</span>
+            </div>
+            <div class="bcr-info-field" style="display:flex;align-items:center;">
+              <span class="bcr-field-label">Date :</span>
+                <span class="bcr-field-value-bold">${printDate}</span>
+            </div>
+          </div>
           <div class="bcr-title-hero">
             ${[
               ['Report No',       formData.reportNo],
@@ -933,8 +992,8 @@ function BackchargeDoc() {
               </div></div>
             `).join('')}
             <div class="bcr-info-full-row"><div class="bcr-info-field">
-              <span class="bcr-field-label-wide">Date</span><span>:</span>
-              <span class="bcr-field-value-bold">${formData.date}<span class="bcr-signature-label">Customer Signature &amp; Date :</span></span>
+              <span class="bcr-field-label-wide">Work Date</span><span>:</span>
+              <span class="bcr-field-value-bold">${printWorkDate}<span class="bcr-signature-label">Customer Signature &amp; Date :</span></span>
             </div></div>
           </div>
         </div>
@@ -1025,6 +1084,7 @@ function BackchargeDoc() {
     </body>
     </html>
   `;
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // Loading / Not-found states
@@ -1109,12 +1169,26 @@ function BackchargeDoc() {
 
             {/* ── Info grid: ref no + all detail fields ── */}
             <div className="bcr-info-grid sign-border-td-l">
-              <div className="bcr-info-full-row">
-                <div className="bcr-info-field">
-                  <span className="bcr-field-label">Ref No  :</span>
-                  <span className="bcr-field-value">{refNo}</span>
+                <div className="bcr-info-full-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="bcr-info-field" style={{ display: 'flex', alignItems: 'center' }}>
+                    <span className="bcr-field-label">Ref No  :</span>
+                    <span className="bcr-field-value">{refNo}</span>
+                  </div>
+                  <div className="bcr-info-field" style={{ display: 'flex', alignItems: 'center' }}>
+                    <span className="bcr-field-label">Date :</span>
+                    {!isEditing ? (
+                      <span className="bcr-field-value">{toDisplayDate(formData.date)}</span>
+                    ) : (
+                      <input
+                        type="date"
+                        value={toIsoInputDate(formData.date)}
+                        onChange={(e) => handleInputChange('date', e.target.value)}
+                        disabled={!isEditing}
+                        style={inputStyle()}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
 
               <div className="sign-border-td-r sign-border-td-b sign-border-td-t bcr-title-hero">
                 {/* Render each text field as a labelled inline input row */}
@@ -1143,19 +1217,23 @@ function BackchargeDoc() {
                   </div>
                 ))}
 
-                {/* Date field with customer signature label */}
+                {/* Work Date field with customer signature label */}
                 <div className="bcr-info-full-row">
                   <div className="bcr-info-field">
-                    <span className="bcr-field-label-wide">Date</span>
+                    <span className="bcr-field-label-wide">Work Date</span>
                     <span>:</span>
                     <span className="bcr-field-value-bold text-data-underline mr-l-2">
-                      <input
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => handleInputChange('date', e.target.value)}
-                        disabled={!isEditing}
-                        style={inputStyle()}
-                      />
+                      {!isEditing ? (
+                        <span>{toDisplayDate(formData.workDate || formData.date)}</span>
+                      ) : (
+                        <input
+                          type="date"
+                          value={toIsoInputDate(formData.workDate || formData.date)}
+                          onChange={(e) => handleInputChange('workDate', e.target.value)}
+                          disabled={!isEditing}
+                          style={inputStyle()}
+                        />
+                      )}
                       <span className="bcr-signature-label">Customer Signature &amp; Date : </span>
                     </span>
                   </div>
