@@ -510,7 +510,13 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   <td>{lpo.workingHrs || lpo.runningKM || 'N/A'}</td>
                   <td>{lpo.items[0].description}</td>
                   <td>{lpo.complaintId ? lpo.complaintId : 'Normal LPO'}</td>
-                  <td>{lpo.workflowStatus === "lpo_created" ? 'In Creation' : 'In Approval'}</td>
+                  <td>
+                    {lpo.workflowStatus === "lpo_created"
+                      ? 'In Creation'
+                      : (lpo.pmSigned && lpo.managerSigned && lpo.ceoSigned && lpo.accountsSigned)
+                        ? 'Approved'
+                        : 'In Approval'}
+                  </td>
                   <td
                     className={`sig-cell ${getRowClass(lpo)}`}
                     onMouseEnter={() => {
