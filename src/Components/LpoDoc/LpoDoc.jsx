@@ -670,6 +670,7 @@ function LpoDoc() {
 
   const [signatureFlags,        setSignatureFlags]        = useState(DEFAULT_SIGNATURE_FLAGS);
   const [signatureStates,       setSignatureStates]       = useState(DEFAULT_SIGNATURE_STATES);
+  const [lpoAuthSignatoryTitle, setLpoAuthSignatoryTitle] = useState('CEO');
   const [isSigningDoc,          setIsSigningDoc]          = useState(false);
   const [showSignConfirmModal,  setShowSignConfirmModal]  = useState(false);
   const [showUnauthorisedModal, setShowUnauthorisedModal] = useState(false);
@@ -830,7 +831,15 @@ function LpoDoc() {
    * @param {Object} info     - Device info (defaults to the `deviceInfo` state value).
    * @param {Object} [flags]  - Signature flags to check (defaults to `signatureFlags` state).
    */
-  const loadSignature = async (signType, info, flags) => {
+  /**
+   * Loads a signature image for a given sign type.
+   * For 'authorized', uses authTitle to determine if it's CEO or MD signature.
+   * @param {string} signType  - One of: pm, accounts, manager, authorized, seal
+   * @param {Object} info     - Device info.
+   * @param {Object} flags    - Signature flags to check.
+   * @param {string} [authTitle] - Authorized signatory title (CEO or MANAGING DIRECTOR).
+   */
+  const loadSignature = async (signType, info, flags, authTitle = lpoAuthSignatoryTitle) => {
     const flagMap = {
       accounts: flags.accountsSigned,
       pm: flags.pmSigned,
@@ -844,7 +853,13 @@ function LpoDoc() {
     setSignatureStates((prev) => ({ ...prev, [signType]: { ...prev[signType], loading: true } }));
 
     try {
-      const keyResponse = await apiRequest(`${END_POINT}/users/doc-oauth-${signType}-sign-key`, 'POST', { deviceInfo: info });
+      const payload = { deviceInfo: info };
+      // For authorized signatory, pass the role (CEO or MD) so backend returns correct signature key
+      if (signType === 'authorized' && authTitle === 'MANAGING DIRECTOR') {
+        payload.authRole = 'MANAGING_DIRECTOR';
+      }
+      
+      const keyResponse = await apiRequest(`${END_POINT}/users/doc-oauth-${signType}-sign-key`, 'POST', payload);
       if (!keyResponse.ok) throw new Error('Failed to get signature key');
       const keyData = await keyResponse.json();
 
@@ -861,8 +876,8 @@ function LpoDoc() {
   };
 
   /** Loads all five signature slots in parallel. */
-  const loadAllSignatures = (info, flags) =>
-    Promise.all(SIGN_TYPES.map((t) => loadSignature(t, info, flags)));
+  const loadAllSignatures = (info, flags, authTitle = lpoAuthSignatoryTitle) =>
+    Promise.all(SIGN_TYPES.map((t) => loadSignature(t, info, flags, authTitle)));
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
@@ -917,6 +932,7 @@ function LpoDoc() {
         managerSigned:  lpo.managerSigned  || false,
         ceoSigned:      lpo.ceoSigned      || false,
       };
+      const authSignatoryTitle = lpo.signatures?.authorizedSignatoryTitle || 'CEO';
 
       const builtLpoData = {
         vendor:              lpo.company?.vendor       || '',
@@ -941,6 +957,7 @@ function LpoDoc() {
 
       setLpoData(builtLpoData);
       setSignatureFlags(flags);
+      setLpoAuthSignatoryTitle(authSignatoryTitle);
       setLpoCounter(lpo.lpoCounter || 1);
       setVendorMail(lpo.vendorMail || null);
 
@@ -967,7 +984,7 @@ function LpoDoc() {
 
       // ── Auto-load signatures if device is already trusted ──
       if (globalActivation.isActivated && globalActivation.isTrusted && deviceInfo) {
-        await loadAllSignatures(deviceInfo, flags);
+        await loadAllSignatures(deviceInfo, flags, authSignatoryTitle);
       }
 
     } catch (err) {
