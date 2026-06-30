@@ -146,11 +146,6 @@ function EquipmentControls({
       </div>
 
       {/* ── Status Sub-tabs (own equipment only) ── */}
-      <Tutorial
-         title="Category Tabs Added"
-         description="Easily filter equipment by status using the Active, Idle, and Under Maintenance tabs"
-         order={1}
-      >
       {activeTab === 'equipment-based' && (
         <div className="doc-details-tabs" style={{ marginTop: '8px' }}>
           {[
@@ -172,7 +167,6 @@ function EquipmentControls({
           ))}
         </div>
       )}
-      </Tutorial>
 
       {/* ── Results Count ── */}
       <div className="table-info">{resultsLabel}</div>

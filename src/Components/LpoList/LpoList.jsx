@@ -387,11 +387,6 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
           )}
         </div>
         <div className="buttons-container">
-          <Tutorial
-            title="New: Hint Button"
-            description="Click 'Color Hint' to see what each color means."
-            order={2}
-          >
             <Button
               text="Color Hint"
               onClick={() => setShowLegendModal(true)}
@@ -407,7 +402,6 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
               shadowPosition="to-bottom"
               shadowColor="white-600"
             />
-          </Tutorial>
           <Button
             text="Filters"
             onClick={() => setShowFiltersModal(true)}
@@ -480,13 +474,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
               <th>Items</th>
               <th>Complaint No</th>
               <th>Workflow Status</th>
-              <Tutorial
-                title="New: Sign Status"
-                description="Hover over the color to see who has signed each LPO."
-                order={1}
-              >
                 <th>Sign Status</th>
-              </Tutorial>
               <th>Amenmended</th>
               <th>Total Amount</th>
               <th>Actions</th>
