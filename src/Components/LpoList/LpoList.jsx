@@ -507,7 +507,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
                   <td>{lpo.date}</td>
                   <td>{lpo.company.vendor}</td>
                   <td>{lpo.equipments[0]}</td>
-                  <td>{lpo.workingHrs || lpo.runningKM || 'N/A'}</td>
+                  <td>{lpo.workingHrs || lpo.runningKm || 'N/A'}</td>
                   <td>{lpo.items[0].description}</td>
                   <td>{lpo.complaintId ? lpo.complaintId : 'Normal LPO'}</td>
                   <td>
