@@ -72,13 +72,13 @@ function ServiceTable({
   // ── Column visibility ──────────────────────────────────────────────────────
   // 'major' replaces old 'maintenance'
   const showServiceType     = activeTab === 'all';
-  const showHours           = ['oil', 'normal', 'major', 'all'].includes(activeTab);
+  const showHours           = ['oil', 'normal', 'major', 'tyre', 'battery', 'all'].includes(activeTab);
   const showNextFullService = activeTab === 'oil' || activeTab === 'all';
   const showTyreCols        = activeTab === 'tyre'    || activeTab === 'all';
   const showBatteryCols     = activeTab === 'battery' || activeTab === 'all';
 
   const isOilOrNormal = (type) => type === 'oil' || type === 'normal';
-  const hasHoursData  = (type) => ['oil', 'normal', 'major'].includes(type);
+  const hasHoursData  = (type) => ['oil', 'normal', 'major', 'tyre', 'battery'].includes(type);
 
   return (
     <div className="service-table-container">
@@ -169,7 +169,7 @@ function ServiceTable({
                             <td>
                               {hasHoursData(item.serviceType)
                                 ? item.serviceHrs
-                                : item.serviceType === 'tyre' ? item.runningHours : '-'}
+                                : '-'}
                             </td>
                             <td>
                               {hasHoursData(item.serviceType)

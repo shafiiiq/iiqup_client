@@ -228,7 +228,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       // 5. Service hours range filter
       if (filters.serviceHoursRange.min || filters.serviceHoursRange.max) {
         result = result.filter(item => {
-          const hrs = parseInt(item.serviceHrs || item.runningHours || 0, 10);
+          const hrs = parseInt(item.serviceHrs || 0, 10);
           const min = filters.serviceHoursRange.min ? parseInt(filters.serviceHoursRange.min) : 0;
           const max = filters.serviceHoursRange.max ? parseInt(filters.serviceHoursRange.max) : Infinity;
           return hrs >= min && hrs <= max;

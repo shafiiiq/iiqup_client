@@ -125,7 +125,7 @@ const buildCard = (regNo = '', machine = '', operator = '') => ({
   serviceType:    'oil',
   date:           new Date().toISOString().split('T')[0],
   serviceHrs: '', nextServiceHrs: '',
-  runningHours: '', fullService: false,
+  fullService: false,
   tyreModel: '', tyreNumber: '',
   batteryModel: '', workRemarks: '',
   mechanics: '', location: '', remarks: '',
@@ -370,7 +370,6 @@ function ServiceCard({ card, index, hasUrlRegNo, onChange, onRemove }) {
                     <>
                       <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`tm-${card.id}`} name="tyreModel"    value={card.tyreModel}    onChange={e => set('tyreModel',    e.target.value)}                     label="Tyre Model"       placeholder="Tyre model"   /></div>
                       <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`tn-${card.id}`} name="tyreNumber"   value={card.tyreNumber}   onChange={e => set('tyreNumber',   e.target.value)}                     label="Tyre Number"      placeholder="Tyre number"  /></div>
-                      <div className="mr-form-group"><Input {...SHARED_INPUT_PROPS} type="text" id={`rh-${card.id}`} name="runningHours" value={card.runningHours} onChange={e => set('runningHours', e.target.value.toUpperCase())}       label="Running Hrs / Km" placeholder="e.g. 5000HRS" /></div>
                     </>
                   )}
                   {isBatt && (
@@ -585,7 +584,6 @@ function MultiRecord() {
           date:           c.date,
           serviceHrs:     c.serviceHrs     || null,
           nextServiceHrs: c.nextServiceHrs || null,
-          runningHours:   c.runningHours   || null,
           // Major type work remarks live on the record level
           workRemarks:    c.workRemarks    || c.remarks || null,
           remarks:        c.remarks        || null,

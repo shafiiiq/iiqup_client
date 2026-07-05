@@ -149,7 +149,6 @@ function ServiceHistoryEntryForm() {
     date:        new Date().toISOString().split('T')[0],
     regNo:       regNo || '',
     equipment:   '',
-    // Oil / Normal
     serviceHrs:     '',
     nextServiceHrs: '',
     oil:            'Check',
@@ -159,17 +158,13 @@ function ServiceHistoryEntryForm() {
     waterSeparator: 'Check',
     airFilter:      'Clean',
     fullService:    false,
-    // Tyre
-    tyreModel:    '',
-    tyreNumber:   '',
-    location:     '',
-    operator:     '',
-    runningHours: '',
-    // Battery
-    batteryModel: '',
-    // Major
-    workRemarks: '',
-    mechanics:   '',
+    tyreModel:      '',
+    tyreNumber:     '',
+    location:       '',
+    operator:       '',
+    batteryModel:   '',
+    workRemarks:    '',
+    mechanics:      '',
   });
 
   const [formData,    setFormData]    = useState(buildDefault);
@@ -213,10 +208,10 @@ function ServiceHistoryEntryForm() {
 
   // Auto-calculate next service hrs when serviceHrs changes (oil/normal only)
   useEffect(() => {
-    if (!isOilType) return;
+    if (!formData.serviceHrs) return;
     setFormData((prev) => ({
       ...prev,
-      nextServiceHrs: formData.serviceHrs ? calculateNextService(formData.serviceHrs) : '',
+      nextServiceHrs: calculateNextService(formData.serviceHrs),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.serviceHrs]);
@@ -237,17 +232,14 @@ function ServiceHistoryEntryForm() {
     if (!formData.equipment) { showToast('Equipment Name is required',   'error');             return false; }
     if (!formData.regNo)     { showToast('Equipment Reg No is required', 'error');             return false; }
 
-    if (isOilType) {
-      if (!formData.serviceHrs)     { showToast('Service Hrs/Km is required',      'error'); return false; }
-      if (!formData.nextServiceHrs) { showToast('Next Service Hrs/Km is required', 'error'); return false; }
-    }
+    if (!formData.serviceHrs)     { showToast('Service Hrs/Km is required',      'error'); return false; }
+    if (!formData.nextServiceHrs) { showToast('Next Service Hrs/Km is required', 'error'); return false; }
 
     if (isTyreType) {
       if (!formData.tyreModel)    { showToast('Tyre Model is required',      'error');             return false; }
       if (!formData.tyreNumber)   { showToast('Tyre Number is required',     'error');             return false; }
       if (!formData.location)     { showToast('Location is required',        'warning', '#000000'); return false; }
       if (!formData.operator)     { showToast('Operator is required',        'error');             return false; }
-      if (!formData.runningHours) { showToast('Running Hrs/Km is required',  'error');             return false; }
     }
 
     if (isBattType) {
@@ -317,7 +309,8 @@ function ServiceHistoryEntryForm() {
           tyreNumber:   formData.tyreNumber,
           location:     formData.location,
           operator:     formData.operator,
-          runningHours: formData.runningHours,
+          serviceHrs:   formData.serviceHrs,
+          nextServiceHrs: formData.nextServiceHrs,
         }),
         // Battery
         ...(isBattType && {
@@ -417,8 +410,8 @@ function ServiceHistoryEntryForm() {
               label="Equipment Reg No" placeholder="Enter equipment number" />
           </div>
 
-          {/* ── Oil/Normal: Service Hrs/Km ── */}
-          {isOilType && (
+          {/* ── Service Hrs/Km ── */}
+          {!isMajorType && (
             <div className="form-group">
               <Input {...SHARED_INPUT} type="text" id="serviceHrs" name="serviceHrs"
                 value={formData.serviceHrs} onChange={handleChange}
@@ -426,8 +419,8 @@ function ServiceHistoryEntryForm() {
             </div>
           )}
 
-          {/* ── Oil/Normal: Next Service Hrs/Km ── */}
-          {isOilType && (
+          {/* ── Next Service Hrs/Km ── */}
+          {!isMajorType && (
             <div className="form-group">
               <Input {...SHARED_INPUT} type="text" id="nextServiceHrs" name="nextServiceHrs"
                 value={formData.nextServiceHrs} onChange={handleChange}
@@ -480,14 +473,7 @@ function ServiceHistoryEntryForm() {
             </div>
           )}
 
-          {/* ── Tyre: Running Hours ── */}
-          {isTyreType && (
-            <div className="form-group">
-              <Input {...SHARED_INPUT} type="text" id="runningHours" name="runningHours"
-                value={formData.runningHours} onChange={handleChange}
-                label="Running Hrs / Km" placeholder="Enter running hours or km" />
-            </div>
-          )}
+          {/* RunningHours removed; tyre/battery use serviceHrs/nextServiceHrs instead. */}
 
           {/* ── Major: Mechanics ── */}
           {isMajorType && (

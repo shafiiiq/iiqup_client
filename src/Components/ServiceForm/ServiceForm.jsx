@@ -256,7 +256,7 @@ function ServiceForm({ initialData = {} }) {
           ...prev,
           regNo:          history.regNo          || '',
           date:           normaliseDate(history.date),
-          serviceHrs:     history.serviceHrs     || history.runningHours || '',
+          serviceHrs:     history.serviceHrs || '',
           nextServiceHrs: history.nextServiceHrs || '',
           mechanics:      history.mechanics      || '',
           location:       history.location       || '',

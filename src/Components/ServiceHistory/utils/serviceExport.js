@@ -30,8 +30,11 @@ const buildHeaders = (activeTab) => [
   'Date',
   ...(activeTab === 'all' ? ['Service Type'] : []),
   'Work Description',
+  ...(['oil', 'normal', 'tyre', 'battery', 'all'].includes(activeTab)
+    ? ['Serviced Hrs/Km', 'Next Service']
+    : []),
   ...(activeTab === 'oil' || activeTab === 'all'
-    ? ['Serviced Hrs/Km', 'Next Service', 'Next Full Service']
+    ? ['Next Full Service']
     : []),
   // 'major' replaces old 'maintenance'
   ...(activeTab === 'major'
@@ -51,11 +54,11 @@ const buildRowData = (item, activeTab) => [
   ...(activeTab === 'all' ? [item.fullService ? 'Full Service' : (item.serviceType ?? '-')] : []),
   getWorkDescription(item),
   // 'major' replaces 'maintenance' in the type check array
-  ...(['oil', 'normal', 'major', 'all'].includes(activeTab) ? [
-    ['oil', 'normal', 'major'].includes(item.serviceType)
+  ...(['oil', 'normal', 'tyre', 'battery', 'major', 'all'].includes(activeTab) ? [
+    ['oil', 'normal', 'tyre', 'battery', 'major'].includes(item.serviceType)
       ? item.serviceHrs
-      : item.serviceType === 'tyre' ? item.runningHours : '-',
-    ['oil', 'normal', 'major'].includes(item.serviceType)
+      : '-',
+    ['oil', 'normal', 'tyre', 'battery', 'major'].includes(item.serviceType)
       ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs)
       : '-',
     ...(activeTab === 'oil' || activeTab === 'all'
@@ -447,11 +450,11 @@ export const exportToPDFSeparate = async ({
         formatDate(item.date),
         ...(activeTab === 'all' ? [item.fullService ? 'Full Service' : getServiceTypeBadge(item.serviceType)?.text] : []),
         getWorkDescriptionForPDF(item),
-        ...(['oil', 'normal', 'major', 'all'].includes(activeTab) ? [
-          ['oil', 'normal', 'major'].includes(item.serviceType)
+        ...(['oil', 'normal', 'tyre', 'battery', 'major', 'all'].includes(activeTab) ? [
+          ['oil', 'normal', 'tyre', 'battery', 'major'].includes(item.serviceType)
             ? item.serviceHrs
-            : item.serviceType === 'tyre' ? item.runningHours : '-',
-          ['oil', 'normal', 'major'].includes(item.serviceType)
+            : '-',
+          ['oil', 'normal', 'tyre', 'battery', 'major'].includes(item.serviceType)
             ? (item.nextServiceHrs === 0 ? '' : item.nextServiceHrs)
             : '-',
           ...(activeTab === 'oil' || activeTab === 'all'
