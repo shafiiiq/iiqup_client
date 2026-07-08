@@ -291,10 +291,10 @@ function ServiceHistoryEntryForm() {
         regNo:          formData.regNo,
         date:           formData.date,
         equipment:      formData.equipment,
+        serviceHrs:     formData.serviceHrs,
+        nextServiceHrs: formData.nextServiceHrs,
         // Oil / Normal
         ...(isOilType && {
-          serviceHrs:     formData.serviceHrs,
-          nextServiceHrs: formData.nextServiceHrs,
           oil:            formData.oil,
           oilFilter:      formData.oilFilter,
           fuelFilter:     formData.fuelFilter,
@@ -309,8 +309,6 @@ function ServiceHistoryEntryForm() {
           tyreNumber:   formData.tyreNumber,
           location:     formData.location,
           operator:     formData.operator,
-          serviceHrs:   formData.serviceHrs,
-          nextServiceHrs: formData.nextServiceHrs,
         }),
         // Battery
         ...(isBattType && {
@@ -411,22 +409,18 @@ function ServiceHistoryEntryForm() {
           </div>
 
           {/* ── Service Hrs/Km ── */}
-          {!isMajorType && (
-            <div className="form-group">
-              <Input {...SHARED_INPUT} type="text" id="serviceHrs" name="serviceHrs"
-                value={formData.serviceHrs} onChange={handleChange}
-                label="Service Hrs / Km" placeholder="e.g. 1000HRS or 5000KM" />
-            </div>
-          )}
+          <div className="form-group">
+            <Input {...SHARED_INPUT} type="text" id="serviceHrs" name="serviceHrs"
+              value={formData.serviceHrs} onChange={handleChange}
+              label="Service Hrs / Km" placeholder="e.g. 1000HRS or 5000KM" />
+          </div>
 
           {/* ── Next Service Hrs/Km ── */}
-          {!isMajorType && (
-            <div className="form-group">
-              <Input {...SHARED_INPUT} type="text" id="nextServiceHrs" name="nextServiceHrs"
-                value={formData.nextServiceHrs} onChange={handleChange}
-                label="Next Service Hrs / Km" placeholder="Auto-calculated or enter manually" />
-            </div>
-          )}
+          <div className="form-group">
+            <Input {...SHARED_INPUT} type="text" id="nextServiceHrs" name="nextServiceHrs"
+              value={formData.nextServiceHrs} onChange={handleChange}
+              label="Next Service Hrs / Km" placeholder="Auto-calculated or enter manually" />
+          </div>
 
           {/* ── Oil/Normal: Consumable selects ── */}
           {isOilType && (
