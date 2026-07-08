@@ -4,7 +4,7 @@
 // Includes responsive navigation: sidebar on desktop, top nav + drawer on mobile.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { LoginLogic } from '../../utils/authUtils';
@@ -45,55 +45,19 @@ const LEADERSHIP_TEAM = [
   { id: 9, name: 'Mr. Muhammed Shafeek', position: 'IT Head', image: ItHead },
 ];
 
-/**
- * Sidebar navigation, grouped into separate "tabs".
- * Each group renders as its own self-contained panel with its own scroll
- * area, so adding more groups or more items to a group never affects the
- * others. To add a new tab, push a new { id, label, links } entry here —
- * no JSX or CSS changes required.
- */
-const NAV_GROUPS = [
-  {
-    id: 'garage',
-    label: 'Garage',
-    links: [
-      { label: 'Equipments', path: '/equipments' },
-      { label: 'Stock Manage', path: '/stock-manage' },
-      { label: 'Tool Kits', path: '/toolkits' },
-      { label: 'Mechanics', path: '/mechanics' },
-      { label: 'LPO', path: '/lpo-list' },
-      { label: 'Backcharges', path: '/backcharge-list' },
-    ],
-  },
-  {
-    id: 'operations',
-    label: 'Operations',
-    links: [
-      { label: 'Equipments', path: '/equipments' },
-      { label: 'Operators', path: '/operators' },
-    ],
-  },
-  {
-    id: 'admin',
-    label: 'Admin',
-    links: [
-      { label: 'Documents', path: '/documents' },
-    ],
-  },
-  {
-    id: 'alerts',
-    label: 'Alerts',
-    links: [
-      { label: 'Notifications', path: '/notification' },
-    ],
-  },
-  {
-    id: 'overview',
-    label: 'Overview',
-    links: [
-      { label: 'Dashboard', path: '/dashboard' },
-    ],
-  },
+/** Primary navigation links shared between mobile drawer and desktop sidebar. */
+const NAV_LINKS = [
+  { label: 'Home', path: '/' },
+  { label: 'Equipments', path: '/equipments' },
+  { label: 'Stock Manage', path: '/stock-manage' },
+  { label: 'Tool Kits', path: '/toolkits' },
+  { label: 'Mechanics', path: '/mechanics' },
+  { label: 'Operators', path: '/operators' },
+  { label: 'LPO', path: '/lpo-list' },
+  { label: 'Backcharges', path: '/backcharge-list' },
+  { label: 'Documents', path: '/documents' },
+  { label: 'Notifications', path: '/notification' },
+  { label: 'Dashboard', path: '/dashboard' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -104,15 +68,50 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Refs for nav indicator positioning
+  const navRef = useRef(null);
+  const indicatorRef = useRef(null);
+
   // ── State ──────────────────────────────────────────────────────────────────
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('/');
+  const [indicatorStyle, setIndicatorStyle] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const isDesktop = windowWidth >= DESKTOP_BREAKPOINT;
+
+  // ── Indicator Position ─────────────────────────────────────────────────────
+
+  /**
+   * Calculates and sets the animated nav indicator's position
+   * based on the currently active nav item's bounding rect.
+   */
+  const updateIndicatorPosition = () => {
+    if (!navRef.current) return;
+
+    const navItems = navRef.current.querySelectorAll('li');
+    let activeItem = null;
+
+    navItems.forEach((item) => {
+      const link = item.querySelector('a');
+      const href = link.getAttribute('href') || link.getAttribute('to');
+      if (href === activeLink) activeItem = item;
+    });
+
+    if (!activeItem) return;
+
+    const activeLinkEl = activeItem.querySelector('a');
+    const { width, left } = activeLinkEl.getBoundingClientRect();
+    const navLeft = navRef.current.getBoundingClientRect().left;
+
+    setIndicatorStyle({
+      width: `${width * 0.8}px`,
+      left: `${left - navLeft + width * 0.1}px`,
+    });
+  };
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -134,6 +133,23 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
   useEffect(() => {
     setActiveLink(location.pathname);
   }, [location]);
+
+  // Reposition indicator whenever the active link changes
+  useEffect(() => {
+    updateIndicatorPosition();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLink]);
+
+  // Reposition indicator on resize and once on mount (after paint)
+  useEffect(() => {
+    window.addEventListener('resize', updateIndicatorPosition);
+    const timer = setTimeout(updateIndicatorPosition, 100);
+    return () => {
+      window.removeEventListener('resize', updateIndicatorPosition);
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Lock body scroll when the mobile drawer is open
   useEffect(() => {
@@ -171,7 +187,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
   // Sub-components (defined inline — small, tightly coupled to this view)
   // ─────────────────────────────────────────────────────────────────────────
 
-  /** Shared user info + theme toggle + logout controls. Rendered as its own tab. */
+  /** Shared user info + theme toggle + logout controls. */
   const UserControls = ({ isMobile }) => (
     <div className="user-section-home">
       <div className="user-details">
@@ -239,22 +255,15 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
     </div>
   );
 
-  /**
-   * Renders a single navigation tab/group as an isolated panel.
-   * Each group has its own header + its own scrollable list, so a group
-   * with many items scrolls internally without affecting sibling groups.
-   */
-  const NavGroup = ({ group, activeClass }) => (
-    <div className="ansari-nav-group" data-group={group.id}>
-      <div className="ansari-nav-group-title">{group.label}</div>
-      <ul className="ansari-nav-group-list">
-        {group.links.map(({ label, path }) => (
-          <li key={`${group.id}-${path}`} className={activeLink === path ? activeClass : ''}>
-            <Link to={path} onClick={() => handleNavClick(path)}>{label}</Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+  /** Shared navigation list rendered in both mobile drawer and desktop sidebar. */
+  const NavList = ({ activeClass }) => (
+    <ul>
+      {NAV_LINKS.map(({ label, path }) => (
+        <li key={path} className={activeLink === path ? activeClass : ''}>
+          <Link to={path} onClick={() => handleNavClick(path)}>{label}</Link>
+        </li>
+      ))}
+    </ul>
   );
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -298,7 +307,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
 
       {/* ── Mobile Navigation Drawer ──────────────────────────────────── */}
       {!isDesktop && (
-        <nav className={`ansari-mobile-nav ${menuOpen ? 'ansari-nav-open' : ''}`}>
+        <nav className={`ansari-mobile-nav ${menuOpen ? 'ansari-nav-open' : ''}`} ref={navRef}>
           <div className="ansari-mobile-bg">
             <div className="ansari-bg-shape ansari-shape-1"></div>
             <div className="ansari-bg-shape ansari-shape-2"></div>
@@ -306,11 +315,10 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
             <div className="ansari-bg-shape ansari-shape-4"></div>
           </div>
 
-          <div className="ansari-mobile-nav-scroll">
-            {NAV_GROUPS.map((group) => (
-              <NavGroup key={group.id} group={group} activeClass="ansari-link-active" />
-            ))}
-          </div>
+          {/* Active link indicator */}
+          <div className="nav-indicator" ref={indicatorRef} style={indicatorStyle}></div>
+
+          <NavList activeClass="ansari-link-active" />
         </nav>
       )}
 
@@ -403,9 +411,9 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
           <aside className="ansari-side-panel">
             {user_logged_in && <UserControls isMobile={false} />}
 
-            {NAV_GROUPS.map((group) => (
-              <NavGroup key={group.id} group={group} activeClass="ansari-nav-active" />
-            ))}
+            <nav className="ansari-side-nav" ref={navRef}>
+              <NavList activeClass="ansari-nav-active" />
+            </nav>
           </aside>
         )}
       </div>
