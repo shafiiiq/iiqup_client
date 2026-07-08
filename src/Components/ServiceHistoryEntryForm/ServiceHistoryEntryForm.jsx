@@ -1,14 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ServiceHistoryEntryForm.jsx — Unified entry form for all five service history
-// record types: Oil, Normal, Tyre, Battery, Major (maintenance).
-//
-// Route params:
-//   :type   — 'oil' | 'normal' | 'tyre' | 'battery' | 'major'
-//   :regNo  — Equipment registration number (optional, pre-fills fields)
-//
-// Routes:
-//   <Route path="/service-history-form/:type/:regNo" element={...} />
-//   <Route path="/service-history-form/:type"        element={...} />
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect }        from 'react';
