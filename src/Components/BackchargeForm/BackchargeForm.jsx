@@ -6,6 +6,13 @@ import { API_URI } from '../../constants';
 import Button from '../../Common/Button/Button';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
+const getTodayDateInput = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - offset * 60000);
+    return localDate.toISOString().split('T')[0];
+};
+
 const BackchargeForm = () => {
     const scopeLine1Ref = useRef(null);
     const workLine1Ref = useRef(null);
@@ -34,8 +41,8 @@ const BackchargeForm = () => {
         supplierName: '',
         contactPerson: '',
         siteLocation: '',
-        date: '',
-        workDate: '',
+        date: getTodayDateInput(),
+        workDate: getTodayDateInput(),
         scopeOfWork: '',
         scopeLine2Text: '',
         workshopComments: '',
@@ -84,7 +91,12 @@ const BackchargeForm = () => {
                 }
 
                 const refNumber = await generateRefNumber();
-                setFormData(prev => ({ ...prev, refNo: refNumber }));
+                setFormData(prev => ({
+                    ...prev,
+                    refNo: refNumber,
+                    date: prev.date || getTodayDateInput(),
+                    workDate: prev.workDate || getTodayDateInput(),
+                }));
             } catch (error) {
                 console.error('Error loading initial data:', error);
             } finally {
