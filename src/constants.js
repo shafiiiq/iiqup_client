@@ -1,4 +1,4 @@
 const ENV = {
-    END_POINT: "https://ansarigroup.online",
+    API_URI: "https://ansarigroup.online",
 } 
 module.exports = ENV

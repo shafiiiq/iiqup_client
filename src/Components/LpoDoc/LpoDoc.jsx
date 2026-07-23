@@ -13,7 +13,7 @@ import logoImage    from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import footer       from '../../assets/images/footer.png';
 
-import { END_POINT }                              from '../../constants';
+import { API_URI }                              from '../../constants';
 import { apiRequest }                             from '../../utils/api';
 import { getDeviceFingerprint, getLocationInfo }  from '../../utils/deviceFingerprint';
 import { useHeaderTitle }                         from '../../Context/HeaderTitleContext';
@@ -32,7 +32,7 @@ import Tutorial from '../../Common/Tutorial/Tutorial';
 const SIGN_TYPES = ['accounts', 'pm', 'manager', 'authorized', 'seal'];
 
 /** Item-count thresholds that trigger additional document pages. */
-const PAGE_BREAK_THRESHOLDS = { PAGE_2: 20, PAGE_3: 48 };
+const PAGE_BREAK_THRESHOLDS = { PAGE_2: 12, PAGE_3: 48 };
 
 /** Default LPO data shape used before the API response arrives. */
 const DEFAULT_LPO_DATA = {
@@ -784,7 +784,7 @@ function LpoDoc() {
       let allTrusted   = true;
 
       for (const signType of SIGN_TYPES) {
-        const response = await apiRequest(`${END_POINT}/users/verify-device-trust`, 'POST', { signType, deviceInfo: info });
+        const response = await apiRequest(`${API_URI}/users/verify-device-trust`, 'POST', { signType, deviceInfo: info });
         const result   = await response.json();
         if (!result.data.isActivated) allActivated = false;
         if (!result.data.isTrusted)   allTrusted   = false;
@@ -799,14 +799,6 @@ function LpoDoc() {
 
   // ── Signature loading ──────────────────────────────────────────────────────
 
-  /**
-   * Loads one signature slot: fetches the signing key, resolves the pre-signed
-   * S3 URL, and stores the result in signatureStates.
-   *
-   * @param {string} signType - One of SIGN_TYPES.
-   * @param {Object} info     - Device info (defaults to the `deviceInfo` state value).
-   * @param {Object} [flags]  - Signature flags to check (defaults to `signatureFlags` state).
-   */
   /**
    * Loads a signature image for a given sign type.
    * For 'authorized', uses authTitle to determine if it's CEO or MD signature.
@@ -835,11 +827,11 @@ function LpoDoc() {
         payload.authRole = 'MANAGING_DIRECTOR';
       }
       
-      const keyResponse = await apiRequest(`${END_POINT}/users/doc-oauth-${signType}-sign-key`, 'POST', payload);
+      const keyResponse = await apiRequest(`${API_URI}/users/doc-oauth-${signType}-sign-key`, 'POST', payload);
       if (!keyResponse.ok) throw new Error('Failed to get signature key');
       const keyData = await keyResponse.json();
 
-      const s3Response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: keyData.data.sign_key, isLong: false, isLpoSign: true });
+      const s3Response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: keyData.data.sign_key, isLong: false, isLpoSign: true });
       if (!s3Response.ok) throw new Error('Failed to get signature URL');
       const s3Data = await s3Response.json();
 
@@ -867,7 +859,7 @@ function LpoDoc() {
       if (!refNo) throw new Error('No LPO reference number provided in URL');
 
       const decodedRef = decodeURIComponent(refNo);
-      const response   = await apiRequest(`${END_POINT}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
+      const response   = await apiRequest(`${API_URI}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
       const contentType = response.headers.get('content-type');
 
       if (!response.ok) {
@@ -895,7 +887,7 @@ function LpoDoc() {
       let jobCode = null;
       try {
         if (!lpo.complaintId) throw new Error('No complaint ID');
-          const complaintRes = await apiRequest(`${END_POINT}/complaints/get-complaints/${lpo.complaintId}`, 'GET');
+          const complaintRes = await apiRequest(`${API_URI}/complaints/get-complaints/${lpo.complaintId}`, 'GET');
         if (complaintRes.ok) {
           const complaintData = await complaintRes.json();
           jobCode = complaintData.complaintId || null;
@@ -981,7 +973,7 @@ function LpoDoc() {
     }
 
     try {
-      const response = await apiRequest(`${END_POINT}/users/verify-device-trust`, 'POST', {
+      const response = await apiRequest(`${API_URI}/users/verify-device-trust`, 'POST', {
         signType: 'pm',
         deviceInfo,
       });
@@ -1015,7 +1007,7 @@ function LpoDoc() {
 
      try {
        const response = await apiRequest(
-         `${END_POINT}/lpo/sign/${encodeURIComponent(decodeURIComponent(refNo))}`,
+         `${API_URI}/lpo/sign/${encodeURIComponent(decodeURIComponent(refNo))}`,
          'POST',
          {
            uniqueCode:     user.uniqueCode,
@@ -1072,6 +1064,7 @@ function LpoDoc() {
        setIsSigningDoc(false);
      }
    };
+
   // ── Signature activation handlers ──────────────────────────────────────────
 
   /** Checks activation status and opens the appropriate modal. */
@@ -1097,7 +1090,7 @@ function LpoDoc() {
     try {
       for (const signType of SIGN_TYPES) {
         const response = await apiRequest(
-          `${END_POINT}/users/activate-signature`,
+          `${API_URI}/users/activate-signature`,
           'POST',
           { activationKey, signType, deviceInfo }
         );
@@ -1170,8 +1163,8 @@ function LpoDoc() {
         const pdfBlob = pdf.output('blob');
 
         const uploadEndpoint = complaintId
-          ? `${END_POINT}/complaints/upload-lpo/${complaintId || lpoData.complaintId}`
-          : `${END_POINT}/lpo/upload-lpo`;
+          ? `${API_URI}/complaints/upload-lpo/${complaintId || lpoData.complaintId}`
+          : `${API_URI}/lpo/upload-lpo`;
 
         const uploadResponse = await apiRequest(
           uploadEndpoint,
@@ -1248,7 +1241,7 @@ function LpoDoc() {
       // append any extra attachments
       extraFiles.forEach((file) => formDataToSend.append('attachments', file));
 
-      const response = await apiRequest(`${END_POINT}/lpo/send-via-email`, 'POST', formDataToSend, true);
+      const response = await apiRequest(`${API_URI}/lpo/send-via-email`, 'POST', formDataToSend, true);
 
       if (response.ok) {
         setShowEmailModal(false);

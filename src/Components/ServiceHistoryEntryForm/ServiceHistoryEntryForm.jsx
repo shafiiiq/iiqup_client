@@ -5,7 +5,7 @@
 import { useState, useEffect }        from 'react';
 import { useParams, useNavigate }     from 'react-router-dom';
 
-import { END_POINT }                  from '../../constants';
+import { API_URI }                  from '../../constants';
 import { apiRequest }                 from '../../utils/api';
 import { useHeaderTitle }             from '../../Context/HeaderTitleContext';
 import { useAlert }                   from '../../Context/AlertContext';
@@ -36,32 +36,32 @@ const TYPE_CONFIG = {
   oil: {
     title:   'Add Oil Service Record',
     image:   OilService,
-    navPath: (id) => `/service-form/oil/${id}`,
+    navPath: (id, complaintId, serviceType) => complaintId ? `/service-form/${serviceType}/${id}/${complaintId}` : `/service-form/${serviceType}/${id}`,
   },
   normal: {
     title:   'Add Normal Service Record',
     image:   NormalService,
-    navPath: (id) => `/service-form/normal/${id}`,
+    navPath: (id, complaintId, serviceType) => complaintId ? `/service-form/${serviceType}/${id}/${complaintId}` : `/service-form/${serviceType}/${id}`,
   },
   tyre: {
     title:   'Add Tyre Service Record',
     image:   TyreService,
-    navPath: (id) => `/service-form/tyre/${id}`,
+    navPath: (id, complaintId, serviceType) => complaintId ? `/service-form/${serviceType}/${id}/${complaintId}` : `/service-form/${serviceType}/${id}`,
   },
   battery: {
     title:   'Add Battery Service Record',
     image:   BatteryService,
-    navPath: (id) => `/service-form/battery/${id}`,
+    navPath: (id, complaintId, serviceType) => complaintId ? `/service-form/${serviceType}/${id}/${complaintId}` : `/service-form/${serviceType}/${id}`,
   },
   major: {
     title:   'Add Major Service Record',
     image:   MajorWork,
-    navPath: (id) => `/service-form/major/${id}`,
+    navPath: (id, complaintId, serviceType) => complaintId ? `/service-form/${serviceType}/${id}/${complaintId}` : `/service-form/${serviceType}/${id}`,
   },
 };
 
 // Unified API endpoint for all history types
-const HISTORY_ENDPOINT = `${END_POINT}/service-history/add`;
+const HISTORY_ENDPOINT = `${API_URI}/service-history/add`;
 
 /** Default toast config shape. */
 const DEFAULT_TOAST = { isOpen: false, type: 'success', message: '', textColor: '#ffffff' };
@@ -117,7 +117,7 @@ const calculateNextService = (currentValue) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ServiceHistoryEntryForm() {
-  const { type = 'oil', regNo } = useParams();
+  const { type = 'oil', regNo, complaintId } = useParams();
   const navigate                = useNavigate();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert }           = useAlert();
@@ -131,9 +131,6 @@ function ServiceHistoryEntryForm() {
   const isTyreType  = type === 'tyre';
   const isBattType  = type === 'battery';
   const isMajorType = type === 'major';
-
-  // ── Equipment list for auto-fill ───────────────────────────────────────────
-  const [equipments, setEquipments] = useState([]);
 
   // ── Form state ─────────────────────────────────────────────────────────────
   const buildDefault = () => ({
@@ -172,30 +169,47 @@ function ServiceHistoryEntryForm() {
     return () => { setHeaderTitle(null); setHeaderSubtitle(null); };
   }, [config.title, regNo, setHeaderTitle, setHeaderSubtitle]);
 
-  useEffect(() => {
-    const fetchEquipments = async () => {
-      try {
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
-        const data     = await response.json();
-        setEquipments(data.data || []);
-      } catch (err) {
-        console.error('[ServiceHistoryEntryForm] fetchEquipments:', err);
-      }
-    };
-    fetchEquipments();
-  }, []);
-
   // Auto-fill equipment name and operator when regNo changes
   useEffect(() => {
-    if (!equipments.length || !formData.regNo) return;
-    const found = equipments.find((eq) => eq.regNo === formData.regNo.trim());
-    if (!found) return;
-    setFormData((prev) => ({
-      ...prev,
-      equipment: found.machine || '',
-      operator:  found.certificationBody?.[found.certificationBody.length - 1]?.operatorName || prev.operator,
-    }));
-  }, [equipments, formData.regNo]);
+    const regNo = formData.regNo?.trim();
+
+    if (!regNo) {
+      setFormData((prev) => ({
+        ...prev,
+        equipment: '',
+        operator: '',
+      }));
+      return;
+    }
+
+    const fetchEquipment = async () => {
+      try {
+        const response = await apiRequest(`${API_URI}/equipments/get-equipment/${regNo}`, 'GET');
+        const result   = await response.json();
+        const equipment = result?.data?.[0];
+
+        if (!equipment) {
+          setFormData((prev) => ({
+            ...prev,
+            equipment: '',
+            operator: prev.operator,
+          }));
+          return;
+        }
+
+        const lastCert = equipment.certificationBody?.[equipment.certificationBody.length - 1];
+        setFormData((prev) => ({
+          ...prev,
+          equipment: equipment.machine || '',
+          operator:  lastCert?.operatorName || prev.operator,
+        }));
+      } catch (err) {
+        console.error('[ServiceHistoryEntryForm] fetchEquipment:', err);
+      }
+    };
+
+    fetchEquipment();
+  }, [formData.regNo]);
 
   // Auto-calculate next service hrs when serviceHrs changes (oil/normal only)
   useEffect(() => {
@@ -327,7 +341,7 @@ function ServiceHistoryEntryForm() {
       showAlert(`${config.title.replace('Add ', '')} added successfully!`, 'done_all', '--color-primary');
       triggerVibration();
 
-      setTimeout(() => navigate(config.navPath(result.data?._id)), 1500);
+      setTimeout(() => navigate(config.navPath(result.data?._id, complaintId, type)), 1500);
 
     } catch (err) {
       console.error('[ServiceHistoryEntryForm] handleSubmit:', err);

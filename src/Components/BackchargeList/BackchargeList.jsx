@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import './BackchargeList.css';
 import { apiRequest } from '../../utils/api';
 import { useSearch } from '../../Context/SearchContext';
@@ -43,7 +43,7 @@ function BackchargeList() {
 
   const fetchBackcharges = async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/backcharge/get-backcharge-reports`, 'GET');
+      const response = await apiRequest(`${API_URI}/backcharge/get-backcharge-reports`, 'GET');
 
       if (response.ok) {
         const data = await response.json()
@@ -64,8 +64,8 @@ function BackchargeList() {
       if (!user?.uniqueCode) return;
 
       const [pendingRes, signedRes] = await Promise.all([
-        apiRequest(`${END_POINT}/backcharge/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
-        apiRequest(`${END_POINT}/backcharge/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+        apiRequest(`${API_URI}/backcharge/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+        apiRequest(`${API_URI}/backcharge/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
       ]);
 
       if (pendingRes.ok) {
@@ -269,7 +269,7 @@ function BackchargeList() {
 
     try {
       const response = await apiRequest(
-        `${END_POINT}/backcharge/delete-backcharge/${selectedBackcharge._id}`,
+        `${API_URI}/backcharge/delete-backcharge/${selectedBackcharge._id}`,
         'DELETE'
       );
 

@@ -14,7 +14,7 @@ import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import footer from '../../assets/images/footer.png';
 
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
@@ -263,7 +263,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
     if (!regNo) return;
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/get-equipments?page=1&limit=1000`, 'GET');
+      const response = await apiRequest(`${API_URI}/equipments/get-equipments?page=1&limit=1000`, 'GET');
       const data = await response.json();
       const equipment = data.data?.find((eq) => eq.regNo === regNo);
       if (equipment) {
@@ -277,7 +277,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   /** Fetches the latest LPO sequence number and generates the new reference. */
   const fetchLatestLpoNumber = async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/lpo/check-latest-lpo-ref`);
+      const response = await apiRequest(`${API_URI}/lpo/check-latest-lpo-ref`);
       const data = await response.json();
 
       const newLpoNumber = parseInt(data.data?.latestRef || 130) + 1;
@@ -294,7 +294,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
     setIsLoading(true);
     try {
       const decodedRef = decodeURIComponent(refNo);
-      const response = await apiRequest(`${END_POINT}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
+      const response = await apiRequest(`${API_URI}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
       const data = await response.json();
 
       if (!data.success || !data.data) return;
@@ -336,7 +336,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
     setIsLoading(true);
     try {
       const decodedRef = decodeURIComponent(refNo);
-      const response = await apiRequest(`${END_POINT}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
+      const response = await apiRequest(`${API_URI}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
       const data = await response.json();
 
       if (!data.success || !data.data) return;
@@ -389,8 +389,8 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   const fetchEquipments = async (searchTerm = '') => {
     try {
       const response = searchTerm.trim()
-        ? await apiRequest(`${END_POINT}/equipments/search-equipments`, 'POST', { searchTerm, page: 1, limit: 1000 })
-        : await apiRequest(`${END_POINT}/equipments/get-equipments?page=1&limit=1000`, 'GET');
+        ? await apiRequest(`${API_URI}/equipments/search-equipments`, 'POST', { searchTerm, page: 1, limit: 1000 })
+        : await apiRequest(`${API_URI}/equipments/get-equipments?page=1&limit=1000`, 'GET');
       const data = await response.json();
       setEquipments(data.data || []);
     } catch (err) {
@@ -401,7 +401,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   /** Fetches company/vendor records for the autocomplete dropdowns. */
   const fetchCompanies = async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/lpo/get-company-details`);
+      const response = await apiRequest(`${API_URI}/lpo/get-company-details`);
       const data = await response.json();
       if (data.success) setCompanies(data.data || []);
     } catch (err) {
@@ -502,8 +502,8 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
       }
 
       const endpoint = (isEditMode || isAmendmentMode)
-        ? `${END_POINT}/lpo/update-lpo/${encodeURIComponent(lpoData.lpoRef)}`
-        : `${END_POINT}/lpo/add-lpo`;
+        ? `${API_URI}/lpo/update-lpo/${encodeURIComponent(lpoData.lpoRef)}`
+        : `${API_URI}/lpo/add-lpo`;
       const method = (isEditMode || isAmendmentMode) ? 'PUT' : 'POST';
 
       const response = await apiRequest(endpoint, method, payload);
@@ -524,7 +524,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
         };
 
         const complaintResponse = await apiRequest(
-          `${END_POINT}/complaints/create-lpo/${complaintId}`,
+          `${API_URI}/complaints/create-lpo/${complaintId}`,
           'POST',
           complaintPayload
         );

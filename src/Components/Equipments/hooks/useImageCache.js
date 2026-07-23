@@ -6,7 +6,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { apiRequest }             from '../../../utils/api';
-import { END_POINT }              from '../../../constants';
+import { API_URI }              from '../../../constants';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -117,7 +117,7 @@ export const useImageCache = () => {
 
     try {
       const response = await apiRequest(
-        `${END_POINT}/s3/get-pre-signed-url`,
+        `${API_URI}/s3/get-pre-signed-url`,
         'POST',
         { key: filePath, isLong: true }
       );

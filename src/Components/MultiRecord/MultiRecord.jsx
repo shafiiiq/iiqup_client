@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams }           from 'react-router-dom';
 
-import { END_POINT }          from '../../constants';
+import { API_URI }          from '../../constants';
 import { apiRequest }         from '../../utils/api';
 import { useHeaderTitle }     from '../../Context/HeaderTitleContext';
 import { useAlert }           from '../../Context/AlertContext';
@@ -225,7 +225,7 @@ function ServiceCard({ card, index, hasUrlRegNo, onChange, onRemove }) {
     eqDebounce.current = setTimeout(async () => {
       setEqSearching(true);
       try {
-        const res  = await apiRequest(`${END_POINT}/equipments/search-equipments`, 'POST', {
+        const res  = await apiRequest(`${API_URI}/equipments/search-equipments`, 'POST', {
           searchTerm: term.trim(), page: 1, limit: 20, searchField: 'all',
         });
         const data = await res.json();
@@ -477,7 +477,7 @@ function MultiRecord() {
     if (!hasUrlRegNo) return;
     const fetchEquipment = async () => {
       try {
-        const res   = await apiRequest(`${END_POINT}/equipments/get-equipment/${urlRegNo}`, 'GET');
+        const res   = await apiRequest(`${API_URI}/equipments/get-equipment/${urlRegNo}`, 'GET');
         const data  = await res.json();
         const found = data?.data?.[0];
         if (!found) return;
@@ -592,7 +592,7 @@ function MultiRecord() {
       };
 
       try {
-        const res    = await apiRequest(`${END_POINT}/service-history/batch`, 'POST', payload);
+        const res    = await apiRequest(`${API_URI}/service-history/batch`, 'POST', payload);
         const result = await res.json();
 
         if (result.ok) {

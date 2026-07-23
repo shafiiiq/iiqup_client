@@ -11,7 +11,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Notification.css';
 
-import { END_POINT }  from '../../constants';
+import { API_URI }  from '../../constants';
 import { apiRequest } from '../../utils/api';
 import { useAlert }   from '../../Context/AlertContext';
 
@@ -435,7 +435,7 @@ const Notifications = ({ islivemodeON, scrollContainerRef, liveNotification }) =
   const fetchNormalNotifications = async (page = 1) => {
     try {
       const response = await apiRequest(
-        `${END_POINT}/notification/get-all-notification`,
+        `${API_URI}/notification/get-all-notification`,
         'POST',
         { uniqueCode: uniqueCodeRef.current, page, limit: ITEMS_PER_PAGE }
       );
@@ -456,33 +456,8 @@ const Notifications = ({ islivemodeON, scrollContainerRef, liveNotification }) =
     }
   };
 
-  const fetchSpecialNotifications = async () => {
-    try {
-      if (!uniqueCodeRef.current) return [];
-
-      const response = await apiRequest(
-        `${END_POINT}/users/get-special-notification`,
-        'POST',
-        { uniqueCode: uniqueCodeRef.current }
-      );
-      const data = await response.json();
-
-      if (response.ok && data.status === 200) {
-        return data.data.notifications.map(n => ({
-          ...n,
-          type: 'special',
-          read: true,
-          _id:  n._id || `special_${n.stockId}_${Date.now()}`,
-        }));
-      }
-
-      console.error('[Notifications] fetchSpecial:', data.message);
-      return [];
-    } catch (error) {
-      console.error('[Notifications] fetchSpecial:', error);
-      return [];
-    }
-  };
+  // special notifications removed from server; skip fetching
+  const fetchSpecialNotifications = async () => [];
 
   /**
    * Fetches and merges notifications.
@@ -578,34 +553,12 @@ const Notifications = ({ islivemodeON, scrollContainerRef, liveNotification }) =
   };
 
   const handleDeleteNotification = async (notification) => {
-    if (notification.type === 'special') {
-      await deleteSpecialNotification(notification._id);
-    } else {
-      setNotifications(prev => prev.filter(n => n._id !== notification._id));
-    }
+    // server no longer supports special notifications; just remove locally
+    setNotifications(prev => prev.filter(n => n._id !== notification._id));
     handleClosePanel();
   };
 
-  const deleteSpecialNotification = async (notificationId) => {
-    try {
-      const response = await apiRequest(
-        `${END_POINT}/users/delete-special-notification/${notificationId}`,
-        'DELETE'
-      );
-      const data = await response.json();
-
-      if (response.ok && data.status === 200) {
-        setNotifications(prev => prev.filter(n => n._id !== notificationId));
-        return true;
-      }
-
-      console.error('[Notifications] deleteSpecial:', data.message);
-      return false;
-    } catch (error) {
-      console.error('[Notifications] deleteSpecial:', error);
-      return false;
-    }
-  };
+  // deleteSpecialNotification removed
 
   const markAsRead = (notificationId) => {
     setNotifications(prev =>

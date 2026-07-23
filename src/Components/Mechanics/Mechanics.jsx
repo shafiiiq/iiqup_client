@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Mechanics.css';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import Button from '../../Common/Button/Button';
 import Input from '../../Common/Input/Input';
@@ -27,7 +27,7 @@ const Mechanics = () => {
     const fetchMechanics = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`);
+        const response = await apiRequest(`${API_URI}/mechanics/get-all-mechanic`);
         if (!response.ok) throw new Error('Failed to fetch mechanics');
         const data = await response.json();
         setMechanics(data.data);
@@ -52,7 +52,7 @@ const Mechanics = () => {
       try {
         const today = new Date().toISOString().split('T')[0];
 
-        const response = await apiRequest(`${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`);
+        const response = await apiRequest(`${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`);
         const data = await response.json();
 
         if (data.status === 200) {
@@ -142,25 +142,25 @@ const Mechanics = () => {
       let url;
 
       if (filterType === 'date-range' && startDate && endDate) {
-        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/date-range?startDate=${startDate}&endDate=${endDate}`;
+        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/date-range?startDate=${startDate}&endDate=${endDate}`;
       } else if (filterType === 'daily') {
         const today = new Date().toISOString().split('T')[0];
-        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`;
+        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`;
       } else if (filterType === 'weekly') {
         const now = new Date();
         const year = now.getFullYear();
         const week = Math.ceil((now - new Date(year, 0, 1)) / (7 * 24 * 60 * 60 * 1000));
-        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/weekly/${year}/${week}`;
+        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/weekly/${year}/${week}`;
       } else if (filterType === 'monthly') {
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/monthly/${year}/${month}`;
+        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/monthly/${year}/${month}`;
       } else if (filterType === 'yearly') {
         const year = new Date().getFullYear();
-        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/yearly/${year}`;
+        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/yearly/${year}`;
       } else if (filterType === 'all') {
-        url = `${END_POINT}/mechanics/attendance/${selectedMechanic.zktecoPin}/all`;
+        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/all`;
       }
 
       const response = await apiRequest(url);
@@ -182,7 +182,7 @@ const Mechanics = () => {
   const handleSaveEdit = async () => {
     try {
       const response = await apiRequest(
-        `${END_POINT}/mechanics/update-mechanic/${selectedMechanic._id}`,
+        `${API_URI}/mechanics/update-mechanic/${selectedMechanic._id}`,
         'PUT',
         editForm
       );
@@ -206,7 +206,7 @@ const Mechanics = () => {
     if (!window.confirm('Are you sure you want to delete this mechanic?')) return;
 
     try {
-      await apiRequest(`${END_POINT}/mechanics/${selectedMechanic._id}`, 'DELETE');
+      await apiRequest(`${API_URI}/mechanics/${selectedMechanic._id}`, 'DELETE');
       const updatedMechanics = mechanics.filter(m => m._id !== selectedMechanic._id);
       setMechanics(updatedMechanics);
       setSelectedMechanic(updatedMechanics.length > 0 ? updatedMechanics[0] : null);

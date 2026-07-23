@@ -9,7 +9,7 @@ import { useNavigate }                from 'react-router-dom';
 import Spline                         from '@splinetool/react-spline';
 
 import { LoginLogic }       from '../../../utils/authUtils';
-import { END_POINT }        from '../../../constants';
+import { API_URI }        from '../../../constants';
 import { checkWebGLSupport } from '../../../utils/compatibility';
 import Button               from '../../../Common/Button/Button';
 import Input                from '../../../Common/Input/Input';
@@ -119,7 +119,7 @@ const Login = ({ setUserLoggedIn }) => {
    */
   const requestOTP = async (emailToSend) => {
     try {
-      const response = await fetch(`${END_POINT}/otp/request`, {
+      const response = await fetch(`${API_URI}/otp/request`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email: emailToSend }),
@@ -195,7 +195,7 @@ const Login = ({ setUserLoggedIn }) => {
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(authMail)) throw new Error('Please enter a valid email address');
 
-      const response = await fetch(`${END_POINT}/users/update-auth-mail`, {
+      const response = await fetch(`${API_URI}/users/update-auth-mail`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ userId: userData._id, authMail }),

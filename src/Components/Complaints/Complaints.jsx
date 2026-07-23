@@ -16,7 +16,7 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 import Button from '../../Common/Button/Button';
@@ -281,8 +281,8 @@ function Complaints() {
       showRefresh ? setRefreshing(true) : setLoading(true);
 
       const endpoint = complaintId
-        ? `${END_POINT}/complaints/get-complaints/${complaintId}`
-        : `${END_POINT}/complaints/get-all-complaints`;
+        ? `${API_URI}/complaints/get-complaints/${complaintId}`
+        : `${API_URI}/complaints/get-all-complaints`;
 
       const response = await apiRequest(endpoint);
       if (!response.ok) throw new Error('Failed to fetch complaints');
@@ -329,7 +329,7 @@ function Complaints() {
     if (mediaUrls[filePath]) return mediaUrls[filePath];
 
     try {
-      const response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: true });
+      const response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: true });
       const result = await response.json();
       const url = result.dataUrl;
 
@@ -677,7 +677,7 @@ function Complaints() {
         {/* ── Conclude action (single-complaint view only) ── */}
         {complaintId && (
           <div className="complaint-card-container work-navigation">
-            <Link to={`/service-form-nav/${regNo}`}>
+            <Link to={`/service-form-nav/${regNo}${complaintId ? `/${complaintId}` : ''}`}>
               <button>Conclude &amp; Store to database</button>
             </Link>
           </div>

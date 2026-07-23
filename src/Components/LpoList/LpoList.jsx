@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import './LpoList.css';
 import { apiRequest } from '../../utils/api';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
@@ -70,14 +70,14 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   }, [isAll, isEquip, isStock, isForAllEquip, regNo]);
 
   const fetchLpos = async () => {
-    let url = `${END_POINT}/lpo/get-all-lpo`;
+    let url = `${API_URI}/lpo/get-all-lpo`;
 
     if (isEquip && regNo) {
-      url = `${END_POINT}/lpo/get-lpo-by-regno/${regNo}`;
+      url = `${API_URI}/lpo/get-lpo-by-regno/${regNo}`;
     } else if (isStock) {
-      url = `${END_POINT}/lpo/get-lpo-of-stock`;
+      url = `${API_URI}/lpo/get-lpo-of-stock`;
     } else if (isForAllEquip) {
-      url = `${END_POINT}/lpo/get-lpo-of-all-equipments`;
+      url = `${API_URI}/lpo/get-lpo-of-all-equipments`;
     }
 
     setIsLoading(true);
@@ -104,8 +104,8 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
       if (!user?.uniqueCode) return;
 
       const [pendingRes, signedRes] = await Promise.all([
-        apiRequest(`${END_POINT}/lpo/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
-        apiRequest(`${END_POINT}/lpo/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+        apiRequest(`${API_URI}/lpo/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+        apiRequest(`${API_URI}/lpo/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
       ]);
 
       if (pendingRes.ok) {
@@ -241,7 +241,7 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
 
     try {
       const response = await apiRequest(
-        `${END_POINT}/lpo/delete-lpo/${selectedLpo.lpoRef}`,
+        `${API_URI}/lpo/delete-lpo/${selectedLpo.lpoRef}`,
         'DELETE'
       );
 

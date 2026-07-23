@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiRequest }                        from '../../../utils/api';
-import { END_POINT }                         from '../../../constants';
+import { API_URI }                         from '../../../constants';
 import { groupEquipmentBySite }              from '../utils/equipmentHelpers';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
     const regNos = equipmentList.map(eq => eq.regNo);
 
     const imageResponse = await apiRequest(
-      `${END_POINT}/equipments/bulk-equipment-images`,
+      `${API_URI}/equipments/bulk-equipment-images`,
       'POST',
       { regNos }
     );
@@ -98,7 +98,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
         const imagesWithUrls = await Promise.all(
           images.images.map(async (img) => {
             const s3Url = await getMediaUrlWithCache(img.path);
-            return { ...img, s3Url: s3Url || `${END_POINT}/${img.path}` };
+            return { ...img, s3Url: s3Url || `${API_URI}/${img.path}` };
           })
         );
 
@@ -132,7 +132,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
             : '';
 
       const response = await apiRequest(
-        `${END_POINT}/equipments/get-equipments?page=${page}&limit=${ITEMS_PER_PAGE}${hiredParam}${statusParam}`,
+        `${API_URI}/equipments/get-equipments?page=${page}&limit=${ITEMS_PER_PAGE}${hiredParam}${statusParam}`,
         'GET'
       );
       const data = await response.json();
@@ -152,7 +152,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
       if (!append && activeTab === 'equipment-based' && activeStatusFilter === 'all') {
         // Fetch actual counts from stats API instead of counting only the current page
         try {
-          const statsResponse = await apiRequest(`${END_POINT}/equipments/equipment-stats?hired=own`, 'GET');
+          const statsResponse = await apiRequest(`${API_URI}/equipments/equipment-stats?hired=own`, 'GET');
           const statsData = await statsResponse.json();
           if (statsData.ok) {
             const s = statsData.data?.stats?.statusBreakdown || {};
@@ -191,12 +191,24 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
   // Fetch: Completed Works Alert
   // ─────────────────────────────────────────────────────────────────────────
 
+  const normalizeComplaintsPayload = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.complaints)) return payload.complaints;
+    if (Array.isArray(payload?.data?.data)) return payload.data.data;
+    if (Array.isArray(payload?.data?.complaints)) return payload.data.complaints;
+    return [];
+  };
+
   const fetchCompletedWorks = useCallback(async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
+      const response = await apiRequest(`${API_URI}/complaints/get-all-complaints`, 'GET');
       const data     = await response.json();
-      const list     = Array.isArray(data.data) ? data.data : data.data?.complaints || data.complaints || [];
-      const completed = list.filter(item => item.workflowStatus === 'completed');
+      const list     = normalizeComplaintsPayload(data);
+      const completed = list.filter(item =>
+        (item?.workflowStatus === 'completed' || item?.status === 'resolved') &&
+        item?.workflowStatus !== 'fulfilled' && item?.status !== 'fulfilled'
+      );
       setCompletedWorks(completed);
       setShowCompletedWorkAlert(completed.length > 0);
     } catch (err) {
@@ -212,7 +224,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
 
   const fetchOperators = useCallback(async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/operators/get-all-operators`, 'GET');
+      const response = await apiRequest(`${API_URI}/operators/get-all-operators`, 'GET');
       if (!response.ok) throw new Error('Failed to fetch operators');
       const data = await response.json();
       setOperator(Array.isArray(data.data) ? data.data : []);
@@ -227,7 +239,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache, searchTerm = '', active
 
   const fetchSitesForDropdown = useCallback(async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/get-sites`, 'GET');
+      const response = await apiRequest(`${API_URI}/equipments/get-sites`, 'GET');
       const data     = await response.json();
       setSites(data.data || []);
     } catch (err) {

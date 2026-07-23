@@ -1,4 +1,4 @@
-import { END_POINT } from "../constants";
+import { API_URI } from "../constants";
 import { apiRequest } from "./api";
 
 export const AuthUtils = {
@@ -99,7 +99,7 @@ export const LoginLogic = {
 
     enhancedLogin: async (email, password) => {
         try {
-            const response = await fetch(`${END_POINT}/users/verify-user`, {
+            const response = await fetch(`${API_URI}/users/verify-user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export const LoginLogic = {
 
     enhancedOTPVerification: async (otp, userData, rememberMe, navigate, setUserLoggedIn) => {
         try {
-            const response = await apiRequest(`${END_POINT}/otp/verify`, 'POST', {
+            const response = await apiRequest(`${API_URI}/otp/verify`, 'POST', {
                 email: userData.authMail,
                 otp,
                 userId: userData._id
@@ -153,7 +153,7 @@ export const LoginLogic = {
 
     requestOTP: async (email) => {
         try {
-            const response = await apiRequest(`${END_POINT}/otp/request`, 'POST', { email });
+            const response = await apiRequest(`${API_URI}/otp/request`, 'POST', { email });
             const data = await response.json();
 
             if (!response.ok || !data.success) {

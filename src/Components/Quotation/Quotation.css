@@ -1,0 +1,1095 @@
+/* Lpo.css - Improved Styles */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.hire-order-page-container {
+  max-width: 100%;
+  height: 100% !important;
+  min-height: 130vh;
+}
+
+.hire-order-controls {
+  max-width: 800px;
+  margin: 20px auto;
+  text-align: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hire-order-button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.hire-order-action-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.download-button {
+  background-color: #4285f4;
+  color: white;
+}
+
+.save-status {
+  margin: 10px 0;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.save-status.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.save-status.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* LPO Document Styling */
+.hire-order-document-f {
+  width: 260mm !important;
+  min-height: 360mm !important;
+  max-height: fit-content !important;
+  margin: 0 auto !important;
+  padding: 4mm !important;
+  box-sizing: border-box !important;
+  background-color: white !important;
+  font-size: 12pt !important;
+  line-height: 1.4 !important;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15) !important;
+  position: relative !important;
+  margin-bottom: 2rem !important;
+  color: var(--text-inverse);
+}
+
+/* Header styling */
+.header-f {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+
+.logo-placeholder-l {
+  flex: 1;
+}
+
+/* here i changed   */
+.logo-placeholder-l img {
+  width: 200px;
+  height: auto;
+}
+
+.company-details-sl {
+  flex: 2;
+  text-align: center;
+}
+
+.company-details-sl img {
+  max-width: 300px;
+  height: auto;
+}
+
+.company-details-l {
+  margin-right: 0 !important;
+}
+
+
+.header-divider {
+  border-top: 2px solid #000;
+  margin: 0;
+}
+
+/* Title styling */
+.hire-order-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 18pt;
+  margin: 20px 0;
+  letter-spacing: 1px;
+  text-decoration: underline;
+}
+
+/* LPO details */
+.hire-order-details {
+  margin-bottom: 15px;
+}
+
+.details-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 10px !important;
+}
+
+.details-table td {
+  vertical-align: top !important;
+  padding: 8px !important;
+}
+
+.left-col,
+.right-col {
+  width: 50% !important;
+}
+
+.detail-item {
+  margin-bottom: 8px !important;
+  font-size: 12pt !important;
+  font-weight: normal;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: row !important;
+  gap: 8px;
+}
+
+.details-divider {
+  border-top: 1px solid #000 !important;
+  margin: 15px 0 !important;
+}
+
+.editable-input {
+  border: none !important;
+  border-bottom: 1px dotted #666 !important;
+  padding: 2px 4px !important;
+  font-size: 12pt !important;
+  background-color: transparent !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  min-width: 150px !important;
+  font-weight: normal !important;
+}
+
+.editable-request-text-f {
+  width: 100%;
+  border: none;
+  border-bottom: 1px dotted #666;
+  padding: 2px 4px;
+  font-size: 12pt;
+  background-color: transparent;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  text-align: justify;
+  line-height: 1.4;
+}
+
+.editable-input::placeholder {
+  color: #999 !important;
+  font-style: italic !important;
+}
+
+.company-input {
+  min-width: 350px !important;
+}
+
+.attention-input {
+  min-width: 330px !important;
+}
+
+.designation-input {
+  min-width: 268px !important;
+}
+
+.non-editable {
+  padding: 2px 4px;
+  font-weight: normal;
+  border-bottom: 1px solid transparent;
+}
+
+/* Equipment field styling */
+.equipment-field {
+  border: none !important;
+  border-bottom: 1px dotted #666 !important;
+  padding: 2px 4px !important;
+  cursor: pointer !important;
+  min-width: 200px !important;
+  font-size: 12pt !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.equipment-field:hover {
+  background-color: #f8f9ff !important;
+  border-bottom: 1px solid #0066cc !important;
+}
+
+/* Dropdown styling */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+
+.dropdown-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  outline: none;
+  font-size: 12pt;
+}
+
+.dropdown-options {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.dropdown-option {
+  background: white;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-option:hover {
+  background-color: #f0f8ff;
+}
+
+.dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.company-name,
+.equipment-reg,
+.attention-name {
+  font-weight: bold;
+  font-size: 12pt;
+  color: #333;
+}
+
+.company-details,
+.equipment-machine,
+.attention-designation {
+  font-size: 10pt;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Toggle field styling */
+.toggle-field {
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.toggle-field:hover {
+  background-color: #f0f8ff;
+}
+
+
+/* Request text */
+.request-text-f {
+  margin: 15px 0 !important;
+  font-size: 12pt !important;
+  text-align: justify !important;
+  line-height: 1.4 !important;
+  text-indent: 20px !important;
+  overflow: hidden;
+}
+
+/* Items Table */
+.items-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0 !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+.items-table th,
+.items-table td {
+  border: 1px solid #000 !important;
+  padding: 8px !important;
+  font-size: 12pt !important;
+  text-align: center !important;
+  font-weight: normal !important;
+}
+
+.items-table th {
+  font-weight: bold !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+.items-table th,
+.items-table td {
+  color: black !important;
+}
+
+.table-input {
+  width: 100%;
+  border: none !important;
+  background: transparent !important;
+  text-align: center;
+  font-size: 12pt !important;
+  padding: 4px !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.description-input {
+  text-align: left !important;
+  min-width: 200px !important;
+}
+
+.number-input {
+  text-align: center !important;
+  width: 80px !important;
+}
+
+.calculated-total {
+  background-color: #f8f9fa !important;
+  font-weight: bold !important;
+  color: #333 !important;
+}
+
+.total-label {
+  text-align: right !important;
+  font-weight: bold !important;
+}
+
+/* Serial Number Cell with Row Controls */
+.sn-cell {
+  position: relative !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+.row-controls {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+}
+
+.add-row-btn,
+.remove-row-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.add-row-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.add-row-btn:hover {
+  background-color: #218838;
+  transform: scale(1.1);
+}
+
+.remove-row-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.remove-row-btn:hover {
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+/* Terms and Conditions Table */
+.terms-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-top: 0 !important;
+}
+
+.terms-table td {
+  /* border: 1px solid #000 !important; */
+  padding: 10px !important;
+  font-size: 12pt !important;
+}
+
+.terms-row-large {
+  height: 200px !important;
+}
+
+.terms-header-large {
+  font-size: 12pt !important;
+  vertical-align: top !important;
+  padding: 15px !important;
+}
+
+.terms-header-large ul {
+  margin: 0 !important;
+  padding-left: 20px !important;
+  line-height: 1.6 !important;
+}
+
+.terms-header-large li {
+  margin-bottom: 10px !important;
+}
+
+.terms-header-large li:nth-child(1) {
+  text-decoration: underline !important;
+  font-size: 14pt !important;
+  font-weight: bold !important;
+  margin-bottom: 15px !important;
+}
+
+.terms-header-large li:nth-child(2) {
+  list-style: disc;
+  margin-left: 20px;
+}
+
+.payment-terms-input {
+  width: 100%;
+  border: none !important;
+  background: transparent !important;
+  font-size: 12pt !important;
+  padding: 4px !important;
+  outline: none !important;
+  line-height: 1.6 !important;
+  resize: vertical !important;
+  min-height: 80px !important;
+}
+
+.note-row {
+  font-size: 12pt !important;
+  padding: 10px !important;
+  font-weight: normal !important;
+}
+
+.company-footer {
+  text-align: start !important;
+  font-weight: bold !important;
+  padding: 12px !important;
+  font-size: 16pt !important;
+}
+
+/* Signatures Table */
+.signatures-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-top: -1px !important;
+  border: 1px solid #000 !important;
+}
+
+.signatures-table-form {
+  margin-bottom: 6rem;
+}
+
+.signatures-table td {
+  padding: 8px !important;
+  width: 20% !important;
+  font-weight: normal !important;
+}
+
+.company-name-tr td {
+  font-size: 11pt !important;
+}
+
+.sign-table-l {
+  text-align: center !important;
+  border: 1px solid #000 !important;
+  vertical-align: middle !important;
+}
+
+.sign-table-date {
+  text-align: start !important;
+  font-size: 13px !important;
+}
+
+.signatures-table {
+  border: 1px solid #000 !important;
+}
+
+.signature-spaces-large td {
+  height: 80px !important;
+  vertical-align: bottom !important;
+}
+
+.text-move-to-left {
+  margin-left: 26rem !important;
+}
+
+.equipment-multi-select {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.selected-equipments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  background-color: white !important;
+  border: none !important;
+}
+
+.equipment-tag {
+  background: transparent !important;
+  padding: 8px;
+  font-size: 15px !important;
+  display: flex;
+  align-items: center;
+  color: var(--text-inverse) !important;
+  gap: 5px;
+}
+
+.remove-equipment-btn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.remove-equipment-btn:hover {
+  color: #ff0000;
+}
+
+.add-equipment-btn {
+  margin-top: 5px;
+  padding: 3px 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-equipment-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.equipment-input {
+  width: 100%;
+}
+
+.equip-field {
+  display: flex;
+  align-items: start;
+  min-height: 100%;
+  min-width: 6rem;
+  position: relative;
+}
+
+.equip-field-name {
+  position: sticky;
+}
+
+.hire-order-document-f::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(90deg, #f8f9fa 0px, transparent 1px),
+    linear-gradient(#f8f9fa 0px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Subtle animations */
+.editable-input,
+.table-input,
+.equipment-field {
+  transition: all 0.3s ease !important;
+}
+
+.dropdown-option {
+  transition: all 0.2s ease !important;
+}
+
+.toggle-field {
+  transition: all 0.2s ease !important;
+}
+
+/* Total amount and discount styles */
+.calculated-total {
+  position: relative;
+  font-weight: bold;
+  background-color: #f8f9fa !important;
+}
+
+.total-amount-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 12pt;
+  font-weight: bold;
+  padding: 4px;
+  outline: none;
+}
+
+.discount-popup {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: white;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 10;
+}
+
+.add-discount-btn {
+  background: #f0f8ff;
+  border: 1px solid #0066cc;
+  color: #0066cc;
+
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10pt;
+  white-space: nowrap;
+}
+
+.add-discount-btn:hover {
+  background: #e1f0ff;
+}
+
+.current-discount {
+  font-size: 10pt;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* Discount Popup Styles */
+.discount-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.discount-popup {
+  padding: 20px;
+  min-width: 350px;
+  max-width: 400px;
+  position: relative;
+}
+
+.discount-popup-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.discount-popup-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.discount-popup-content {
+  margin-bottom: 20px;
+}
+
+.discount-popup-content p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.discount-input-group {
+  margin: 15px 0;
+}
+
+.discount-input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.discount-input-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  border: 1px solid var(--color-primary-200);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.discount-preview {
+  background: var(--color-white-200);
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-weight: 500;
+  color: var(--color-black);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+.discount-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.discount-apply-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.discount-apply-btn:hover {
+  background: #218838;
+}
+
+.discount-cancel-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.discount-cancel-btn:hover {
+  background: #5a6268;
+}
+
+/* Discount Controls in Table */
+.discount-controls {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.add-discount-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.add-discount-btn:hover {
+  background: #0056b3;
+}
+
+.discount-info {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #333;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+  margin-top: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.discount-info::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 10px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #333;
+}
+
+/* Discount Amount Row Styling */
+.discount-amount {
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
+.final-total {
+  font-weight: bold;
+  font-size: 16px;
+  background: #f8f9fa;
+}
+
+/* Total Label Styling */
+.total-label {
+  font-weight: 600;
+  text-align: right;
+  padding-right: 15px;
+  position: relative;
+}
+
+/* Payment Terms Styling */
+.payment-terms-container {
+  width: 100%;
+}
+
+.payment-terms-header {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.payment-terms-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.payment-term-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.term-bullet {
+  margin-right: 8px;
+}
+
+.payment-term-input {
+  flex: 1;
+  padding: 4px;
+  font-size: 12p;
+}
+
+.remove-term-btn {
+  background: none;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 16px;
+}
+
+.add-term-btn {
+  background: none;
+  border: 1px dashed #ccc;
+  padding: 4px 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  color: #666;
+}
+
+.add-term-btn:hover {
+  background-color: #f5f5f5;
+}
+
+/* CEO Toggle Styling */
+.ceo-toggle {
+  cursor: pointer;
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.ceo-toggle:hover {
+  color: #004499;
+}
+
+.pending-lpo-list .info-label{
+  font-size: 14px;
+}
+
+.pending-lpo-list .info-value{
+  font-size: 14px;
+}
+
+.hire-order-items-table {
+  width: 100% !important;
+  table-layout: auto !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0 !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+.hire-order-items-table th,
+.hire-order-items-table td {
+  border: 1px solid #000 !important;
+  padding: 8px !important;
+  font-size: 12pt !important;
+  text-align: center !important;
+  font-weight: normal !important;
+  color: black !important;
+  word-break: break-word !important;
+}
+
+.hire-order-items-table th {
+  font-weight: bold !important;
+  background-color: white !important;
+}
+
+/* SN header/cell stay tight and never grow */
+.hire-order-items-table .sn-header,
+.hire-order-items-table .sn-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* ── Column header cell (editable label + optional remove button) ── */
+.column-header-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.column-header-input {
+  border: none !important;
+  background: transparent !important;
+  font-size: 12pt !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  outline: none !important;
+  padding: 2px !important;
+  min-width: 6ch;
+  max-width: 40ch;
+  box-sizing: content-box;
+}
+
+.column-header-input:hover,
+.column-header-input:focus {
+  border-bottom: 1px dotted #666 !important;
+}
+
+.fixed-column-header {
+  justify-content: center;
+}
+
+.fixed-column-label {
+  font-weight: bold;
+  font-size: 12pt;
+}
+
+.remove-column-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.remove-column-btn:hover {
+  color: #a80000;
+}
+
+.add-column-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0;
+}
+
+/* Let this table's own inputs fill whatever column width the header produces,
+   instead of the fixed min-widths meant for the LPO items table. */
+.hire-order-items-table .table-input {
+  width: 100% !important;
+}
+
+.hire-order-items-table .description-input {
+  min-width: 0 !important;
+  width: 100% !important;
+  text-align: left !important;
+}
+
+.hire-order-items-table .number-input {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+/* Responsive: on narrow screens let columns wrap their header text instead
+   of forcing horizontal overflow */
+@media (max-width: 600px) {
+  .column-header-input {
+    max-width: 20ch;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .discount-popup {
+    min-width: 280px;
+    margin: 20px;
+  }
+
+  .discount-popup-actions {
+    flex-direction: column;
+  }
+
+  .discount-apply-btn,
+  .discount-cancel-btn {
+    width: 100%;
+    margin: 2px 0;
+  }
+
+  .discount-controls {
+    display: block;
+    margin-top: 5px;
+    margin-left: 0;
+  }
+
+  .discount-info {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: normal;
+    max-width: 200px;
+  }
+}
+

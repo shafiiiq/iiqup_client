@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { apiRequest } from '../utils/api';
-import { END_POINT } from '../constants';
+import { API_URI } from '../constants';
 import '../Common/Tutorial/Tutorial.css';
 import { TutorialContext, TutorialSpotlight } from '../Common/TutorialSpotlight/TutorialSpotlight';
 
@@ -20,7 +20,7 @@ export function TutorialProvider({ children }) {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (!user._id) { setLoaded(true); return; }
 
-        const res = await apiRequest(`${END_POINT}/users/tutorials`, 'GET');
+        const res = await apiRequest(`${API_URI}/users/tutorials`, 'GET');
         if (res.ok) {
           const data = await res.json();
           setCompletedTutorials(new Set(data.tutorialsSeen || []));
@@ -72,7 +72,7 @@ export function TutorialProvider({ children }) {
 
   const markDone = useCallback(async (id) => {
     try {
-      await apiRequest(`${END_POINT}/users/tutorials/complete`, 'POST', { tutorialId: id });
+      await apiRequest(`${API_URI}/users/tutorials/complete`, 'POST', { tutorialId: id });
     } catch (_) {}
     setCompletedTutorials(prev => new Set([...prev, id]));
   }, []);

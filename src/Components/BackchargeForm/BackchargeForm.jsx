@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import logoImage from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-text.png';
 import { apiRequest } from '../../utils/api';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import Button from '../../Common/Button/Button';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
@@ -73,7 +73,7 @@ const BackchargeForm = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const backchargeResponse = await apiRequest(`${END_POINT}/backcharge/get-backcharge-reports`, 'GET');
+                const backchargeResponse = await apiRequest(`${API_URI}/backcharge/get-backcharge-reports`, 'GET');
                 if (backchargeResponse.ok) {
                     const data = await backchargeResponse.json();
                     if (data.success && data.data) {
@@ -122,7 +122,7 @@ const BackchargeForm = () => {
     const generateRefNumber = async () => {
         setIsGeneratingRef(true);
         try {
-            const response = await apiRequest(`${END_POINT}/backcharge/check-latest-backcharge-ref`, 'GET');
+            const response = await apiRequest(`${API_URI}/backcharge/check-latest-backcharge-ref`, 'GET');
             if (response.ok) {
                 const data = await response.json();
 
@@ -322,7 +322,7 @@ const BackchargeForm = () => {
                 )
             };
 
-            const response = await apiRequest(`${END_POINT}/backcharge/add-backcharge`, 'POST', backchargeData);
+            const response = await apiRequest(`${API_URI}/backcharge/add-backcharge`, 'POST', backchargeData);
 
             if (response.ok) {
                 setSaveStatus('success');

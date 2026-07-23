@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiRequest }          from '../../../utils/api';
-import { END_POINT }           from '../../../constants';
+import { API_URI }           from '../../../constants';
 
 const SIGNATURE_EXPIRY_MS = 10_000; // 10 seconds
 const RATE_LIMIT_WINDOW   = 60_000; // 60 seconds
@@ -152,13 +152,13 @@ export const useDocumentSigning = ({ onSigned } = {}) => {
       setShowLoadingModal(true);
       setLoadingMessage('Verifying password...');
 
-      const res = await apiRequest(`${END_POINT}/users/six-digit-auth/verify`, 'POST', { password: sixDigitPassword });
+      const res = await apiRequest(`${API_URI}/users/six-digit-auth/verify`, 'POST', { password: sixDigitPassword });
       if (!res.ok) throw new Error('Invalid 6-digit password');
 
       setDocAUTHmiddle(sixDigitPassword); // stored temporarily for step 2
       setLoadingMessage('Sending OTP to authorized email...');
 
-      const otpRes = await apiRequest(`${END_POINT}/otp/request`, 'POST', { email: 'DOCUMENT_VERIFIER_AUTH_MAIL' });
+      const otpRes = await apiRequest(`${API_URI}/otp/request`, 'POST', { email: 'DOCUMENT_VERIFIER_AUTH_MAIL' });
       if (!otpRes.ok) throw new Error('Failed to send OTP');
 
       setShowLoadingModal(false);
@@ -194,7 +194,7 @@ export const useDocumentSigning = ({ onSigned } = {}) => {
 
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-      const otpRes = await apiRequest(`${END_POINT}/otp/verify`, 'POST', {
+      const otpRes = await apiRequest(`${API_URI}/otp/verify`, 'POST', {
         email:  'DOCUMENT_VERIFIER_AUTH_MAIL',
         otp:    otpCode,
         userId: userData._id,
@@ -203,7 +203,7 @@ export const useDocumentSigning = ({ onSigned } = {}) => {
 
       setLoadingMessage('Generating signature key...');
 
-      const keyRes = await apiRequest(`${END_POINT}/users/doc-oauth-sign-key`, 'POST', { password: docAUTHmiddle });
+      const keyRes = await apiRequest(`${API_URI}/users/doc-oauth-sign-key`, 'POST', { password: docAUTHmiddle });
       if (!keyRes.ok) throw new Error('Failed to generate signature key');
 
       setDocAUTHmiddle(''); // immediately clear the intermediate password from memory
@@ -211,7 +211,7 @@ export const useDocumentSigning = ({ onSigned } = {}) => {
 
       setLoadingMessage('Applying digital signature...');
 
-      const s3Res = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', {
+      const s3Res = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', {
         key:        keyData.data.sign_key,
         isLong:     false,
         isAuthSign: true,

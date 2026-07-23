@@ -12,7 +12,7 @@ import logoImage    from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 import mechanicSign from '../../assets/images/mechanic-sign.png';
 
-import { END_POINT }  from '../../constants';
+import { API_URI }  from '../../constants';
 import { apiRequest } from '../../utils/api';
 
 import DevModal from '../../Common/DevModal/DevModal';
@@ -79,15 +79,15 @@ const resolveReportUrl = (pathname, serviceTypes, { regNo, startDate, endDate, m
   const typeQuery = serviceTypes.length ? `?serviceTypes=${serviceTypes.join(',')}` : '';
 
   if (pathname.includes('/all/all-histories/')) {
-    return { url: `${END_POINT}/service-report/histories/${regNo}/all${typeQuery}`, isMultiple: true };
+    return { url: `${API_URI}/service-report/histories/${regNo}/all${typeQuery}`, isMultiple: true };
   }
   if (pathname.includes('/all/date-range/')) {
     const serviceType = pathname.split('/')[3];
-    return { url: `${END_POINT}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}${typeQuery}`, isMultiple: true };
+    return { url: `${API_URI}/service-report/histories/${regNo}/${serviceType}/date-range/${startDate}/${endDate}${typeQuery}`, isMultiple: true };
   }
   if (pathname.includes('/all/last-months/')) {
     const serviceType = pathname.split('/')[3];
-    return { url: `${END_POINT}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}${typeQuery}`, isMultiple: true };
+    return { url: `${API_URI}/service-report/histories/${regNo}/${serviceType}/last-months/${monthsCount}${typeQuery}`, isMultiple: true };
   }
 
   return { url: null, isMultiple: false };
@@ -357,7 +357,7 @@ function ServiceDoc() {
           // Route: /service-document/:historyId
           // Step 1: get history to find reportId
           const histResponse = await apiRequest(
-            `${END_POINT}/service-history/get-by-id/${serviceType || 'oil'}/${historyId}`,
+            `${API_URI}/service-history/get-by-id/${serviceType || 'oil'}/${historyId}`,
             'GET'
           );
           if (!histResponse.ok) throw new Error(`History fetch failed: ${histResponse.status}`);
@@ -373,7 +373,7 @@ function ServiceDoc() {
 
           // Step 2: get the report
           const repResponse = await apiRequest(
-            `${END_POINT}/service-report/get-report/with-id/${history.reportId}`,
+            `${API_URI}/service-report/get-report/with-id/${history.reportId}`,
             'GET'
           );
           if (!repResponse.ok) throw new Error(`Report fetch failed: ${repResponse.status}`);
@@ -459,13 +459,13 @@ function ServiceDoc() {
     setLoadingMessage('Verifying password...');
 
     try {
-      const passwordResponse = await apiRequest(`${END_POINT}/users/six-digit-auth/verify`, 'POST', { password: sixDigitPassword });
+      const passwordResponse = await apiRequest(`${API_URI}/users/six-digit-auth/verify`, 'POST', { password: sixDigitPassword });
       if (!passwordResponse.ok) throw new Error('Invalid 6-digit password');
 
       setDocAUTHmiddle(sixDigitPassword);
       setLoadingMessage('Sending OTP to authorized email...');
 
-      const otpResponse = await apiRequest(`${END_POINT}/otp/request`, 'POST', { email: 'DOCUMENT_VERIFIER_AUTH_MAIL' });
+      const otpResponse = await apiRequest(`${API_URI}/otp/request`, 'POST', { email: 'DOCUMENT_VERIFIER_AUTH_MAIL' });
       if (!otpResponse.ok) throw new Error('Failed to send OTP');
 
       setShowLoadingModal(false);
@@ -494,12 +494,12 @@ function ServiceDoc() {
     try {
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-      const otpResponse = await apiRequest(`${END_POINT}/otp/verify`, 'POST', { email: 'DOCUMENT_VERIFIER_AUTH_MAIL', otp: otpCode, userId: userData._id });
+      const otpResponse = await apiRequest(`${API_URI}/otp/verify`, 'POST', { email: 'DOCUMENT_VERIFIER_AUTH_MAIL', otp: otpCode, userId: userData._id });
       if (!otpResponse.ok) throw new Error('Invalid OTP code. Please check and try again.');
 
       setLoadingMessage('Generating signature key...');
 
-      const keyResponse = await apiRequest(`${END_POINT}/users/doc-oauth-sign-key`, 'POST', { password: docAUTHmiddle });
+      const keyResponse = await apiRequest(`${API_URI}/users/doc-oauth-sign-key`, 'POST', { password: docAUTHmiddle });
       if (!keyResponse.ok) throw new Error('Failed to generate signature key');
 
       setDocAUTHmiddle('');
@@ -507,7 +507,7 @@ function ServiceDoc() {
 
       setLoadingMessage('Applying digital signature...');
 
-      const s3Response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: keyData.data.sign_key, isLong: false, isAuthSign: true });
+      const s3Response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: keyData.data.sign_key, isLong: false, isAuthSign: true });
       if (!s3Response.ok) throw new Error('Failed to generate signature URL');
 
       const s3Data     = await s3Response.json();
@@ -550,7 +550,7 @@ function ServiceDoc() {
   const handleDeleteReport   = (reportId) => { setDeleteReportId(reportId); setShowDeleteModal(true); };
   const confirmDeleteReport  = async () => {
     try {
-      const response = await apiRequest(`${END_POINT}/service-report/deletewith/${deleteReportId}`, 'DELETE');
+      const response = await apiRequest(`${API_URI}/service-report/deletewith/${deleteReportId}`, 'DELETE');
       if (response.ok) {
         setShowDeleteModal(false);
         window.location.reload();

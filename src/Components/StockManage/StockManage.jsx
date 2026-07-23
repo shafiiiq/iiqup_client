@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './StockManage.css';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import ExcelJS from 'exceljs';
 import Barcode from 'react-barcode';
@@ -94,7 +94,7 @@ function StockManage() {
   useEffect(() => {
     const fetchEquipments = async () => {
       try {
-        const response = await apiRequest(`${END_POINT}/equipments/get-equipments`, 'GET');
+        const response = await apiRequest(`${API_URI}/equipments/get-equipments`, 'GET');
         if (!response.ok) throw new Error('Failed to fetch equipments');
         const result = await response.json();
 
@@ -129,7 +129,7 @@ function StockManage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await apiRequest(`${END_POINT}/users/get-all-users`, 'GET');
+        const response = await apiRequest(`${API_URI}/users/get-all-users`, 'GET');
         if (!response.ok) throw new Error('Failed to fetch users');
         const result = await response.json();
 
@@ -163,7 +163,7 @@ function StockManage() {
     const fetchStocks = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${END_POINT}/stocks/get-all-stocks`, 'GET');
+        const response = await apiRequest(`${API_URI}/stocks/get-all-stocks`, 'GET');
         if (!response.ok) throw new Error('Failed to fetch stocks');
         const result = await response.json();
         setStocks(Array.isArray(result.data) ? result.data : []);
@@ -255,7 +255,7 @@ function StockManage() {
         type: 'add',
       };
 
-      const response = await apiRequest(`${END_POINT}/stocks/update-quantity/${selectedStock._id}`, 'PUT', updateData);
+      const response = await apiRequest(`${API_URI}/stocks/update-quantity/${selectedStock._id}`, 'PUT', updateData);
 
       const result = await response.json();
 
@@ -294,7 +294,7 @@ function StockManage() {
       };
 
       const response = await apiRequest(
-        `${END_POINT}/stocks/update-quantity/${selectedStock._id}`,
+        `${API_URI}/stocks/update-quantity/${selectedStock._id}`,
         'PUT',
         updateData
       );
@@ -377,10 +377,10 @@ function StockManage() {
 
       let url, method;
       if (formMode === 'add') {
-        url = `${END_POINT}/stocks/add-stocks`;
+        url = `${API_URI}/stocks/add-stocks`;
         method = 'POST';
       } else {
-        url = `${END_POINT}/stocks/update-stock/${formData._id}`;
+        url = `${API_URI}/stocks/update-stock/${formData._id}`;
         method = 'PUT';
       }
 
@@ -416,7 +416,7 @@ function StockManage() {
     if (!window.confirm('Are you sure you want to delete this stock?')) return;
     try {
       const response = await apiRequest(
-        `${END_POINT}/stocks/delete-stock/${id}`,
+        `${API_URI}/stocks/delete-stock/${id}`,
         'DELETE',
       );
 

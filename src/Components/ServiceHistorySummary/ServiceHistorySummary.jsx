@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ServiceHistorySummary.css';
 import { apiRequest } from '../../utils/api';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { useSearch } from '../../Context/SearchContext';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 import { useNavigate } from 'react-router-dom';
@@ -53,11 +53,11 @@ function ServiceHistorySummary() {
                     const [year, month, day] = date.split('-');
                     return `${day}-${month}-${year}`;
                 };
-                url = `${END_POINT}/service-report/summary/date-range/${formatForAPI(startDate)}/${formatForAPI(endDate)}`;
+                url = `${API_URI}/service-report/summary/date-range/${formatForAPI(startDate)}/${formatForAPI(endDate)}`;
             } else if (months) {
-                url = `${END_POINT}/service-report/summary/last-months/${months}`;
+                url = `${API_URI}/service-report/summary/last-months/${months}`;
             } else {
-                url = `${END_POINT}/service-report/summary/${period}`;
+                url = `${API_URI}/service-report/summary/${period}`;
             }
 
             const response = await apiRequest(url, 'GET');
@@ -113,7 +113,7 @@ function ServiceHistorySummary() {
 
     const confirmDeleteReport = async () => {
         const type = deleteReport.serviceType || 'oil';
-        const url = `${END_POINT}/service-history/delete/${type}/${deleteReport._id}`;
+        const url = `${API_URI}/service-history/delete/${type}/${deleteReport._id}`;
         const response = await apiRequest(url, 'DELETE');
         const data = await response.json();
         if (data.ok) {

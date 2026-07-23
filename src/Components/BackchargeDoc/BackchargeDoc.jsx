@@ -16,7 +16,7 @@ import html2canvas                      from 'html2canvas';
 import logoImage    from '../../assets/images/al-ansari-color.png';
 import alAnsariText from '../../assets/images/al-ansari-full-address.png';
 
-import { END_POINT }                             from '../../constants';
+import { API_URI }                             from '../../constants';
 import { apiRequest }                            from '../../utils/api';
 import { getDeviceFingerprint, getLocationInfo } from '../../utils/deviceFingerprint';
 import { useHeaderTitle }                        from '../../Context/HeaderTitleContext';
@@ -396,7 +396,7 @@ function BackchargeDoc() {
     setIsLoading(true);
     try {
       const response = await apiRequest(
-        `${END_POINT}/backcharge/get-backcharge-by-ref/${encodeURIComponent(refNo)}`,
+        `${API_URI}/backcharge/get-backcharge-by-ref/${encodeURIComponent(refNo)}`,
         'GET'
       );
 
@@ -479,7 +479,7 @@ function BackchargeDoc() {
       };
 
       const response = await apiRequest(
-        `${END_POINT}/backcharge/update-backcharge/${documentId}`,
+        `${API_URI}/backcharge/update-backcharge/${documentId}`,
         'PUT',
         payload
       );
@@ -553,7 +553,7 @@ function BackchargeDoc() {
       formDataToSend.append('refNo', refNo);
       
       const response = await apiRequest(
-        `${END_POINT}/backcharge/send-via-email`,
+        `${API_URI}/backcharge/send-via-email`,
         'POST',
         formDataToSend,
         true
@@ -594,7 +594,7 @@ function BackchargeDoc() {
       let allTrusted = true;
 
       for (const signType of BCR_SIGN_TYPES) {
-        const response = await apiRequest(`${END_POINT}/users/verify-device-trust`, 'POST', { signType, deviceInfo: info });
+        const response = await apiRequest(`${API_URI}/users/verify-device-trust`, 'POST', { signType, deviceInfo: info });
         const result = await response.json();
         if (!result.data.isActivated) allActivated = false;
         if (!result.data.isTrusted) allTrusted = false;
@@ -631,12 +631,12 @@ function BackchargeDoc() {
     setSignatureStates((prev) => ({ ...prev, [roleField]: { ...prev[roleField], loading: true } }));
 
     try {
-      const keyRes = await apiRequest(`${END_POINT}/users/${endpoint}`, 'POST', { deviceInfo });
+      const keyRes = await apiRequest(`${API_URI}/users/${endpoint}`, 'POST', { deviceInfo });
       if (!keyRes.ok) throw new Error('Failed to get signature key');
       const keyData = await keyRes.json();
 
       console.log("keyData", keyData);
-      const s3Res = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', {
+      const s3Res = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', {
         key: keyData.data.sign_key,
         isLong: false,
         isLpoSign: true,
@@ -688,7 +688,7 @@ function BackchargeDoc() {
 
      try {
        const response = await apiRequest(
-         `${END_POINT}/backcharge/sign/${encodeURIComponent(refNo)}`,
+         `${API_URI}/backcharge/sign/${encodeURIComponent(refNo)}`,
          'POST',
          {
            uniqueCode:     user.uniqueCode,
@@ -765,7 +765,7 @@ function BackchargeDoc() {
     try {
       for (const signType of BCR_SIGN_TYPES) {
         const response = await apiRequest(
-          `${END_POINT}/users/activate-signature`,
+          `${API_URI}/users/activate-signature`,
           'POST',
           { activationKey, signType, deviceInfo }
         );

@@ -12,7 +12,7 @@ import { HeaderTitleProvider }      from './Context/HeaderTitleContext';
 import { HeaderVibrationProvider }  from './Context/HeaderVibrationContext';
 import { AlertProvider }            from './Context/AlertContext';
 import { TutorialProvider }         from './Context/TutorialContext';
-import { END_POINT }                from './constants';
+import { API_URI }                from './constants';
 import { apiRequest }               from './utils/api';
 
 // ── Websocket ──────────────────────────────────────────────────────────
@@ -32,6 +32,12 @@ import Dashboard               from './Components/Dashboard/Dashboard';
 import Lpo                     from './Components/Lpo/Lpo';
 import LpoList                 from './Components/LpoList/LpoList';
 import LpoDoc                  from './Components/LpoDoc/LpoDoc';
+import HireOrder               from './Components/HireOrder/HireOrder';
+import HireOrderList           from './Components/HireOrderList/HireOrderList';
+import HireOrderDoc            from './Components/HireOrderDoc/HireOrderDoc';
+// import Quotation               from './Components/Quotation/Quotation';
+// import QuotationList           from './Components/QuotationList/QuotationList';
+// import QuotationDoc            from './Components/QuotationDoc/QuotationDoc';
 import Toolkits                from './Components/Toolkits/Toolkits';
 import Mechanics               from './Components/Mechanics/Mechanics';
 import Operators               from './Components/Operators/Operators';
@@ -83,7 +89,7 @@ const VALID_ROUTES = [
   '/mechanics', '/mechanics-forms', '/operators', '/live-chat',
   '/splash', '/intro', '/not-found', '/dev-modal',
   '/stocks/equipment-stocks', '/service-histoy/summary', '/lpo-list',
-  '/operations-recent-activities', '/batch-service-form',
+  '/operations-recent-activities', '/batch-service-form', '/hire-order-list',
 ];
 
 const VALID_PREFIXES = [
@@ -91,7 +97,7 @@ const VALID_PREFIXES = [
   '/service-history/', '/maintenance-history/', '/tyre-history/',
   '/battery-history/', '/service-history-form/',
   '/equipment-stocks-form/', '/documents/', '/backcharge-doc/',
-  '/complaints/', '/lpo-form/', '/lpo-doc/', '/lpo-list/', '/batch-service-form',
+  '/complaints/', '/lpo-form/', '/lpo-doc/', '/lpo-list/', '/batch-service-form', '/hire-order-form/', '/hire-order-doc/', '/hire-order-list/', '/(signature)/hire-order/',
 ];
 
 /** Returns true if the given pathname is a known app route. */
@@ -296,7 +302,7 @@ function App() {
 
     const checkForNewReleases = async () => {
       try {
-        const response = await apiRequest(`${END_POINT}/explorer/get-latest-release-for-user`, 'GET');
+        const response = await apiRequest(`${API_URI}/explorer/get-latest-release-for-user`, 'GET');
         const data     = await response.json();
 
         if (data.status === 200 && data.data && !data.data.hasExploredThisVersion) {
@@ -390,9 +396,9 @@ function App() {
                     {/* ── Service Forms ────────────────────────────────────── */}
 
                     <Route path="/batch-service-form/:regNo?"                              element={<MultiRecord />} />
-                    <Route path="/service-form-nav/:regNo"                                 element={<ProtectedRoute><FormNavigation />           </ProtectedRoute>} />
-                    <Route path="/service-form/:serviceType/:historyId"                    element={<ProtectedRoute><ServiceForm />              </ProtectedRoute>} />
-                    <Route path="/service-form/update/:serviceType/:reportId"              element={<ProtectedRoute><ServiceForm />              </ProtectedRoute>} />
+                    <Route path="/service-form-nav/:regNo/:complaintId?"                    element={<ProtectedRoute><FormNavigation />           </ProtectedRoute>} />
+                    <Route path="/service-form/:serviceType/:historyId/:complaintId?"      element={<ProtectedRoute><ServiceForm />              </ProtectedRoute>} />
+                    <Route path="/service-form/update/:serviceType/:reportId/:complaintId?" element={<ProtectedRoute><ServiceForm />              </ProtectedRoute>} />
 
                     {/* ── Equipment & Tools ────────────────────────────────── */}
 
@@ -407,7 +413,7 @@ function App() {
 
                     {/* ── History Forms ────────────────────────────────────── */}
 
-                    <Route path="/service-history-form/:type/:regNo"                       element={<ProtectedRoute><ServiceHistoryEntryForm />  </ProtectedRoute>} />
+                    <Route path="/service-history-form/:type/:regNo/:complaintId?"         element={<ProtectedRoute><ServiceHistoryEntryForm />  </ProtectedRoute>} />
                     <Route path="/service-history-form/:type"                              element={<ProtectedRoute><ServiceHistoryEntryForm />  </ProtectedRoute>} />
 
                     {/* ── Notifications ────────────────────────────────────── */}
@@ -456,6 +462,13 @@ function App() {
                     <Route path="/lpo-list/all-list"                                       element={<ProtectedRoute><LpoList isAll={true} /></ProtectedRoute>} />
                     <Route path="/lpo-list/:regNo"                                         element={<ProtectedRoute><LpoList isEquip={true} /></ProtectedRoute>} />
                     <Route path="/lpo-list/of-stocks"                                      element={<ProtectedRoute><LpoList isStock={true} /></ProtectedRoute>} />
+
+                    {/* ── Hire Order ─────────────────────────────────────────── */}
+
+                    <Route path="/hire-order-form"                                         element={<ProtectedRoute><HireOrder /></ProtectedRoute>} />
+                    <Route path="/hire-order-form/:refNo"                                  element={<ProtectedRoute><HireOrder edit={true} /></ProtectedRoute>} />
+                    <Route path="/hire-order-doc/:refNo"                                   element={<ProtectedRoute><HireOrderDoc /></ProtectedRoute>} />
+                    <Route path="/hire-order-list"                                         element={<ProtectedRoute><HireOrderList /></ProtectedRoute>} />
 
                     {/* ── People ───────────────────────────────────────────── */}
 

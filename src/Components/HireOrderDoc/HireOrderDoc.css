@@ -1,0 +1,566 @@
+/* LpoDocument.css */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.hire-order-page-container-doc {
+  max-width: 100%;
+  background-color: #f1f1f1 !important;
+  max-height: 100vh !important;
+}
+
+.hire-order-controls {
+  max-width: 982px;
+  margin: 20px auto;
+  text-align: end;
+  padding: 10px;
+  border: none !important;
+  border-radius: 5px;
+  background-color: transparent;
+  box-shadow: none !important;
+}
+
+.hire-order-button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hire-order-action-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.managerial-actions {
+  display: flex;
+  gap: 1.5rem;
+}
+
+
+/* LPO Document Styling */
+.hire-order-document {
+  width: 260mm !important;
+  min-height: 350mm !important;
+  margin: 0 auto !important;
+  padding: 10mm 16px !important;
+  box-sizing: border-box !important;
+  background-color: var(--color-white) !important;
+  font-size: 11pt !important;
+  line-height: 1.3 !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important;
+  position: relative !important;
+  max-height: 297mm !important;
+  margin-bottom: 2rem !important;
+  color: var(--color-black);
+}
+
+.draft-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 300px;
+  font-weight: bolder;
+  color: #00000018;
+  z-index: 99999999;
+}
+
+.authorized-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 200px;
+  font-weight: bolder;
+  color: #00000018;
+  z-index: 99999999;
+}
+
+.ml-2 {
+  margin-left: 2rem;
+}
+
+.account-no-signature {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 20px;
+}
+
+.hire-order-signs img {
+  width: 11rem !important;
+  margin-left: 0 !important;
+  bottom: 0 !important;
+  position: absolute;
+}
+
+img.accounts-sign {
+  bottom: -4rem !important;
+  margin-left: -2rem !important;
+  position: absolute;
+  width: 15rem !important;
+}
+
+img.pm-sign {
+  bottom: -4rem !important;
+  margin-left: -1.6rem !important;
+  position: absolute;
+  width: 15rem !important;
+}
+
+img.company-seal {
+  left: -41px !important;
+  top: -1.8rem;
+  width: 17rem !important;
+  z-index: 999999;
+  display: none;
+}
+
+.text-align-center {
+  text-align: center;
+}
+
+/* Header styling */
+.hire-order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.company-logo {
+  width: 150px;
+  height: auto;
+}
+
+.company-info {
+  text-align: right;
+}
+
+.company-name-en {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.company-name-ar {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.header-divider {
+  border-top: 1px solid #000;
+  margin-bottom: 0;
+}
+
+/* Title styling */
+.hire-order-title {
+  text-align: center;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 5px 0 10px;
+  margin-bottom: 1rem;
+}
+
+/* LPO details */
+.details-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 5px !important;
+}
+
+.details-table td {
+  vertical-align: top !important;
+  padding: 0 !important;
+}
+
+.left-col,
+.right-col {
+  width: 50% !important;
+}
+
+.detail-item {
+  margin-bottom: 3px !important;
+  font-size: 15px !important;
+  font-weight: 600;
+}
+
+.details-divider {
+  border-top: 1px solid #000 !important;
+  margin: 5px 0 !important;
+}
+
+/* Request text */
+.request-text {
+  margin: 5px 0 10px !important;
+  font-size: 15px !important;
+  text-align: justify !important;
+}
+
+/* Items Table */
+.hire-order-items-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0 !important;
+}
+
+.hire-order-items-table th:first-child,
+.hire-order-items-table td:first-child {
+  border-left: 1px solid #000 !important;
+}
+
+.hire-order-items-table th,
+.hire-order-items-table td {
+  border-right: 1px solid #000 !important;
+  border-top: 1px solid #000 !important;
+  padding: 5px !important;
+  font-size: 15px !important;
+  text-align: center !important;
+  font-weight: 600;
+}
+
+.total-label {
+  text-align: right !important;
+  font-weight: 600;
+}
+
+/* Terms and Conditions Table */
+.terms-table {
+  width: 100% !important;
+  border-collapse: none !important;
+  margin-top: -1px !important;
+  border-top: 0 !important;
+}
+
+.terms-table td {
+  /* border: 1px solid #000 !important; */
+  padding: 5px !important;
+  font-size: 15px !important;
+}
+
+/* Updated Terms Row with Larger Height and Font */
+.hire-order-terms-row-large.normal {
+  height: 300px !important;
+}
+
+.hire-order-terms-row-large.more {
+  height: fit-content !important;
+}
+
+.hire-order-signature-spaces-large {
+  height: 140px !important;
+
+}
+
+.terms-header-large {
+  font-size: 15px !important;
+  /* Increased font size */
+  vertical-align: top !important;
+  padding: 10px !important;
+}
+
+.terms-header-large ul {
+  margin: 0 !important;
+  padding-left: 20px !important;
+  line-height: 1.5 !important;
+}
+
+.terms-header-large li {
+  margin-bottom: 8px !important;
+}
+
+.terms-header-large li:nth-child(1) {
+  text-decoration: underline !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin-top: 1rem;
+}
+
+.terms-header-large li:nth-child(1) {
+  list-style: none;
+  margin: 0;
+}
+
+.terms-header-large li {
+  list-style: disc;
+  margin-left: 1.3rem;
+}
+
+.terms-header {
+  font-weight: bold !important;
+  text-decoration: underline !important;
+}
+
+.terms-content {
+  padding: 5px !important;
+}
+
+.terms-content ul {
+  margin: 0 !important;
+  padding-left: 20px !important;
+}
+
+.note-row {
+  font-size: 15px !important;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error-container {
+  flex-direction: column;
+  gap: 20px;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-weight: bold;
+  margin: 0;
+}
+
+.retry-button {
+  padding: 10px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.retry-button:hover {
+  background-color: #3367d6;
+}
+
+.footer {
+  width: 100% !important;
+  margin-top: 30px !important;
+  display: flex;
+  justify-content: center;
+}
+
+.footer img {
+  max-width: 60rem !important;
+  height: auto;
+  position: absolute;
+  bottom: 0;
+}
+
+.hire-order-document {
+  background: #FFFFFF !important;
+  background-image: none !important;
+  background-size: auto !important;
+  background-repeat: no-repeat !important;
+  background-position: initial !important;
+  background-attachment: initial !important;
+}
+
+/* Remove any grid patterns from all child elements */
+.hire-order-document * {
+  background-image: none !important;
+}
+
+/* Ensure tables don't have grid backgrounds */
+.details-table,
+.hire-order-items-table,
+.terms-table,
+.signatures-table {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.details-table td,
+.hire-order-items-table td,
+.hire-order-items-table th,
+.terms-table td,
+.signatures-table td {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.signatures-table td.sign-border-td {
+  border: 1px solid #000 !important;
+}
+
+.sign-border-td-l {
+  border-left: 1px solid #000 !important;
+}
+
+.sign-border-td-t {
+  border-top: 1px solid #000 !important;
+}
+
+
+.sign-border-td-r {
+  border-right: 1px solid #000 !important;
+}
+
+
+.sign-border-td-b {
+  border-bottom: 1px solid #000 !important;
+}
+
+/* Ensure dividers don't have patterns */
+.header-divider,
+.details-divider {
+  background-image: none !important;
+  background: #000000 !important;
+  /* or whatever color you want for dividers */
+}
+
+/* Remove any box-shadow that might create grid-like effects */
+.hire-order-document *,
+.hire-order-document {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.company-footer {
+  text-align: start !important;
+  font-weight: bold !important;
+  padding: 12px !important;
+  font-size: 12pt !important;
+}
+
+.date-no-border {
+  border: none !important;
+}
+
+/* Signature Controls */
+.signature-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+}
+
+.load-sign-btn,
+.refresh-sign-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.load-sign-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.load-sign-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.load-sign-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.refresh-sign-btn {
+  background-color: #2196F3;
+  color: white;
+  font-size: 12px;
+  padding: 6px 12px;
+  margin-top: 5px;
+}
+
+.refresh-sign-btn:hover {
+  background-color: #0b7dda;
+}
+
+.signature-timer {
+  font-size: 12px;
+  color: #ff5722;
+  font-weight: bold;
+  margin-top: 5px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.status-badge.checking {
+  background: #ffc107;
+  color: #000;
+}
+
+.status-badge.not-trusted {
+  background: #ff5722;
+  color: white;
+}
+
+.status-badge.activated {
+  background: #4CAF50;
+  color: white;
+}
+
+.activation-btn.not-activated {
+  background: #ff5722;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.activation-btn.not-activated:hover {
+  background: #e64a19;
+}
+
+.warning-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.document-timestamp {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10pt;
+  color: #666;
+  text-align: center;
+  width: 100%;
+  font-style: italic;
+}
+
+.company-details-l {
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Print styles */
+@media print {
+
+  .signature-controls,
+  .load-sign-btn,
+  .refresh-sign-btn,
+  .signature-timer {
+    display: none !important;
+  }
+}

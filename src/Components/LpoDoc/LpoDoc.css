@@ -47,7 +47,7 @@
   width: 260mm !important;
   min-height: 350mm !important;
   margin: 0 auto !important;
-  padding: 10mm 16px !important;
+  padding: 1mm 16px !important;
   box-sizing: border-box !important;
   background-color: var(--color-white) !important;
   font-size: 11pt !important;
@@ -153,7 +153,7 @@ img.company-seal {
 
 .header-divider {
   border-top: 1px solid #000;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 /* Title styling */

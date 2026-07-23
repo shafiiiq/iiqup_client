@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './OperationsActivities.css';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import Button from '../../Common/Button/Button';
 import Input from '../../Common/Input/Input';
@@ -30,8 +30,8 @@ function OperationsActivities() {
     const fetchActivitiesWithFilter = async (filterType = selectedPeriod, startDate = null, endDate = null, months = null) => {
         setIsLoading(true);
         try {
-            let mobUrl = `${END_POINT}/equipments/filtered-mobilizations?filterType=${filterType}`;
-            let repUrl = `${END_POINT}/equipments/filtered-replacements?filterType=${filterType}`;
+            let mobUrl = `${API_URI}/equipments/filtered-mobilizations?filterType=${filterType}`;
+            let repUrl = `${API_URI}/equipments/filtered-replacements?filterType=${filterType}`;
 
             if (specificTime) {
                 mobUrl += `&specificTime=${specificTime}`;
@@ -72,7 +72,7 @@ function OperationsActivities() {
                             equipmentImages = await Promise.all(
                                 item.equipmentImages.map(async (img) => {
                                     const s3Url = await getMediaUrl(img.path);
-                                    return { ...img, s3Url: s3Url || `${END_POINT}/${img.path}`, url: img.path };
+                                    return { ...img, s3Url: s3Url || `${API_URI}/${img.path}`, url: img.path };
                                 })
                             );
                         }
@@ -111,7 +111,7 @@ function OperationsActivities() {
                             currentImages = await Promise.all(
                                 item.currentEquipmentDetails.images.map(async (img) => {
                                     const s3Url = await getMediaUrl(img.path);
-                                    return { ...img, s3Url: s3Url || `${END_POINT}/${img.path}`, url: img.path };
+                                    return { ...img, s3Url: s3Url || `${API_URI}/${img.path}`, url: img.path };
                                 })
                             );
                         }
@@ -120,7 +120,7 @@ function OperationsActivities() {
                             replacedImages = await Promise.all(
                                 item.replacedEquipmentDetails.images.map(async (img) => {
                                     const s3Url = await getMediaUrl(img.path);
-                                    return { ...img, s3Url: s3Url || `${END_POINT}/${img.path}`, url: img.path };
+                                    return { ...img, s3Url: s3Url || `${API_URI}/${img.path}`, url: img.path };
                                 })
                             );
                         }
@@ -189,7 +189,7 @@ function OperationsActivities() {
         if (!filePath) return '';
         try {
             const body = { key: filePath, isLong: true };
-            const s3response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', body);
+            const s3response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', body);
             const s3URL = await s3response.json();
             return s3URL.dataUrl;
         } catch (error) {
@@ -202,7 +202,7 @@ function OperationsActivities() {
         if (!filePath) return null;
         try {
             const body = { key: filePath, isLong: false };
-            const s3response = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', body);
+            const s3response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', body);
             const s3URL = await s3response.json();
             return s3URL.dataUrl;
         } catch (error) {

@@ -54,6 +54,7 @@ const NAV_LINKS = [
   { label: 'Mechanics', path: '/mechanics' },
   { label: 'Operators', path: '/operators' },
   { label: 'LPO', path: '/lpo-list' },
+  { label: 'Hire Orders', path: '/hire-order-list' },
   { label: 'Backcharges', path: '/backcharge-list' },
   { label: 'Documents', path: '/documents' },
   { label: 'Notifications', path: '/notification' },

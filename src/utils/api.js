@@ -1,4 +1,4 @@
-import { END_POINT } from '../constants';
+import { API_URI } from '../constants';
 
 /**
  * @param {string} url 
@@ -46,7 +46,7 @@ export const apiRequest = async (url, method = 'GET', body = null, customHeaders
         throw new Error('No refresh token available');
       }
 
-      const refreshResponse = await fetch(`${END_POINT}/oauth/refresh`, {
+      const refreshResponse = await fetch(`${API_URI}/oauth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: refreshToken })

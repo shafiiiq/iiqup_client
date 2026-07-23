@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import './Applications.css';
 import { apiRequest } from '../../utils/api';
 
@@ -91,7 +91,7 @@ const Applications = () => {
     if (!userId) return;
 
     try {
-      const response = await apiRequest(`${END_POINT}/applications/leave-balance/${userId}`);
+      const response = await apiRequest(`${API_URI}/applications/leave-balance/${userId}`);
       const data = await response.json();
       if (response.ok) {
         setLeaveBalance(data.data);
@@ -109,7 +109,7 @@ const Applications = () => {
 
     setIsChecking(true);
     try {
-      const response = await apiRequest(`${END_POINT}/applications/check-leave-availability`,
+      const response = await apiRequest(`${API_URI}/applications/check-leave-availability`,
         'POST', {
         userId,
         leaveType: leaveData.leaveType,
@@ -184,7 +184,7 @@ const Applications = () => {
     setSuccessMessage('');
 
     try {
-      const url = `${END_POINT}/applications/request-service`;
+      const url = `${API_URI}/applications/request-service`;
       const payload = {
         userId,
         type: applicationType,

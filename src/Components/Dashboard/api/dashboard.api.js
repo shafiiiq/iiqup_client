@@ -1,4 +1,4 @@
-import { END_POINT }  from '../../../constants';
+import { API_URI }  from '../../../constants';
 import { apiRequest } from '../../../utils/api';
 import { TAB_CACHE_TTL, COMPARISON_CACHE_TTL, EQUIPMENT_CACHE_TTL } from '../utils/constants';
 
@@ -48,7 +48,7 @@ export const fetchTabData = async (period = 'daily', forceRefresh = false) => {
   if (!forceRefresh && _tabCache.data[period] && now - _tabCache.timestamps[period] < TAB_CACHE_TTL)
     return _tabCache.data[period];
 
-  const res    = await apiRequest(`${END_POINT}/dashboard/historical?period=${PERIOD_MAP[period]}`, 'GET');
+  const res    = await apiRequest(`${API_URI}/dashboard/historical?period=${PERIOD_MAP[period]}`, 'GET');
   const result = await res.json();
 
   const tabData = {
@@ -64,7 +64,7 @@ export const fetchTabData = async (period = 'daily', forceRefresh = false) => {
 
 // ─── Real time analytics — backend does ALL processing, frontend just displays ─
 export const generateRealTimeAnalytics = async () => {
-  const res    = await apiRequest(`${END_POINT}/dashboard/realtime-stats`);
+  const res    = await apiRequest(`${API_URI}/dashboard/realtime-stats`);
   const result = await res.json();
   const d      = result.data || {};
 
@@ -88,7 +88,7 @@ export const generateRealTimeAnalytics = async () => {
 const getEquipmentData = async () => {
   const now = Date.now();
   if (!_equipmentCache || now - _equipmentCacheTime > EQUIPMENT_CACHE_TTL) {
-    const res = await apiRequest(`${END_POINT}/equipments/get-equipments`);
+    const res = await apiRequest(`${API_URI}/equipments/get-equipments`);
     _equipmentCache = await res.json();
     _equipmentCacheTime = now;
   }
@@ -118,7 +118,7 @@ export const fetchComparisonData = async (type) => {
     return _compCache.data[type];
 
   const ranges = COMP_RANGE_MAP[type]();
-  const res    = await apiRequest(`${END_POINT}/dashboard/comparison`, 'POST', { ranges });
+  const res    = await apiRequest(`${API_URI}/dashboard/comparison`, 'POST', { ranges });
   if (!res.ok) throw new Error(`Failed to fetch ${type} comparison`);
   const result = await res.json();
   _compCache.data[type]       = result.data;

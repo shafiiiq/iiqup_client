@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './EquipBypass.css';
 import { useNavigate } from 'react-router-dom';
-import { END_POINT } from '../../../constants';
+import { API_URI } from '../../../constants';
 import { apiRequest } from '../../../utils/api';
 import { useSearch } from '../../../Context/SearchContext';
 import Button from '../../../Common/Button/Button';
@@ -108,7 +108,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
     const fetchOperators = async () => {
         try {
-            const response = await apiRequest(`${END_POINT}/operators/get-all-operators`, 'GET');
+            const response = await apiRequest(`${API_URI}/operators/get-all-operators`, 'GET');
             const data = await response.json();
             const operatorList = data.data || [];
 
@@ -124,7 +124,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
     const fetchMechanics = async () => {
         try {
-            const response = await apiRequest(`${END_POINT}/mechanics/get-all-mechanic`, 'GET');
+            const response = await apiRequest(`${API_URI}/mechanics/get-all-mechanic`, 'GET');
             const data = await response.json();
             const mechanicList = data.data || [];
 
@@ -140,7 +140,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
     const fetchOfficeStaffs = async () => {
         try {
-            const response = await apiRequest(`${END_POINT}/users/get-all-users`, 'GET');
+            const response = await apiRequest(`${API_URI}/users/get-all-users`, 'GET');
             const data = await response.json();
             const userList = data.data?.office || [];
 
@@ -163,7 +163,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
         try {
             const response = await apiRequest(
-                `${END_POINT}/equipments/get-equipments?page=${page}&limit=20`,
+                `${API_URI}/equipments/get-equipments?page=${page}&limit=20`,
                 'GET'
             );
             const data = await response.json();
@@ -196,7 +196,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
     const fetchPendingLpos = async () => {
         try {
-            const response = await apiRequest(`${END_POINT}/complaints/get-all-complaints`, 'GET');
+            const response = await apiRequest(`${API_URI}/complaints/get-all-complaints`, 'GET');
             const data = await response.json();
             const complaints = Array.isArray(data.data?.data) ? data.data.data : Array.isArray(data.data) ? data.data : [];
             const pendingItems = complaints.filter(item => item.workflowStatus === "sent_to_workshop");
@@ -220,7 +220,7 @@ function EquipBypass({ equipStocks, documents, isLPO }) {
 
             try {
                 const response = await apiRequest(
-                    `${END_POINT}/equipments/search-equipments`,
+                    `${API_URI}/equipments/search-equipments`,
                     'POST',
                     {
                         searchTerm: searchTerm.trim(),

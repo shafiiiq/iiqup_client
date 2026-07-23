@@ -9,7 +9,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHeaderVibration } from '../../../Context/HeaderVibrationContext';
 import { apiRequest } from '../../../utils/api';
-import { END_POINT } from '../../../constants';
+import { API_URI } from '../../../constants';
 import {
   getOperatorName,
   getOperatorId,
@@ -225,7 +225,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/add-equipment`, 'POST', newEquipment);
+      const response = await apiRequest(`${API_URI}/equipments/add-equipment`, 'POST', newEquipment);
       setShowAddModal(false);
       showStatus(
         response.ok
@@ -308,7 +308,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     }
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/update-equipment/${editEquipment.regNo}`, 'PUT', updatedEquipment);
+      const response = await apiRequest(`${API_URI}/equipments/update-equipment/${editEquipment.regNo}`, 'PUT', updatedEquipment);
       const data = await response.json();
       handleActionResult(data, `Equipment ${editEquipment.regNo} successfully updated.`, closeEditModal);
     } catch (err) {
@@ -333,7 +333,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
   const confirmDelete = async () => {
     if (!equipmentToDelete) return;
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/delete-equipment/${equipmentToDelete.regNo}`, 'DELETE');
+      const response = await apiRequest(`${API_URI}/equipments/delete-equipment/${equipmentToDelete.regNo}`, 'DELETE');
       const data = await response.json();
       setShowDeleteModal(false);
       showStatus(
@@ -364,7 +364,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     const payload = { ...rest, certificationBody: [op] };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/add-equipment`, 'POST', payload);
+      const response = await apiRequest(`${API_URI}/equipments/add-equipment`, 'POST', payload);
       const data = await response.json();
       setShowOutsideEquipmentModal(false);
       showStatus(
@@ -403,7 +403,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     }, 150);
 
     try {
-      const response = await apiRequest(`${END_POINT}/fuels/equipment-consumption`);
+      const response = await apiRequest(`${API_URI}/fuels/equipment-consumption`);
       const data = await response.json();
       const fuelData = data.data.filter(item => item.regNo === regNo);
 
@@ -475,7 +475,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/mobilize-equipment`, 'POST', payload);
+      const response = await apiRequest(`${API_URI}/equipments/mobilize-equipment`, 'POST', payload);
       const data = await response.json();
       handleActionResult(data, `Equipment ${selectedEquipmentForAction.regNo} mobilized to ${mobilizeForm.site}.`, closeMobilizeModal);
     } catch (err) {
@@ -517,7 +517,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/add-shifts`, 'POST', payload);
+      const response = await apiRequest(`${API_URI}/equipments/add-shifts`, 'POST', payload);
       const data = await response.json();
       handleActionResult(data, `Shifts added to ${selectedEquipmentForAction.regNo}.`, closeAddShiftModal);
     } catch (err) {
@@ -566,7 +566,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/demobilize-equipment`, 'POST', payload);
+      const response = await apiRequest(`${API_URI}/equipments/demobilize-equipment`, 'POST', payload);
       const data = await response.json();
       handleActionResult(data, `Equipment ${selectedEquipmentForAction.regNo} successfully demobilized.`, closeDemobilizeModal);
     } catch (err) {
@@ -635,7 +635,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
       };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/replace-operator`, 'POST', payload);
+      const response = await apiRequest(`${API_URI}/equipments/replace-operator`, 'POST', payload);
       const data = await response.json();
       if (data.ok) closeSidebar();
       handleActionResult(data, `Operator replaced. New: ${replaceOperatorForm.replacedOperator}`, closeReplaceOperatorModal);
@@ -670,7 +670,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
   const handleReplaceEquipmentSearch = useCallback(async (term) => {
     if (!term?.trim()) { setReplaceEquipmentResults([]); return; }
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/search-equipments`, 'POST', {
+      const response = await apiRequest(`${API_URI}/equipments/search-equipments`, 'POST', {
         searchTerm: term.trim(), page: 1, limit: 10, searchField: 'all',
       });
       const data = await response.json();
@@ -712,7 +712,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     };
 
     try {
-      const response = await apiRequest(`${END_POINT}/equipments/replace-equipment`, 'POST', payload);
+      const response = await apiRequest(`${API_URI}/equipments/replace-equipment`, 'POST', payload);
       const data = await response.json();
       handleActionResult(
         data,

@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './Operators.css';
 
-import { END_POINT }  from '../../constants';
+import { API_URI }  from '../../constants';
 import { apiRequest } from '../../utils/api';
 import { useSearch }  from '../../Context/SearchContext';
 
@@ -185,7 +185,7 @@ const Operators = () => {
     const fetchOperators = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${END_POINT}/operators/get-all-operators`);
+        const response = await apiRequest(`${API_URI}/operators/get-all-operators`);
         if (!response.ok) throw new Error('Failed to fetch operators');
         const result = await response.json();
         setOperators(Array.isArray(result.data) ? result.data : []);
@@ -208,7 +208,7 @@ const Operators = () => {
   const getProfilePicUrl = useCallback(async (filePath) => {
     if (!filePath) return null;
     try {
-      const res = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
+      const res = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
       if (!res.ok) return null;
       const data = await res.json();
       return data.dataUrl;
@@ -326,7 +326,7 @@ const Operators = () => {
     if (!profilePicFile) return null;
     setUploading(true);
     try {
-      const res = await apiRequest(`${END_POINT}/operators/upload-profile-pic`, 'POST', { qatarId }, {}, profilePicFile);
+      const res = await apiRequest(`${API_URI}/operators/upload-profile-pic`, 'POST', { qatarId }, {}, profilePicFile);
       if (!res.ok) throw new Error('Failed to upload profile picture');
       const result = await res.json();
       return result.data.profilePic;
@@ -342,8 +342,8 @@ const Operators = () => {
 
       const isAdd  = formMode === 'add';
       const url    = isAdd
-        ? `${END_POINT}/operators/create-operator`
-        : `${END_POINT}/operators/update-operator/${selectedOperator._id}`;
+        ? `${API_URI}/operators/create-operator`
+        : `${API_URI}/operators/update-operator/${selectedOperator._id}`;
 
       const res = await apiRequest(url, isAdd ? 'POST' : 'PUT', payload);
       if (!res.ok) throw new Error(`Failed to ${formMode} operator`);
@@ -376,7 +376,7 @@ const Operators = () => {
   const confirmDelete = async () => {
     if (!operatorToDelete) return;
     try {
-      const res = await apiRequest(`${END_POINT}/operators/delete-operator/${operatorToDelete.qatarId}`, 'DELETE');
+      const res = await apiRequest(`${API_URI}/operators/delete-operator/${operatorToDelete.qatarId}`, 'DELETE');
       if (!res.ok) throw new Error('Failed to delete operator');
 
       setOperators(prev => prev.filter(op => op.qatarId !== operatorToDelete.qatarId));

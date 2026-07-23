@@ -37,6 +37,7 @@ const NAV_ITEMS = [
   { path: '/mechanics',       label: 'Mechanics',     icon: 'smart_toy'          },
   { path: '/operators',       label: 'Operators',     icon: 'contacts_product'   },
   { path: '/lpo-list',        label: 'LPO',           icon: 'edit_document'      },
+  { path: '/hire-order-list', label: 'Hire Orders',   icon: 'assignment'         },
   { path: '/backcharge-list', label: 'Backcharges',   icon: 'table_convert'      },
   { path: '/documents',       label: 'Documents',     icon: 'files'              },
   { path: '/notification',    label: 'Notifications', icon: 'notification_audio' },

@@ -42,7 +42,7 @@ const NAV_ITEMS = [
 
 function FormNavigation() {
   const navigate                              = useNavigate();
-  const { regNo }                             = useParams();
+  const { regNo, complaintId }                = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
   // ── Effect: Set header title on mount ─────────────────────────────────────
@@ -65,7 +65,7 @@ function FormNavigation() {
           <div
             key={item.type}
             className="form-nav-card"
-            onClick={() => navigate(`/service-history-form/${item.type}/${regNo}`)}
+            onClick={() => navigate(`/service-history-form/${item.type}/${regNo}${complaintId ? `/${complaintId}` : ''}`)}
           >
             <div className="form-nav-card-image-wrapper">
               <img src={item.image} alt={item.title} className="form-nav-card-image" />

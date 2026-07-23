@@ -566,6 +566,7 @@ export const printServiceHistory = ({
   filteredData,
   filterState,
   supervisorSignUrl,
+  skipSignature = false,
 }) => {
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
@@ -575,9 +576,11 @@ export const printServiceHistory = ({
     ? `Equipments (${regNoArray.join(', ')})`
     : `${equipmentData?.machine ?? 'Equipment'} ${regNoArray[0]}`;
 
-  const signatureHtml = supervisorSignUrl
-    ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="width:150px;height:auto;display:block;" />`
-    : '<span style="font-style:italic;color:#999;">Not Signed</span>';
+  const signatureHtml = skipSignature
+    ? '<div style="width:250px;height:100px;border:1px solid #000;"></div>'
+    : supervisorSignUrl
+      ? `<img src="${supervisorSignUrl}" alt="Supervisor Signature" style="width:150px;height:auto;display:block;" />`
+      : '<span style="font-style:italic;color:#999;">Not Signed</span>';
 
   const content = `
     <html>
@@ -620,9 +623,11 @@ export const printServiceHistory = ({
         </div>
         <div style="display:flex;gap:0.5rem;flex-direction:column;margin-top:1rem;text-align:left;">
           ${signatureHtml}
+          ${!skipSignature ? `
           <p style="font-size:18px;margin:0;">Firoz Khan</p>
           <p style="font-size:18px;margin:0;">Workshop Manager</p>
           <p style="font-size:18px;margin:0;">+974 5170 0481</p>
+          ` : ''}
         </div>
       </body>
     </html>

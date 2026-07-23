@@ -97,6 +97,10 @@ const ServiceHistory = () => {
     printServiceHistory({ ...exportContext, tableRef, filteredData: data.filteredData });
   };
 
+  const handlePrintWithoutSign = () => {
+    printServiceHistory({ ...exportContext, tableRef, filteredData: data.filteredData, skipSignature: true });
+  };
+
   // ── Navigation Handlers ────────────────────────────────────────────────────
 
   const addMutiServices = () => {
@@ -310,11 +314,15 @@ const ServiceHistory = () => {
         onClose={() => { signing.setShowWarningModal(false); signing.setPendingAction(null); }}
         type="warning"
         title="Document Not Signed"
-        message="You must sign the document before printing/exporting. This ensures document authenticity."
-        buttonText="Sign Document Now"
-        secondaryButtonText="Cancel"
+        message="You can sign the document, or print without a signature and sign it by hand."
+        buttonText="Print with signature"
+        secondaryButtonText="Print"
         onButtonClick={() => { signing.setShowWarningModal(false); signing.openPasswordModal(); }}
-        onSecondaryClick={() => { signing.setShowWarningModal(false); signing.setPendingAction(null); }}
+        onSecondaryClick={() => {
+          signing.setShowWarningModal(false);
+          signing.setPendingAction(null);
+          if (signing.pendingAction === 'print') handlePrintWithoutSign();
+        }}
       />
 
       {/* Sign Success */}

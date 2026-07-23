@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useHeaderTitle } from '../../../Context/HeaderTitleContext';
 import { useSearch }      from '../../../Context/SearchContext';
 import { apiRequest }     from '../../../utils/api';
-import { END_POINT }      from '../../../constants';
+import { API_URI }      from '../../../constants';
 import { formatDate, isDateInRange } from '../utils/serviceHelpers';
 
 export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
@@ -95,7 +95,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
         // One request per regNo — backend returns all serviceTypes
         const responses = await Promise.all(
           regNoArray.map(regNo =>
-            apiRequest(`${END_POINT}/service-history/get/${regNo}`)
+            apiRequest(`${API_URI}/service-history/get/${regNo}`)
           )
         );
         const allData = await Promise.all(responses.map(r => r.json()));
@@ -118,7 +118,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       try {
         if (isMultipleEquipment) {
           const responses = await Promise.all(
-            regNoArray.map(rn => apiRequest(`${END_POINT}/equipments/get-equipment/${rn}`, 'GET'))
+            regNoArray.map(rn => apiRequest(`${API_URI}/equipments/get-equipment/${rn}`, 'GET'))
           );
           const parsed = await Promise.all(responses.map(r => r.json()));
           const equipments = parsed
@@ -127,7 +127,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
           setMultipleEquipmentData(equipments);
           setEquipmentData(equipments[0] || null);
         } else {
-          const response = await apiRequest(`${END_POINT}/equipments/get-equipment/${regNoArray[0]}`, 'GET');
+          const response = await apiRequest(`${API_URI}/equipments/get-equipment/${regNoArray[0]}`, 'GET');
           const data     = await response.json();
           const eq       = Array.isArray(data.data) ? data.data[0] : data.data;
           if (eq) setEquipmentData(eq);
@@ -156,8 +156,8 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       try {
         // Prefer historyId-based lookup (new method)
         const endpoint = item.reportId
-          ? `${END_POINT}/service-report/get-report/with-id/${item.reportId}`
-          : `${END_POINT}/service-report/${item.regNo}/${formatDate(item.date)}`;
+          ? `${API_URI}/service-report/get-report/with-id/${item.reportId}`
+          : `${API_URI}/service-report/${item.regNo}/${formatDate(item.date)}`;
 
         const res  = await apiRequest(endpoint);
         if (!res.ok) return item;
@@ -180,8 +180,8 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
       if (item.serviceType !== 'major' || !item.date) return item;
       try {
         const endpoint = item.reportId
-          ? `${END_POINT}/service-report/get-report/with-id/${item.reportId}`
-          : `${END_POINT}/service-report/${item.regNo}/${formatDate(item.date)}`;
+          ? `${API_URI}/service-report/get-report/with-id/${item.reportId}`
+          : `${API_URI}/service-report/${item.regNo}/${formatDate(item.date)}`;
 
         const res  = await apiRequest(endpoint);
         if (!res.ok) return item;
@@ -331,7 +331,7 @@ export const useServiceData = ({ regNoArray, regNos, isMultipleEquipment }) => {
   const confirmDeleteReport = async () => {
     // Use the item's serviceType directly — all types live in one collection
     const type = deleteReport.serviceType || 'oil';
-    const url  = `${END_POINT}/service-history/delete/${type}/${deleteReport._id}`;
+    const url  = `${API_URI}/service-history/delete/${type}/${deleteReport._id}`;
     const res  = await apiRequest(url, 'DELETE');
     const data = await res.json();
     if (data.ok) window.location.reload();

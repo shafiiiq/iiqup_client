@@ -6,7 +6,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { apiRequest }             from '../../../utils/api';
-import { END_POINT }              from '../../../constants';
+import { API_URI }              from '../../../constants';
 import { useSearch }              from '../../../Context/SearchContext';
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -52,7 +52,7 @@ export const useEquipmentSearch = ({
       const hiredFilter = hiredMap[activeTab] ?? null;
 
       const response = await apiRequest(
-        `${END_POINT}/equipments/search-equipments`,
+        `${API_URI}/equipments/search-equipments`,
         'POST',
         {
           searchTerm: searchTerm.trim(),

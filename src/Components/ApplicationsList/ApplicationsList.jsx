@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, RefreshCw, CheckCircle, XCircle, Clock, User, Calendar, DollarSign, FileText, Users } from 'lucide-react';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import './ApplicationsList.css';
 import { Link } from 'react-router';
 import { apiRequest } from '../../utils/api';
@@ -56,7 +56,7 @@ const ApplicationsList = () => {
             if (showRefresh) setRefreshing(true);
             setLoading(!showRefresh);
 
-            const response = await apiRequest(`${END_POINT}/applications/get-all-requests`);
+            const response = await apiRequest(`${API_URI}/applications/get-all-requests`);
             if (!response.ok) throw new Error('Failed to fetch applications');
 
             const result = await response.json();
@@ -172,7 +172,7 @@ const ApplicationsList = () => {
 
         try {
             setProcessingStatus(true);
-            const response = await apiRequest(`${END_POINT}/applications/change-status/${selectedApplication._id}`,
+            const response = await apiRequest(`${API_URI}/applications/change-status/${selectedApplication._id}`,
                 'PUT',
                 {
                     status: statusChangeData.status,

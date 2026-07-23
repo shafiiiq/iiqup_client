@@ -1,4 +1,4 @@
-import { END_POINT } from '../constants';
+import { API_URI } from '../constants';
 
 const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 
@@ -54,7 +54,7 @@ export const showNativeNotification = (title, body, data = {}) => {
 };
 
 export const saveSubscriptionToServer = async (subscription, uniqueCode) => {
-  await fetch(`${END_POINT}/webpush/subscribe`, {
+  await fetch(`${API_URI}/webpush/subscribe`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ subscription, uniqueCode }),

@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams }      from 'react-router-dom';
 
-import { END_POINT }              from '../../constants';
+import { API_URI }              from '../../constants';
 import { apiRequest }             from '../../utils/api';
 import { useHeaderTitle }         from '../../Context/HeaderTitleContext';
 import { useAlert }               from '../../Context/AlertContext';
@@ -209,7 +209,7 @@ function ChecklistColumn({ label, items, rangeStart, rangeEnd, onStatusChange, o
  */
 function ServiceForm({ initialData = {} }) {
   const navigate                             = useNavigate();
-  const { serviceType, historyId, reportId } = useParams();
+  const { serviceType, historyId, reportId, complaintId } = useParams();
 
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { showAlert }                          = useAlert();
@@ -238,7 +238,7 @@ function ServiceForm({ initialData = {} }) {
     const fetchHistory = async () => {
       try {
         const response = await apiRequest(
-          `${END_POINT}/service-history/get-by-id/${serviceType}/${historyId}`,
+          `${API_URI}/service-history/get-by-id/${serviceType}/${historyId}`,
           'GET'
         );
         const result = await response.json();
@@ -300,7 +300,7 @@ function ServiceForm({ initialData = {} }) {
     const fetchReport = async () => {
       try {
         const response = await apiRequest(
-          `${END_POINT}/service-report/get-report/with-id/${reportId}`,
+          `${API_URI}/service-report/get-report/with-id/${reportId}`,
           'GET'
         );
         const result = await response.json();
@@ -348,7 +348,7 @@ function ServiceForm({ initialData = {} }) {
 
     const fetchEquipment = async () => {
       try {
-        const response  = await apiRequest(`${END_POINT}/equipments/get-equipment/${formData.regNo}`, 'GET');
+        const response  = await apiRequest(`${API_URI}/equipments/get-equipment/${formData.regNo}`, 'GET');
         const result    = await response.json();
         const equipment = result?.data?.[0];
 
@@ -470,13 +470,14 @@ function ServiceForm({ initialData = {} }) {
       ...formData,
       checklistItems,
       serviceType,
+      ...(complaintId && { complaintId }),
       ...(historyId                    && { historyId }),
       ...(isUpdateMode && originalDate && { previousDate: originalDate }),
     };
 
     const url    = isUpdateMode
-      ? `${END_POINT}/service-report/updatewith/${reportId}`
-      : `${END_POINT}/service-report/add-service-report`;
+      ? `${API_URI}/service-report/updatewith/${reportId}`
+      : `${API_URI}/service-report/add-service-report`;
     const method = isUpdateMode ? 'PUT' : 'POST';
 
     try {

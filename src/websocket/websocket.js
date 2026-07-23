@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import io from 'socket.io-client';
-import { END_POINT } from '../constants';
+import { API_URI } from '../constants';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -148,7 +148,7 @@ const WebSocketService = {
     isConnecting = true;
     console.log(`[WebSocket] connecting — uniqueCode: ${uniqueCode}`);
 
-    socket = io(END_POINT, {
+    socket = io(API_URI, {
       transports:           ['websocket'],
       reconnection:         true,
       reconnectionDelay:    RECONNECT_DELAY_MS,

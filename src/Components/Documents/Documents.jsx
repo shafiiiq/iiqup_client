@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import './Documents.css';
-import { END_POINT } from '../../constants';
+import { API_URI } from '../../constants';
 import { apiRequest } from '../../utils/api';
 import jsPDF from 'jspdf';
 import DevModal from '../../Common/DevModal/DevModal';
@@ -221,10 +221,10 @@ function DocumentDetails() {
   useEffect(() => {
     if (!type || !id) return;
     const ENDPOINTS = {
-      equipment:      `${END_POINT}/equipments/get-equipment/${id}`,
-      operator:       `${END_POINT}/operators/get-operator/${id}`,
-      mechanic:       `${END_POINT}/mechanics/get-mechanic/${id}`,
-      'office-staff': `${END_POINT}/users/get-user/${id}`,
+      equipment:      `${API_URI}/equipments/get-equipment/${id}`,
+      operator:       `${API_URI}/operators/get-operator/${id}`,
+      mechanic:       `${API_URI}/mechanics/get-mechanic/${id}`,
+      'office-staff': `${API_URI}/users/get-user/${id}`,
     };
     const run = async () => {
       try {
@@ -256,7 +256,7 @@ function DocumentDetails() {
 
   const fetchDocumentTypes = async () => {
     try {
-      const res  = await apiRequest(`${END_POINT}/documents/get-all-documents-types`);
+      const res  = await apiRequest(`${API_URI}/documents/get-all-documents-types`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       const types = data.documents?.map(d => d.documentType?.trim()).filter(Boolean) ?? [];
@@ -267,7 +267,7 @@ function DocumentDetails() {
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      const res = await apiRequest(`${END_POINT}/documents/get-documents/${sourceType || type}/${id}`, 'GET');
+      const res = await apiRequest(`${API_URI}/documents/get-documents/${sourceType || type}/${id}`, 'GET');
       if (!res.ok) throw new Error('Failed to fetch documents');
       const data = await res.json();
       const out = [];
@@ -308,7 +308,7 @@ function DocumentDetails() {
     setShowProgressModal(true); setUploadProgress(0);
     const iv = setInterval(() => setUploadProgress(p => p >= 90 ? p : p + Math.random() * 15), 150);
     try {
-      const res = await apiRequest(`${END_POINT}/documents/upload-document`, 'POST', {
+      const res = await apiRequest(`${API_URI}/documents/upload-document`, 'POST', {
         sourceId: id, sourceType, documentType: formData.documentType,
         fileName: selectedFile.name, mimeType: selectedFile.type,
         description: formData.description, category: formData.category,
@@ -338,14 +338,14 @@ function DocumentDetails() {
     try {
       showToast('Opening document...', 'info');
       if (isIOS) {
-        window.location.href = `${END_POINT}/documents/view/${documentId}`;
+        window.location.href = `${API_URI}/documents/view/${documentId}`;
         showToast("Document opened. Use Safari's share button to save if needed.", 'success');
         return;
       }
-      const res    = await apiRequest(`${END_POINT}/documents/view/${documentId}`);
+      const res    = await apiRequest(`${API_URI}/documents/view/${documentId}`);
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data   = await res.json();
-      const s3Res  = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: data.document.filePath, isLong: false });
+      const s3Res  = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: data.document.filePath, isLong: false });
       const s3Data = await s3Res.json();
       const url    = s3Data.dataUrl;
       const mime   = data.document.mimetype.toLowerCase();
@@ -366,10 +366,10 @@ function DocumentDetails() {
   const handleDownload = async (documentId, fileName) => {
     try {
       showToast('Preparing download...', 'info');
-      const res    = await apiRequest(`${END_POINT}/documents/download/${documentId}`);
+      const res    = await apiRequest(`${API_URI}/documents/download/${documentId}`);
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data   = await res.json();
-      const s3Res  = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: data.document.filePath, isLong: false });
+      const s3Res  = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: data.document.filePath, isLong: false });
       const s3Data = await s3Res.json();
       const fr     = await fetch(s3Data.dataUrl);
       if (!fr.ok) throw new Error(`Failed to fetch file: ${fr.status}`);
@@ -385,7 +385,7 @@ function DocumentDetails() {
     if (!deleteDocumentId) return;
     try {
       showToast('Deleting document...', 'info'); setShowDeleteModal(false);
-      const res = await apiRequest(`${END_POINT}/documents/delete/${deleteDocumentId}`, 'DELETE');
+      const res = await apiRequest(`${API_URI}/documents/delete/${deleteDocumentId}`, 'DELETE');
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || 'Delete failed'); }
       showToast('Document deleted successfully!', 'success');
       setDeleteDocumentId(null); setDeleteDocumentName('');
@@ -396,7 +396,7 @@ function DocumentDetails() {
   const handleSaveRename = async (docId) => {
     if (!newFileName.trim()) { showToast('File name cannot be empty', 'error'); return; }
     try {
-      const res    = await apiRequest(`${END_POINT}/documents/rename-file/${docId}`, 'PUT', { newFileName: newFileName.trim() });
+      const res    = await apiRequest(`${API_URI}/documents/rename-file/${docId}`, 'PUT', { newFileName: newFileName.trim() });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Rename failed');
       showToast('File renamed successfully!', 'success');
@@ -406,7 +406,7 @@ function DocumentDetails() {
 
   const handleSplitPDF = async (documentId, fileName, filePath) => {
     try {
-      const res  = await apiRequest(`${END_POINT}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
+      const res  = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
       const data = await res.json();
       setSplitDocument(documentId); setSplitDocumentUrl(data.dataUrl); setSplitDocumentName(fileName); setShowSplitModal(true);
     } catch { showToast('Failed to load PDF preview', 'error'); }
@@ -414,7 +414,7 @@ function DocumentDetails() {
 
   const handleMergePages = async (documentId, pageNumbers) => {
     try {
-      const res    = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', { sourceId: id, sourceType, documentId, splitOptions: { pages: pageNumbers, splitType: 'specific' }, category: currentCategory === 'all' ? 'merged' : currentCategory });
+      const res    = await apiRequest(`${API_URI}/documents/split-pdf`, 'POST', { sourceId: id, sourceType, documentId, splitOptions: { pages: pageNumbers, splitType: 'specific' }, category: currentCategory === 'all' ? 'merged' : currentCategory });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Merge failed');
       showToast(`Merged ${pageNumbers.length} pages successfully!`, 'success');
@@ -424,7 +424,7 @@ function DocumentDetails() {
 
   const handleSplitAllPages = async (documentId, totalPages) => {
     try {
-      const res    = await apiRequest(`${END_POINT}/documents/split-pdf`, 'POST', { sourceId: id, sourceType, documentId, splitOptions: { pages: [1], splitType: 'every' }, category: currentCategory === 'all' ? 'split' : currentCategory });
+      const res    = await apiRequest(`${API_URI}/documents/split-pdf`, 'POST', { sourceId: id, sourceType, documentId, splitOptions: { pages: [1], splitType: 'every' }, category: currentCategory === 'all' ? 'split' : currentCategory });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Split failed');
       showToast(`Split all ${totalPages} pages successfully!`, 'success');
@@ -435,7 +435,7 @@ function DocumentDetails() {
   const handleMergePDFs = async () => {
     if (selectedDocuments.length < 2) { showToast('Please select at least 2 PDFs to merge', 'error'); return; }
     try {
-      const res    = await apiRequest(`${END_POINT}/documents/merge-pdfs`, 'POST', { sourceId: id, sourceType, documentIds: selectedDocuments, category: currentCategory === 'all' ? 'merged' : currentCategory, documentType: 'Merged Document' });
+      const res    = await apiRequest(`${API_URI}/documents/merge-pdfs`, 'POST', { sourceId: id, sourceType, documentIds: selectedDocuments, category: currentCategory === 'all' ? 'merged' : currentCategory, documentType: 'Merged Document' });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || 'Merge failed');
       showToast('PDFs merged successfully!', 'success');
