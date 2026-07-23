@@ -40,11 +40,13 @@ const BackchargeForm = () => {
         scopeLine2Text: '',
         workshopComments: '',
         workSummaryLine2: '',
+        workSummaryLine3: '',
+        workSummaryLine4: '',
         sparePartsCost: '',
         labourCharges: '',
         totalCost: '',
         approvedDeduction: '',
-        tableRows: Array(7).fill().map(() => ({
+        tableRows: Array(5).fill().map(() => ({
             description: '',
             qty: '',
             cost: '',
@@ -308,9 +310,11 @@ const BackchargeForm = () => {
                 date: formData.date,
                 workDate: formData.workDate,
                 scopeOfWork: formData.scopeOfWork,
-                scopeLine2Text: formData.scopeLine2Text,
+                scopeLine2Text: '',
                 workshopComments: formData.workshopComments,
                 workSummaryLine2: formData.workSummaryLine2,
+                workSummaryLine3: formData.workSummaryLine3,
+                workSummaryLine4: formData.workSummaryLine4,
                 sparePartsCost: formData.sparePartsCost,
                 labourCharges: formData.labourCharges,
                 totalCost: formData.totalCost,
@@ -341,76 +345,20 @@ const BackchargeForm = () => {
     };
 
     const handleScopeOverflow = (value) => {
-        if (!scopeLine1Ref.current) return;
-
-        const input = scopeLine1Ref.current;
-        const maxWidth = input.offsetWidth;
-
-        const temp = document.createElement('span');
-        temp.style.font = window.getComputedStyle(input).font;
-        temp.style.visibility = 'hidden';
-        temp.style.position = 'absolute';
-        temp.style.whiteSpace = 'nowrap';
-        document.body.appendChild(temp);
-
-        let line1Text = '';
-        let line2Text = '';
-
-        for (let i = 0; i < value.length; i++) {
-            temp.textContent = line1Text + value[i];
-            const newWidth = temp.offsetWidth;
-
-            if (newWidth <= maxWidth - 20) {
-                line1Text += value[i];
-            } else {
-                line2Text = value.substring(i);
-                break;
-            }
-        }
-
-        document.body.removeChild(temp);
-
         setFormData(prev => ({
             ...prev,
-            scopeOfWork: line1Text,
-            scopeLine2Text: line2Text
+            scopeOfWork: value,
+            scopeLine2Text: ''
         }));
     };
 
     const handleWorkSummaryOverflow = (value) => {
-        if (!workLine1Ref.current) return;
-
-        const input = workLine1Ref.current;
-        const maxWidth = input.offsetWidth;
-
-        const temp = document.createElement('span');
-        temp.style.font = window.getComputedStyle(input).font;
-        temp.style.visibility = 'hidden';
-        temp.style.position = 'absolute';
-        temp.style.whiteSpace = 'nowrap';
-        document.body.appendChild(temp);
-
-        let line1Text = '';
-        let line2Text = '';
-
-        for (let i = 0; i < value.length; i++) {
-            temp.textContent = line1Text + value[i];
-            const newWidth = temp.offsetWidth;
-
-            if (newWidth <= maxWidth - 20) {
-                line1Text += value[i];
-            } else {
-                line2Text = value.substring(i);
-                break;
-            }
-        }
-
-        document.body.removeChild(temp);
-
         setFormData(prev => ({
             ...prev,
-            workshopComments: line1Text,
-            workSummaryLine2: line2Text
+            workshopComments: value,
+            workSummaryLine2: '',
+            workSummaryLine3: '',
+            workSummaryLine4: ''
         }));
     };
 
@@ -785,20 +733,7 @@ const BackchargeForm = () => {
                                         fontSize: 'inherit'
                                     }}
                                 />
-
                             </div>
-                            <input
-                                type="text"
-                                value={formData.scopeLine2Text || ''}
-                                onChange={(e) => handleInputChange('scopeLine2Text', e.target.value)}
-                                className='text-data-underline scope-value-couple scope-line-2'
-                                style={{
-                                    border: 'none',
-                                    outline: 'none',
-                                    background: 'transparent',
-                                    fontSize: 'inherit'
-                                }}
-                            />
                         </div>
 
                         {/* Parts and Materials Table */}
@@ -849,6 +784,28 @@ const BackchargeForm = () => {
                                 type="text"
                                 value={formData.workSummaryLine2}
                                 onChange={(e) => handleInputChange('workSummaryLine2', e.target.value)}
+                                className="work-summary-line-2 text-data-underline"
+                                style={{
+                                    border: 'none',
+                                    outline: 'none',
+                                    background: 'transparent',
+                                }}
+                            />
+                            <input
+                                type="text"
+                                value={formData.workSummaryLine3}
+                                onChange={(e) => handleInputChange('workSummaryLine3', e.target.value)}
+                                className="work-summary-line-2 text-data-underline"
+                                style={{
+                                    border: 'none',
+                                    outline: 'none',
+                                    background: 'transparent',
+                                }}
+                            />
+                            <input
+                                type="text"
+                                value={formData.workSummaryLine4}
+                                onChange={(e) => handleInputChange('workSummaryLine4', e.target.value)}
                                 className="work-summary-line-2 text-data-underline"
                                 style={{
                                     border: 'none',

@@ -30,7 +30,7 @@ import './BackchargeDoc.css';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Number of spare-parts table rows always shown (padded with blanks). */
-const TABLE_ROW_COUNT = 7;
+const TABLE_ROW_COUNT = 5;
 
 /** Blank spare-parts table row shape. */
 const BLANK_ROW = { description: '', qty: '', cost: '', total: '' };
@@ -50,6 +50,8 @@ const DEFAULT_FORM_DATA = {
   scopeLine2Text:          '',
   workshopComments:        '',
   workSummaryLine2:        '',
+  workSummaryLine3:        '',
+  workSummaryLine4:        '',
   sparePartsCost:          '',
   labourCharges:           '',
   totalCost:               '',
@@ -439,9 +441,11 @@ function BackchargeDoc() {
         date:                    data.date              || '',
         workDate:                data.workDate          || data.date || '',
         scopeOfWork:             getLine(data.scopeOfWork, 1),
-        scopeLine2Text:          getLine(data.scopeOfWork, 2),
+        scopeLine2Text:          '',
         workshopComments:        getLine(data.workshopComments, 1),
         workSummaryLine2:        getLine(data.workshopComments, 2),
+        workSummaryLine3:        getLine(data.workshopComments, 3),
+        workSummaryLine4:        getLine(data.workshopComments, 4),
         sparePartsCost:          data.costSummary?.sparePartsCost?.toString()    || '',
         labourCharges:           data.costSummary?.labourCharges?.toString()     || '',
         totalCost:               data.costSummary?.totalCost?.toString()         || '',
@@ -1032,6 +1036,8 @@ function BackchargeDoc() {
           <span class="bcr-comments-label">Workshop Manager's Comments/ Work Summary :-</span>
           <div class="bcr-comments-text">${formData.workshopComments}</div>
           ${formData.workSummaryLine2 ? `<div class="work-summary-line-2">${formData.workSummaryLine2}</div>` : ''}
+          ${formData.workSummaryLine3 ? `<div class="work-summary-line-2">${formData.workSummaryLine3}</div>` : ''}
+          ${formData.workSummaryLine4 ? `<div class="work-summary-line-2">${formData.workSummaryLine4}</div>` : ''}
         </div>
         <div class="bcr-cost-summary-section">
           <h3 class="bcr-cost-summary-title">Summary of Costs :</h3>
@@ -1241,7 +1247,7 @@ function BackchargeDoc() {
               </div>
             </div>
 
-            {/* ── Scope of work (two lines) ── */}
+            {/* ── Scope of work (single line) ── */}
             <div className="bcr-scope-section">
               <div className="bcr-scope-section-sub">
                 <span className="bcr-scope-label">Scope of Work :-</span>
@@ -1252,12 +1258,6 @@ function BackchargeDoc() {
                   style={inputStyle()}
                 />
               </div>
-              <input type="text" value={formData.scopeLine2Text || ''}
-                onChange={(e) => handleInputChange('scopeLine2Text', e.target.value)}
-                disabled={!isEditing}
-                className="text-data-underline scope-value-couple scope-line-2"
-                style={inputStyle()}
-              />
             </div>
 
             {/* ── Spare parts table ── */}
@@ -1324,6 +1324,18 @@ function BackchargeDoc() {
               />
               <input type="text" value={formData.workSummaryLine2}
                 onChange={(e) => handleInputChange('workSummaryLine2', e.target.value)}
+                disabled={!isEditing}
+                className="work-summary-line-2 text-data-underline"
+                style={inputStyle()}
+              />
+              <input type="text" value={formData.workSummaryLine3}
+                onChange={(e) => handleInputChange('workSummaryLine3', e.target.value)}
+                disabled={!isEditing}
+                className="work-summary-line-2 text-data-underline"
+                style={inputStyle()}
+              />
+              <input type="text" value={formData.workSummaryLine4}
+                onChange={(e) => handleInputChange('workSummaryLine4', e.target.value)}
                 disabled={!isEditing}
                 className="work-summary-line-2 text-data-underline"
                 style={inputStyle()}
