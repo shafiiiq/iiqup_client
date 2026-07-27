@@ -129,7 +129,17 @@ function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
 
   const getRowClass = (lpo) => {
     const { pmSigned, managerSigned, accountsSigned, ceoSigned } = lpo;
-    const uploaded = ['lpo_uploaded', 'lpo_amended'].includes(lpo.workflowStatus);
+    const signedWorkflowStatuses = [
+      'lpo_uploaded',
+      'lpo_amended',
+      'purchase_approved',
+      'accounts_approved',
+      'manager_approved',
+      'ceo_approved',
+      'md_approved',
+      'items_available',
+    ];
+    const uploaded = signedWorkflowStatuses.includes(lpo.workflowStatus);
     if (!uploaded) return '';
 
     // All signed
