@@ -182,8 +182,6 @@ const DevModal = ({
             return;
           }
           pages = [interval];
-        } else if (onButtonClick) {
-          type === 'fileupload' ? onButtonClick(uploadedFiles) : onButtonClick();
         }
 
         onButtonClick({ splitType, pages });
@@ -192,6 +190,8 @@ const DevModal = ({
         setSplitError('Invalid input format');
         return;
       }
+    } else if (type === 'fileupload' && onButtonClick) {
+      onButtonClick(uploadedFiles);
     } else if (onButtonClick) {
       onButtonClick();
     }

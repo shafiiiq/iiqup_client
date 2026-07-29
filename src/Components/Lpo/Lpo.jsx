@@ -19,6 +19,7 @@ import { apiRequest } from '../../utils/api';
 import { useHeaderTitle } from '../../Context/HeaderTitleContext';
 
 import Button from '../../Common/Button/Button';
+import DevModal from '../../Common/DevModal/DevModal';
 
 import './Lpo.css';
 
@@ -52,6 +53,7 @@ const DEFAULT_LPO_DATA = {
   runningKm: '',
   requestText: DEFAULT_REQUEST_TEXT,
   items: [DEFAULT_ITEM],
+  quotation: null,
   discount: 0,
 };
 
@@ -146,6 +148,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   const companyRef = useRef();
   const attnRef = useRef();
   const discountPopupRef = useRef();
+  const quotationFileInputRef = useRef();
 
   // ── Derived mode flags ────────────────────────────────────────────────────
 
@@ -175,6 +178,9 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   const [showDiscount, setShowDiscount] = useState(false);
   const [showDiscountPopup, setShowDiscountPopup] = useState(false);
   const [discountInput, setDiscountInput] = useState('');
+  const [showQuotationModal, setShowQuotationModal] = useState(true);
+  const [quotationFile, setQuotationFile] = useState(null);
+  const [quotationPreviewUrl, setQuotationPreviewUrl] = useState('');
 
   // ── Data lists state ───────────────────────────────────────────────────────
 
@@ -190,6 +196,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
 
   const subtotal = lpoData.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
   const totalAmount = subtotal - (lpoData.discount || 0);
+  const quotationDisplayMime = quotationFile ? quotationFile.type : (lpoData.quotation?.mimeType || '');
 
   // ─────────────────────────────────────────────────────────────────────────
   // Effects
@@ -323,6 +330,8 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
 
       setShowDiscountInTotal(lpo.totalDiscountAmount !== undefined);
 
+      if (lpo.quotation) await loadQuotationPreview(lpo.quotation);
+
     } catch (err) {
       console.error('[Lpo] fetchLpoForEdit error:', err);
       setSaveStatus('Error loading LPO data');
@@ -372,6 +381,8 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
       setShowDiscountInTotal(
         latest?.amendedTotalAmount !== undefined || lpo.totalDiscountAmount !== undefined
       );
+
+      if (lpo.quotation) await loadQuotationPreview(lpo.quotation);
 
     } catch (err) {
       console.error('[Lpo] fetchLpoForAmendmentEdit error:', err);
@@ -470,6 +481,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
         },
         isAmendmented: isAmendmentMode ? true : false,
         discount: lpoData.discount,
+        quotation: lpoData.quotation || null,
         showDiscountInTotal,
         type: isForStock ? 'stock' : isForAllEquipm ? 'all_equipment' : 'specific_equipment',
         ...(isAmendmentMode && {
@@ -727,6 +739,60 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
     setDiscountInput('');
   };
 
+  // ── Quotation attachment handlers ──────────────────────────────────────
+
+  const handleAttachQuotationYes = () => {
+    setShowQuotationModal(false);
+    quotationFileInputRef.current?.click();
+  };
+
+  const handleAttachQuotationNo = () => {
+    setShowQuotationModal(false);
+  };
+
+  const handleQuotationFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setQuotationFile(file);
+    setQuotationPreviewUrl(URL.createObjectURL(file));
+
+    try {
+      const response = await apiRequest(`${API_URI}/lpo/get-quotation-upload-url`, 'POST', {
+        fileName: file.name,
+        lpoRef: lpoData.lpoRef,
+        contentType: file.type,
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Failed to get upload URL');
+
+      const s3Response = await fetch(result.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!s3Response.ok) throw new Error('S3 upload failed');
+
+      setLpoData((prev) => ({ ...prev, quotation: result.data }));
+    } catch (err) {
+      console.error('[Lpo] quotation upload error:', err);
+      setSaveStatus('Error uploading quotation file');
+    }
+  };
+
+  /** Fetches a presigned S3 URL for an already-saved quotation and shows it in the preview panel. */
+  const loadQuotationPreview = async (quotation) => {
+    if (!quotation?.filePath) return;
+    try {
+      const response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: quotation.filePath, isLong: false });
+      const data = await response.json();
+      setQuotationPreviewUrl(data.dataUrl);
+      setShowQuotationModal(false);
+    } catch (err) {
+      console.error('[Lpo] loadQuotationPreview error:', err);
+    }
+  };
+
   // ─────────────────────────────────────────────────────────────────────────
   // Payment terms handlers
   // ─────────────────────────────────────────────────────────────────────────
@@ -800,8 +866,21 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
         </div>
       </div>
 
-      {/* ── LPO Document (editable form) ── */}
-      <div className="lpo-document-f" ref={componentRef}>
+      <div className={(quotationFile || lpoData.quotation) ? 'lpo-split-layout' : ''}>
+
+        {/* ── Quotation preview panel ── */}
+        {(quotationFile || lpoData.quotation) && quotationPreviewUrl && (
+          <div className="quotation-preview-panel">
+            {quotationDisplayMime === 'application/pdf' ? (
+              <iframe src={quotationPreviewUrl} title="Quotation Preview" className="quotation-preview-frame" />
+            ) : (
+              <img src={quotationPreviewUrl} alt="Quotation Preview" className="quotation-preview-image" />
+            )}
+          </div>
+        )}
+
+        {/* ── LPO Document (editable form) ── */}
+        <div className={`lpo-document-f ${(quotationFile || lpoData.quotation) ? 'lpo-document-half' : ''}`} ref={componentRef}>
 
         {/* ── Document header ── */}
         <div className="header-f">
@@ -1287,7 +1366,28 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
           <img src={footer} alt="" />
         </div>
 
+        </div>
       </div>
+
+      <input
+        type="file"
+        ref={quotationFileInputRef}
+        style={{ display: 'none' }}
+        accept=".pdf,.png,.jpg,.jpeg"
+        onChange={handleQuotationFileChange}
+      />
+
+      <DevModal
+        isOpen={showQuotationModal}
+        onClose={handleAttachQuotationNo}
+        type="warning"
+        title="Attach Quotation"
+        message="Do you want to attach a quotation file for this LPO?"
+        buttonText="Yes, Attach"
+        onButtonClick={handleAttachQuotationYes}
+        secondaryButtonText="Skip"
+        onSecondaryClick={handleAttachQuotationNo}
+      />
     </div>
   );
 }

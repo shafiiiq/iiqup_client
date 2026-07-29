@@ -52,6 +52,7 @@ const DEFAULT_LPO_DATA = {
   totalAmount:         0,
   isAmendment:         false,
   totalDiscountAmount: null,
+  quotation:           null,
   termsAndConditions: [
     'Terms & Conditions',
     'Payment will be made within 90 days from the day of submission of invoice',
@@ -446,7 +447,7 @@ function WatermarkDiv({ isSigned, text = '' }) {
  * @param {Object}  signatureFlags  - Boolean flags per sign type.
  * @param {Object}  signatureStates - URL + loading state per sign type.
  */
-function LpoDocumentComponent({ data, watermarkText, signatureFlags, signatureStates }) {
+function LpoDocumentComponent({ data, watermarkText, signatureFlags, signatureStates, quotationUrl, quotationMime }) {
   const isFullySigned = signatureFlags.ceoSigned && !!signatureStates.seal.url;
   const itemCount     = data.items.length;
 
@@ -468,6 +469,16 @@ function LpoDocumentComponent({ data, watermarkText, signatureFlags, signatureSt
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <>
+      <div className={quotationUrl ? 'page1-split-layout' : ''}>
+        {quotationUrl && (
+          <div className="quotation-preview-panel-doc">
+            {quotationMime === 'application/pdf' ? (
+              <iframe src={quotationUrl} title="Quotation Preview" className="quotation-preview-frame-doc" />
+            ) : (
+              <img src={quotationUrl} alt="Quotation Preview" className="quotation-preview-image-doc" />
+            )}
+          </div>
+        )}
       <div className="lpo-document" style={{ background: '#FFFFFF', backgroundImage: 'none' }}>
 
         <WatermarkDiv isSigned={isFullySigned} text={watermarkText} />
@@ -548,6 +559,7 @@ function LpoDocumentComponent({ data, watermarkText, signatureFlags, signatureSt
 
         <div className="document-timestamp">{buildTimestamp()}</div>
         <div className="footer"><img src={footer} alt="" /></div>
+      </div>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────────────
@@ -641,6 +653,8 @@ function LpoDoc() {
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
   const [imagesLoaded,  setImagesLoaded]  = useState(false);
+  const [quotationUrl,  setQuotationUrl]  = useState('');
+  const [quotationMime, setQuotationMime] = useState('');
 
   // ── Signature state ────────────────────────────────────────────────────────
 
@@ -847,6 +861,19 @@ function LpoDoc() {
   const loadAllSignatures = (info, flags, authTitle = lpoAuthSignatoryTitle) =>
     Promise.all(SIGN_TYPES.map((t) => loadSignature(t, info, flags, authTitle)));
 
+  /** Fetches a presigned S3 URL for the LPO's saved quotation, if any. */
+  const loadQuotationPreview = async (quotation) => {
+    if (!quotation?.filePath) return;
+    try {
+      const response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: quotation.filePath, isLong: false });
+      const data = await response.json();
+      setQuotationUrl(data.dataUrl);
+      setQuotationMime(quotation.mimeType || '');
+    } catch (err) {
+      console.error('[LpoDoc] loadQuotationPreview error:', err);
+    }
+  };
+
   // ── Data fetching ──────────────────────────────────────────────────────────
 
   /** Fetches LPO data from the API and populates state. */
@@ -921,6 +948,7 @@ function LpoDoc() {
         totalDiscountAmount: lpo.totalDiscountAmount   || null,
         termsAndConditions:  lpo.termsAndConditions    || DEFAULT_LPO_DATA.termsAndConditions,
         signatures:          lpo.signatures            || DEFAULT_LPO_DATA.signatures,
+        quotation:           lpo.quotation              || null,
       };
 
       setLpoData(builtLpoData);
@@ -928,6 +956,8 @@ function LpoDoc() {
       setLpoAuthSignatoryTitle(authSignatoryTitle);
       setLpoCounter(lpo.lpoCounter || 1);
       setVendorMail(lpo.vendorMail || null);
+
+      if (lpo.quotation) await loadQuotationPreview(lpo.quotation);
 
       // ── Build amendment data if present ──
       if (lpo.isAmendmented && lpo.amendments?.length) {
@@ -1128,14 +1158,17 @@ function LpoDoc() {
     return true;
   };
 
-  /** Hides the controls toolbar, builds the PDF, and restores visibility. */
+  /** Hides the controls toolbar and quotation preview panel, builds the PDF, then restores visibility. */
   const withControlsHidden = async (action) => {
-    const controls = document.querySelector('.controls');
+    const controls   = document.querySelector('.controls');
+    const quotations = document.querySelectorAll('.quotation-preview-panel-doc');
     if (controls) controls.style.visibility = 'hidden';
+    quotations.forEach((el) => { el.style.display = 'none'; });
     try {
       await action();
     } finally {
       if (controls) controls.style.visibility = 'visible';
+      quotations.forEach((el) => { el.style.display = ''; });
     }
   };
 
@@ -1221,8 +1254,10 @@ function LpoDoc() {
 
     setIsSendingEmail(true);
     setShowAttachmentModal(false);
-    const controls = document.querySelector('.controls');
+    const controls   = document.querySelector('.controls');
+    const quotations = document.querySelectorAll('.quotation-preview-panel-doc');
     if (controls) controls.style.visibility = 'hidden';
+    quotations.forEach((el) => { el.style.display = 'none'; });
 
     try {
       await new Promise((r) => setTimeout(r, 200));
@@ -1238,7 +1273,20 @@ function LpoDoc() {
       formDataToSend.append('equipment', lpoData.equipments.join(', '));
       formDataToSend.append('lpoRef', decodeURIComponent(refNo));
 
-      // append any extra attachments
+      // attach the pre-uploaded quotation, if one exists on the LPO
+      if (lpoData.quotation?.filePath) {
+        try {
+          const s3Res  = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: lpoData.quotation.filePath, isLong: false });
+          const s3Data = await s3Res.json();
+          const qRes   = await fetch(s3Data.dataUrl);
+          const qBlob  = await qRes.blob();
+          formDataToSend.append('attachments', qBlob, lpoData.quotation.originalName || lpoData.quotation.fileName || 'quotation');
+        } catch (err) {
+          console.error('[LpoDoc] Failed to attach pre-uploaded quotation:', err);
+        }
+      }
+
+      // append any extra attachments added via the modal
       extraFiles.forEach((file) => formDataToSend.append('attachments', file));
 
       const response = await apiRequest(`${API_URI}/lpo/send-via-email`, 'POST', formDataToSend, true);
@@ -1255,6 +1303,7 @@ function LpoDoc() {
       alert('Error sending email.');
     } finally {
       if (controls) controls.style.visibility = 'visible';
+      quotations.forEach((el) => { el.style.display = ''; });
       setIsSendingEmail(false);
     }
   };
@@ -1335,6 +1384,8 @@ function LpoDoc() {
         watermarkText=""
         signatureFlags={signatureFlags}
         signatureStates={signatureStates}
+        quotationUrl={quotationUrl}
+        quotationMime={quotationMime}
       />
 
       {/* ── Amended LPO document (only when an amendment exists) ── */}
