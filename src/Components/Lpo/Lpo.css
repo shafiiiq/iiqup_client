@@ -973,6 +973,8 @@
 
 .lpo-document-half {
   width: 260mm !important;
+  flex-shrink: 0;
+  margin: 0 0 2rem 0 !important;
 }
 
 /* Responsive Design */
