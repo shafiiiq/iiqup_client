@@ -82,14 +82,14 @@ const _bindSocketEvents = (uniqueCode) => {
 
   // ── Session invalid — disconnect, let App.jsx handle re-login ─────────────
   socket.on('session_invalid', (data) => {
-    console.warn('[WebSocket] session_invalid:', data.message);
+    logger.warn('[WebSocket] session_invalid:', data.message);
     _dispatch('session_invalid', data);
     WebSocketService.disconnect();
   });
 
   // ── Disconnect (Socket.IO reconnects silently) ────────────────────────────
   socket.on('disconnect', (reason) => {
-    console.warn(`[WebSocket] disconnected — reason: ${reason}`);
+    logger.warn(`[WebSocket] disconnected — reason: ${reason}`);
     _stopPing();
     _dispatch('disconnect', { reason });
   });
@@ -141,7 +141,7 @@ const WebSocketService = {
   connect(uniqueCode) {
     if (socket?.connected || isConnecting) return;
     if (!uniqueCode) {
-      console.warn('[WebSocket] connect() called without uniqueCode — aborting');
+      logger.warn('[WebSocket] connect() called without uniqueCode — aborting');
       return;
     }
 
@@ -174,7 +174,7 @@ const WebSocketService = {
   /** Emits an event to the server. */
   emit(event, data) {
     if (!socket?.connected) {
-      console.warn(`[WebSocket] emit("${event}") skipped — not connected`);
+      logger.warn(`[WebSocket] emit("${event}") skipped — not connected`);
       return;
     }
     socket.emit(event, data);
