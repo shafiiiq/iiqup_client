@@ -9,19 +9,24 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate }       from 'react-router-dom';
-import jsPDF                            from 'jspdf';
-import html2canvas                      from 'html2canvas';
-
-import logoImage    from '@assets/images/al-ansari-color.png';
+import { useParams, useNavigate } from 'react-router-dom';
+import logoImage from '@assets/images/al-ansari-color.png';
 import alAnsariText from '@assets/images/al-ansari-full-address.png';
-
-import { API_URI }                               from '@shared/constants';
-import { apiRequest }                            from '@shared/utils/api';
 import { getDeviceFingerprint, getLocationInfo } from '@shared/utils/deviceFingerprint';
-import { useHeaderTitle }                        from '@shared/context/HeaderTitleContext';
-import Button                                    from '@shared/components/Button/Button';
-import DevModal                                  from '@shared/components/DevModal/DevModal';
+import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
+import Button from '@shared/components/Button/Button';
+import DevModal from '@shared/components/DevModal/DevModal';
+import {
+  getBackchargeByRef,
+  updateBackcharge,
+  sendBackchargeEmail,
+  verifyDeviceTrust,
+  getBackchargeSignatureKey,
+  getPreSignedUrl,
+  signBackcharge,
+  activateSignature,
+} from './services/backcharge.service';
+import { buildPdf, hideControls, showControls, normaliseTableRows } from './utils/backchargeDocHelpers';
 
 import './BackchargeDoc.css';
 
@@ -136,100 +141,6 @@ const toIsoInputDate = (val) => {
  * @param {Object[]} rows - Raw rows from the API.
  * @returns {Object[]} Exactly TABLE_ROW_COUNT rows.
  */
-const normaliseTableRows = (rows = []) => {
-  const padded = [
-    ...rows,
-    ...Array(Math.max(0, TABLE_ROW_COUNT - rows.length)).fill(null).map(() => ({ ...BLANK_ROW })),
-  ];
-  return padded.slice(0, TABLE_ROW_COUNT);
-};
-
-/**
- * Converts an image URL to a base64-encoded PNG data URL.
- * Used to embed images into the print window so they survive cross-origin restrictions.
- *
- * @param {string} url - Image URL.
- * @returns {Promise<string>} Base64 data URL.
- */
-const convertImageToBase64 = (url) =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width  = img.width;
-      canvas.height = img.height;
-      canvas.getContext('2d').drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
-
-/**
- * Hides / restores the controls bar around a html2canvas capture.
- * Returns the element so the caller can show it again in finally.
- *
- * @returns {HTMLElement|null} The controls element.
- */
-const hideControls = () => {
-  const el = document.querySelector('.bcr-controls');
-  if (el) el.style.display = 'none';
-  return el;
-};
-
-const showControls = (el) => {
-  if (el) el.style.display = '';
-};
-
-/**
- * Captures the document component as a canvas and writes it into a jsPDF
- * instance, fitting the image to A4 while preserving aspect ratio.
- *
- * @param {HTMLElement} element - DOM node to capture.
- * @returns {Promise<jsPDF>} Populated PDF instance.
- */
-const buildPdf = async (element) => {
-  const canvas = await html2canvas(element, {
-    scale:       3,
-    useCORS:     true,
-    logging:     false,
-    allowTaint:  false,
-    backgroundColor: '#FFFFFF',
-    width:  element.offsetWidth,
-    height: element.offsetHeight,
-    scrollX: 0,
-    scrollY: 0,
-    foreignObjectRendering: false,
-    letterRendering: true,
-    dpi: 300,
-    onclone: (clonedDoc) => {
-      // Remove controls from the cloned DOM so they don't appear in the PDF.
-      clonedDoc.querySelector('.bcr-controls')?.remove();
-      // Improve font rendering in the captured image.
-      clonedDoc.querySelectorAll('*').forEach((el) => {
-        el.style.webkitFontSmoothing = 'antialiased';
-        el.style.mozOsxFontSmoothing = 'grayscale';
-      });
-    },
-  });
-
-  const imgData  = canvas.toDataURL('image/png', 1.0);
-  const pdf      = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
-  const pdfW     = pdf.internal.pageSize.getWidth();
-  const pdfH     = pdf.internal.pageSize.getHeight();
-  const imgH     = (canvas.height * pdfW) / canvas.width;
-
-  if (imgH > pdfH) {
-    // Image taller than page — scale to fit height and centre horizontally.
-    const scaledW = (canvas.width * pdfH) / canvas.height;
-    pdf.addImage(imgData, 'PNG', (pdfW - scaledW) / 2, 0, scaledW, pdfH, '', 'FAST');
-  } else {
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfW, imgH, '', 'FAST');
-  }
-
-  return pdf;
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BackchargeDoc — Main Component
@@ -397,10 +308,7 @@ function BackchargeDoc() {
   const fetchBackchargeData = async () => {
     setIsLoading(true);
     try {
-      const response = await apiRequest(
-        `${API_URI}/backcharge/get-backcharge-by-ref/${encodeURIComponent(refNo)}`,
-        'GET'
-      );
+      const response = await getBackchargeByRef(refNo);
 
       if (!response.ok) {
         setDocumentExists(false);
@@ -482,11 +390,7 @@ function BackchargeDoc() {
         tableRows: formData.tableRows.filter((r) => r.description || r.qty || r.cost || r.total),
       };
 
-      const response = await apiRequest(
-        `${API_URI}/backcharge/update-backcharge/${documentId}`,
-        'PUT',
-        payload
-      );
+      const response = await updateBackcharge(documentId, payload);
 
       if (response.ok) {
         setSaveStatus('success');
@@ -556,12 +460,7 @@ function BackchargeDoc() {
       formDataToSend.append('equipment', `${formData.equipmentType} - ${formData.plateNo}`);
       formDataToSend.append('refNo', refNo);
       
-      const response = await apiRequest(
-        `${API_URI}/backcharge/send-via-email`,
-        'POST',
-        formDataToSend,
-        true
-      );
+      const response = await sendBackchargeEmail(formDataToSend);
 
       if (response.ok) {
         setShowEmailModal(false);
@@ -598,10 +497,9 @@ function BackchargeDoc() {
       let allTrusted = true;
 
       for (const signType of BCR_SIGN_TYPES) {
-        const response = await apiRequest(`${API_URI}/users/verify-device-trust`, 'POST', { signType, deviceInfo: info });
-        const result = await response.json();
-        if (!result.data.isActivated) allActivated = false;
-        if (!result.data.isTrusted) allTrusted = false;
+        const result = await verifyDeviceTrust(signType, info);
+        if (!result.data?.isActivated) allActivated = false;
+        if (!result.data?.isTrusted) allTrusted = false;
       }
 
       return { isActivated: allActivated, isTrusted: allTrusted };
@@ -635,18 +533,11 @@ function BackchargeDoc() {
     setSignatureStates((prev) => ({ ...prev, [roleField]: { ...prev[roleField], loading: true } }));
 
     try {
-      const keyRes = await apiRequest(`${API_URI}/users/${endpoint}`, 'POST', { deviceInfo });
-      if (!keyRes.ok) throw new Error('Failed to get signature key');
-      const keyData = await keyRes.json();
+      const keyData = await getBackchargeSignatureKey(endpoint, deviceInfo);
+      if (!keyData?.data?.sign_key) throw new Error('Failed to get signature key');
 
-      console.log("keyData", keyData);
-      const s3Res = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', {
-        key: keyData.data.sign_key,
-        isLong: false,
-        isLpoSign: true,
-      });
-      if (!s3Res.ok) throw new Error('Failed to get S3 URL');
-      const s3Data = await s3Res.json();      
+      const s3Data = await getPreSignedUrl(keyData.data.sign_key);
+      if (!s3Data?.dataUrl) throw new Error('Failed to get S3 URL');
 
       setSignatureStates((prev) => ({ ...prev, [roleField]: { url: s3Data.dataUrl, loading: false } }));
 
@@ -691,19 +582,15 @@ function BackchargeDoc() {
      setShowSignConfirmModal(false);
 
      try {
-       const response = await apiRequest(
-         `${API_URI}/backcharge/sign/${encodeURIComponent(refNo)}`,
-         'POST',
-         {
-           uniqueCode:     user.uniqueCode,
-           signedDate:     new Date().toISOString(),
-           signedFrom:     deviceInfo.browserInfo,
-           signedIP:       deviceInfo.ipAddress,
-           signedDevice:   deviceInfo.userAgent,
-           signedLocation: deviceInfo.location,
-           override,
-         }
-       );
+       const response = await signBackcharge(refNo, {
+         uniqueCode:     user.uniqueCode,
+         signedDate:     new Date().toISOString(),
+         signedFrom:     deviceInfo.browserInfo,
+         signedIP:       deviceInfo.ipAddress,
+         signedDevice:   deviceInfo.userAgent,
+         signedLocation: deviceInfo.location,
+         override,
+       });
 
        const result = await response.json();
 
@@ -768,11 +655,7 @@ function BackchargeDoc() {
 
     try {
       for (const signType of BCR_SIGN_TYPES) {
-        const response = await apiRequest(
-          `${API_URI}/users/activate-signature`,
-          'POST',
-          { activationKey, signType, deviceInfo }
-        );
+        const response = await activateSignature(activationKey, signType, deviceInfo);
         if (!response.ok) {
           const errData = await response.json();
           throw new Error(errData.message || `Failed to activate ${signType}`);

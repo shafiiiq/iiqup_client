@@ -7,9 +7,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams }           from 'react-router-dom';
 
-import { API_URI }          from '@shared/constants';
-import { apiRequest }         from '@shared/utils/api';
+import { API_URI }            from '@shared/constants';
+import { apiRequest }          from '@shared/utils/api';
 import { useHeaderTitle }     from '@shared/context/HeaderTitleContext';
+import { fetchEquipmentByRegNo } from '../../../history/services/serviceHistory.service';
+import { saveBatchServiceHistory } from '../services/serviceHistory.service';
 import { useAlert }           from '@shared/context/AlertContext';
 import { useHeaderVibration } from '@shared/context/HeaderVibrationContext';
 
@@ -477,9 +479,7 @@ function MultiRecord() {
     if (!hasUrlRegNo) return;
     const fetchEquipment = async () => {
       try {
-        const res   = await apiRequest(`${API_URI}/equipments/get-equipment/${urlRegNo}`, 'GET');
-        const data  = await res.json();
-        const found = data?.data?.[0];
+        const found = await fetchEquipmentByRegNo(urlRegNo);
         if (!found) return;
         const lastCert = found.certificationBody?.[found.certificationBody.length - 1];
         const op       = lastCert?.operatorName || '';
@@ -592,10 +592,9 @@ function MultiRecord() {
       };
 
       try {
-        const res    = await apiRequest(`${API_URI}/service-history/batch`, 'POST', payload);
-        const result = await res.json();
+        const { response, result } = await saveBatchServiceHistory(payload);
 
-        if (result.ok) {
+        if (response.ok && result.ok) {
           groupCards.forEach(c => {
             const ci = updatedCards.findIndex(x => x.id === c.id);
             if (ci !== -1) updatedCards[ci] = { ...updatedCards[ci], _status: 'success', _error: '' };

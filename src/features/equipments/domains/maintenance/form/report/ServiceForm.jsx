@@ -7,9 +7,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams }      from 'react-router-dom';
 
-import { API_URI }              from '@shared/constants';
-import { apiRequest }             from '@shared/utils/api';
+import { API_URI }                from '@shared/constants';
 import { useHeaderTitle }         from '@shared/context/HeaderTitleContext';
+import { fetchEquipmentByRegNo, fetchHistoryById, fetchReportById } from '../../history/services/serviceHistory.service';
+import { saveServiceReport, updateServiceReport } from './services/serviceHistory.service';
 import { useAlert }               from '@shared/context/AlertContext';
 import { useHeaderVibration }     from '@shared/context/HeaderVibrationContext';
 
@@ -237,19 +238,13 @@ function ServiceForm({ initialData = {} }) {
 
     const fetchHistory = async () => {
       try {
-        const response = await apiRequest(
-          `${API_URI}/service-history/get-by-id/${serviceType}/${historyId}`,
-          'GET'
-        );
-        const result = await response.json();
+        const history = await fetchHistoryById(serviceType, historyId);
 
-        if (!result.ok || !result.data) {
+        if (!history) {
           showAlert('Failed to load service history data', 'error', '--color-error-500');
           triggerVibration();
           return;
         }
-
-        const history = result.data;
 
         // All field names are now unified — no equipmentNo / workRemarks aliasing needed
         setFormData((prev) => ({
@@ -299,19 +294,14 @@ function ServiceForm({ initialData = {} }) {
 
     const fetchReport = async () => {
       try {
-        const response = await apiRequest(
-          `${API_URI}/service-report/get-report/with-id/${reportId}`,
-          'GET'
-        );
-        const result = await response.json();
+        const report = await fetchReportById(reportId);
 
-        if (!result.ok || !result.data) {
+        if (!report) {
           showAlert('Failed to load service report data', 'error', '--color-error-500');
           triggerVibration();
           return;
         }
 
-        const report        = result.data;
         const formattedDate = normaliseDate(report.date);
 
         setOriginalDate(formattedDate);
@@ -348,9 +338,7 @@ function ServiceForm({ initialData = {} }) {
 
     const fetchEquipment = async () => {
       try {
-        const response  = await apiRequest(`${API_URI}/equipments/get-equipment/${formData.regNo}`, 'GET');
-        const result    = await response.json();
-        const equipment = result?.data?.[0];
+        const equipment = await fetchEquipmentByRegNo(formData.regNo);
 
         if (equipment) {
           const lastCert = equipment.certificationBody?.[equipment.certificationBody.length - 1];
@@ -481,8 +469,7 @@ function ServiceForm({ initialData = {} }) {
     const method = isUpdateMode ? 'PUT' : 'POST';
 
     try {
-      const response = await apiRequest(url, method, payload);
-      const result   = await response.json();
+      const { response, result } = isUpdateMode ? await updateServiceReport(reportId, payload) : await saveServiceReport(payload);
 
       showAlert(
         isUpdateMode ? 'Service report updated successfully!' : 'Service report added successfully!',

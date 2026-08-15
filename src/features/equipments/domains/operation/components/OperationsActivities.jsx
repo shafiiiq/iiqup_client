@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './OperationsActivities.css';
 import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import Button from '@shared/components/Button/Button';
 import Input from '@shared/components/Input/Input';
 import Loader from '@shared/components/Loader/Loader';
+import {
+  fetchFilteredActivities,
+  getSignedMediaUrl,
+  getOperatorProfileUrl,
+} from '../services/operations.service';
 
 function OperationsActivities() {
     const [activeTab, setActiveTab] = useState('recent');
@@ -30,48 +34,26 @@ function OperationsActivities() {
     const fetchActivitiesWithFilter = async (filterType = selectedPeriod, startDate = null, endDate = null, months = null) => {
         setIsLoading(true);
         try {
-            let mobUrl = `${API_URI}/equipments/filtered-mobilizations?filterType=${filterType}`;
-            let repUrl = `${API_URI}/equipments/filtered-replacements?filterType=${filterType}`;
-
-            if (specificTime) {
-                mobUrl += `&specificTime=${specificTime}`;
-                repUrl += `&specificTime=${specificTime}`;
-            } else if (timeRange.start && timeRange.end) {
-                mobUrl += `&startTime=${timeRange.start}&endTime=${timeRange.end}`;
-                repUrl += `&startTime=${timeRange.start}&endTime=${timeRange.end}`;
-            }
-
-            if (filterType === 'custom' && startDate && endDate) {
-                const formatForAPI = (date) => {
-                    const [year, month, day] = date.split('-');
-                    return `${day}-${month}-${year}`;
-                };
-                mobUrl += `&startDate=${formatForAPI(startDate)}&endDate=${formatForAPI(endDate)}`;
-                repUrl += `&startDate=${formatForAPI(startDate)}&endDate=${formatForAPI(endDate)}`;
-            } else if (filterType === 'months' && months) {
-                mobUrl += `&months=${months}`;
-                repUrl += `&months=${months}`;
-            }
-
-            const [mobResponse, repResponse] = await Promise.all([
-                apiRequest(mobUrl, 'GET'),
-                apiRequest(repUrl, 'GET')
-            ]);
-
-            const mobData = await mobResponse.json();
-            const repData = await repResponse.json();
+            const { mobilizations: fetchedMobilizations, replacements: fetchedReplacements } = await fetchFilteredActivities({
+                filterType,
+                specificTime,
+                timeRange,
+                startDate,
+                endDate,
+                months,
+            });
 
             let processedMobilizations = [];
             let processedReplacements = [];
 
-            if (mobData.ok && mobData.data) {
+            if (fetchedMobilizations.length) {
                 processedMobilizations = await Promise.all(
-                    mobData.data.map(async (item) => {
+                    fetchedMobilizations.map(async (item) => {
                         let equipmentImages = [];
                         if (item.equipmentImages && item.equipmentImages.length > 0) {
                             equipmentImages = await Promise.all(
                                 item.equipmentImages.map(async (img) => {
-                                    const s3Url = await getMediaUrl(img.path);
+                                    const s3Url = await getSignedMediaUrl(img.path);
                                     return { ...img, s3Url: s3Url || `${API_URI}/${img.path}`, url: img.path };
                                 })
                             );
@@ -101,16 +83,16 @@ function OperationsActivities() {
                 setMobilizations(processedMobilizations);
             }
 
-            if (repData.ok && repData.data) {
+            if (fetchedReplacements.length) {
                 processedReplacements = await Promise.all(
-                    repData.data.map(async (item) => {
+                    fetchedReplacements.map(async (item) => {
                         let currentImages = [];
                         let replacedImages = [];
 
                         if (item.currentEquipmentDetails?.images?.length > 0) {
                             currentImages = await Promise.all(
                                 item.currentEquipmentDetails.images.map(async (img) => {
-                                    const s3Url = await getMediaUrl(img.path);
+                                    const s3Url = await getSignedMediaUrl(img.path);
                                     return { ...img, s3Url: s3Url || `${API_URI}/${img.path}`, url: img.path };
                                 })
                             );
@@ -119,7 +101,7 @@ function OperationsActivities() {
                         if (item.replacedEquipmentDetails?.images?.length > 0) {
                             replacedImages = await Promise.all(
                                 item.replacedEquipmentDetails.images.map(async (img) => {
-                                    const s3Url = await getMediaUrl(img.path);
+                                    const s3Url = await getSignedMediaUrl(img.path);
                                     return { ...img, s3Url: s3Url || `${API_URI}/${img.path}`, url: img.path };
                                 })
                             );
@@ -183,32 +165,6 @@ function OperationsActivities() {
         setSpecificTime('');
         setTimeRange({ start: '', end: '' });
         fetchActivitiesWithFilter(selectedPeriod);
-    };
-
-    const getMediaUrl = async (filePath) => {
-        if (!filePath) return '';
-        try {
-            const body = { key: filePath, isLong: true };
-            const s3response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', body);
-            const s3URL = await s3response.json();
-            return s3URL.dataUrl;
-        } catch (error) {
-            console.error('Error getting media URL:', error);
-            return '';
-        }
-    };
-
-    const getOperatorProfileUrl = async (filePath) => {
-        if (!filePath) return null;
-        try {
-            const body = { key: filePath, isLong: false };
-            const s3response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', body);
-            const s3URL = await s3response.json();
-            return s3URL.dataUrl;
-        } catch (error) {
-            console.error('Error getting operator profile URL:', error);
-            return null;
-        }
     };
 
     const handlePeriodChange = (e) => setSelectedPeriod(e.target.value);

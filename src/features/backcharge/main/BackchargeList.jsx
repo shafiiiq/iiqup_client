@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URI } from '@shared/constants';
 import './BackchargeList.css';
-import { apiRequest } from '@shared/utils/api';
 import { useSearch } from '@shared/context/SearchContext';
 import Button from '@shared/components/Button/Button';
 import DevModal from '@shared/components/DevModal/DevModal';
 import Toast from '@shared/components/Toast/Toast';
+import {
+  fetchBackchargeReports,
+  fetchPendingSignatures as fetchPendingSignatureData,
+  fetchSignedByUser as fetchSignedByUserData,
+  deleteBackcharge,
+} from '../main/services/backcharge.service';
 
 function BackchargeList() {
   const { searchTerm } = useSearch();
@@ -43,16 +47,9 @@ function BackchargeList() {
 
   const fetchBackcharges = async () => {
     try {
-      const response = await apiRequest(`${API_URI}/backcharge/get-backcharge-reports`, 'GET');
-
-      if (response.ok) {
-        const data = await response.json()
-        setBackcharges(data.data);
-        setFilteredData(data.data);
-
-      } else {
-        console.error('Failed to fetch backcharge reports:', response.message);
-      }
+      const data = await fetchBackchargeReports();
+      setBackcharges(data.data || []);
+      setFilteredData(data.data || []);
     } catch (error) {
       console.error('Error fetching backcharge reports:', error);
     }
@@ -63,21 +60,14 @@ function BackchargeList() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.uniqueCode) return;
 
-      const [pendingRes, signedRes] = await Promise.all([
-        apiRequest(`${API_URI}/backcharge/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
-        apiRequest(`${API_URI}/backcharge/signed-by-user`, 'POST', { uniqueCode: encodeURIComponent(user.uniqueCode) }),
+      const [pendingData, signedData] = await Promise.all([
+        fetchPendingSignatureData(user.uniqueCode),
+        fetchSignedByUserData(user.uniqueCode),
       ]);
 
-      if (pendingRes.ok) {
-        const data = await pendingRes.json();
-        setPendingSignatures(data.data || []);
-        if (data.count > 0) setShowPendingToast(true);
-      }
-
-      if (signedRes.ok) {
-        const data = await signedRes.json();
-        setSignedByUser(data.data || []);
-      }
+      setPendingSignatures(pendingData.data || []);
+      if (pendingData.count > 0) setShowPendingToast(true);
+      setSignedByUser(signedData.data || []);
     } catch (error) {
       console.error('[BackchargeList] fetchPendingSignatures:', error);
     }
@@ -268,10 +258,7 @@ function BackchargeList() {
     if (!selectedBackcharge) return;
 
     try {
-      const response = await apiRequest(
-        `${API_URI}/backcharge/delete-backcharge/${selectedBackcharge._id}`,
-        'DELETE'
-      );
+      const response = await deleteBackcharge(selectedBackcharge._id);
 
       if (response.success) {
         setShowDeleteModal(false);

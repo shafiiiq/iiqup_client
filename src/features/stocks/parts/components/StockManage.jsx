@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './StockManage.css';
-import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import ExcelJS from 'exceljs';
+import { fetchStockEquipments, fetchAllUsers, fetchStocks, updateStockQuantity, addStock, updateStock, deleteStock } from '../services/stockManage.service';
 import DevModal from '@shared/components/DevModal/DevModal';
 import { useSearch } from '@shared/context/SearchContext';
 import Button from '@shared/components/Button/Button';
@@ -92,9 +91,7 @@ function StockManage() {
   useEffect(() => {
     const fetchEquipments = async () => {
       try {
-        const response = await apiRequest(`${API_URI}/equipments/get-equipments`, 'GET');
-        if (!response.ok) throw new Error('Failed to fetch equipments');
-        const result = await response.json();
+        const result = await fetchStockEquipments();
 
         const individualOptions = result.data.map(equip => ({
           value: `${equip.machine} - ${equip.regNo}`,
@@ -127,9 +124,7 @@ function StockManage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await apiRequest(`${API_URI}/users/get-all-users`, 'GET');
-        if (!response.ok) throw new Error('Failed to fetch users');
-        const result = await response.json();
+        const result = await fetchAllUsers();
 
         // Flatten all user types into a single options array with role label
         const allUsers = [
@@ -161,9 +156,7 @@ function StockManage() {
     const fetchStocks = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${API_URI}/stocks/get-all-stocks`, 'GET');
-        if (!response.ok) throw new Error('Failed to fetch stocks');
-        const result = await response.json();
+        const result = await fetchStocks();
         setStocks(Array.isArray(result.data) ? result.data : []);
         setLoading(false);
       } catch (err) {
@@ -253,9 +246,7 @@ function StockManage() {
         type: 'add',
       };
 
-      const response = await apiRequest(`${API_URI}/stocks/update-quantity/${selectedStock._id}`, 'PUT', updateData);
-
-      const result = await response.json();
+      const { response, result } = await updateStockQuantity(selectedStock._id, updateData);
 
       setStocks(stocks.map(s => s._id === selectedStock._id ? result.data : s));
       setSelectedStock(result.data);
@@ -291,13 +282,7 @@ function StockManage() {
         mechanicName: reduceFormData.mechanicName
       };
 
-      const response = await apiRequest(
-        `${API_URI}/stocks/update-quantity/${selectedStock._id}`,
-        'PUT',
-        updateData
-      );
-
-      const result = await response.json();
+      const { response, result } = await updateStockQuantity(selectedStock._id, updateData);
 
       setStocks(stocks.map(s => s._id === selectedStock._id ? result.data : s));
       setSelectedStock(result.data);
@@ -381,15 +366,9 @@ function StockManage() {
         method = 'PUT';
       }
 
-      const response = await apiRequest(
-        url,
-        method,
-        submitData
-      );
+      const { response, result } = formMode === 'add' ? await addStock(submitData) : await updateStock(formData._id, submitData);
 
       if (!response.ok) throw new Error(`Failed to ${formMode} stock`);
-
-      const result = await response.json();
 
       if (formMode === 'add') {
         setStocks([...stocks, result.data]);
@@ -412,10 +391,7 @@ function StockManage() {
   const deleteStock = async (id) => {
     if (!window.confirm('Are you sure you want to delete this stock?')) return;
     try {
-      const response = await apiRequest(
-        `${API_URI}/stocks/delete-stock/${id}`,
-        'DELETE',
-      );
+      const response = await deleteStock(id);
 
       if (!response.ok) throw new Error('Failed to delete stock');
       setStocks(stocks.filter(item => item._id !== id));

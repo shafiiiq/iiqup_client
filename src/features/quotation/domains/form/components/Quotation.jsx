@@ -1,12 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
 import Button from '@shared/components/Button/Button';
 import logoImage from '@assets/images/al-ansari-color.png';
 import alAnsariText from '@assets/images/al-ansari-full-address.png';
 import footer from '@assets/images/footer.png';
+import {
+  fetchLatestHireOrderRef,
+  getHireOrderByRef,
+  fetchCompanyDetails,
+  createOrUpdateHireOrder,
+} from '../../form/services/quotation.service';
+import {
+  buildDefaultItem,
+  generateHireOrderRef,
+  formatDate,
+  filterEditableTerms,
+} from '../../form/utils/quotationHelpers';
 import './Quotation.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,14 +44,6 @@ const DEFAULT_COLUMNS = [
   { id: 'unitPrice', label: 'Unit Price(QR)', type: 'number', deletable: true },
   { id: 'totalPrice', label: 'Total Price(QR)', type: 'calculated', deletable: false },
 ];
-
-const buildDefaultItem = (columns, id = 1) => {
-  const item = { id };
-  columns.forEach((col) => {
-    item[col.id] = col.type === 'calculated' ? 0 : col.type === 'number' ? null : '';
-  });
-  return item;
-};
 
 const DEFAULT_HIRE_ORDER_DATA = {
   vendor: '',
@@ -73,26 +76,8 @@ const SHARED_BTN = {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const generateHireOrderRef = (number) => {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const year = now.getFullYear();
-  const padded = String(number).padStart(3, '0');
-  return `ATE${padded}/HO/${month}/${year}`;
-};
-
-const formatDate = (dateString) => {
-  const now = new Date(dateString);
-  const day = String(now.getDate() + 1).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}/${now.getFullYear()}`;
-};
-
 const formatCurrency = (value) =>
   (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-/** Strips the static "Terms & Conditions" header from a stored terms array. */
-const filterEditableTerms = (terms = []) => terms.filter((t) => t !== 'Terms & Conditions');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Quotation — Main Component
@@ -188,8 +173,7 @@ function Quotation({ edit, amendment, amendmentEdit }) {
 
   const fetchLatestHireOrderNumber = async () => {
     try {
-      const response = await apiRequest(`${API_URI}/hire-order/check-latest-hire-order-ref`);
-      const data = await response.json();
+      const data = await fetchLatestHireOrderRef();
       const latestNo = parseInt(data.data?.latestRef?.split('/')[0]?.replace('ATE', '') || 130) + 1;
       setHireOrderCounter(latestNo);
       setHireOrderData((prev) => ({ ...prev, hireOrderRef: generateHireOrderRef(latestNo) }));
@@ -203,9 +187,7 @@ function Quotation({ edit, amendment, amendmentEdit }) {
   const fetchHireOrderForEdit = async () => {
     setIsLoading(true);
     try {
-      const decodedRef = decodeURIComponent(refNo);
-      const response = await apiRequest(`${API_URI}/hire-order/get-hire-order-by-ref/${decodedRef}`, 'GET');
-      const data = await response.json();
+      const data = await getHireOrderByRef(refNo);
 
       if (!data.success || !data.data) return;
       const ho = data.data;
@@ -242,9 +224,7 @@ function Quotation({ edit, amendment, amendmentEdit }) {
   const fetchHireOrderForAmendmentEdit = async () => {
     setIsLoading(true);
     try {
-      const decodedRef = decodeURIComponent(refNo);
-      const response = await apiRequest(`${API_URI}/hire-order/get-hire-order-by-ref/${decodedRef}`, 'GET');
-      const data = await response.json();
+      const data = await getHireOrderByRef(refNo);
 
       if (!data.success || !data.data) return;
       const ho = data.data;
@@ -283,8 +263,7 @@ function Quotation({ edit, amendment, amendmentEdit }) {
 
   const fetchCompanies = async () => {
     try {
-      const response = await apiRequest(`${API_URI}/lpo/get-company-details`);
-      const data = await response.json();
+      const data = await fetchCompanyDetails();
       if (data.success) setCompanies(data.data || []);
     } catch (error) {
       console.error('[Quotation] fetchCompanies error:', error);
@@ -518,8 +497,7 @@ function Quotation({ edit, amendment, amendmentEdit }) {
         : `${API_URI}/hire-order/add-hire-order`;
       const method = (isEditMode || isAmendmentMode) ? 'PUT' : 'POST';
 
-      const response = await apiRequest(endpoint, method, payload);
-      const result = await response.json();
+      const result = await createOrUpdateHireOrder(endpoint, method, payload);
 
       if (!result.success) {
         setSaveStatus(`Error: ${result.message || 'Operation failed'}`);

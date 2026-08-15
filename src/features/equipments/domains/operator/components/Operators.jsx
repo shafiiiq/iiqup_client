@@ -7,9 +7,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './Operators.css';
 
-import { API_URI }  from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import { useSearch }  from '@shared/context/SearchContext';
+import { fetchOperators, getOperatorProfilePicUrl, uploadOperatorProfilePic, createOperator, updateOperator, deleteOperator } from '../services/operators.service';
 
 import Button   from '@shared/components/Button/Button';
 import Loader   from '@shared/components/Loader/Loader';
@@ -185,10 +184,8 @@ const Operators = () => {
     const fetchOperators = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${API_URI}/operators/get-all-operators`);
-        if (!response.ok) throw new Error('Failed to fetch operators');
-        const result = await response.json();
-        setOperators(Array.isArray(result.data) ? result.data : []);
+        const data = await fetchOperators();
+        setOperators(data);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching operators:', err);
@@ -208,10 +205,7 @@ const Operators = () => {
   const getProfilePicUrl = useCallback(async (filePath) => {
     if (!filePath) return null;
     try {
-      const res = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: false });
-      if (!res.ok) return null;
-      const data = await res.json();
-      return data.dataUrl;
+      return await getOperatorProfilePicUrl(filePath);
     } catch {
       return null;
     }
@@ -376,8 +370,8 @@ const Operators = () => {
   const confirmDelete = async () => {
     if (!operatorToDelete) return;
     try {
-      const res = await apiRequest(`${API_URI}/operators/delete-operator/${operatorToDelete.qatarId}`, 'DELETE');
-      if (!res.ok) throw new Error('Failed to delete operator');
+      const response = await deleteOperator(operatorToDelete.qatarId);
+      if (!response.ok) throw new Error('Failed to delete operator');
 
       setOperators(prev => prev.filter(op => op.qatarId !== operatorToDelete.qatarId));
       if (selectedOperator?.qatarId === operatorToDelete.qatarId) setSelectedOperator(null);

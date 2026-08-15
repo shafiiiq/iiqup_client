@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './Mechanics.css';
-import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import Button from '@shared/components/Button/Button';
 import Input from '@shared/components/Input/Input';
 import Loader from '@shared/components/Loader/Loader';
+import {
+  fetchMechanics,
+  fetchMechanicAttendance,
+  fetchMechanicAttendanceByFilter,
+  updateMechanic,
+  deleteMechanic,
+} from '../services/mechanics.service';
 
 const Mechanics = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -24,16 +29,13 @@ const Mechanics = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   useEffect(() => {
-    const fetchMechanics = async () => {
+    const loadMechanics = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${API_URI}/mechanics/get-all-mechanic`);
-        if (!response.ok) throw new Error('Failed to fetch mechanics');
-        const data = await response.json();
-        setMechanics(data.data);
-        if (data.data.length > 0) {
-
-          setSelectedMechanic(data.data[0]);
+        const data = await fetchMechanics();
+        setMechanics(data);
+        if (data.length > 0) {
+          setSelectedMechanic(data[0]);
         }
         setLoading(false);
       } catch (err) {
@@ -43,7 +45,7 @@ const Mechanics = () => {
       }
     };
 
-    fetchMechanics();
+    loadMechanics();
   }, []);
 
   useEffect(() => {
@@ -51,24 +53,15 @@ const Mechanics = () => {
       if (!selectedMechanic?.zktecoPin) return;
       try {
         const today = new Date().toISOString().split('T')[0];
-
-        const response = await apiRequest(`${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`);
-        const data = await response.json();
-
-        if (data.status === 200) {
-          setRecentActivity(data.data.records || []);
-        } else {
-          setRecentActivity([]);
-        }
+        const records = await fetchMechanicAttendance(selectedMechanic.zktecoPin, today);
+        setRecentActivity(records);
       } catch (error) {
         console.error('Error fetching attendance:', error);
         setRecentActivity([]);
-      } finally {
-        return;
       }
     };
 
-    fetchRecentActivity()
+    fetchRecentActivity();
   }, [recentActivity, selectedMechanic])
 
   const generateAvatar = (name) => {
@@ -139,38 +132,8 @@ const Mechanics = () => {
 
     setAttendanceLoading(true);
     try {
-      let url;
-
-      if (filterType === 'date-range' && startDate && endDate) {
-        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/date-range?startDate=${startDate}&endDate=${endDate}`;
-      } else if (filterType === 'daily') {
-        const today = new Date().toISOString().split('T')[0];
-        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/daily/${today}`;
-      } else if (filterType === 'weekly') {
-        const now = new Date();
-        const year = now.getFullYear();
-        const week = Math.ceil((now - new Date(year, 0, 1)) / (7 * 24 * 60 * 60 * 1000));
-        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/weekly/${year}/${week}`;
-      } else if (filterType === 'monthly') {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/monthly/${year}/${month}`;
-      } else if (filterType === 'yearly') {
-        const year = new Date().getFullYear();
-        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/yearly/${year}`;
-      } else if (filterType === 'all') {
-        url = `${API_URI}/mechanics/attendance/${selectedMechanic.zktecoPin}/all`;
-      }
-
-      const response = await apiRequest(url);
-      const data = await response.json();
-
-      if (data.status === 200) {
-        setAttendanceData(data.data.records || []);
-      } else {
-        setAttendanceData([]);
-      }
+      const records = await fetchMechanicAttendanceByFilter(selectedMechanic.zktecoPin, filterType, startDate, endDate);
+      setAttendanceData(records);
     } catch (error) {
       console.error('Error fetching attendance:', error);
       setAttendanceData([]);
@@ -181,12 +144,7 @@ const Mechanics = () => {
 
   const handleSaveEdit = async () => {
     try {
-      const response = await apiRequest(
-        `${API_URI}/mechanics/update-mechanic/${selectedMechanic._id}`,
-        'PUT',
-        editForm
-      );
-      const data = await response.json();
+      const data = await updateMechanic(selectedMechanic._id, editForm);
 
       setMechanics(mechanics.map(m => m._id === data._id ? data : m));
       setSelectedMechanic(data);
@@ -206,7 +164,7 @@ const Mechanics = () => {
     if (!window.confirm('Are you sure you want to delete this mechanic?')) return;
 
     try {
-      await apiRequest(`${API_URI}/mechanics/${selectedMechanic._id}`, 'DELETE');
+      await deleteMechanic(selectedMechanic._id);
       const updatedMechanics = mechanics.filter(m => m._id !== selectedMechanic._id);
       setMechanics(updatedMechanics);
       setSelectedMechanic(updatedMechanics.length > 0 ? updatedMechanics[0] : null);

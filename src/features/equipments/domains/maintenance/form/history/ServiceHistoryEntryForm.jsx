@@ -5,9 +5,9 @@
 import { useState, useEffect }        from 'react';
 import { useParams, useNavigate }     from 'react-router-dom';
 
-import { API_URI }                  from '@shared/constants';
-import { apiRequest }                 from '@shared/utils/api';
 import { useHeaderTitle }             from '@shared/context/HeaderTitleContext';
+import { fetchEquipmentByRegNo }      from '../../history/services/serviceHistory.service';
+import { createServiceHistory }        from './services/serviceHistory.service';
 import { useAlert }                   from '@shared/context/AlertContext';
 import { useHeaderVibration }         from '@shared/context/HeaderVibrationContext';
 
@@ -59,9 +59,6 @@ const TYPE_CONFIG = {
     navPath: (id, complaintId, serviceType) => complaintId ? `/service-form/${serviceType}/${id}/${complaintId}` : `/service-form/${serviceType}/${id}`,
   },
 };
-
-// Unified API endpoint for all history types
-const HISTORY_ENDPOINT = `${API_URI}/service-history/add`;
 
 /** Default toast config shape. */
 const DEFAULT_TOAST = { isOpen: false, type: 'success', message: '', textColor: '#ffffff' };
@@ -184,9 +181,7 @@ function ServiceHistoryEntryForm() {
 
     const fetchEquipment = async () => {
       try {
-        const response = await apiRequest(`${API_URI}/equipments/get-equipment/${regNo}`, 'GET');
-        const result   = await response.json();
-        const equipment = result?.data?.[0];
+        const equipment = await fetchEquipmentByRegNo(regNo);
 
         if (!equipment) {
           setFormData((prev) => ({
@@ -328,8 +323,7 @@ function ServiceHistoryEntryForm() {
         }),
       };
 
-      const response = await apiRequest(HISTORY_ENDPOINT, 'POST', payload);
-      const result   = await response.json();
+      const { response, result } = await createServiceHistory(payload);
 
       if (response.status === 409) {
        showAlert(result.message || 'A record for this date already exists', 'warning', '#000000');

@@ -8,15 +8,25 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams }      from 'react-router-dom';
 import jsPDF        from 'jspdf';
 import html2canvas  from 'html2canvas';
+import { API_URI } from '@shared/constants';
 
 import logoImage    from '@assets/images/al-ansari-color.png';
 import alAnsariText from '@assets/images/al-ansari-full-address.png';
 import footer       from '@assets/images/footer.png';
 
-import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
-import { getDeviceFingerprint, getLocationInfo }  from '@shared/utils/deviceFingerprint';
-import { useHeaderTitle }                         from '@shared/context/HeaderTitleContext';
+import { getDeviceFingerprint, getLocationInfo } from '@shared/utils/deviceFingerprint';
+import { useHeaderTitle }                        from '@shared/context/HeaderTitleContext';
+import {
+  verifyDeviceTrust,
+  getSignatureKey,
+  getPreSignedUrl,
+  fetchLpoByRef,
+  fetchComplaintById,
+  signLpo,
+  activateSignature,
+  uploadLpo,
+  sendLpoViaEmail,
+} from '../services/lpo.service';
 
 import DevModal from '@shared/components/DevModal/DevModal';
 import Button   from '@shared/components/Button/Button';
@@ -691,7 +701,7 @@ function LpoDoc() {
       let allTrusted   = true;
 
       for (const signType of SIGN_TYPES) {
-        const response = await apiRequest(`${API_URI}/users/verify-device-trust`, 'POST', { signType, deviceInfo: info });
+        const response = await verifyDeviceTrust(signType, info);
         const result   = await response.json();
         if (!result.data.isActivated) allActivated = false;
         if (!result.data.isTrusted)   allTrusted   = false;
@@ -734,11 +744,11 @@ function LpoDoc() {
         payload.authRole = 'MANAGING_DIRECTOR';
       }
       
-      const keyResponse = await apiRequest(`${API_URI}/users/doc-oauth-${signType}-sign-key`, 'POST', payload);
+      const keyResponse = await getSignatureKey(signType, info, authTitle);
       if (!keyResponse.ok) throw new Error('Failed to get signature key');
       const keyData = await keyResponse.json();
 
-      const s3Response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: keyData.data.sign_key, isLong: false, isLpoSign: true });
+      const s3Response = await getPreSignedUrl(keyData.data.sign_key, false, true);
       if (!s3Response.ok) throw new Error('Failed to get signature URL');
       const s3Data = await s3Response.json();
 
@@ -758,7 +768,7 @@ function LpoDoc() {
   const loadQuotationPreview = async (quotation) => {
     if (!quotation?.filePath) return;
     try {
-      const response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: quotation.filePath, isLong: false });
+      const response = await getPreSignedUrl(quotation.filePath, false);
       const data = await response.json();
       setQuotationUrl(data.dataUrl);
       setQuotationMime(quotation.mimeType || '');
@@ -779,7 +789,7 @@ function LpoDoc() {
       if (!refNo) throw new Error('No LPO reference number provided in URL');
 
       const decodedRef = decodeURIComponent(refNo);
-      const response   = await apiRequest(`${API_URI}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
+      const response   = await fetchLpoByRef(refNo);
       const contentType = response.headers.get('content-type');
 
       if (!response.ok) {
@@ -807,7 +817,7 @@ function LpoDoc() {
       let jobCode = null;
       try {
         if (!lpo.complaintId) throw new Error('No complaint ID');
-          const complaintRes = await apiRequest(`${API_URI}/complaints/get-complaints/${lpo.complaintId}`, 'GET');
+          const complaintRes = await fetchComplaintById(lpo.complaintId);
         if (complaintRes.ok) {
           const complaintData = await complaintRes.json();
           jobCode = complaintData.complaintId || null;
@@ -896,10 +906,7 @@ function LpoDoc() {
     }
 
     try {
-      const response = await apiRequest(`${API_URI}/users/verify-device-trust`, 'POST', {
-        signType: 'pm',
-        deviceInfo,
-      });
+      const response = await verifyDeviceTrust('pm', deviceInfo);
       const result = await response.json();
 
       // ── Guard against missing data shape ──
@@ -929,19 +936,15 @@ function LpoDoc() {
      setShowOverrideModal(false);
 
      try {
-       const response = await apiRequest(
-         `${API_URI}/lpo/sign/${encodeURIComponent(decodeURIComponent(refNo))}`,
-         'POST',
-         {
-           uniqueCode:     user.uniqueCode,
-           signedDate:     new Date().toISOString(),
-           signedFrom:     deviceInfo.browserInfo,
-           signedIP:       deviceInfo.ipAddress,
-           signedDevice:   deviceInfo.userAgent,
-           signedLocation: deviceInfo.location,
-           override,                               
-         }
-       );
+       const response = await signLpo(refNo, {
+         uniqueCode:     user.uniqueCode,
+         signedDate:     new Date().toISOString(),
+         signedFrom:     deviceInfo.browserInfo,
+         signedIP:       deviceInfo.ipAddress,
+         signedDevice:   deviceInfo.userAgent,
+         signedLocation: deviceInfo.location,
+         override,
+       });
 
        const result = await response.json();
 
@@ -1012,11 +1015,7 @@ function LpoDoc() {
 
     try {
       for (const signType of SIGN_TYPES) {
-        const response = await apiRequest(
-          `${API_URI}/users/activate-signature`,
-          'POST',
-          { activationKey, signType, deviceInfo }
-        );
+        const response = await activateSignature(activationKey, signType, deviceInfo);
         if (!response.ok) {
           const errData = await response.json();
           throw new Error(errData.message || `Failed to activate ${signType}`);
@@ -1092,18 +1091,13 @@ function LpoDoc() {
           ? `${API_URI}/complaints/upload-lpo/${complaintId || lpoData.complaintId}`
           : `${API_URI}/lpo/upload-lpo`;
 
-        const uploadResponse = await apiRequest(
-          uploadEndpoint,
-          'POST',
-          {
-            fileName:    `${getFileName()}.pdf`,
-            uploadedBy:  'WORKSHOP_MANAGER',
-            lpoRef:      complaintId ? lpoData.lpoRef : decodeURIComponent(refNo),
-            description: 'LPO document generated from system',
-            isAmendment: lpoData.isAmendment || false,
-          },
-          { 'Content-Type': 'application/json' }
-        );
+        const uploadResponse = await uploadLpo(uploadEndpoint, {
+          fileName:    `${getFileName()}.pdf`,
+          uploadedBy:  'WORKSHOP_MANAGER',
+          lpoRef:      complaintId ? lpoData.lpoRef : decodeURIComponent(refNo),
+          description: 'LPO document generated from system',
+          isAmendment: lpoData.isAmendment || false,
+        });
 
         const uploadResult = await uploadResponse.json();
         if (!uploadResponse.ok || !uploadResult.success) {
@@ -1169,7 +1163,7 @@ function LpoDoc() {
       // attach the pre-uploaded quotation, if one exists on the LPO
       if (lpoData.quotation?.filePath) {
         try {
-          const s3Res  = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: lpoData.quotation.filePath, isLong: false });
+          const s3Res  = await getPreSignedUrl(lpoData.quotation.filePath, false);
           const s3Data = await s3Res.json();
           const qRes   = await fetch(s3Data.dataUrl);
           const qBlob  = await qRes.blob();
@@ -1182,7 +1176,7 @@ function LpoDoc() {
       // append any extra attachments added via the modal
       extraFiles.forEach((file) => formDataToSend.append('attachments', file));
 
-      const response = await apiRequest(`${API_URI}/lpo/send-via-email`, 'POST', formDataToSend, true);
+      const response = await sendLpoViaEmail(formDataToSend);
 
       if (response.ok) {
         setShowEmailModal(false);

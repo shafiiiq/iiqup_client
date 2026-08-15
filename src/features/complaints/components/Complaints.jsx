@@ -16,11 +16,10 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 
-import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
 import Button from '@shared/components/Button/Button';
 import Loader from '@shared/components/Loader/Loader';
+import { fetchComplaints as fetchComplaintsService, getPreSignedMediaUrl } from '../services/complaints.service';
 
 import './Complaints.css';
 
@@ -280,20 +279,7 @@ function Complaints() {
     try {
       showRefresh ? setRefreshing(true) : setLoading(true);
 
-      const endpoint = complaintId
-        ? `${API_URI}/complaints/get-complaints/${complaintId}`
-        : `${API_URI}/complaints/get-all-complaints`;
-
-      const response = await apiRequest(endpoint);
-      if (!response.ok) throw new Error('Failed to fetch complaints');
-
-      const data = await response.json();
-
-      const raw = complaintId ? [data.data] : Array.isArray(data.data?.data) ? data.data.data : [];
-      if (!Array.isArray(raw)) throw new Error('Invalid data format: expected array');
-
-      // Sort newest first.
-      const sorted = [...raw].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const sorted = await fetchComplaintsService(complaintId);
 
       // Initialise media carousel indices.
       const indices = Object.fromEntries(sorted.map((_, i) => [i, 0]));
@@ -328,17 +314,13 @@ function Complaints() {
     if (!filePath) return '';
     if (mediaUrls[filePath]) return mediaUrls[filePath];
 
-    try {
-      const response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: filePath, isLong: true });
-      const result = await response.json();
-      const url = result.dataUrl;
-
+    const url = await getPreSignedMediaUrl(filePath);
+    if (url) {
       setMediaUrls((prev) => ({ ...prev, [filePath]: url }));
       return url;
-    } catch (err) {
-      console.error('[Complaints] getMediaUrl error:', err);
-      return FALLBACK_IMAGE;
     }
+
+    return FALLBACK_IMAGE;
   };
 
   /**

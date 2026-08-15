@@ -11,9 +11,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Notification.css';
 
-import { API_URI }  from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
-import { useAlert }   from '@shared/context/AlertContext';
+import { useAlert } from '@shared/context/AlertContext';
+import { fetchNormalNotifications as fetchNormalNotificationsApi } from '../services/notification.service';
 
 import Button from '@shared/components/Button/Button';
 import Input  from '@shared/components/Input/Input';
@@ -433,27 +432,9 @@ const Notifications = ({ islivemodeON, scrollContainerRef, liveNotification }) =
   // ─────────────────────────────────────────────────────────────────────────
 
   const fetchNormalNotifications = async (page = 1) => {
-    try {
-      const response = await apiRequest(
-        `${API_URI}/notification/get-all-notification`,
-        'POST',
-        { uniqueCode: uniqueCodeRef.current, page, limit: ITEMS_PER_PAGE }
-      );
-      const data = await response.json();
-
-      if (response.ok && data.status === 200) {
-        setHasMore(data.pagination.hasMore);
-        return data.data
-          .filter(n => n.sourceId !== 'attendance')
-          .map(n => ({ ...n, type: 'normal', read: true }));
-      }
-
-      console.error('[Notifications] fetchNormal:', data.message);
-      return [];
-    } catch (error) {
-      console.error('[Notifications] fetchNormal:', error);
-      return [];
-    }
+    const result = await fetchNormalNotificationsApi(uniqueCodeRef.current, page, ITEMS_PER_PAGE);
+    setHasMore(result.hasMore);
+    return result.notifications;
   };
 
   // special notifications removed from server; skip fetching

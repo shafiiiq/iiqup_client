@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ServiceHistorySummary.css';
-import { apiRequest } from '@shared/utils/api';
-import { API_URI } from '@shared/constants';
 import { useSearch } from '@shared/context/SearchContext';
+import { fetchServiceSummaryData, deleteServiceReport } from './services/serviceHistory.service';
 import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
 import { useNavigate } from 'react-router-dom';
 import Button from '@shared/components/Button/Button';
@@ -46,22 +45,7 @@ function ServiceHistorySummary() {
             setelectedMonthRange(months);
         }
         try {
-            let url;
-
-            if (startDate && endDate) {
-                const formatForAPI = (date) => {
-                    const [year, month, day] = date.split('-');
-                    return `${day}-${month}-${year}`;
-                };
-                url = `${API_URI}/service-report/summary/date-range/${formatForAPI(startDate)}/${formatForAPI(endDate)}`;
-            } else if (months) {
-                url = `${API_URI}/service-report/summary/last-months/${months}`;
-            } else {
-                url = `${API_URI}/service-report/summary/${period}`;
-            }
-
-            const response = await apiRequest(url, 'GET');
-            const data = await response.json();
+            const data = await fetchServiceSummaryData({ period, startDate, endDate, months });
 
             if (data && data.data && data.data.all) {
                 setServiceData(data.data.all);
@@ -112,11 +96,8 @@ function ServiceHistorySummary() {
     };
 
     const confirmDeleteReport = async () => {
-        const type = deleteReport.serviceType || 'oil';
-        const url = `${API_URI}/service-history/delete/${type}/${deleteReport._id}`;
-        const response = await apiRequest(url, 'DELETE');
-        const data = await response.json();
-        if (data.ok) {
+        const response = await deleteServiceReport(deleteReport._id);
+        if (response.ok) {
             setShowDeleteModal(false);
             fetchServiceData(selectedPeriod);
         }

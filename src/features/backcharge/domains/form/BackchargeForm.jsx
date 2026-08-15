@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import logoImage from '@assets/images/al-ansari-color.png';
 import alAnsariText from '@assets/images/al-ansari-text.png';
-import { apiRequest } from '@shared/utils/api';
-import { API_URI } from '@shared/constants';
 import Button from '@shared/components/Button/Button';
 import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
+import { fetchBackchargeReports, checkLatestBackchargeRef, addBackcharge } from './services/backcharge.form.api';
 
 const getTodayDateInput = () => {
     const now = new Date();
@@ -82,12 +81,9 @@ const BackchargeForm = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const backchargeResponse = await apiRequest(`${API_URI}/backcharge/get-backcharge-reports`, 'GET');
-                if (backchargeResponse.ok) {
-                    const data = await backchargeResponse.json();
-                    if (data.success && data.data) {
-                        setAllBackchargeData(data.data);
-                    }
+                const data = await fetchBackchargeReports();
+                if (data.success && data.data) {
+                    setAllBackchargeData(data.data);
                 }
 
                 const refNumber = await generateRefNumber();
@@ -136,18 +132,14 @@ const BackchargeForm = () => {
     const generateRefNumber = async () => {
         setIsGeneratingRef(true);
         try {
-            const response = await apiRequest(`${API_URI}/backcharge/check-latest-backcharge-ref`, 'GET');
-            if (response.ok) {
-                const data = await response.json();
-
-                if (data.success && data.data) {
-                    const latestNumber = data.data.latestNumber || 140;
-                    const currentDate = new Date();
-                    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-                    const year = String(currentDate.getFullYear()).slice(-2);
-                    const newRefNumber = `ATE${latestNumber + 1}-${month}-${year}`;
-                    return newRefNumber;
-                }
+            const data = await checkLatestBackchargeRef();
+            if (data.success && data.data) {
+                const latestNumber = data.data.latestNumber || 140;
+                const currentDate = new Date();
+                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                const year = String(currentDate.getFullYear()).slice(-2);
+                const newRefNumber = `ATE${latestNumber + 1}-${month}-${year}`;
+                return newRefNumber;
             }
 
             const currentDate = new Date();
@@ -338,7 +330,7 @@ const BackchargeForm = () => {
                 )
             };
 
-            const response = await apiRequest(`${API_URI}/backcharge/add-backcharge`, 'POST', backchargeData);
+            const response = await addBackcharge(backchargeData);
 
             if (response.ok) {
                 setSaveStatus('success');

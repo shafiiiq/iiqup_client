@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Toolkits.css';
+import ExcelJS from 'exceljs';
 import { API_URI } from '@shared/constants';
 import { apiRequest } from '@shared/utils/api';
-import ExcelJS from 'exceljs';
+import { fetchAllToolkitUsers, fetchToolkits, fetchVariantHistory, addToolkit, updateToolkit, updateVariant, deleteToolkit, deleteVariant, reduceToolkitStock, fetchToolkitHistory } from '../services/toolkits.service';
 import DevModal from '@shared/components/DevModal/DevModal';
 import Button   from '@shared/components/Button/Button';
 import Loader   from '@shared/components/Loader/Loader';
@@ -85,43 +86,7 @@ const Toolkits = () => {
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
-        const [mechanicsRes, operatorsRes, officeUsersRes] = await Promise.all([
-          apiRequest(`${API_URI}/mechanics/get-all-mechanic`, 'GET'),
-          apiRequest(`${API_URI}/operators/get-all-operators`, 'GET'),
-          apiRequest(`${API_URI}/users/get-all-users`, 'GET')
-        ]);
-
-        let mechanics = [];
-        if (mechanicsRes.ok) {
-          const mechanicsData = await mechanicsRes.json();
-          mechanics = (mechanicsData.data || []).map(mechanic => ({
-            _id: mechanic._id,
-            name: mechanic.name,
-            type: 'Mechanic'
-          }));
-        }
-
-        let operators = [];
-        if (operatorsRes.ok) {
-          const operatorsData = await operatorsRes.json();
-          operators = (operatorsData.data || []).map(operator => ({
-            _id: operator._id,
-            name: operator.name,
-            type: 'Operator'
-          }));
-        }
-
-        let officeUsers = [];
-        if (officeUsersRes.ok) {
-          const officeData = await officeUsersRes.json();
-          officeUsers = (officeData.data?.office || []).map(user => ({
-            _id: user._id,
-            name: user.name,
-            type: 'Office User'
-          }));
-        }
-
-        const combinedUsers = [...mechanics, ...operators, ...officeUsers];
+        const combinedUsers = await fetchAllToolkitUsers();
         setAllUsers(combinedUsers);
         setFilteredUsers(combinedUsers);
       } catch (err) {
@@ -149,13 +114,11 @@ const Toolkits = () => {
     try {
       const historyPromises = toolkits.map(async (toolkit) => {
         try {
-          const response = await apiRequest(`${API_URI}/toolkits/toolkit-stock-history/${toolkit._id}`);
-          if (!response.ok) return [];
-          const result = await response.json();
+          const result = await fetchToolkitHistory(toolkit._id);
 
           const variantHistories = [];
-          if (result.data.variants && Array.isArray(result.data.variants)) {
-            result.data.variants.forEach(variant => {
+          if (Array.isArray(result)) {
+            result.forEach(variant => {
               if (variant.stockHistory && Array.isArray(variant.stockHistory)) {
                 variant.stockHistory.forEach(h => {
                   variantHistories.push({
@@ -289,13 +252,11 @@ const Toolkits = () => {
   }, []);
 
   useEffect(() => {
-    const fetchToolkits = async () => {
+    const fetchToolkitsData = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest(`${API_URI}/toolkits/get-toolkits`);
-        if (!response.ok) throw new Error('Failed to fetch toolkits');
-        const result = await response.json();
-        setToolkits(Array.isArray(result.data) ? result.data : []);
+        const result = await fetchToolkits();
+        setToolkits(Array.isArray(result) ? result : []);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -304,7 +265,7 @@ const Toolkits = () => {
       }
     };
 
-    fetchToolkits();
+    fetchToolkitsData();
   }, []);
 
   const showDetails = (toolkit) => {
@@ -316,10 +277,7 @@ const Toolkits = () => {
     setSelectedVariant(variant);
     let history = [];
     try {
-      const response = await apiRequest(`${API_URI}/toolkits/stock-history/${toolkit._id}/${variant._id}`);
-      if (!response.ok) throw new Error('Failed to fetch stock history');
-      const result = await response.json();
-      history = result.data.stockHistory;
+      history = await fetchVariantHistory(toolkit._id, variant._id);
     } catch (err) {
       history = [];
     }
@@ -465,21 +423,13 @@ const Toolkits = () => {
     e.preventDefault();
     try {
       if (formMode === 'add') {
-        const response = await apiRequest(`${API_URI}/toolkits/add-toolkits`,
-          'POST',
-          formData
-        );
+        const { response, result } = await addToolkit(formData);
         if (!response.ok) throw new Error('Failed to add toolkit');
-        const result = await response.json();
         setToolkits([...toolkits, result.data]);
       } else {
-        const response = await apiRequest(`${API_URI}/toolkits/update-toolkit/${formData._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
+        const { response, result } = await updateToolkit(formData._id, formData);
         if (!response.ok) throw new Error('Failed to update toolkit');
-        const updatedToolkit = await response.json();
+        const updatedToolkit = result;
         setToolkits(toolkits.map(t => t._id === updatedToolkit.data._id ? updatedToolkit.data : t));
         if (selectedToolkit && selectedToolkit._id === formData._id) {
           setSelectedToolkit(updatedToolkit.data);
@@ -495,32 +445,26 @@ const Toolkits = () => {
   const handleVariantFormSubmit = async (e) => {
     try {
       if (variantFormMode === 'add') {
-        const response = await apiRequest(`${API_URI}/toolkits/update-toolkit/${selectedToolkit._id}`,
-          'PUT',
-          {
-            variants: [...selectedToolkit.variants, variantFormData],
-            reason: variantFormData.reason || `Added new variant: ${variantFormData.size} - ${variantFormData.color}`
-          }
-        );
+        const { response, result } = await updateToolkit(selectedToolkit._id, {
+          variants: [...selectedToolkit.variants, variantFormData],
+          reason: variantFormData.reason || `Added new variant: ${variantFormData.size} - ${variantFormData.color}`
+        });
 
         if (!response.ok) throw new Error('Failed to add variant');
 
-        const updatedToolkit = await response.json();
+        const updatedToolkit = result;
 
         setToolkits(toolkits.map(t => t._id === updatedToolkit.data._id ? updatedToolkit.data : t));
         setSelectedToolkit(updatedToolkit.data);
       } else {
-        const response = await apiRequest(`${API_URI}/toolkits/update-variant/${selectedToolkit._id}/${variantFormData._id}`,
-          'PUT',
-          {
-            ...variantFormData,
-            reason: variantFormData.reason || `Updated variant: ${variantFormData.size} - ${variantFormData.color}`
-          }
-        );
+        const { response, result } = await updateVariant(selectedToolkit._id, variantFormData._id, {
+          ...variantFormData,
+          reason: variantFormData.reason || `Updated variant: ${variantFormData.size} - ${variantFormData.color}`
+        });
 
         if (!response.ok) throw new Error('Failed to update variant');
 
-        const updatedToolkit = await response.json();
+        const updatedToolkit = result;
 
         setToolkits(toolkits.map(t => t._id === updatedToolkit.data._id ? updatedToolkit.data : t));
         setSelectedToolkit(updatedToolkit.data);
@@ -536,9 +480,7 @@ const Toolkits = () => {
   const deleteToolkit = async (id) => {
     if (!window.confirm('Are you sure you want to delete this toolkit?')) return;
     try {
-      const response = await apiRequest(`${API_URI}/toolkits/delete-toolkit/${id}`,
-        'DELETE'
-      );
+      const response = await deleteToolkit(id);
       if (!response.ok) throw new Error('Failed to delete toolkit');
       setToolkits(toolkits.filter(item => item._id !== id));
       if (selectedToolkit && selectedToolkit._id === id) {
@@ -553,9 +495,8 @@ const Toolkits = () => {
   const deleteVariant = async (toolkitId, variantId) => {
     if (!window.confirm('Are you sure you want to delete this variant?')) return;
     try {
-      const response = await apiRequest(`${API_URI}/toolkits/delete-variant/${toolkitId}/${variantId}`, 'DELETE');
+      const { response, result } = await deleteVariant(toolkitId, variantId);
       if (!response.ok) throw new Error('Failed to delete variant');
-      const result = await response.json();
 
       if (result.data === null) {
         setToolkits(toolkits.filter(item => item._id !== toolkitId));
@@ -579,28 +520,23 @@ const Toolkits = () => {
 
   const handleReduceStock = async () => {
     try {
-      const response = await apiRequest(`${API_URI}/toolkits/reduce-stock/${selectedToolkit._id}/${selectedVariant._id}`,
-        'PUT',
-        {
-          quantity: parseInt(reduceStockData.quantity),
-          reason: reduceStockData.reason || 'Stock reduced',
-          updatedBy: 'User',
-          person: reduceStockData.person,
-          personId: reduceStockData.personId,
-          assignedDate: reduceStockData.assignedDate
-        }
-      );
+      const { response, result: updatedToolkit } = await reduceToolkitStock(selectedToolkit._id, selectedVariant._id, {
+        quantity: parseInt(reduceStockData.quantity),
+        reason: reduceStockData.reason || 'Stock reduced',
+        updatedBy: 'User',
+        person: reduceStockData.person,
+        personId: reduceStockData.personId,
+        assignedDate: reduceStockData.assignedDate
+      });
 
       if (!response.ok) throw new Error('Failed to reduce stock');
-      const updatedToolkit = await response.json();
 
       setToolkits(toolkits.map(t => t._id === updatedToolkit.data._id ? updatedToolkit.data : t));
       setSelectedToolkit(updatedToolkit.data);
       setSelectedVariant(updatedToolkit.data.variants.find(v => v._id === selectedVariant._id));
 
-      const historyResponse = await apiRequest(`${API_URI}/toolkits/stock-history/${selectedToolkit._id}/${selectedVariant._id}`);
-      if (!historyResponse.ok) throw new Error('Failed to fetch updated stock history');
-      await historyResponse.json();
+      const historyResponse = await fetchVariantHistory(selectedToolkit._id, selectedVariant._id);
+      if (!Array.isArray(historyResponse)) throw new Error('Failed to fetch updated stock history');
 
       setShowReduceStockModal(false);
     } catch (err) {
