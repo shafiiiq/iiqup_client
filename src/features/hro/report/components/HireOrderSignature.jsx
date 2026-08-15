@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
 import Button from '@shared/components/Button/Button';
+import { getHireOrderByRef, signHireOrder } from '../services/hireOrder.service';
 import './HireOrderDoc.css';
 
 function HireOrderSignature() {
@@ -26,8 +25,7 @@ function HireOrderSignature() {
   useEffect(() => {
     const fetchHireOrder = async () => {
       try {
-        const response = await apiRequest(`${API_URI}/hire-order/get-hire-order-by-ref/${encodeURIComponent(refNo)}`, 'GET');
-        const data = await response.json();
+        const data = await getHireOrderByRef(refNo);
         if (data.success) setHireOrder(data.data);
         else setError('Failed to load hire order');
       } catch (error) {
@@ -53,16 +51,12 @@ function HireOrderSignature() {
       const uniqueCode = localStorage.getItem('userCode') || 'SYSTEM_USER';
       const roleMap = { manager: 'MANAGER', pm: 'PURCHASE_MANAGER', accounts: 'ACCOUNTS', ceo: 'CEO', md: 'MANAGING_DIRECTOR' };
       
-      const response = await apiRequest(
-        `${API_URI}/hire-order/sign/${encodeURIComponent(refNo)}`,
-        'POST',
-        {
-          uniqueCode,
-          role: roleMap[role?.toLowerCase()] || 'SYSTEM',
-          signedDate: new Date().toISOString(),
-          signedFrom: signedFrom.trim(),
-        }
-      );
+      const response = await signHireOrder(refNo, {
+        uniqueCode,
+        role: roleMap[role?.toLowerCase()] || 'SYSTEM',
+        signedDate: new Date().toISOString(),
+        signedFrom: signedFrom.trim(),
+      });
       
       const data = await response.json();
       if (data.success) {

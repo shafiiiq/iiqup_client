@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URI } from '@shared/constants';
-import { apiRequest } from '@shared/utils/api';
 import { useHeaderTitle } from '@shared/context/HeaderTitleContext';
 import Button from '@shared/components/Button/Button';
+import { fetchHireOrders, deleteHireOrder } from '../../main/services/hireOrder.service';
 import './HireOrderList.css';
 
 function HireOrderList() {
@@ -19,13 +18,12 @@ function HireOrderList() {
   }, [setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
-    fetchHireOrders();
+    fetchHireOrdersList();
   }, []);
 
-  const fetchHireOrders = async () => {
+  const fetchHireOrdersList = async () => {
     try {
-      const response = await apiRequest(`${API_URI}/hire-order/get-all-hire-orders`, 'GET');
-      const data = await response.json();
+      const data = await fetchHireOrders();
       setHireOrders(data.data || []);
     } catch (error) {
       console.error('[HireOrderList] error:', error);
@@ -37,8 +35,8 @@ function HireOrderList() {
   const handleView = (ref) => navigate(`/hire-order-doc/${encodeURIComponent(ref)}`);
   const handleDelete = async (ref) => {
     try {
-      await apiRequest(`${API_URI}/hire-order/delete-hire-order/${encodeURIComponent(ref)}`, 'DELETE');
-      fetchHireOrders();
+      await deleteHireOrder(ref);
+      fetchHireOrdersList();
     } catch (error) {
       console.error('[HireOrderList] delete error:', error);
     }
