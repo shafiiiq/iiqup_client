@@ -27,7 +27,7 @@ import {
   signatoryRole,
   captureElementToCanvas,
   buildPdf,
-} from '../../../utils/lpoDocHelpers';
+} from '../../report/utils/lpoDocHelpers';
 
 import './LpoDoc.css';
 

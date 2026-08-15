@@ -10,6 +10,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { API_URI } from '@shared/constants';
+
 import logoImage from '@assets/images/al-ansari-color.png';
 import alAnsariText from '@assets/images/al-ansari-full-address.png';
 import footer from '@assets/images/footer.png';
@@ -20,19 +22,21 @@ import Button from '@shared/components/Button/Button';
 import DevModal from '@shared/components/DevModal/DevModal';
 
 import {
-  fetchLatestLpoRef,
-  fetchLpoByRef,
-  fetchEquipments,
-  fetchCompanies,
+  fetchLatestLpoRef as fetchLatestLpoRefService,
+  fetchLpoByRef as fetchLpoByRefService,
+  fetchEquipments as fetchEquipmentRecords,
+  fetchCompanies as fetchCompanyRecords,
   createOrUpdateLpo,
   createComplaintLpo,
-} from '../../../services/lpo.service';
+  getQuotationUploadUrl,
+  getPreSignedUrl,
+} from '../services/lpo.service';
 import {
   generateLpoRef,
   formatDate,
   formatCurrency,
   filterEditableTerms,
-} from '../../../utils/lpoHelpers';
+} from '../utils/lpoHelpers';
 
 import './Lpo.css';
 
@@ -245,7 +249,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   /** Fetches the latest LPO sequence number and generates the new reference. */
   const fetchLatestLpoNumber = async () => {
     try {
-      const data = await fetchLatestLpoRef();
+      const data = await fetchLatestLpoRefService();
 
       const newLpoNumber = parseInt(data.data?.latestRef || 130) + 1;
       setLpoCounter(newLpoNumber);
@@ -260,9 +264,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   const fetchLpoForEdit = async () => {
     setIsLoading(true);
     try {
-      const decodedRef = decodeURIComponent(refNo);
-      const response = await apiRequest(`${API_URI}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
-      const data = await response.json();
+      const data = await fetchLpoByRefService(refNo);
 
       if (!data.success || !data.data) return;
       const lpo = data.data;
@@ -304,9 +306,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   const fetchLpoForAmendmentEdit = async () => {
     setIsLoading(true);
     try {
-      const decodedRef = decodeURIComponent(refNo);
-      const response = await apiRequest(`${API_URI}/lpo/get-lpo-by-ref/${decodedRef}`, 'GET');
-      const data = await response.json();
+      const data = await fetchLpoByRefService(refNo);
 
       if (!data.success || !data.data) return;
       const lpo = data.data;
@@ -359,7 +359,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
    */
   const fetchEquipments = async (searchTerm = '') => {
     try {
-      const data = await fetchEquipments(searchTerm);
+      const data = await fetchEquipmentRecords(searchTerm);
       setEquipments(data.data || []);
     } catch (err) {
       console.error('[Lpo] fetchEquipments error:', err);
@@ -369,7 +369,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   /** Fetches company/vendor records for the autocomplete dropdowns. */
   const fetchCompanies = async () => {
     try {
-      const data = await fetchCompanies();
+      const data = await fetchCompanyRecords();
       if (data.success) setCompanies(data.data || []);
     } catch (err) {
       console.error('[Lpo] fetchCompanies error:', err);
@@ -708,12 +708,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
     setQuotationPreviewUrl(URL.createObjectURL(file));
 
     try {
-      const response = await apiRequest(`${API_URI}/lpo/get-quotation-upload-url`, 'POST', {
-        fileName: file.name,
-        lpoRef: lpoData.lpoRef,
-        contentType: file.type,
-      });
-      const result = await response.json();
+      const result = await getQuotationUploadUrl(file.name, lpoData.lpoRef, file.type);
       if (!result.success) throw new Error(result.message || 'Failed to get upload URL');
 
       const s3Response = await fetch(result.uploadUrl, {
@@ -734,8 +729,7 @@ function Lpo({ isStock, isAllEquip, edit, amendment, amendmentEdit }) {
   const loadQuotationPreview = async (quotation) => {
     if (!quotation?.filePath) return;
     try {
-      const response = await apiRequest(`${API_URI}/s3/get-pre-signed-url`, 'POST', { key: quotation.filePath, isLong: false });
-      const data = await response.json();
+      const data = await getPreSignedUrl(quotation.filePath, false);
       setQuotationPreviewUrl(data.dataUrl);
       setShowQuotationModal(false);
     } catch (err) {

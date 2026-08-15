@@ -6,7 +6,7 @@ import DevModal from '@shared/components/DevModal/DevModal';
 import Button from '@shared/components/Button/Button';
 import Loader from '@shared/components/Loader/Loader';
 import Toast from '@shared/components/Toast/Toast';
-import { deleteLpo, fetchLpoList, fetchPendingSignatures } from '../../services/lpo.service';
+import { deleteLpo, fetchLpoList, fetchPendingSignatures } from '../../main/services/lpo.service';
 
 function LpoList({ isAll, isEquip, isStock, isForAllEquip }) {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
