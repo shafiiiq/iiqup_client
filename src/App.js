@@ -6,63 +6,63 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useState, createContext, useEffect } from 'react';
 
-import { AuthUtils, checkAutoLogin } from './utils/authUtils';
-import { SearchProvider }           from './Context/SearchContext';
-import { HeaderTitleProvider }      from './Context/HeaderTitleContext';
-import { HeaderVibrationProvider }  from './Context/HeaderVibrationContext';
-import { AlertProvider }            from './Context/AlertContext';
-import { TutorialProvider }         from './Context/TutorialContext';
-import { API_URI }                from './constants';
-import { apiRequest }               from './utils/api';
+import { AuthUtils, checkAutoLogin } from '@shared/utils/authUtils';
+import { SearchProvider }           from '@shared/context/SearchContext';
+import { HeaderTitleProvider }      from '@shared/context/HeaderTitleContext';
+import { HeaderVibrationProvider }  from '@shared/context/HeaderVibrationContext';
+import { AlertProvider }            from '@shared/context/AlertContext';
+import { TutorialProvider }         from '@shared/context/TutorialContext';
+import { API_URI }                  from '@shared/constants';
+import { apiRequest }               from '@shared/utils/api';
 
 // ── Websocket ──────────────────────────────────────────────────────────
-import WebSocketService             from './websocket/websocket';
-import { registerServiceWorker, requestNotificationPermission, subscribeToPush, showNativeNotification, saveSubscriptionToServer } from './utils/webPush';
+import WebSocketService             from '@shared/websocket/websocket';
+import { registerServiceWorker, requestNotificationPermission, subscribeToPush, saveSubscriptionToServer } from '@shared/utils/webPush';
 
 // ── Page Components ──────────────────────────────────────────────────────────
-import Home                    from './Components/Home/Home';
-import ServiceDoc              from './Components/ServiceDoc/ServiceDoc';
-import ServiceForm             from './Components/ServiceForm/ServiceForm';
-import Equipments              from './Components/Equipments/Equipments';
-import ServiceHistory          from './Components/ServiceHistory/ServiceHistory';
-import ServiceHistorySummary   from './Components/ServiceHistorySummary/ServiceHistorySummary';
-import NotificationPage        from './Components/Notification/Notification';
-import Documents               from './Components/Documents/Documents';
-import Dashboard               from './Components/Dashboard/Dashboard';
-import Lpo                     from './Components/Lpo/Lpo';
-import LpoList                 from './Components/LpoList/LpoList';
-import LpoDoc                  from './Components/LpoDoc/LpoDoc';
-import HireOrder               from './Components/HireOrder/HireOrder';
-import HireOrderList           from './Components/HireOrderList/HireOrderList';
-import HireOrderDoc            from './Components/HireOrderDoc/HireOrderDoc';
-// import Quotation               from './Components/Quotation/Quotation';
-// import QuotationList           from './Components/QuotationList/QuotationList';
-// import QuotationDoc            from './Components/QuotationDoc/QuotationDoc';
-import Toolkits                from './Components/Toolkits/Toolkits';
-import Mechanics               from './Components/Mechanics/Mechanics';
-import Operators               from './Components/Operators/Operators';
-import StockManage             from './Components/StockManage/StockManage';
-import Complaints              from './Components/Complaints/Complaints';
-import BackchargeForm          from './Components/BackchargeForm/BackchargeForm';
-import BackchargeDoc           from './Components/BackchargeDoc/BackchargeDoc';
-import BackchargeList          from './Components/BackchargeList/BackchargeList';
-import FormNavigation          from './Components/FormNavigation/FormNavigation';
-import OperationsActivities    from './Components/OperationsActivities/OperationsActivities';
-import ServiceHistoryEntryForm from './Components/ServiceHistoryEntryForm/ServiceHistoryEntryForm';
-import MultiRecord             from './Components/MultiRecord/MultiRecord';
+import Home                    from '@features/home/components/Home';
+import ServiceDoc              from '@/features/equipments/domains/maintenance/report/components/ServiceDoc';
+import ServiceForm             from '@/features/equipments/domains/maintenance/form/report/ServiceForm';
+import Equipments              from '@/features/equipments/main/components/Equipments';
+import ServiceHistory          from '@/features/equipments/domains/maintenance/history/components/ServiceHistory';
+import ServiceHistorySummary   from '@/features/equipments/domains/maintenance/record/ServiceHistorySummary';
+import NotificationPage        from '@features/notification/components/Notification';
+import Documents               from '@features/documents/components/Documents';
+import Dashboard               from '@features/dashboard/components/Dashboard';
+import Lpo                     from '@/features/lpo/domains/form/components/Lpo';
+import LpoList                 from '@/features/lpo/main/components/LpoList';
+import LpoDoc                  from '@/features/lpo/domains/report/components/LpoDoc';
+import HireOrder               from '@/features/hro/form/components/HireOrder';
+import HireOrderList           from '@/features/hro/main/components/HireOrderList';
+import HireOrderDoc            from '@/features/hro/report/components/HireOrderDoc';
+// import Quotation               from '@features/quotation/components/Quotation';
+// import QuotationList           from '@features/quotation/components/QuotationList';
+// import QuotationDoc            from '@features/quotation/components/QuotationDoc';
+import Toolkits                from '@/features/stocks/toolkits/components/Toolkits';
+import Mechanics               from '@features/mechanics/components/Mechanics';
+import Operators               from '@/features/equipments/domains/operator/components/Operators';
+import StockManage             from '@/features/stocks/parts/components/StockManage';
+import Complaints              from '@features/complaints/components/Complaints';
+import BackchargeForm          from '@/features/backcharge/domains/form/BackchargeForm';
+import BackchargeDoc           from '@/features/backcharge/domains/report/BackchargeDoc';
+import BackchargeList          from '@/features/backcharge/main/BackchargeList';
+import FormNavigation          from '@shared/components/FormNavigation/FormNavigation';
+import OperationsActivities    from '@/features/equipments/domains/operation/components/OperationsActivities';
+import ServiceHistoryEntryForm from '@/features/equipments/domains/maintenance/form/history/ServiceHistoryEntryForm';
+import MultiRecord             from '@/features/equipments/domains/maintenance/form/multiple/components/MultiRecord';
 
 // ── Common / Shared Components ───────────────────────────────────────────────
-import Header            from './Components/Common/Header/Header';
-import EquipBypass       from './Components/Common/EquipBypass/EquipBypass';
-import Login             from './Components/Common/Login/Login';
-import NavigationButtons from './Components/Common/NavigationButtons/NavigationButtons';
-import Spacer            from './Components/Spacer/Spacer';
-import SplashScreen      from './splash/SplashScreen';
-import NotFound          from './Common/NotFound/NotFound';
-import Intro             from './Common/Intro/Intro';
+import Header            from '@shared/components/Header/Header';
+import EquipBypass       from '@shared/components/EquipBypass/EquipBypass';
+import Login             from '@shared/components/Login/Login';
+import NavigationButtons from '@shared/components/NavigationButtons/NavigationButtons';
+import Spacer            from '@shared/components/Spacer/Spacer';
+import SplashScreen      from '@/shared/components/SplashScreen/SplashScreen';
+import NotFound          from '@shared/components/NotFound/NotFound';
+import Intro             from '@shared/components/Intro/Intro';
 
-import './App.css';
-import DownloadCenter from './Common/DownloadCenter/DownloadCenter';
+import '@/App.css';
+import DownloadCenter from '@shared/components/DownloadCenter/DownloadCenter';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Global Contexts
