@@ -6,63 +6,63 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useState, createContext, useEffect } from 'react';
 
-import { AuthUtils, checkAutoLogin } from '@shared/utils/authUtils';
+import { AuthUtils, checkAutoLogin } from '@/features/screens/oauth/login/helper/oauth.helper';
 import { SearchProvider }           from '@shared/context/SearchContext';
-import { HeaderTitleProvider }      from '@shared/context/HeaderTitleContext';
-import { HeaderVibrationProvider }  from '@shared/context/HeaderVibrationContext';
+import { HeaderTitleProvider }      from '@/shared/components/app/header/context/TitleContext';
+import { HeaderVibrationProvider }  from '@/shared/components/app/header/context/VibrationContext';
 import { AlertProvider }            from '@shared/context/AlertContext';
-import { TutorialProvider }         from '@shared/context/TutorialContext';
-import { API_URI }                  from '@shared/constants';
-import { apiRequest }               from '@shared/utils/api';
+import { TutorialProvider }         from '@/shared/components/widgets/tutorial/context/TutorialContext';
+import { API_URI }                  from '@/features/core/network/api/api.uri';
+import { apiRequest }               from '@/features/core/network/api/api.request';
 
 // ── Websocket ──────────────────────────────────────────────────────────
-import WebSocketService             from '@shared/websocket/websocket';
-import { registerServiceWorker, requestNotificationPermission, subscribeToPush, saveSubscriptionToServer } from '@shared/utils/webPush';
+import WebSocketService             from '@/features/core/network/websocket/websocket';
+import { registerServiceWorker, requestNotificationPermission, subscribeToPush, saveSubscriptionToServer } from '@/features/core/messaging/notification/webpush';
 
 // ── Page Components ──────────────────────────────────────────────────────────
-import Home                    from '@features/home/components/Home';
-import ServiceDoc              from '@/features/equipments/domains/maintenance/report/components/ServiceDoc';
-import ServiceForm             from '@/features/equipments/domains/maintenance/form/report/ServiceForm';
-import Equipments              from '@/features/equipments/main/components/Equipments';
-import ServiceHistory          from '@/features/equipments/domains/maintenance/history/components/ServiceHistory';
-import ServiceHistorySummary   from '@/features/equipments/domains/maintenance/record/ServiceHistorySummary';
-import NotificationPage        from '@features/notification/components/Notification';
-import Documents               from '@features/documents/components/Documents';
-import Dashboard               from '@features/dashboard/components/Dashboard';
-import Lpo                     from '@/features/lpo/domains/form/components/Lpo';
-import LpoList                 from '@/features/lpo/main/components/LpoList';
-import LpoDoc                  from '@/features/lpo/domains/report/components/LpoDoc';
-import HireOrder               from '@/features/hro/form/components/HireOrder';
-import HireOrderList           from '@/features/hro/main/components/HireOrderList';
-import HireOrderDoc            from '@/features/hro/report/components/HireOrderDoc';
+import Home                    from '@/features/screens/home/components/Home';
+import ServiceDoc              from '@/features/screens/equipment/domains/maintenance/report/components/MaintenanceReport';
+import ServiceForm             from '@/features/screens/equipment/domains/maintenance/form/report/MaintenanceReportForm';
+import Equipments              from '@/features/screens/equipment/main/components/Equipments';
+import ServiceHistory          from '@/features/screens/equipment/domains/maintenance/history/components/MaintenanceHistory';
+import ServiceHistorySummary   from '@/features/screens/equipment/domains/maintenance/record/MaintenanceRecord';
+import NotificationPage        from '@/features/screens/notification/components/Notification';
+import Documents               from '@/features/screens/document/components/Document';
+import Dashboard               from '@/features/screens/dashboard/components/Dashboard';
+import Lpo                     from '@/features/screens/lpo/domains/form/components/LpoForm';
+import LpoList                 from '@/features/screens/lpo/domains/list/components/LpoList';
+import LpoDoc                  from '@/features/screens/lpo/domains/report/components/LpoReport';
+import HireOrder               from '@/features/screens/hro/domains/form/components/HroForm';
+import HireOrderList           from '@/features/screens/hro/domains/list/components/HroList';
+import HireOrderDoc            from '@/features/screens/hro/domains/report/components/HroReport';
 // import Quotation               from '@features/quotation/components/Quotation';
 // import QuotationList           from '@features/quotation/components/QuotationList';
 // import QuotationDoc            from '@features/quotation/components/QuotationDoc';
-import Toolkits                from '@/features/stocks/toolkits/components/Toolkits';
-import Mechanics               from '@features/mechanics/components/Mechanics';
-import Operators               from '@/features/equipments/domains/operator/components/Operators';
-import StockManage             from '@/features/stocks/parts/components/StockManage';
-import Complaints              from '@features/complaints/components/Complaints';
-import BackchargeForm          from '@/features/backcharge/domains/form/BackchargeForm';
-import BackchargeDoc           from '@/features/backcharge/domains/report/BackchargeDoc';
-import BackchargeList          from '@/features/backcharge/main/BackchargeList';
-import FormNavigation          from '@shared/components/FormNavigation/FormNavigation';
-import OperationsActivities    from '@/features/equipments/domains/operation/components/OperationsActivities';
-import ServiceHistoryEntryForm from '@/features/equipments/domains/maintenance/form/history/ServiceHistoryEntryForm';
-import MultiRecord             from '@/features/equipments/domains/maintenance/form/multiple/components/MultiRecord';
+import Toolkits                from '@/features/screens/stock/domains/toolkit/components/Toolkits';
+import Mechanics               from '@/features/screens/mechanic/components/Mechanic';
+import Operators               from '@/features/screens/equipment/domains/operator/components/Operator';
+import StockManage             from '@/features/screens/stock/domains/part/components/SpareParts';
+import Complaints              from '@/features/screens/complaint/components/Complaint';
+import BackchargeForm          from '@/features/screens/backcharge/domains/form/components/BackchargeForm';
+import BackchargeDoc           from '@/features/screens/backcharge/domains/report/components/BackchargeReport';
+import BackchargeList          from '@/features/screens/backcharge/domains/list/components/BackchargeList';
+import FormNavigation          from '@/features/screens/equipment/domains/maintenance/form/history/picker/components/MaintenanceTypePicker';
+import OperationsActivities    from '@/features/screens/equipment/domains/operation/components/Operations';
+import ServiceHistoryEntryForm from '@/features/screens/equipment/domains/maintenance/form/history/MaintenanceHistoryForm';
+import MultiRecord             from '@/features/screens/equipment/domains/maintenance/form/record/components/MaintenanceRecordForm';
 
 // ── Common / Shared Components ───────────────────────────────────────────────
-import Header            from '@shared/components/Header/Header';
-import EquipBypass       from '@shared/components/EquipBypass/EquipBypass';
-import Login             from '@shared/components/Login/Login';
-import NavigationButtons from '@shared/components/NavigationButtons/NavigationButtons';
-import Spacer            from '@shared/components/Spacer/Spacer';
-import SplashScreen      from '@/shared/components/SplashScreen/SplashScreen';
-import NotFound          from '@shared/components/NotFound/NotFound';
-import Intro             from '@shared/components/Intro/Intro';
+import Header            from '@/shared/components/app/header/Header';
+import EquipBypass       from '@/shared/components/pickers/equipment/EquipmentPicker';
+import Login             from '@/features/screens/oauth/login/components/Login';
+import NavigationButtons from '@/shared/components/widgets/navigator/Navigator';
+import Spacer            from '@/shared/components/widgets/spacer/Spacer';
+import SplashScreen      from '@/shared/components/app/splash/SplashScreen';
+import NotFound          from '@/shared/components/app/lost/NotFound';
+import Intro             from '@/features/screens/oauth/intro/Intro';
 
 import '@/App.css';
-import DownloadCenter from '@shared/components/DownloadCenter/DownloadCenter';
+import DownloadCenter from '@/shared/components/app/downloads/Downloads';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Global Contexts
