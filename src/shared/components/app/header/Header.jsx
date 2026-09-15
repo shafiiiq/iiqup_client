@@ -1,92 +1,74 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Header.jsx — Global application header
-// Renders the sticky top nav with: logo, navigation pills, global search,
-// user controls (theme toggle + logout), alert banner, and breadcrumb title.
-// Visibility and content are driven by context (search, title, alert, vibration).
-// ─────────────────────────────────────────────────────────────────────────────
-
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useLocation, useNavigate }     from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { LoginLogic }         from '@/features/screens/oauth/login/helper/oauth.helper';
-import { useSearch }          from '@shared/context/SearchContext';
-import { useHeaderTitle }     from '@/shared/components/app/header/context/TitleContext';
-import { useHeaderVibration } from '@/shared/components/app/header/context/VibrationContext';
-import { useAlert }           from '@shared/context/AlertContext';
+import { LoginLogic } from '@/features/screen/oauth/login/helper/login.helper';
+import { useSearch } from '@/shared/context/SearchContext';
+import { useHeaderTitle } from '@/shared/context/TitleContext';
+import { useHeaderVibration } from '@/shared/context/VibrationContext';
+import { useAlert } from '@/shared/context/AlertContext';
+import { useNavTree } from '@/shared/context/NavTreeContext';
+import { resolveNavTreeView } from '@/shared/context/navTree.util';
+import { renderComponentIcon } from '@/shared/components/icons/icon.render';
 
-import logoImage from '@assets/images/al-ansari.png';
+import brandLogo from '@assets/images/brand-logo.png';
 import '@shared/components/app/header/Header.css';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Duration (ms) of the header shake animation on triggered vibration. */
 const VIBRATION_DURATION_MS = 300;
 
-/**
- * Primary navigation items.
- * Icons use the Material Symbols Rounded font via className, not SVG imports,
- * so they render as ligature text nodes — no bundle cost.
- */
 const NAV_ITEMS = [
-  { path: '/',                label: 'Home',          icon: 'home'        },
-  { path: '/equipments',      label: 'Equipments',    icon: 'auto_towing'        },
-  { path: '/stock-manage',    label: 'Stock',         icon: 'shopping_cart'      },
-  { path: '/toolkits',        label: 'Toolkits',      icon: 'handyman'           },
-  { path: '/mechanics',       label: 'Mechanics',     icon: 'smart_toy'          },
-  { path: '/operators',       label: 'Operators',     icon: 'contacts_product'   },
-  { path: '/lpo-list',        label: 'LPO',           icon: 'edit_document'      },
-  { path: '/hire-order-list', label: 'Hire Orders',   icon: 'assignment'         },
-  { path: '/backcharge-list', label: 'Backcharges',   icon: 'table_convert'      },
-  { path: '/documents',       label: 'Documents',     icon: 'files'              },
-  { path: '/notification',    label: 'Notifications', icon: 'notification_audio' },
-  { path: '/dashboard',       label: 'Dashboard',     icon: 'browse'             },
+  { path: '/', label: 'Home', componentIcon: 'IconlyHome' },
+  { path: '/equipments', label: 'Equipments', componentIcon: 'CraneIcon' },
+  { path: '/stock/parts', label: 'Spare Parts', componentIcon: 'IconlyBuy' },
+  { path: '/stock/toolkits', label: 'Safety Items', componentIcon: 'JacketIcon' },
+  { path: '/mechanics', label: 'Mechanics', componentIcon: 'IconlyFace' },
+  { path: '/operators', label: 'Operators', componentIcon: 'Iconly3user' },
+  { path: '/order/purchase/list', label: 'PurchaseOrder', componentIcon: 'IconlyBag2' },
+  { path: '/order/hire/list', label: 'Hire Orders', componentIcon: 'BrandIcon' },
+  { path: '/quotation/list', label: 'Quotations', componentIcon: 'IconlyPaper' },
+  { path: '/backcharge/list', label: 'Backcharges', componentIcon: 'ReturnIcon' },
+  { path: '/documents', label: 'Documents', componentIcon: 'FolderIcon' },
+  { path: '/notification', label: 'Notifications', componentIcon: 'IconlyNotification' },
+  { path: '/dashboard', label: 'Dashboard', componentIcon: 'IconlyCategory' },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Header Component
-// ─────────────────────────────────────────────────────────────────────────────
+const joinClassNames = (...classNames) => classNames.filter(Boolean).join(' ');
 
 const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { registration: navTreeReg } = useNavTree();
+  const navTreeView = navTreeReg
+    ? resolveNavTreeView(navTreeReg.rootLabel, navTreeReg.tree, navTreeReg.selectedPath)
+    : null;
+  const isNavTreeActive = Boolean(navTreeView);
 
-  // ── Context ────────────────────────────────────────────────────────────────
+  const subrouteBarRef = useRef(null);
 
   const { searchTerm, setSearchTerm, clearSearch } = useSearch();
-  const { headerTitle, headerSubtitle }            = useHeaderTitle();
-  const { shouldVibrate, resetVibration }          = useHeaderVibration();
-  const { alert }                                  = useAlert();
-
-  // ── Refs ───────────────────────────────────────────────────────────────────
+  const { headerTitle, headerSubtitle } = useHeaderTitle();
+  const { shouldVibrate, resetVibration } = useHeaderVibration();
+  const { alert } = useAlert();
 
   const searchInputRef = useRef(null);
-  const navRef         = useRef(null);
+  const navRef = useRef(null);
+  const userSectionRef = useRef(null);
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  const [isVibrating, setIsVibrating] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeNavPath, setActiveNavPath] = useState('/');
+  const [isNavHovered, setIsNavHovered] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const [isVibrating,         setIsVibrating]         = useState(false);
-  const [scrolled,            setScrolled]            = useState(false);
-  const [activeLink,          setActiveLink]          = useState('/');
-  const [showNav,             setShowNav]             = useState(false);  
-  const [isDarkMode,          setIsDarkMode]          = useState(false);
-  const [searchExpanded,      setSearchExpanded]      = useState(false);
-  const [userSectionExpanded, setUserSectionExpanded] = useState(false);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Effects
-  // ─────────────────────────────────────────────────────────────────────────
-
-  // Restore persisted dark-mode preference on mount.
   useEffect(() => {
-    if (localStorage.getItem('theme') === 'dark') {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark') {
       document.body.classList.add('dark-theme');
       setIsDarkMode(true);
     }
   }, []);
 
-  // Trigger the CSS shake animation when an external vibration event fires.
   useEffect(() => {
     if (!shouldVibrate) return;
     setIsVibrating(true);
@@ -97,242 +79,251 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
     return () => clearTimeout(timer);
   }, [shouldVibrate, resetVibration]);
 
-  // Apply the 'scrolled' class once the page scrolls past 10px.
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Sync the active nav item with the current route.
   useEffect(() => {
-    setActiveLink(location.pathname);
+    setActiveNavPath(location.pathname);
   }, [location]);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Handlers
-  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (userSectionRef.current && !userSectionRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
-  /** Toggles light/dark theme and persists the choice to localStorage. */
+  useEffect(() => {
+    const navEl = navRef.current;
+    if (!navEl) return;
+
+    let rafId;
+    const updateOffsets = () => {
+      const navRect = navEl.getBoundingClientRect();
+      const barWidth = subrouteBarRef.current?.getBoundingClientRect().width ?? 0;
+      const gap = 16;
+
+      document.documentElement.style.setProperty('--shared-widget-header-subroute-left', `${navRect.right + gap}px`);
+      document.documentElement.style.setProperty(
+        '--shared-widget-header-search-left',
+        `${navRect.right + gap + (subrouteBarRef.current ? barWidth + gap : 0)}px`
+      );
+      rafId = requestAnimationFrame(updateOffsets);
+    };
+
+    rafId = requestAnimationFrame(updateOffsets);
+    return () => cancelAnimationFrame(rafId);
+  }, [navTreeView]);
+
   const toggleTheme = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    document.body.classList.toggle('dark-theme', next);
-    localStorage.setItem('theme', next ? 'dark' : 'light');
+    const nextIsDarkMode = !isDarkMode;
+    setIsDarkMode(nextIsDarkMode);
+    document.body.classList.toggle('dark-theme', nextIsDarkMode);
+    localStorage.setItem('theme', nextIsDarkMode ? 'dark' : 'light');
   };
 
-  /** Expands the search bar and auto-focuses the input after the CSS transition. */
   const handleSearchToggle = () => {
-    setSearchExpanded((prev) => {
-      if (!prev) setTimeout(() => searchInputRef.current?.focus(), 300);
-      return !prev;
+    setIsSearchExpanded((wasExpanded) => {
+      if (!wasExpanded) setTimeout(() => searchInputRef.current?.focus(), 300);
+      return !wasExpanded;
     });
   };
 
-  /** Collapses the search bar when the input loses focus and is empty. */
-  const handleSearchBlur = () => {
-    if (!searchTerm) setSearchExpanded(false);
-  };
+  const handleNavClick = (path) => setActiveNavPath(path);
 
-  const handleNavClick = (path) => setActiveLink(path);
+  const handleUserMenuToggle = () => setIsUserMenuOpen((wasOpen) => !wasOpen);
 
   const handleLogout = () => {
     if (!window.confirm('Are you sure you want to logout?')) return;
     LoginLogic.handleLogout(navigate, setUserLoggedIn);
   };
 
-  /** Returns the first letter of the current user's name, or 'W' as fallback. */
   const getProfileInitial = () => currentUser?.name?.charAt(0).toUpperCase() ?? 'W';
 
-  /** Navigates to the Download Center route. */
+  const getActiveNavIcon = () =>
+    NAV_ITEMS.find((item) => item.path === activeNavPath)?.componentIcon ?? 'IconlyPaper';
+
   const handleDownloadCenterClick = () => navigate('/download-center');
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Derived Values
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * When the user is NOT hovering the nav, the nav pills are hidden and replaced
-   * by either an alert banner (priority) or a breadcrumb title.
-   */
-  const hasContextualDisplay = (headerTitle || alert) && !showNav;
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────────────────
+  const isContextualDisplayVisible = (headerTitle || alert) && !isNavHovered;
 
   return (
-    <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
-      <div className="header-container">
+    <header
+      className={joinClassNames(
+        'shared-widget-header-root',
+        isScrolled && 'shared-widget-header-root--scrolled'
+      )}
+    >
+      <div className="shared-widget-header-container">
 
-        {/* ── User Controls ────────────────────────────────────────────── */}
-        {user_logged_in && (
-          <div
-            className={`user-section ${userSectionExpanded ? 'expanded' : ''}`}
-            onMouseEnter={() => setUserSectionExpanded(true)}
-            onMouseLeave={() => setUserSectionExpanded(false)}
-          >
-            {/* Top row: profile + theme toggle + logout */}
-            <div className="user-section__top">
-              <div className="user-details">
-                <div className="profile-icon">{getProfileInitial()}</div>
-                <span className="user-name">{currentUser?.name}</span>
-              </div>
-
-              <div className="user-actions">
-                {/* BB8 animated day/night theme toggle */}
-                <label className="bb8-toggle">
-                  <input
-                    className="bb8-toggle__checkbox"
-                    type="checkbox"
-                    onChange={toggleTheme}
-                    checked={isDarkMode}
-                  />
-                  <div className="bb8-toggle__container">
-                    <div className="bb8-toggle__scenery">
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="bb8-toggle__star"></div>
-                      <div className="tatto-1"></div>
-                      <div className="tatto-2"></div>
-                      <div className="gomrassen"></div>
-                      <div className="hermes"></div>
-                      <div className="chenini"></div>
-                      <div className="bb8-toggle__cloud"></div>
-                      <div className="bb8-toggle__cloud"></div>
-                      <div className="bb8-toggle__cloud"></div>
-                    </div>
-                    <div className="bb8">
-                      <div className="bb8__head-container">
-                        <div className="bb8__antenna"></div>
-                        <div className="bb8__antenna"></div>
-                        <div className="bb8__head"></div>
-                      </div>
-                      <div className="bb8__body"></div>
-                    </div>
-                    <div className="artificial__hidden">
-                      <div className="bb8__shadow"></div>
-                    </div>
-                  </div>
-                </label>
-
-                <button onClick={handleLogout} className="logout-btn" title="Logout">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <polyline points="16,17 21,12 16,7"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <line x1="21" y1="12" x2="9" y2="12"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Expansion panel: Download Center shortcut — visible on hover */}
-            <div className="user-section__download-panel">
-              <button
-                className="download-center-btn"
-                onClick={handleDownloadCenterClick}
-                title="Open Download Center"
-              >
-                <span className="material-symbols-rounded download-center-btn__icon">
-                  download
-                </span>
-                <span className="download-center-btn__label">Download Center</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Navigation ───────────────────────────────────────────────── */}
         <nav
-          className={[
-            'header-nav',
-            searchExpanded          ? 'shrink'     : '',
-            hasContextualDisplay    ? 'has-title'  : '',
-            isVibrating             ? 'vibrating'  : '',
-          ].filter(Boolean).join(' ')}
+          className={joinClassNames(
+            'shared-widget-header-nav',
+            isSearchExpanded && 'shared-widget-header-nav--shrink',
+            isNavTreeActive && !isNavHovered && 'shared-widget-header-nav--shrink-tree',
+            isContextualDisplayVisible && 'shared-widget-header-nav--has-title',
+            isVibrating && 'shared-widget-header-nav--vibrating'
+          )}
           ref={navRef}
-          onMouseEnter={() => setShowNav(true)}
-          onMouseLeave={() => setShowNav(false)}
+          onMouseEnter={() => setIsNavHovered(true)}
+          onMouseLeave={() => setIsNavHovered(false)}
         >
-          {/* Alert banner — highest priority, replaces nav pills and title */}
-          {alert && !showNav && (
-            <div className="header-alert">
-              <span className="alert-icon material-symbols-rounded" style={{ color: `var(${alert.color})` }}>
+          {alert && !isNavHovered && (
+            <div className="shared-widget-header-alert">
+              <span className="material-symbols-rounded shared-widget-header-alert-icon" style={{ color: `var(${alert.color})` }}>
                 {alert.icon}
               </span>
-              <span className="alert-message" style={{ color: `var(${alert.color})` }}>
+              <span className="shared-widget-header-alert-message" style={{ color: `var(${alert.color})` }}>
                 {alert.message}
               </span>
             </div>
           )}
 
-          {/* Breadcrumb title — shown when no alert and user is not hovering */}
-          {headerTitle && !alert && !showNav && (
-            <div className="header-breadcrumb">
-              <h1 className="breadcrumb-title">{headerTitle}</h1>
-              {headerSubtitle && (
+          <div className="shared-widget-header-logo-section">
+            <img src={brandLogo} alt="R" className="shared-widget-header-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
+          </div>
+
+          {headerTitle && !alert && !isNavHovered && (
+            <div className="shared-widget-header-breadcrumb">
+              {isSearchExpanded ? (
+                <span className="shared-widget-header-breadcrumb-icon">
+                  {renderComponentIcon(getActiveNavIcon(), 40, 'currentColor')}
+                </span>
+              ) : (
                 <>
-                  <span className="breadcrumb-separator">
-                    <span className="material-symbols-rounded">arrow_forward_ios</span>
-                  </span>
-                  <h2 className="breadcrumb-subtitle">{headerSubtitle}</h2>
+                  <h1 className="shared-widget-header-breadcrumb-title">{headerTitle}</h1>
+                  {headerSubtitle && (
+                    <>
+                      <span className="shared-widget-header-breadcrumb-separator">
+                        <span className="material-symbols-rounded">arrow_forward_ios</span>
+                      </span>
+                      <h2 className="shared-widget-header-breadcrumb-subtitle">{headerSubtitle}</h2>
+                    </>
+                  )}
                 </>
               )}
             </div>
           )}
 
-          {/* Nav pills — hidden behind alert/title until user hovers */}
-          <ul className={hasContextualDisplay ? 'nav-hidden' : ''}>
-            {NAV_ITEMS.map((item) => (
-              <li key={item.path} className={activeLink === item.path ? 'active' : ''}>
-                <Link to={item.path} onClick={() => handleNavClick(item.path)} title={item.label}>
-                  <span className="nav-icon">
-                    <span className="material-symbols-rounded">{item.icon}</span>
-                  </span>
-                  <span className="nav-text">{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {isNavTreeActive && !isNavHovered ? (
+            <div className="shared-widget-header-nav-tree-pill">
+              {renderComponentIcon(navTreeReg.rootIcon || getActiveNavIcon(), 40, 'currentColor')}
+              <span className="shared-widget-header-nav-tree-pill-label">{navTreeView.label}</span>
+            </div>
+          ) : (
+            <ul className={joinClassNames(isContextualDisplayVisible && 'shared-widget-header-nav-hidden')}>
+              {NAV_ITEMS.map((item) => (
+                <li
+                  key={item.path}
+                  className={joinClassNames(activeNavPath === item.path && 'shared-widget-header-nav-item--active')}
+                >
+                  <Link to={item.path} onClick={() => handleNavClick(item.path)} title={item.label}>
+                    <span className="shared-widget-header-nav-icon">
+                      {renderComponentIcon(item.componentIcon, 40, 'currentColor')}
+                    </span>
+                    <span className="shared-widget-header-nav-text">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </nav>
 
-        {/* ── Global Search ─────────────────────────────────────────────── */}
-        <div className={`global-search ${searchExpanded ? 'expanded' : ''}`}>
-          <button className="search-icon-btn" onClick={handleSearchToggle} aria-label="Search">
-            <span className="material-symbols-rounded">search</span>
+        {isNavTreeActive && !isNavHovered && (
+          <div className="shared-widget-header-subroute-bar" ref={subrouteBarRef}>
+            {navTreeView.options.map((opt) => (
+              <button
+                key={opt.key}
+                className={joinClassNames(
+                  'shared-widget-header-subroute-item',
+                  opt.key === navTreeView.selectedKey && 'shared-widget-header-subroute-item--active'
+                )}
+                onClick={() => navTreeReg.onSelect(navTreeView.depth, opt.key)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div
+          className={joinClassNames('shared-widget-header-search', isSearchExpanded && 'shared-widget-header-search--expanded')}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="shared-widget-header-search-icon-btn" onClick={handleSearchToggle} aria-label="Search">
+            {renderComponentIcon('IconlySearch', 40, 'currentColor')}
           </button>
 
           <input
             ref={searchInputRef}
             type="text"
-            className="search-input"
+            className="shared-widget-header-search-input"
             placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onBlur={handleSearchBlur}
           />
 
-          {searchTerm && (
+          {isSearchExpanded && (
             <button
-              className="search-clear-btn"
-              onClick={() => { clearSearch(); setSearchExpanded(false); }}
+              className="shared-widget-header-search-clear-btn"
+              onClick={() => { clearSearch(); setIsSearchExpanded(false); }}
             >
               ×
             </button>
           )}
         </div>
 
-        {/* ── Logo ─────────────────────────────────────────────────────── */}
-        <div className="logo-section">
-          <img src={logoImage} alt="Al Ansari Logo" className="header-logo" />
-        </div>
+        {user_logged_in && (
+          <div
+            ref={userSectionRef}
+            className={joinClassNames('shared-widget-header-user-section', isUserMenuOpen && 'shared-widget-header-user-section--open')}
+          >
+            <button
+              type="button"
+              className="shared-widget-header-profile-icon"
+              onClick={handleUserMenuToggle}
+              aria-label="Account menu"
+              aria-expanded={isUserMenuOpen}
+            >
+              {getProfileInitial()}
+            </button>
+
+            <div className="shared-widget-header-user-actions">
+              <button type="button" className="shared-widget-header-theme-toggle" onClick={toggleTheme}>
+                <span className="material-symbols-rounded shared-widget-header-theme-toggle-icon">
+                  {isDarkMode ? 'dark_mode' : 'light_mode'}
+                </span>
+                <span className="shared-widget-header-action-label">
+                  {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                </span>
+              </button>
+
+              <button type="button" className="shared-widget-header-logout-btn" onClick={handleLogout}>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="16,17 21,12 16,7"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="21" y1="12" x2="9" y2="12"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="shared-widget-header-action-label">Logout</span>
+              </button>
+
+              <button type="button" className="shared-widget-header-download-btn" onClick={handleDownloadCenterClick}>
+                <span className="material-symbols-rounded">download</span>
+                <span className="shared-widget-header-action-label">Download Center</span>
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </header>

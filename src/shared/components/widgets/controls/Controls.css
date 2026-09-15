@@ -1,0 +1,70 @@
+.shared.controls.tree.node {
+  width: 100%;
+  position: relative;
+  display: inline-flex;
+}
+
+.shared.controls.tree.toggle {
+  width: 100%;
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  height: 48px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--bg-quaternary);
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.shared.controls.tree.toggle:hover {
+  background: var(--bg-hover);
+}
+
+.shared.controls.tree.chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.shared.controls.tree.toggle.expanded .shared.controls.tree.chevron {
+  transform: rotate(180deg);
+}
+
+.shared.controls.tree.panel {
+  z-index: 2000;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  width: max-content;
+  padding: 0.6rem;
+  border-radius: var(--radius-3xl);
+  corner-shape: squircle;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
+  background: var(--header-bg-primary-700, #1a1a1a);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-outer-lg, 0 8px 24px rgba(0, 0, 0, 0.3));
+}
+
+.shared.controls.stack {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.shared.controls.bar.no-wrap {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.shared.controls.bar.no-wrap .shared.controls.bar.item,
+.shared.controls.bar.no-wrap .shared.controls.tree.node {
+  flex-shrink: 0;
+}

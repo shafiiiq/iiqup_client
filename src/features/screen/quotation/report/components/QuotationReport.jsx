@@ -1,0 +1,513 @@
+import A2Paper from '@/shared/components/widgets/paper/A2Paper';
+import A2PaperSkeleton from '@/shared/components/widgets/paper/A2PaperSkeleton';
+import Modal from '@/shared/components/widgets/modal/Modal';
+import Controls from '@/shared/components/widgets/controls/Controls';
+
+import useQuotationReport from '../hooks/useQuotationReport';
+import { ITEMS_PER_PAGE, SHARED_BTN, CONFIRMATION_HEADING } from '../constants/quotation.report.constant';
+import { formatCurrency, chunkItems } from '../helper/quotation.report.helper';
+import './QuotationReport.css';
+
+function ItemsTable({ items, columns, startIndex, showHeader, showTotal, data, total, lastItemBorder }) {
+  const lastIndex = items.length - 1;
+  const totalValue = data.showDiscountInTotal ? total - (data.discount || 0) : total;
+
+  return (
+    <table className="features screen quotation report items-table">
+      {showHeader && (
+        <thead>
+          <tr>
+            <th>SN</th>
+            {columns.map((col) => <th key={col.id}>{col.label}</th>)}
+          </tr>
+        </thead>
+      )}
+      <tbody>
+        {items.map((item, idx) => (
+          <tr key={item._id || item.id || idx} className={lastItemBorder && idx === lastIndex ? 'features screen quotation report border-bottom' : ''}>
+            <td>{startIndex + idx}</td>
+            {columns.map((col) => (
+              <td
+                key={col.id}
+                className={`${col.id === 'description' && 'purchase order report items description data'}`}
+              >
+                {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
+                {col.id === 'description' && item.image && (
+                  <div className="features screen quotation report item-image-wrap">
+                    <img src={item.image} alt="Item attachment" className="features screen quotation report item-image" />
+                  </div>
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
+        {showTotal && (
+          <>
+            {data.showDiscountInTotal && data.discount > 0 && (
+              <tr>
+                <td colSpan={columns.length} className="features screen quotation report total-label">Discount (QR)</td>
+                <td>-{formatCurrency(data.discount)}</td>
+              </tr>
+            )}
+            <tr>
+              <td colSpan={columns.length} className="features screen quotation report total-label">
+                {data.showDiscountInTotal ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
+              </td>
+              <td>{formatCurrency(data.totalAmount || totalValue)}</td>
+            </tr>
+          </>
+        )}
+      </tbody>
+    </table>
+  );
+}
+
+function ClosingSection({ data, signatureFlags, signatureStates }) {
+  const isSigned = signatureFlags?.authorizedSigned && signatureStates?.authorized?.url;
+
+  return (
+    <>
+      <div className="features screen quotation report terms-extra">
+        {data.noticeText && <div className="features screen quotation report notice-text">{data.noticeText}</div>}
+        {data.priceStatementText && <div className="features screen quotation report price-statement-text">{data.priceStatementText}</div>}
+        {data.contactText && <div className="features screen quotation report contact-text">{data.contactText}</div>}
+      </div>
+
+      <div className="features screen quotation report closing-row">
+        <div className="features screen quotation report closing-left">
+          <div className="features screen quotation report thank-you-text">Thank You,</div>
+
+          {isSigned ? (
+            <div className="features screen quotation report signature-image-wrap">
+              <img
+                className="features screen quotation report signature-image"
+                src={signatureStates.authorized.url}
+                alt="Authorized Signature"
+                crossOrigin="anonymous"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+              {signatureStates.seal?.url && (
+                <img
+                  className="features screen quotation report company-seal"
+                  src={signatureStates.seal.url}
+                  alt="Company Seal"
+                  crossOrigin="anonymous"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              )}
+            </div>
+          ) : (
+            <div className="features screen quotation report signature-space" />
+          )}
+
+          <div className="features screen quotation report signatory-name">{data.signatures?.authorizedSignatory}</div>
+          <span>({data.signatures?.authorizedSignatoryTitle})</span>
+        </div>
+
+        <div className="features screen quotation report closing-right-box">
+          <div className="features screen quotation report confirmation-heading">{CONFIRMATION_HEADING}</div>
+          <div className="features screen quotation report confirmation-text">
+            Customer {data.vendor || '__________'} should fully understand and comply with all the above terms and conditions. Any lapse/negligence, supplier AL ANSARI TRANSPORT &amp; ENTERPRISES WLL has full right to withdraw the equipment without any notice.
+          </div>
+          <div className="features screen quotation report confirmation-field">Authorized Person Name &amp; Signature:</div>
+          <div className="features screen quotation report confirmation-field-row">
+            <span>Company Stamp:</span>
+            <span>Date:</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function TermsSection({ terms, showHeader, isLastTermsPage, data, showClosing, signatureFlags, signatureStates }) {
+  return (
+    <>
+      <table className="features screen quotation report terms-table">
+        <tbody>
+          <tr>
+            <td className="features screen quotation report terms-content">
+              {showHeader && <div className="features screen quotation report terms-header">Terms &amp; Conditions</div>}
+              <ul>
+                {terms.map((term, idx) => <li key={idx}>{term}</li>)}
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {isLastTermsPage && showClosing && (
+        <ClosingSection data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} />
+      )}
+    </>
+  );
+}
+
+function ReportData({ data, signatureFlags, signatureStates }) {
+  const itemPages = chunkItems(data.items, ITEMS_PER_PAGE);
+  const lastItemPageIndex = itemPages.length - 1;
+  const lastItemPageCount = itemPages[lastItemPageIndex].length;
+  const total = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+
+  const remainingCapacity = Math.max(0, ITEMS_PER_PAGE - lastItemPageCount);
+  const termsOnLastItemsPage = data.termsAndConditions.slice(0, remainingCapacity);
+  const overflowTerms = data.termsAndConditions.slice(remainingCapacity);
+  const termsPages = chunkItems(overflowTerms, ITEMS_PER_PAGE);
+  const hasOverflowTermsPages = overflowTerms.length > 0;
+  const lastTermsPageIndex = termsPages.length - 1;
+
+  return (
+    <>
+      <A2Paper className="features screen quotation report document-sheet">
+        {data.isAmendment && data.amendmentDate && (
+          <div className="features screen quotation report amendment-banner">[AMENDMENT]</div>
+        )}
+
+        <div className="features screen quotation report divider-header" />
+        <div className="features screen quotation report title">QUOTATION</div>
+
+        <table className="features screen quotation report info-table">
+          <tbody>
+            <tr>
+              <td className="features screen quotation report info-column-left">
+                <div className="features screen quotation report info-line">TO : {data.vendor}</div>
+                <div className="features screen quotation report info-line">ATTN : {data.attention}</div>
+                <div className="features screen quotation report info-line">DESIGNATION : {data.designation}</div>
+              </td>
+              <td className="features screen quotation report info-column-right">
+                <div className="features screen quotation report info-line">DATE : {data.date}</div>
+                <div className="features screen quotation report info-line">LOCATION : {data.location}</div>
+                {data.customFields?.map((field, idx) => (
+                  <div className="features screen quotation report info-line" key={field.id || idx}>
+                    {(field.label || 'FIELD').toUpperCase()} : {field.value}
+                  </div>
+                ))}
+                <div className="features screen quotation report info-line">QUOTATION REF NO : {data.quotationRef}</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="features screen quotation report divider-details" />
+        <div className="features screen quotation report request-text">{data.requestText}</div>
+
+        <ItemsTable
+          items={itemPages[0]}
+          columns={data.columns}
+          startIndex={1}
+          showHeader
+          showTotal={lastItemPageIndex === 0}
+          data={data}
+          total={total}
+          lastItemBorder={lastItemPageIndex !== 0}
+        />
+
+        {lastItemPageIndex === 0 && termsOnLastItemsPage.length > 0 && (
+          <TermsSection
+            terms={termsOnLastItemsPage}
+            showHeader
+            isLastTermsPage={!hasOverflowTermsPages}
+            data={data}
+            showClosing={!hasOverflowTermsPages}
+            signatureFlags={signatureFlags}
+            signatureStates={signatureStates}
+          />
+        )}
+      </A2Paper>
+
+      {itemPages.slice(1).map((pageItems, idx) => {
+        const pageIndex = idx + 1;
+        const isLastItemPage = pageIndex === lastItemPageIndex;
+        const startIndex = itemPages.slice(0, pageIndex).reduce((sum, p) => sum + p.length, 0) + 1;
+
+        return (
+          <A2Paper key={`items-${pageIndex}`} className="features screen quotation report document-sheet">
+            <div className="features screen quotation report divider-header" />
+            <ItemsTable
+              items={pageItems}
+              columns={data.columns}
+              startIndex={startIndex}
+              showHeader
+              showTotal={isLastItemPage}
+              data={data}
+              total={total}
+              lastItemBorder={!isLastItemPage}
+            />
+
+            {isLastItemPage && termsOnLastItemsPage.length > 0 && (
+              <TermsSection
+                terms={termsOnLastItemsPage}
+                showHeader
+                isLastTermsPage={!hasOverflowTermsPages}
+                data={data}
+                showClosing={!hasOverflowTermsPages}
+                signatureFlags={signatureFlags}
+                signatureStates={signatureStates}
+              />
+            )}
+          </A2Paper>
+        );
+      })}
+
+      {termsPages.map((termsChunk, idx) => {
+        const isLastTermsPage = idx === lastTermsPageIndex;
+        return (
+          <A2Paper key={`terms-${idx}`} className="features screen quotation report document-sheet">
+            <div className="features screen quotation report divider-header" />
+            <TermsSection
+              terms={termsChunk}
+              showHeader={termsOnLastItemsPage.length === 0 && idx === 0}
+              isLastTermsPage={isLastTermsPage}
+              data={data}
+              showClosing={isLastTermsPage}
+              signatureFlags={signatureFlags}
+              signatureStates={signatureStates}
+            />
+          </A2Paper>
+        );
+      })}
+    </>
+  );
+}
+
+function QuotationReport() {
+  const {
+    refNoOrQuotationRef,
+    quotationRef,
+    componentRef,
+    deviceInfo,
+    quotationData,
+    amendmentData,
+    loading,
+    error,
+    signatureFlags,
+    signatureStates,
+    isSigningDoc,
+    showSignConfirmModal,
+    setShowSignConfirmModal,
+    showUnauthorisedModal,
+    setShowUnauthorisedModal,
+    signResult,
+    setSignResult,
+    activationKey,
+    setActivationKey,
+    activationError,
+    activationLoading,
+    globalActivation,
+    showActivationModal,
+    setShowActivationModal,
+    showTrustModal,
+    showNotTrustedModal,
+    setShowNotTrustedModal,
+    showEmailModal,
+    emailFormValues,
+    isSendingEmail,
+    showUploadSuccessModal,
+    setShowUploadSuccessModal,
+    showLoadingModal,
+    loadingMessage,
+    fetchQuotationData,
+    handleSignButtonClick,
+    handleConfirmSign,
+    handleLoadAllSignatures,
+    handleActivation,
+    confirmBrowserTrust,
+    handleDownloadPdf,
+    handlePrint,
+    sendToApprove,
+    handleEditQuotation,
+    handleSendToSupplierClick,
+    handleEmailFormChange,
+    closeEmailModal,
+    handleSendEmail,
+  } = useQuotationReport();
+
+  if (loading) {
+    return (
+      <div className="features screen quotation report page">
+        <A2PaperSkeleton />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="features screen quotation report page">
+        <div className="features screen quotation report error-state">
+          <p className="features screen quotation report error-message">{error}</p>
+          <p>Reference: {quotationRef ? decodeURIComponent(quotationRef) : 'No reference provided'}</p>
+          <button onClick={fetchQuotationData} className="features screen quotation report retry-button">Retry</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="features screen quotation report page" ref={componentRef}>
+      <Controls
+        width="297mm"
+        columns={4}
+        rows={2}
+        margin="0 auto 20px"
+        buttons={[
+          { ...SHARED_BTN, text: 'Edit', onClick: handleEditQuotation, colorScheme: 'info-800' },
+          { ...SHARED_BTN, text: isSigningDoc ? 'Signing...' : 'Sign Document', onClick: handleSignButtonClick, colorScheme: 'warning-800', disabled: isSigningDoc },
+          { ...SHARED_BTN, text: 'Download as PDF', onClick: handleDownloadPdf, colorScheme: 'success-800' },
+          ...(!globalActivation.checked
+            ? [{ text: 'Checking Status...', disabled: true, colorScheme: 'gray-400' }]
+            : !globalActivation.isActivated
+              ? [{ ...SHARED_BTN, text: 'Activate E-Signs', onClick: handleLoadAllSignatures, colorScheme: 'error-800' }]
+              : !globalActivation.isTrusted
+                ? [{ ...SHARED_BTN, text: 'Device Not Trusted - Contact Admin', onClick: handleLoadAllSignatures, colorScheme: 'warning-800' }]
+                : []),
+          { ...SHARED_BTN, text: 'Send For Approval', onClick: sendToApprove, colorScheme: 'info-800' },
+          { ...SHARED_BTN, text: 'Send to Supplier', onClick: handleSendToSupplierClick, colorScheme: 'warning-800' },
+          { ...SHARED_BTN, text: 'Print', onClick: handlePrint, colorScheme: 'success-800' },
+        ]}
+      />
+
+      <ReportData data={quotationData} signatureFlags={signatureFlags} signatureStates={signatureStates} />
+
+      {amendmentData && (
+        <>
+          <div className="features screen quotation report amendment-divider">===== AMENDED DOCUMENT FOLLOWS =====</div>
+          <ReportData data={amendmentData} signatureFlags={signatureFlags} signatureStates={signatureStates} />
+        </>
+      )}
+
+      <Modal
+        isOpen={showActivationModal}
+        onClose={() => setShowActivationModal(false)}
+        type="activation"
+        title="Activate Signature"
+        message="Enter your 20-digit activation key to activate your signature"
+        showInput
+        useCellInput
+        cellCount={20}
+        inputValue={activationKey}
+        onInputChange={setActivationKey}
+        inputError={activationError}
+        deviceInfo={deviceInfo}
+        buttonText={activationLoading ? 'Activating...' : 'Activate'}
+        onButtonClick={handleActivation}
+        preventClose={activationLoading}
+      />
+
+      <Modal
+        isOpen={showTrustModal}
+        onClose={() => { }}
+        type="success"
+        title="Key has been Activated"
+        message="Your key has been activated now. You can now load and use your signature."
+        buttonText="Trust this browser"
+        onButtonClick={confirmBrowserTrust}
+        preventClose
+      />
+
+      <Modal
+        isOpen={showNotTrustedModal}
+        onClose={() => setShowNotTrustedModal(false)}
+        type="warning"
+        title="Device Not Trusted"
+        message="This device is activated but not yet trusted by the administrator. Please contact your system administrator to enable trust for this device."
+        buttonText="Close"
+        onButtonClick={() => setShowNotTrustedModal(false)}
+      />
+
+      <Modal
+        isOpen={showSignConfirmModal}
+        onClose={() => setShowSignConfirmModal(false)}
+        type="warning"
+        title="Confirm Signature"
+        message="You are about to sign this quotation document. This action cannot be undone."
+        buttonText="Confirm & Sign"
+        onButtonClick={handleConfirmSign}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={() => setShowSignConfirmModal(false)}
+      />
+
+      <Modal
+        isOpen={showUnauthorisedModal}
+        onClose={() => setShowUnauthorisedModal(false)}
+        type="unauthorized"
+        title="Not Authorised"
+        message="Your account is not registered as the authorised signatory for this quotation."
+        unauthorizedReason="Your user ID does not match the designated CEO or Managing Director."
+        buttonText="Close"
+        onButtonClick={() => setShowUnauthorisedModal(false)}
+      />
+
+      <Modal
+        isOpen={signResult === 'already_signed'}
+        onClose={() => setSignResult(null)}
+        type="warning"
+        title="Already Signed"
+        message="This quotation has already been signed."
+        buttonText="OK"
+        onButtonClick={() => setSignResult(null)}
+      />
+
+      <Modal
+        isOpen={signResult === 'success'}
+        onClose={() => setSignResult(null)}
+        type="success"
+        title="Document Signed"
+        message="Your signature has been recorded successfully."
+        buttonText="OK"
+        onButtonClick={() => setSignResult(null)}
+        autoClose
+        autoCloseDelay={3000}
+      />
+
+      <Modal
+        isOpen={showEmailModal}
+        onClose={closeEmailModal}
+        type="form"
+        title="Send to Supplier"
+        message="Enter recipient email addresses. Add more than one if needed."
+        buttonText={isSendingEmail ? 'Sending...' : 'Send'}
+        onButtonClick={handleSendEmail}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeEmailModal}
+        formFields={[{ name: 'emails', label: 'Recipient Emails (comma-separated)', type: 'text', placeholder: 'vendor@example.com, other@example.com', required: true }]}
+        formValues={{ emails: emailFormValues.emails.join(', ') }}
+        onFormChange={handleEmailFormChange}
+      />
+
+      <Modal
+        isOpen={showUploadSuccessModal}
+        onClose={() => setShowUploadSuccessModal(false)}
+        type="success"
+        title="Quotation Sent"
+        message="The quotation has been marked as sent."
+        buttonText="OK"
+        onButtonClick={() => setShowUploadSuccessModal(false)}
+        autoClose
+        autoCloseDelay={3000}
+      />
+
+      <Modal
+        isOpen={showLoadingModal}
+        onClose={() => { }}
+        type="progress"
+        title="Processing..."
+        message={loadingMessage}
+        progress={100}
+        preventClose
+      />
+
+      <Modal
+        isOpen={signResult === 'email_sent'}
+        onClose={() => setSignResult(null)}
+        type="success"
+        title="Quotation Sent Successfully"
+        message="Quotation sent successfully to supplier."
+        buttonText="OK"
+        onButtonClick={() => setSignResult(null)}
+        autoClose
+        autoCloseDelay={3000}
+      />
+    </div>
+  );
+}
+
+export default QuotationReport;

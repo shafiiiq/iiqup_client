@@ -1,0 +1,55 @@
+.shared.widget.text {
+  color: var(--text-color);
+  font-family: inherit;
+}
+
+.shared.widget.text.heading {
+  font-size: 28px;
+  line-height: 1.3;
+  font-weight: 700;
+  margin: 0;
+}
+
+.shared.widget.text.title {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 600;
+  margin: 0;
+}
+
+.shared.widget.text.subtitle {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  margin: 0;
+}
+
+.shared.widget.text.body {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  margin: 0;
+}
+
+.shared.widget.text.caption {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.shared.widget.text.label {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.shared.widget.text.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shared.widget.text.skeleton-group {
+  display: flex;
+  flex-direction: column;
+}

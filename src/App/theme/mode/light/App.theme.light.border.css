@@ -1,0 +1,32 @@
+:root {
+  --border-primary-solid-1: 1px solid #d4d4d4;
+  --border-primary-solid-2: 2px solid #d4d4d4;
+  --border-primary-solid-3: 3px solid #d4d4d4;
+  --border-primary-solid-4: 4px solid #d4d4d4;
+  --border-primary-dashed-1: 1px dashed #d4d4d4;
+  --border-primary-dashed-2: 2px dashed #d4d4d4;
+  --border-primary-dashed-3: 3px dashed #d4d4d4;
+  --border-primary-dashed-4: 4px dashed #d4d4d4;
+  --border-secondary-solid-1: 1px solid #a3a3a3;
+  --border-secondary-solid-2: 2px solid #a3a3a3;
+  --border-secondary-solid-3: 3px solid #a3a3a3;
+  --border-secondary-solid-4: 4px solid #a3a3a3;
+  --border-teritiary-solid-1: 1px solid #737373;
+  --border-teritiary-solid-2: 2px solid #737373;
+  --border-teritiary-solid-3: 3px solid #737373;
+  --border-teritiary-solid-4: 4px solid #737373;
+  --border-primary: #a3a3a336;
+  --border-secondary: #d1d5db;
+  --border-tertiary: #a3a3a3a9;
+  --border-focus: #525252;
+  --border-error: #ef4444;
+  --border-success: #10b981;
+  --border-warning: #f59e0b;
+  --border-disabled: #e9ecef;
+  --border-muted: #f3f4f6;
+  --border-width-0: 0;
+  --border-width-1: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+  --border-width-8: 8px;
+}

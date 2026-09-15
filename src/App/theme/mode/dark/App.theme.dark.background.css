@@ -1,0 +1,30 @@
+body.dark-theme {
+  --bg-page: #0e0e0d;
+  --skeleton-base: #1a1a1a;
+  --skeleton-highlight: #3a3a3a;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #232321;
+  --bg-quaternary: #262626;
+  --bg-card: #191918;
+  --bg-card-hover: #262626;
+  --bg-modal: #0a0a0a;
+  --bg-modal-header: #171717;
+  --table-head: #3f3f3b;
+  --table-body: #1a1a18;
+  --bg-modal-footer: #171717;
+  --bg-sidebar: #1e1e1d;
+  --bg-tab: #242423;
+  --bg-tab-item: #363633;
+  --bg-tab-item-active: #4a4a45;
+  --bg-sidebar-hover: #171717;
+  --bg-hover: #1a1a1a;
+  --bg-active: #262626;
+  --bg-selected: #333333;
+  --bg-disabled: #1a1a1a;
+  --bg-muted: #141414;
+  --bg-black: #000000;
+  --scrollbar-track: #1d1d1d;
+  --scrollbar-thumb: #161617;
+  --scrollbar-thumb-hover: #181818;
+}

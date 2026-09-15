@@ -1,0 +1,1 @@
+export const getProfileInitial = (name) => name?.charAt(0).toUpperCase() ?? 'W';

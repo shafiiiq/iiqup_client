@@ -1,0 +1,31 @@
+body.dark-theme {
+  --border-primary-solid-1: 1px solid #26262636;
+  --border-primary-solid-2: 2px solid #26262636;
+  --border-primary-solid-3: 3px solid #26262636;
+  --border-primary-solid-4: 4px solid #26262636;
+  --border-primary-dashed-1: 1px dashed #26262636;
+  --border-primary-dashed-2: 2px dashed #26262636;
+  --border-primary-dashed-3: 3px dashed #26262636;
+  --border-primary-dashed-4: 4px dashed #26262636;
+  --border-secondary-solid-1: 1px solid #404040;
+  --border-secondary-dashed-1: 1px dashed #404040;
+  --border-secondary-solid-2: 2px solid #404040;
+  --border-secondary-solid-3: 3px solid #404040;
+  --border-secondary-solid-4: 4px solid #404040;
+  --border-teritiary-solid-1: 1px solid #525252;
+  --border-teritiary-dashed-1: 1px solid #525252;
+  --border-teritiary-solid-2: 2px solid #525252;
+  --border-teritiary-solid-3: 3px solid #525252;
+  --border-teritiary-solid-4: 4px solid #525252;
+  --border-table: 1px solid #3e3e3a;
+  --border-primary: 1px solid #26262636;
+  --border-secondary: 1px solid #d1d5db;
+  --border-tertiary: 1px solid #404040a9;
+  --border-focus: 1px solid #737373;
+  --border-error: 1px solid #ef4444;
+  --border-success: 1px solid #10b981;
+  --border-warning-solid: 1px solid #f59e0b;
+  --border-warning-dashed: 1px dashed #bd7b0a;
+  --border-disabled: 1px solid #262626;
+  --border-muted: 1px solid #1a1a1a;
+}

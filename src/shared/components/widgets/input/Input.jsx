@@ -19,9 +19,8 @@ import {
     gapMap,
     heightMap,
     iconSizeMap,
-    borderWidthMap,
     paddingBlockMap
-} from '@/shared/components/widgets/maps/size.map';
+} from '@/shared/helper/size.map.helper';
 
 const Input = ({
     type = 'text',
@@ -205,8 +204,8 @@ const Input = ({
     const parseColor = (colorStr) => {
         if (!colorStr) return null;
         if (colorStr.includes('-')) {
-            const [c, s] = colorStr.split('-');
-            return `var(--${c}-${s})`;
+            const [color, shade] = colorStr.split('-');
+            return `var(--color-${color}-${shade})`;
         }
         return colorStr;
     };
@@ -220,7 +219,7 @@ const Input = ({
     };
 
     const { color, shade } = parseColorScheme(colorScheme);
-    const mainColor = parseColor(colorScheme) || `var(--${color}-${shade})`;
+    const mainColor = parseColor(colorScheme) || `var(--color-${color}-${shade})`;
 
     const getBackgroundStyle = () => {
         const { color, shade } = parseColorScheme(colorScheme);
@@ -232,18 +231,18 @@ const Input = ({
         if (variant === 'gradient') {
             const lighterShade = Math.max(100, parseInt(shade) - 200);
             const darkerShade = Math.min(900, parseInt(shade) + 100);
-            return `linear-gradient(135deg, var(--${color}-${lighterShade}), var(--${color}-${shade}), var(--${color}-${darkerShade}))`;
+            return `linear-gradient(135deg, var(--color-${color}-${lighterShade}), var(--color-${color}-${shade}), var(--color-${color}-${darkerShade}))`;
         }
 
         if (variant === 'filled') {
-            return `var(--${color}-${shade})`;
+            return `var(--color-${color}-${shade})`;
         }
 
         if (variant === 'outline') {
-            return 'white';
+            return 'var(--color-white-100)';
         }
 
-        return 'white';
+        return 'var(--color-white-100)';
     };
 
     const getBgColor = () => {
@@ -255,11 +254,11 @@ const Input = ({
         if ((variant === 'gradient' || variant === 'filled')) {
             const { shade } = parseColorScheme(colorScheme);
             if (parseInt(shade) >= 500) {
-                return 'white';
+                return 'var(--color-white-100)';
             }
         }
 
-        return 'var(--gray-900)';
+        return 'var(--color-gray-900)';
     };
 
     const getPlaceholderColor = () => {
@@ -268,20 +267,20 @@ const Input = ({
         if ((variant === 'gradient' || variant === 'filled')) {
             const { shade } = parseColorScheme(colorScheme);
             if (parseInt(shade) >= 500) {
-                return 'rgb(92, 92, 92)';
+                return 'var(--color-gray-500)';
             }
         }
 
-        return 'var(--gray-200)';
+        return 'var(--color-gray-200)';
     };
 
     const getBorderColor = () => {
-        if (error) return 'var(--error-500)';
-        if (success) return 'var(--success-500)';
+        if (error) return 'var(--color-error-500)';
+        if (success) return 'var(--color-success-500)';
         if (isFocused && showFocus) {
             return parseColor(focusBorderColor) || mainColor;
         }
-        return parseColor(borderColor) || 'var(--gray-300)';
+        return parseColor(borderColor) || 'var(--color-gray-300)';
     };
 
     const getShadow = () => {
@@ -325,13 +324,13 @@ const Input = ({
         return null;
     };
 
-    const getBaseStyles = () => {
+    const getBaseStyles = () => {        
         return {
             width: fullWidth ? '100%' : width,
             height: height !== 'auto' ? height : (sizeMap[size]?.height || heightMap[size]),
             fontSize: fontMap[fontSize],
             borderRadius: getBorderRadius(),
-            border: showBorder ? `${borderWidthMap[borderWidth] || borderWidth + 'px'} solid ${getBorderColor()}` : 'none',
+            border: showBorder ? `${borderWidth + 'px'} solid ${getBorderColor()}` : 'none',
             padding: padding ? paddingRightMap[padding] : undefined,
             paddingLeft: inputPaddingLeft ? paddingLeftMap[inputPaddingLeft] : undefined,
             paddingRight: inputPaddingRight ? paddingRightMap[inputPaddingRight] : undefined,
@@ -439,7 +438,7 @@ const Input = ({
         if (!label) return null;
 
         const labelStyles = {
-            color: parseColor(labelColor) || 'var(--gray-700)',
+            color: parseColor(labelColor) || 'var(--color-gray-700)',
             fontSize: fontMap[labelSize],
             background: parseColor(labelBgColor) || 'white',
             padding: labelPadding ? paddingMap[labelPadding] : undefined,
@@ -689,7 +688,7 @@ const Input = ({
         const getCheckedBgColor = () => {
             if (inputValue && onCheckedColorScheme) {
                 const { color, shade } = parseColorScheme(onCheckedColorScheme);
-                return `var(--${color}-${shade})`;
+                return `var(--color-${color}-${shade})`;
             }
             return inputValue ? mainColor : getBgColor();
         };
@@ -1002,7 +1001,7 @@ const Input = ({
 
                         <div className="custom-input-date-weekdays">
                             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day, i) => (
-                                <div key={i} className="custom-input-date-weekday" style={{ color: `${getTextColor()}80` }}>
+                                <div key={i} className="custom-input-date-weekday" style={{ color: `${getTextColor()}` }}>
                                     {day}
                                 </div>
                             ))}
@@ -1129,7 +1128,6 @@ const Input = ({
                         height: 'auto',
                         padding: 'clamp(12px, 2%, 20px)',
                     }}>
-                        {/* Format Toggle */}
                         <div className="custom-input-time-format-toggle">
                             <button
                                 type="button"
@@ -1145,9 +1143,7 @@ const Input = ({
                             </button>
                         </div>
 
-                        {/* Time Selection */}
                         <div className="custom-input-time-selection">
-                            {/* Hours Column */}
                             <div className="custom-input-time-column">
                                 <div className="custom-input-time-column-label" style={{ color: getTextColor() }}>
                                     Hours
@@ -1170,7 +1166,6 @@ const Input = ({
                                 </div>
                             </div>
 
-                            {/* Minutes Column */}
                             <div className="custom-input-time-column">
                                 <div className="custom-input-time-column-label" style={{ color: getTextColor() }}>
                                     Minutes
@@ -1193,7 +1188,6 @@ const Input = ({
                                 </div>
                             </div>
 
-                            {/* AM/PM Toggle (12-hour format only) */}
                             {!is24Hour && (
                                 <div className="custom-input-time-column custom-input-time-period-column">
                                     <div className="custom-input-time-column-label" style={{ color: getTextColor() }}>
@@ -1233,7 +1227,6 @@ const Input = ({
                             )}
                         </div>
 
-                        {/* Apply Button */}
                         <button
                             type="button"
                             onClick={() => {

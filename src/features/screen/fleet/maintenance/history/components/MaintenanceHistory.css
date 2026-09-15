@@ -1,0 +1,222 @@
+
+
+.equipment.maintenance.history.page {
+  padding: 20px;
+  min-height: 100vh;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+.equipment.maintenance.history.loading.state,
+.equipment.maintenance.history.error.message {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+}
+
+.equipment.maintenance.history.error.message {
+  color: var(--maintenance-color);
+}
+
+.equipment.maintenance.history.table.container {
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  box-shadow: var(--shadow-outer-4xl);
+}
+
+.equipment.maintenance.history.table {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.equipment.maintenance.history.table th,
+.equipment.maintenance.history.table td {
+  white-space: nowrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.equipment.maintenance.history.table th {
+  background-color: var(--hover-bg);
+  text-align: left;
+  font-weight: 600;
+}
+
+.equipment.maintenance.history.table tbody tr:hover {
+  background-color: var(--hover-bg);
+}
+
+.equipment.maintenance.history.table td:nth-child(3) {
+  max-width: 300px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.equipment.maintenance.history.table td:nth-child(3) div {
+  margin-bottom: 2px;
+}
+
+.equipment.maintenance.history.table td:nth-child(3) strong {
+  color: var(--text-color);
+}
+
+.equipment.maintenance.history.date.column {
+  min-width: 6rem !important;
+}
+
+.equipment.maintenance.history.no.results {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.equipment.maintenance.history.equipment.header.row td {
+  font-size: 25px;
+  font-weight: 500;
+  background: var(--gradient-primary-1000);
+  border-radius: var(--radius-2xl);
+  text-align: center;
+  corner-radius: squircle;
+}
+
+.equipment.maintenance.history.full.service.row {
+  background-color: rgba(230, 126, 34, 0.2) !important;
+  border-left: 4px solid var(--full-service-color-dark) !important;
+}
+
+.equipment.maintenance.history.replacement.row {
+  background-color: rgba(230, 126, 34, 0.2) !important;
+  border-left: 4px solid var(--full-service-color-dark) !important;
+}
+
+.equipment.maintenance.history.oil.service.row {
+  background-color: rgba(40, 167, 69, 0.15) !important;
+}
+
+.equipment.maintenance.history.major.service.row {
+  background-color: rgba(255, 193, 7, 0.15) !important;
+}
+
+.equipment.maintenance.history.tyre.service.row {
+  background-color: rgba(23, 162, 184, 0.15) !important;
+}
+
+.equipment.maintenance.history.battery.service.row {
+  background-color: rgba(220, 53, 69, 0.15) !important;
+}
+
+.equipment.maintenance.history.normal.service.row {
+  background-color: rgba(125, 13, 139, 0.15) !important;
+  border-left: 3px solid #7d0d8b !important;
+}
+
+.equipment.maintenance.history.service.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+.badge-normal { background-color: var(--normal-service-color); }
+.badge-oil { background-color: var(--oil-service-color); }
+.badge-major { background-color: #854d0e; color: #fef9c3; }
+.badge-tyre { background-color: var(--tyre-service-color); }
+.badge-battery { background-color: var(--battery-service-color); }
+.badge-default { background-color: var(--disabled-text); }
+
+.equipment.maintenance.history.remarks.cell {
+  max-width: 300px;
+  vertical-align: top !important;
+}
+
+.equipment.maintenance.history.remarks.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.equipment.maintenance.history.remarks.text {
+  max-height: 85px;
+  max-width: 345px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.5;
+  transition: max-height 0.3s ease;
+}
+
+.equipment.maintenance.history.remarks.text.expanded {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.equipment.maintenance.history.view.more.button {
+  display: flex;
+  background: none;
+  justify-content: start;
+  border: none;
+  color: var(--color-primary-light);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.equipment.maintenance.history.view.more.button:hover {
+  color: var(--color-primary-dark);
+}
+
+.equipment.maintenance.history.document.column {
+  white-space: nowrap;
+}
+
+.equipment.maintenance.history.layout {
+  display: flex;
+  align-items: stretch;
+  gap: 24px;
+}
+
+.equipment.maintenance.history.layout-sidebar {
+  flex: 0 0 auto;
+}
+
+.equipment.maintenance.history.layout-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .equipment.maintenance.history.layout {
+    flex-direction: column;
+  }
+
+  .equipment.maintenance.history.layout-sidebar {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+.equipment.maintenance.history.loading.more.state {
+  text-align: center;
+  padding: 20px 0;
+}
+
+@media (max-width: 768px) {
+  .equipment.maintenance.history.page {
+    padding: 20px;
+  }
+}

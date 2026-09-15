@@ -1,0 +1,293 @@
+.shared.widget.modal.card.type-form {
+    height: auto;
+    max-height: 90vh;
+    padding: 32px 28px 100px;
+    min-width: 700px;
+    max-width: 900px;
+}
+
+.shared.widget.modal.card.type-form .shared.widget.modal.content {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    padding-top: 20px;
+}
+
+.shared.widget.modal.card.type-form .shared.widget.modal.footer {
+    bottom: 24px;
+    left: 28px;
+    right: 28px;
+}
+
+.shared.widget.modal.form-section {
+    width: 100%;
+    display: grid;
+    gap: 16px;
+}
+
+.shared.widget.modal.form-message {
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.shared.widget.modal.form-fields {
+    display: grid;
+    gap: 14px;
+    min-height: calc(85vh - 280px);
+    max-height: calc(85vh - 280px);
+    overflow-y: auto;
+    padding: 0 12px 10rem 4px;
+}
+
+.shared.widget.modal.form-fields.form-field-single {
+    grid-template-columns: repeat(1, 1fr);
+}
+
+.shared.widget.modal.form-fields.form-field-double {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.shared.widget.modal.form-fields.form-field-triple {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.shared.widget.modal.form-fields.form-field-quad {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.shared.widget.modal.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.shared.widget.modal.form-label {
+    color: var(--dm-white-95);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px var(--dm-black-20);
+    text-align: left;
+}
+
+.shared.widget.modal.form-required {
+    color: #fca5a5;
+    margin-left: 4px;
+}
+
+.shared.widget.modal.form-field-error {
+    color: var(--dm-error-text);
+    background: var(--dm-error);
+    padding: 8px 12px;
+    border-radius: var(--dm-radius);
+    corner-shape: squircle;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: left;
+    backdrop-filter: var(--dm-blur);
+}
+
+.shared.widget.modal.form-row-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.shared.widget.modal.form-file-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.shared.widget.modal.form-file-preview {
+    width: 90px;
+    height: 90px;
+    border-radius: var(--dm-radius);
+    background: var(--dm-white-15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background var(--dm-transition), transform var(--dm-transition);
+}
+
+.shared.widget.modal.form-file-preview:hover {
+    background: var(--dm-white-20);
+    transform: scale(1.05);
+}
+
+.shared.widget.modal.form-file-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.shared.widget.modal.form-file-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--dm-white-80);
+    font-size: 0.75rem;
+}
+
+.shared.widget.modal.form-file-name {
+    color: var(--dm-white-80);
+    font-size: 0.8rem;
+}
+
+.shared.widget.modal.form-multi-select {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.shared.widget.modal.form-multi-select-chips {
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 32px;
+}
+
+.shared.widget.modal.form-multi-select-chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e0e7ff;
+    color: #4338ca;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.shared.widget.modal.form-multi-select-remove {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: #4338ca;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+}
+
+.shared.widget.modal.form-multi-select-dropdown {
+    position: absolute;
+    z-index: 1000;
+    width: calc(50% - 16px);
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: var(--dm-radius);
+    corner-shape: squircle;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px var(--dm-black-15);
+}
+
+.shared.widget.modal.form-multi-select-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    color: #1f2937;
+    transition: background 150ms ease;
+}
+
+.shared.widget.modal.form-multi-select-option:hover {
+    background-color: #f3f4f6;
+}
+
+.shared.widget.modal.form-multi-select-option-label {
+    font-weight: 500;
+}
+
+.shared.widget.modal.form-multi-select-option-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.shared.widget.modal.form-multi-select-more {
+    padding: 8px 12px;
+    color: #6b7280;
+    font-size: 12px;
+    text-align: center;
+}
+
+.shared.widget.modal.form-fields::-webkit-scrollbar {
+    width: 6px;
+}
+
+.shared.widget.modal.form-fields::-webkit-scrollbar-track {
+    background: var(--dm-white-10);
+    border-radius: 3px;
+}
+
+.shared.widget.modal.form-fields::-webkit-scrollbar-thumb {
+    background: var(--dm-white-30);
+    border-radius: 3px;
+}
+
+.shared.widget.modal.form-fields::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 900px) {
+    .shared.widget.modal.card.type-form {
+        min-width: 90vw;
+        max-width: 90vw;
+        max-height: 80vh;
+    }
+    .shared.widget.modal.form-fields {
+        max-height: calc(80vh - 260px);
+        padding-right: 8px;
+    }
+    .shared.widget.modal.card.type-form .shared.widget.modal.footer {
+        bottom: 20px;
+        left: 24px;
+        right: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .shared.widget.modal.card.type-form {
+        padding: 28px 20px 20px;
+    }
+    .shared.widget.modal.form-fields {
+        grid-template-columns: 1fr;
+        max-height: calc(85vh - 240px);
+        gap: 12px;
+    }
+    .shared.widget.modal.form-label {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .shared.widget.modal.card.type-form {
+        padding: 24px 16px 16px;
+    }
+    .shared.widget.modal.card.type-form .shared.widget.modal.content {
+        padding-top: 16px;
+        padding-bottom: 70px;
+    }
+    .shared.widget.modal.form-fields {
+        grid-template-columns: 1fr;
+        max-height: calc(85vh - 220px);
+        gap: 10px;
+        padding: 0 0 8rem 0;
+    }
+    .shared.widget.modal.card.type-form .shared.widget.modal.footer {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        flex-direction: column;
+        gap: 8px;
+    }
+}

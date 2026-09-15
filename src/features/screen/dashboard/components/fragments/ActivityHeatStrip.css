@@ -1,0 +1,42 @@
+.features.screen.dashboard.heat-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.features.screen.dashboard.heat-strip-cell {
+  position: relative;
+  flex: 1;
+  min-width: 46px;
+  height: 96px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 0.5rem;
+  background: var(--bg-quaternary);
+}
+
+.features.screen.dashboard.heat-strip-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-warning-400);
+}
+
+.features.screen.dashboard.heat-strip-value {
+  position: relative;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.features.screen.dashboard.heat-strip-label {
+  position: relative;
+  font-size: 0.68rem;
+  color: var(--text-color);
+  text-transform: uppercase;
+  opacity: 0.7;
+}

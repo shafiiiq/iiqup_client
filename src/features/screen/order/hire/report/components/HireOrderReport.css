@@ -1,0 +1,275 @@
+.features.screen.hire.order.report.page {
+  max-width: 100%;
+  max-height: 100vh !important;
+  font-size: 14px;
+}
+
+.features.screen.hire.order.report.missing-signature-marker {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 20px;
+}
+
+.features.screen.hire.order.report.signature-cell img {
+  width: 11rem !important;
+  margin-left: 0 !important;
+  bottom: 0 !important;
+  position: absolute;
+}
+
+.features.screen.hire.order.report.signature-image {
+  bottom: -4rem !important;
+  margin-left: -2rem !important;
+  position: absolute;
+  width: 15rem !important;
+}
+
+.features.screen.hire.order.report.company-seal {
+  left: -41px !important;
+  top: -1.8rem;
+  width: 17rem !important;
+  z-index: 999999;
+  display: none;
+}
+
+.features.screen.hire.order.report.text-center {
+  text-align: center;
+}
+
+.features.screen.hire.order.report.divider-header {
+  border-top: 1px solid #000;
+  margin-bottom: 0;
+}
+
+.features.screen.hire.order.report.title {
+  text-align: center;
+  font-weight: 600;
+  font-size: 22px;
+  margin: 5px 0 10px;
+  margin-bottom: 1rem;
+  text-decoration: underline;
+}
+
+.features.screen.hire.order.report.info-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 5px !important;
+}
+
+.features.screen.hire.order.report.info-table td {
+  vertical-align: top !important;
+  padding: 0 !important;
+}
+
+.features.screen.hire.order.report.info-column-left,
+.features.screen.hire.order.report.info-column-right {
+  width: 50% !important;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.info-line {
+  display: flex !important;
+  align-items: start !important;
+  margin-bottom: 3px !important;
+  font-size: 18px !important;
+  font-weight: 600;
+}
+
+.features.screen.hire.order.report.divider-details {
+  border-top: 1px solid #000 !important;
+  margin: 5px 0 !important;
+  background-image: none !important;
+  background: #000000 !important;
+}
+
+.features.screen.hire.order.report.request-note {
+  margin: 5px 0 10px !important;
+  font-size: 18px !important;
+  text-align: left !important;
+}
+
+.features.screen.hire.order.report.service-provider {
+  padding-left: 10px !important;
+  font-size: 18px !important;
+}
+
+.features.screen.hire.order.report.items-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0 !important;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.items-table th:first-child,
+.features.screen.hire.order.report.items-table td:first-child {
+  border-left: 1px solid #000 !important;
+}
+
+.features.screen.hire.order.report.items-table th,
+.features.screen.hire.order.report.items-table td {
+  border-right: 1px solid #000 !important;
+  border-top: 1px solid #000 !important;
+  padding: 5px !important;
+  font-size: 18px !important;
+  text-align: center !important;
+  font-weight: 600;
+}
+
+.features.screen.hire.order.report.items-description-data {
+  width: 600px;
+  max-width: 600%;
+}
+
+.features.screen.hire.order.report.items-total-label {
+  text-align: right !important;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.terms-table {
+  width: 100% !important;
+  border-collapse: none !important;
+  margin-top: -1px !important;
+  border-top: 0 !important;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.terms-table td {
+  padding: 5px !important;
+  font-size: 18px !important;
+}
+
+.features.screen.hire.order.report.terms-row{
+  height: fit-content !important;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.signatures-image-row {
+  height: 210px !important;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.terms-content {
+  font-size: 18px !important;
+  vertical-align: top !important;
+  padding: 10px !important;
+}
+
+.features.screen.hire.order.report.terms-content ul {
+  margin: 0 !important;
+  padding-left: 20px !important;
+  line-height: 1.5 !important;
+}
+
+.features.screen.hire.order.report.terms-content li {
+  margin-bottom: 8px !important;
+}
+
+.features.screen.hire.order.report.terms-note {
+  font-size: 18px !important;
+}
+
+.features.screen.hire.order.report.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-height: 300px;
+  justify-content: center;
+}
+
+.features.screen.hire.order.report.error-message {
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+.features.screen.hire.order.report.retry-button {
+  padding: 10px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.features.screen.hire.order.report.retry-button:hover {
+  background-color: #3367d6;
+}
+
+.features.screen.hire.order.report.info-table,
+.features.screen.hire.order.report.items-table,
+.features.screen.hire.order.report.terms-table,
+.features.screen.hire.order.report.signatures-table {
+  background: transparent !important;
+  background-image: none !important;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 18px;
+}
+
+.features.screen.hire.order.report.info-table td,
+.features.screen.hire.order.report.items-table td,
+.features.screen.hire.order.report.items-table th,
+.features.screen.hire.order.report.terms-table td,
+.features.screen.hire.order.report.signatures-table td {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.features.screen.hire.order.report.signatures-table td {
+  width: 240px !important;
+  font-size: 18px !important;
+}
+
+.features.screen.hire.order.report.signatures-date-label {
+  font-size: 14px !important;
+}
+
+.features.screen.hire.order.report.border-left {
+  border-left: 1px solid #000 !important;
+}
+
+.features.screen.hire.order.report.border-top {
+  border-top: 1px solid #000 !important;
+}
+
+.features.screen.hire.order.report.border-right {
+  border-right: 1px solid #000 !important;
+}
+
+.features.screen.hire.order.report.border-bottom {
+  border-bottom: 1px solid #000 !important;
+}
+
+.features.screen.hire.order.report.signatures-company-name {
+  text-align: start !important;
+  font-weight: bold !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+}
+
+.features.screen.hire.order.report.amendment-banner {
+  text-align: center;
+  padding: 8px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.features.screen.hire.order.report.amendment-divider {
+  text-align: center;
+  padding: 20px 0;
+  font-weight: bold;
+}
+
+.features.screen.hire.order.report.status-badge.checking {
+  background: #ffc107;
+  color: #000;
+  font-size: 14px !important;
+}
+
+.features.screen.hire.order.report.status-badge.not-trusted {
+  background: #ff5722;
+  color: white;
+  font-size: 14px !important;
+}

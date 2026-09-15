@@ -1,0 +1,145 @@
+.shared.widget.modal.card.type-unauthorized {
+    height: auto;
+    min-height: 400px;
+    max-height: 90vh;
+    min-width: 600px;
+    max-width: 700px;
+    padding: 32px 28px 24px;
+}
+
+.shared.widget.modal.card.type-unauthorized .shared.widget.modal.content {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    overflow-y: auto;
+    max-height: calc(85vh - 180px);
+    padding-top: 20px;
+}
+
+.shared.widget.modal.card.type-unauthorized .shared.widget.modal.footer {
+    bottom: 24px;
+    left: 28px;
+    right: 28px;
+}
+
+.shared.widget.modal.unauthorized-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.shared.widget.modal.unauthorized-icon {
+    color: var(--dm-white-90);
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.shared.widget.modal.unauthorized-reason {
+    background: var(--dm-black-15);
+    padding: 12px 16px;
+    border-radius: var(--dm-radius);
+    corner-shape: squircle;
+    color: var(--dm-white-90);
+    font-size: 0.9rem;
+    backdrop-filter: var(--dm-blur);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.shared.widget.modal.unauthorized-contact {
+    color: var(--dm-white-80);
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    padding-bottom: 5rem;
+}
+
+.shared.widget.modal.unauthorized-contact a {
+    color: white;
+    font-weight: 600;
+    text-decoration: underline;
+    transition: opacity var(--dm-transition);
+    word-break: break-all;
+}
+
+.shared.widget.modal.unauthorized-contact a:hover {
+    opacity: 0.8;
+}
+
+.shared.widget.modal.card.type-unauthorized .shared.widget.modal.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.shared.widget.modal.card.type-unauthorized .shared.widget.modal.content::-webkit-scrollbar-track {
+    background: var(--dm-white-10);
+    border-radius: 3px;
+}
+
+.shared.widget.modal.card.type-unauthorized .shared.widget.modal.content::-webkit-scrollbar-thumb {
+    background: var(--dm-white-30);
+    border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+    .shared.widget.modal.card.type-unauthorized {
+        min-width: 90vw;
+        max-width: 90vw;
+        max-height: 80vh;
+        padding: 28px 20px 20px;
+    }
+    .shared.widget.modal.card.type-unauthorized .shared.widget.modal.content {
+        max-height: calc(80vh - 160px);
+    }
+    .shared.widget.modal.unauthorized-icon svg {
+        width: 56px;
+        height: 56px;
+    }
+    .shared.widget.modal.unauthorized-reason,
+    .shared.widget.modal.unauthorized-contact {
+        font-size: 0.85rem;
+    }
+    .shared.widget.modal.card.type-unauthorized .shared.widget.modal.footer {
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shared.widget.modal.card.type-unauthorized {
+        min-width: 95vw;
+        padding: 24px 16px 16px;
+    }
+    .shared.widget.modal.card.type-unauthorized .shared.widget.modal.content {
+        max-height: calc(80vh - 140px);
+        padding-bottom: 70px;
+    }
+    .shared.widget.modal.unauthorized-section {
+        gap: 16px;
+    }
+    .shared.widget.modal.unauthorized-icon svg {
+        width: 48px;
+        height: 48px;
+    }
+    .shared.widget.modal.unauthorized-reason {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+    .shared.widget.modal.unauthorized-contact {
+        font-size: 0.8rem;
+    }
+    .shared.widget.modal.card.type-unauthorized .shared.widget.modal.footer {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        flex-direction: column;
+        gap: 8px;
+    }
+}

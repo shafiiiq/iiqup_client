@@ -1,0 +1,12 @@
+.media-card-skeleton-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.media-card-skeleton-icon {
+    font-size: min(75cqw, 75cqh);
+    color: var(--text-disabled);
+    opacity: 0.6;
+}

@@ -1,0 +1,215 @@
+.equipment.maintenance.report.checklist.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.equipment.maintenance.report.checklist.table th,
+.equipment.maintenance.report.checklist.table td {
+  border: 1px solid black;
+  vertical-align: top;
+}
+
+.equipment.maintenance.report.checklist.table td {
+  padding: 9.5px 4px !important;
+}
+
+.equipment.maintenance.report.checklist.table tr td:nth-child(5) {
+  width: 16rem;
+}
+
+.equipment.maintenance.report.document.heading {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  padding: 4px !important;
+}
+
+.equipment.maintenance.report.remarks.row td {
+  padding: 0;
+  border: 1px solid;
+  position: relative;
+}
+
+.equipment.maintenance.report.remarks.container {
+  height: 180px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.equipment.maintenance.report.remarks.text {
+  margin-top: 4px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.equipment.maintenance.report.remarks.label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.equipment.maintenance.report.document.count.display {
+  flex: 2;
+  text-align: center;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.equipment.maintenance.report.document.count.display span {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.equipment.maintenance.report.fit.to.work.status {
+  position: absolute;
+  bottom: 0;
+  right: 1rem;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+
+.equipment.maintenance.report.signature.row td {
+  position: relative;
+}
+
+.equipment.maintenance.report.signature.row img {
+  width: 10rem;
+  position: absolute;
+}
+
+.equipment.maintenance.report.mechanic.signature.image {
+  bottom: -40px;
+  left: 110px;
+}
+
+.equipment.maintenance.report.supervisor.signature.image {
+  bottom: -60px;
+  left: 150px;
+}
+
+.equipment.maintenance.report.loading.state.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #333;
+}
+
+.equipment.maintenance.report.empty.state.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+}
+
+.equipment.maintenance.report.empty.state.container h2 {
+  color: var(--text-color);
+  margin-bottom: 24px;
+  font-size: 30px;
+}
+
+.equipment.maintenance.report.empty.state.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.equipment.maintenance.report.checked.status.cell {
+  padding-left: 38px !important;
+}
+
+.equipment.maintenance.report.document.wrapper {
+  margin-top: -1.2rem;
+  overflow-x: hidden;
+}
+
+.equipment.maintenance.report.single.report.toolbar.spacing {
+  padding-bottom: 2rem;
+}
+
+.equipment.maintenance.report.missing.signature.label {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.equipment.maintenance.report.signature.status.panel {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #28a745;
+}
+
+.equipment.maintenance.report.signed.status.indicator {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.equipment.maintenance.report.signature.expiry.timer {
+  color: #dc3545;
+  font-weight: bold;
+  font-size: 14px;
+  animation: equipmentMaintenanceReportExpiryPulse 1s infinite;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@keyframes equipmentMaintenanceReportExpiryPulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.equipment.maintenance.report.toolbar {
+  margin-top: -1.5rem;
+  width: 100vw !important;
+}
+
+.equipment.maintenance.report.document.count.watermark {
+  position: absolute;
+  top: 50%;
+  left: 5rem;
+  font-size: 20px;
+  font-weight: 100;
+  z-index: -1;
+}
+
+@media (max-width: 768px) {
+  .equipment.maintenance.report.signature.status.panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

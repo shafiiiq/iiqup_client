@@ -1,0 +1,92 @@
+.shared.widget.modal.card.type-hint {
+    height: auto;
+    max-height: 90vh;
+    padding: 32px 28px 100px;
+    min-width: 640px;
+    max-width: 720px;
+}
+
+.shared.widget.modal.card.type-hint .shared.widget.modal.content {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    overflow-y: auto;
+    max-height: calc(85vh - 180px);
+    padding-top: 20px;
+}
+
+.shared.widget.modal.card.type-hint .shared.widget.modal.footer {
+    bottom: 24px;
+    left: 28px;
+    right: 28px;
+}
+
+.shared.widget.modal.hint-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.shared.widget.modal.hint-message {
+    text-align: left;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.shared.widget.modal.hint-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.shared.widget.modal.hint-group-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid var(--dm-white-15);
+    padding-bottom: 6px;
+}
+
+.shared.widget.modal.hint-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.shared.widget.modal.hint-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.shared.widget.modal.hint-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.shared.widget.modal.hint-text {
+    font-size: 0.875rem;
+    color: var(--dm-white-90);
+}
+
+.shared.widget.modal.card.type-hint .shared.widget.modal.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.shared.widget.modal.card.type-hint .shared.widget.modal.content::-webkit-scrollbar-track {
+    background: var(--dm-white-10);
+    border-radius: 3px;
+}
+
+.shared.widget.modal.card.type-hint .shared.widget.modal.content::-webkit-scrollbar-thumb {
+    background: var(--dm-white-30);
+    border-radius: 3px;
+}

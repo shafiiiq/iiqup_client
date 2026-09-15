@@ -1,0 +1,93 @@
+.features.screen.dashboard.project-time-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--bg-card);
+  border-radius: 24px;
+  padding: 1.1rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+  margin-bottom: 1.5rem;
+}
+
+.features.screen.dashboard.project-time-bar-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+  flex-shrink: 0;
+}
+
+.features.screen.dashboard.project-time-bar-track {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-quaternary);
+}
+
+.features.screen.dashboard.project-time-bar-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.features.screen.dashboard.project-time-bar-segment.tone-accent {
+  background: var(--color-success-500);
+  color: var(--bg-primary);
+  border-radius: 999px;
+  margin: 3px;
+}
+
+.features.screen.dashboard.project-time-bar-segment.tone-dark {
+  background: var(--color-error-500);
+  color: var(--bg-primary);
+  border-radius: 999px;
+  margin: 3px;
+}
+
+.features.screen.dashboard.project-time-bar-segment.tone-track {
+  background: transparent;
+  color: var(--text-color-800);
+}
+
+.features.screen.dashboard.project-time-bar-output {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.features.screen.dashboard.project-time-bar-output-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.features.screen.dashboard.project-time-bar-output-pill {
+  min-width: 52px;
+  height: 52px;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+  .features.screen.dashboard.project-time-bar {
+    flex-wrap: wrap;
+  }
+  .features.screen.dashboard.project-time-bar-track {
+    order: 3;
+    width: 100%;
+  }
+}

@@ -1,0 +1,32 @@
+export const PERIOD_OPTIONS = [
+    { value: 'daily', label: 'Today' },
+    { value: 'yesterday', label: 'Yesterday' },
+    { value: 'weekly', label: 'Last Week' },
+    { value: 'monthly', label: 'Last Month' },
+    { value: 'yearly', label: 'Last Year' },
+];
+
+export const MONTH_RANGE_OPTIONS = [
+    { value: '1', label: '1 Month' },
+    { value: '2', label: '2 Months' },
+    { value: '3', label: '3 Months' },
+    { value: '4', label: '4 Months' },
+    { value: '5', label: '5 Months' },
+    { value: '6', label: '6 Months' },
+    { value: '7', label: '7 Months' },
+    { value: '8', label: '8 Months' },
+    { value: '9', label: '9 Months' },
+    { value: '10', label: '10 Months' },
+    { value: '11', label: '11 Months' },
+    { value: '12', label: '12 Month' },
+    { value: '13', label: '13 Months' },
+    { value: '14', label: '14 Months' },
+    { value: '15', label: '15 Months' },
+    { value: '16', label: '16 Months' },
+    { value: '17', label: '17 Months' },
+    { value: '18', label: '18 Months' },
+    { value: '19', label: '19 Months' },
+    { value: '20', label: '20 Months' },
+    { value: '21', label: '21 Months' },
+    { value: '22', label: '22 Months' },
+];

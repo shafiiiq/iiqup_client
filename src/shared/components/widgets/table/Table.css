@@ -1,0 +1,112 @@
+.shared.widget.table.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: var(--radius-6xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.shared.widget.table.table-container::-webkit-scrollbar {
+  display: none;
+}
+
+.shared.widget.table.table-root {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.shared.widget.table.table-root th {
+  background: var(--table-head);
+  text-align: left;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.shared.widget.table.table-root th,
+.shared.widget.table.table-root td {
+  padding: 12px 15px;
+  color: var(--text-color);
+  vertical-align: middle;
+}
+
+.shared.widget.table.table-root td {
+  background: var(--table-body);
+  position: relative;
+  border-bottom: var(--border-table);
+  max-width: 580px;
+}
+
+.shared.widget.table.table-root tr:last-child td {
+  border: 0;
+}
+
+.shared.widget.table.table-root tbody tr.table-skeleton-row:hover {
+  background-color: transparent;
+}
+
+.shared.widget.table.table-root tbody tr[data-clickable='true'] {
+  cursor: pointer;
+}
+
+.shared.widget.table.table-empty-row,
+.shared.widget.table.table-loading-row {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  color: var(--text-disabled);
+}
+
+.shared.widget.table.table-loading-row {
+  padding: 0;
+  font-style: normal;
+  background: transparent;
+}
+
+.shared.widget.table.table-group-header-row td {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 500;
+  border-radius: var(--radius-2xl);
+}
+
+.shared.widget.table.center {
+  text-align: center;
+}
+
+.shared.widget.table.header.center {
+  text-align: center;
+}
+
+.shared.widget.table.data.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shared.widget.table.progress-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.shared.widget.table.expand-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-color);
+  padding: 2px 6px;
+}
+
+.shared.widget.table.table-expanded-row td {
+  background: var(--table-head);
+  padding: 12px 20px;
+}

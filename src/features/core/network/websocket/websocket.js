@@ -1,28 +1,10 @@
-// src/websocket/websocket.js
-// ─────────────────────────────────────────────────────────────────────────────
-// WebSocket Singleton Service
-// One connection for the entire app lifetime.
-// Started in App.jsx on login, torn down on logout.
-//
-// Backend authenticate handler only requires uniqueCode + userId.
-// sessionToken is optional on the server — we do not send it.
-// ─────────────────────────────────────────────────────────────────────────────
-
-import io from 'socket.io-client';
 import { API_URI } from '@/features/core/network/api/api.uri';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
+import io from 'socket.io-client';
 
 const RECONNECT_DELAY_MS = 3_000;
 const RECONNECT_ATTEMPTS = 10;
 const PING_INTERVAL_MS   = 30_000;
 const SOCKET_TIMEOUT_MS  = 20_000;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Internal State
-// ─────────────────────────────────────────────────────────────────────────────
 
 let socket         = null;
 let pingIntervalId = null;
@@ -41,7 +23,7 @@ const _dispatch = (event, data) => {
   if (!handlers) return;
   handlers.forEach(fn => {
     try { fn(data); } catch (err) {
-      console.error(`[WebSocket] listener error on "${event}":`, err);
+      // Ignore listener exceptions to prevent socket event storms.
     }
   });
 };
@@ -60,13 +42,10 @@ const _stopPing = () => {
 /** Binds all socket-level event handlers after connection. */
 const _bindSocketEvents = (uniqueCode) => {
 
-  socket.onAny((event, data) => {
-  console.log('[WS EVENT]', event, data);
-});
+  socket.onAny(() => {});
 
   // ── Connection ────────────────────────────────────────────────────────────
   socket.on('connect', () => {
-    console.log(`[WebSocket] connected — socket: ${socket.id}`);
     isConnecting = false;
 
     // Backend expects uniqueCode and userId — sessionToken is optional, not sent
@@ -76,27 +55,24 @@ const _bindSocketEvents = (uniqueCode) => {
 
   // ── Authenticated ─────────────────────────────────────────────────────────
   socket.on('authenticated', (data) => {
-    console.log('[WebSocket] authenticated:', data.message);
     _dispatch('authenticated', data);
   });
 
   // ── Session invalid — disconnect, let App.jsx handle re-login ─────────────
   socket.on('session_invalid', (data) => {
-    console.warn('[WebSocket] session_invalid:', data.message);
     _dispatch('session_invalid', data);
     WebSocketService.disconnect();
   });
 
   // ── Disconnect (Socket.IO reconnects silently) ────────────────────────────
   socket.on('disconnect', (reason) => {
-    console.warn(`[WebSocket] disconnected — reason: ${reason}`);
     _stopPing();
     _dispatch('disconnect', { reason });
   });
 
   // ── Connection error (Socket.IO retries automatically) ────────────────────
-  socket.on('connect_error', (error) => {
-    console.error('[WebSocket] connect_error:', error.message);
+  socket.on('connect_error', () => {
+    // Socket reconnection is handled by Socket.IO automatically.
   });
 
   socket.on('pong', () => { /* keep-alive confirmed */ });
@@ -141,12 +117,10 @@ const WebSocketService = {
   connect(uniqueCode) {
     if (socket?.connected || isConnecting) return;
     if (!uniqueCode) {
-      console.warn('[WebSocket] connect() called without uniqueCode — aborting');
       return;
     }
 
     isConnecting = true;
-    console.log(`[WebSocket] connecting — uniqueCode: ${uniqueCode}`);
 
     socket = io(API_URI, {
       transports:           ['websocket'],
@@ -168,13 +142,11 @@ const WebSocketService = {
       socket = null;
     }
     isConnecting = false;
-    console.log('[WebSocket] disconnected and cleaned up');
   },
 
   /** Emits an event to the server. */
   emit(event, data) {
     if (!socket?.connected) {
-      console.warn(`[WebSocket] emit("${event}") skipped — not connected`);
       return;
     }
     socket.emit(event, data);

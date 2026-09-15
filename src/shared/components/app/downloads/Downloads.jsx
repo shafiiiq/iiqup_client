@@ -7,7 +7,7 @@
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import './Downloads.css';
-import Viewer from '@/shared/components/app/downloads/screen/viewer/file/FileViewer';
+import Viewer from '@/shared/components/app/downloads/viewer/file/FileViewer';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants

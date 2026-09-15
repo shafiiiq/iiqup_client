@@ -1,14 +1,29 @@
 import { API_URI } from '@/features/core/network/api/api.uri';
+import { appendPaginationToUrl, mergePaginationIntoBody } from '@/shared/pagination/pagination.util';
 
-/**
- * @param {string} url 
- * @param {string} method 
- * @param {Object} body 
- * @param {Object} customHeaders 
- * @returns {Promise<Response>} 
- */
+const buildUrl = (path) => {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+  const base = API_URI.replace(/\/$/, '');
+  const suffix = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${suffix}`;
+};
 
-export const apiRequest = async (url, method = 'GET', body = null, customHeaders = {}, file = null) => {
+export const apiRequest = async (url, method = 'GET', body = null, customHeaders = {}, file = null, pagination = null) => {
+  const finalMethod = method.toUpperCase();
+
+  let finalUrl = url;
+  let finalBody = body;
+
+  if (pagination) {
+    if (finalMethod === 'GET') {
+      finalUrl = appendPaginationToUrl(url, pagination);
+    } else if (finalMethod === 'POST' || finalMethod === 'PUT') {
+      finalBody = mergePaginationIntoBody(body, pagination);
+    }
+  }
+
   const makeRequest = async (token) => {
     const defaultHeaders = {
       "Accept": "*/*",
@@ -16,29 +31,30 @@ export const apiRequest = async (url, method = 'GET', body = null, customHeaders
       ...customHeaders
     };
 
-    if (!(body instanceof FormData)) {
+    if (!(finalBody instanceof FormData)) {
       defaultHeaders['Content-Type'] = 'application/json';
     }
 
     const options = {
-      method: method.toUpperCase(),
+      method: finalMethod,
       headers: defaultHeaders
     };
 
-    if (body && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) {
-      options.body = body instanceof FormData ? body :
-        (typeof body === 'string' ? body : JSON.stringify(body));
+    if (finalBody && (finalMethod === 'POST' || finalMethod === 'PUT')) {
+      options.body = finalBody instanceof FormData ? finalBody :
+        (typeof finalBody === 'string' ? finalBody : JSON.stringify(finalBody));
     }
 
-    return fetch(url, options);
+    return fetch(buildUrl(finalUrl), options);
   };
 
+
   try {
-    let token = localStorage.getItem('auth0token');
+    let token = localStorage.getItem('accessToken');
     let response = await makeRequest(token);
 
     if (response.status === 401 || response.status === 403) {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem('refreshToken');
 
       if (!refreshToken) {
         localStorage.clear();
@@ -46,7 +62,7 @@ export const apiRequest = async (url, method = 'GET', body = null, customHeaders
         throw new Error('No refresh token available');
       }
 
-      const refreshResponse = await fetch(`${API_URI}/oauth/refresh`, {
+      const refreshResponse = await fetch(buildUrl('/authn/refresh'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: refreshToken })
@@ -55,8 +71,8 @@ export const apiRequest = async (url, method = 'GET', body = null, customHeaders
       const refreshData = await refreshResponse.json();
 
       if (refreshResponse.ok) {
-        localStorage.setItem('auth0token', refreshData.accessToken);
-        localStorage.setItem('refresh_token', refreshData.refreshToken);
+        localStorage.setItem('accessToken', refreshData.accessToken);
+        localStorage.setItem('refreshToken', refreshData.refreshToken);
 
         response = await makeRequest(refreshData.accessToken);
       } else {
@@ -64,6 +80,15 @@ export const apiRequest = async (url, method = 'GET', body = null, customHeaders
         window.location.href = '/login';
         throw new Error('Token refresh failed');
       }
+    }
+
+    if (!response.ok) {
+      let errorBody = null;
+      try {
+        errorBody = await response.clone().json();
+      } catch {
+      }
+      throw new Error(errorBody?.message || `Request failed with status ${response.status}`);
     }
 
     if (response.ok && file) {

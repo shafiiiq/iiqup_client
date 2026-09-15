@@ -1,0 +1,37 @@
+.features.screen.dashboard.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.features.screen.dashboard.metrics-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-4xl);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: var(--text-color-600);
+  box-shadow: var(--shadow-xs);
+}
+
+.features.screen.dashboard.metrics-card.primary {
+  background: var(--text-color);
+  color: var(--color-warning-400);
+}
+
+.features.screen.dashboard.metrics-card-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.features.screen.dashboard.metrics-card.primary .features.screen.dashboard.metrics-card-value {
+  color: var(--bg-primary);
+}
+
+.features.screen.dashboard.metrics-card-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}

@@ -1,0 +1,77 @@
+.shared.widget.modal.card.type-fileupload {
+    height: 500px;
+}
+
+.shared.widget.modal.fileupload-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.shared.widget.modal.dropzone {
+    border: 2px dashed var(--dm-white-30);
+    border-radius: 12px;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background var(--dm-transition), border-color var(--dm-transition);
+    margin-top: 12px;
+}
+
+.shared.widget.modal.dropzone:hover,
+.shared.widget.modal.dropzone.is-dragging {
+    background: var(--dm-white-10);
+    border-color: var(--dm-white-80);
+}
+
+.shared.widget.modal.dropzone-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    text-align: center;
+}
+
+.shared.widget.modal.uploaded-file-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.shared.widget.modal.uploaded-file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--dm-white-10);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.shared.widget.modal.uploaded-file-name {
+    font-size: 13px;
+    color: var(--dm-white-90);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80%;
+}
+
+.shared.widget.modal.uploaded-file-remove {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 150ms ease;
+}
+
+.shared.widget.modal.uploaded-file-remove:hover {
+    color: white;
+}

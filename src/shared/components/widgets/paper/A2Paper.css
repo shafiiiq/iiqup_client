@@ -1,0 +1,100 @@
+.a2-paper {
+  width: 297mm;
+  height: 420mm;
+  margin: 0 auto 30px auto;
+  background-color: white;
+  color: black;
+  background-image: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.a2-paper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.a2-paper-logo {
+  max-width: 200px;
+  max-height: 85px;
+  object-fit: contain;
+}
+
+.a2-paper-address {
+  width: 22rem;
+  object-fit: contain;
+}
+
+.a2-paper-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.a2-paper-footer {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.a2-paper-footer-timestamp {
+  font-size: 10pt;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.a2-paper-footer-contact {
+  max-width: 60rem;
+  height: auto;
+}
+
+@page {
+  size: 297mm 420mm;
+  margin: 0;
+}
+
+@media print {
+  html, body {
+    width: 297mm !important;
+    height: 420mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body *:not(.a2-paper):not(.a2-paper *):not(:has(.a2-paper)) {
+    display: none !important;
+  }
+
+  *:has(.a2-paper) {
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  .a2-paper {
+    position: relative !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .a2-paper:last-of-type {
+    page-break-after: auto;
+    break-after: auto;
+  }
+}

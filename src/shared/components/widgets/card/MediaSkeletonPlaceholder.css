@@ -1,0 +1,21 @@
+.media-skeleton-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.media-skeleton-icon-slot {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    container-type: size;
+}
+
+.media-skeleton-icon-slot .material-symbols-rounded {
+    font-size: min(45cqw, 45cqh);
+    color: var(--text-disabled);
+    opacity: 0.5;
+}

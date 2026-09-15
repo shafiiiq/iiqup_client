@@ -1,0 +1,40 @@
+.skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, #e2e2e2) 25%,
+    var(--skeleton-highlight, #f0f0f0) 37%,
+    var(--skeleton-base, #e2e2e2) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.skeleton-icon-slot {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    container-type: size;
+}
+
+.skeleton-icon-slot .material-symbols-rounded {
+    font-size: min(75cqw, 75cqh);
+    color: var(--text-disabled);
+    opacity: 0.5;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+.dark-theme .skeleton {
+  --skeleton-base: #2a2a2a;
+  --skeleton-highlight: #3a3a3a;
+}

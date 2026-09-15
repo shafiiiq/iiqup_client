@@ -1,5 +1,3 @@
-import { API_URI } from '@/features/core/network/api/api.uri';
-
 const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 
 const urlBase64ToUint8Array = (base64String) => {
@@ -11,27 +9,22 @@ const urlBase64ToUint8Array = (base64String) => {
 
 export const registerServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
-    console.warn('[SW] serviceWorker not supported');
     return null;
   }
   if (!('PushManager' in window)) {
-    console.warn('[SW] PushManager not supported');
     return null;
   }
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
-    console.log('[SW] registered:', reg.scope);
     return reg;
   } catch (err) {
-    console.error('[SW] registration failed:', err);
     return null;
   }
 };
 
 export const requestNotificationPermission = async () => {
   if (!('Notification' in window)) return false;
-  const permission = await Notification.requestPermission();
-  return permission === 'granted';
+  return Notification.permission === 'granted';
 };
 
 export const subscribeToPush = async (registration) => {
@@ -54,7 +47,7 @@ export const showNativeNotification = (title, body, data = {}) => {
 };
 
 export const saveSubscriptionToServer = async (subscription, uniqueCode) => {
-  await fetch(`${API_URI}/webpush/subscribe`, {
+  await fetch(`/webpush/subscribe`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ subscription, uniqueCode }),

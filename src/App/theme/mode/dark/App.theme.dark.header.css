@@ -1,0 +1,23 @@
+body.dark-theme {
+  --header-bg-primary-50: #f5f5f5;
+  --header-bg-primary-100: linear-gradient(295deg, rgba(38, 38, 38, 0.055) 0%, #262626a6 100%);
+  --header-bg-primary-200: linear-gradient(185deg, rgba(23, 23, 23, 0.164) 0%, #171717c7 100%);
+  --header-bg-primary-300: linear-gradient(295deg, rgba(10, 10, 10, 0.164) 0%, #0a0a0aa6 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #171717da 0%, rgb(38, 38, 38) 100%);
+  --header-bg-primary-500: linear-gradient(295deg, rgba(23, 23, 23, 0.164) 0%, #26262684 100%);
+  --header-bg-primary-600: linear-gradient(295deg, rgba(38, 38, 38, 0.121) 0%, #40404037 100%);
+  --header-bg-primary-700: linear-gradient(295deg, rgba(82, 82, 82, 0.164) 0%, #52525269 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(23, 23, 23, 0.164) 0%, #000000 100%);
+  --header-bg-primary-900: linear-gradient(90deg, #000000 0%, rgba(64, 64, 64, 0.205) 100%);
+  --header-bg-primary-1000: linear-gradient(185deg, rgb(64 64 64 / 84%) 0%, #ffffff5e 100%);
+  --header-color-primary-50: #f5f5f5;
+  --header-color-primary-100: linear-gradient(295deg, rgba(38, 38, 38, 0.055) 0%, #262626a6 100%);
+  --header-color-primary-200: linear-gradient(185deg, rgba(23, 23, 23, 0.164) 0%, #171717c7 100%);
+  --header-color-primary-300: linear-gradient(295deg, rgba(10, 10, 10, 0.164) 0%, #0a0a0aa6 100%);
+  --header-color-primary-400: linear-gradient(595deg, #171717da 0%, rgb(38, 38, 38) 100%);
+  --header-color-primary-500: linear-gradient(295deg, rgba(23, 23, 23, 0.164) 0%, #26262684 100%);
+  --header-color-primary-600: linear-gradient(295deg, rgba(38, 38, 38, 0.121) 0%, #40404037 100%);
+  --header-color-primary-700: linear-gradient(295deg, rgba(82, 82, 82, 0.164) 0%, #52525269 100%);
+  --header-color-primary-800: linear-gradient(90deg, rgba(23, 23, 23, 0.164) 0%, #000000 100%);
+  --header-color-primary-900: linear-gradient(90deg, #000000 0%, rgba(64, 64, 64, 0.205) 100%);
+}

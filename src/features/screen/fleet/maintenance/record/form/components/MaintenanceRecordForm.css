@@ -1,0 +1,307 @@
+.fleet.maintenance.record.form.container {
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+/* Single-sidebar layout: one Tabs bar (records) + one content pane (active record). */
+.fleet.maintenance.record.form.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.fleet.maintenance.record.form.layout .shared.component.widget.tabs.container {
+  position: static;
+  width: 280px;
+  height: auto;
+  max-height: none;
+  top: 0;
+  flex-shrink: 0;
+}
+
+.fleet.maintenance.record.form.layout .shared.component.widget.tabs.brand,
+.fleet.maintenance.record.form.layout .shared.component.widget.tabs.toggle {
+  display: none;
+}
+
+.fleet.maintenance.record.form.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fleet.maintenance.record.form.content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  background: var(--gradient-primary-800);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+.fleet.maintenance.record.form.content-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fleet.maintenance.record.form.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 8px 0 0 4px;
+  color: var(--text-color);
+}
+
+@media (max-width: 900px) {
+  .fleet.maintenance.record.form.layout {
+    flex-direction: column;
+  }
+
+  .fleet.maintenance.record.form.layout .shared.component.widget.tabs.container {
+    width: 100%;
+  }
+}
+
+/* --- Below: styles for cards/sections/checklist etc, still used by the
+   single content pane's Select Equipment / Service Type / History / Report
+   sections. --- */
+
+.fleet.maintenance.record.form.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  background: var(--gradient-primary-800);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+.fleet.maintenance.record.form.status-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.fleet.maintenance.record.form.status-icon-success { color: #16a34a; }
+.fleet.maintenance.record.form.status-icon-error   { color: #dc2626; }
+
+body.dark-theme .fleet.maintenance.record.form.status-icon-success { color: #4ade80; }
+body.dark-theme .fleet.maintenance.record.form.status-icon-error   { color: #f87171; }
+
+.fleet.maintenance.record.form.card-number {
+  font-size: 25px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--gradient-glass-700);
+  padding: 3px 10px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  flex-shrink: 0;
+}
+
+.fleet.maintenance.record.form.card-type-tag {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-primary);
+  background: rgba(16, 185, 129, 0.12);
+  padding: 3px 10px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  flex-shrink: 0;
+  letter-spacing: 0.4px;
+}
+
+.fleet.maintenance.record.form.card-reg,
+.fleet.maintenance.record.form.card-date {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fleet.maintenance.record.form.card-error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(239, 68, 68, 0.08);
+  font-size: 22px;
+  font-weight: 500;
+  color: #dc2626;
+}
+
+body.dark-theme .fleet.maintenance.record.form.card-error-message { color: #f87171; }
+.fleet.maintenance.record.form.card-error-message .material-symbols-rounded { font-size: 18px; flex-shrink: 0; }
+
+.fleet.maintenance.record.form.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0);
+}
+
+.fleet.maintenance.record.form.section-body {
+  padding: 14px 18px 18px;
+  background: var(--gradient-primary-800);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  margin-block: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fleet.maintenance.record.form.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.fleet.maintenance.record.form.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fleet.maintenance.record.form.type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fleet.maintenance.record.form.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 60px;
+}
+
+.fleet.maintenance.record.form.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fleet.maintenance.record.form.filter-label {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.6px;
+}
+
+.fleet.maintenance.record.form.filter-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.fleet.maintenance.record.form.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.fleet.maintenance.record.form.checklist-column {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fleet.maintenance.record.form.checklist-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.fleet.maintenance.record.form.checklist-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.fleet.maintenance.record.form.badge {
+  font-size: 18px;
+  font-weight: 500;
+  padding: 2px 9px;
+  background: var(--gradient-glass-700);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.fleet.maintenance.record.form.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fleet.maintenance.record.form.checklist-item {
+  display: grid;
+  grid-template-columns: 30px 1fr 120px;
+  gap: 10px;
+  align-items: center;
+}
+
+.fleet.maintenance.record.form.item-number {
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--text-color);
+}
+
+.fleet.maintenance.record.form.item-description {
+  font-size: 20px;
+  color: var(--text-color);
+}
+
+.fleet.maintenance.record.form.item-status {
+  display: flex;
+  gap: 5px;
+}
+
+.fleet.maintenance.record.form.bottom-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0 8px;
+  position: sticky;
+  bottom: 0;
+  margin-top: 4px;
+  padding-top: 16px;
+}
+
+@media (max-width: 1200px) {
+  .fleet.maintenance.record.form.filter-grid    { grid-template-columns: repeat(2, 1fr); }
+  .fleet.maintenance.record.form.checklist-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .fleet.maintenance.record.form.form-grid   { grid-template-columns: 1fr; }
+  .fleet.maintenance.record.form.filter-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .fleet.maintenance.record.form.container      { padding: 12px; }
+  .fleet.maintenance.record.form.type-grid      { gap: 6px; }
+  .fleet.maintenance.record.form.filter-grid    { grid-template-columns: 1fr; }
+  .fleet.maintenance.record.form.bottom-bar     { flex-direction: column; }
+  .fleet.maintenance.record.form.checklist-item { grid-template-columns: 24px 1fr 100px; }
+  .fleet.maintenance.record.form.item-number,
+  .fleet.maintenance.record.form.item-description { font-size: 18px; }
+}

@@ -1,0 +1,99 @@
+.stock.spare.parts.container {
+  padding: 20px;
+  min-height: 100vh;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.stock.spare.parts.actions {
+  margin-bottom: 15px;
+}
+
+.stock.spare.parts.error {
+  display: block;
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  box-shadow: var(--shadow-sm);
+  color: var(--color-error);
+}
+
+.stock.spare.parts.message {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  text-align: center;
+  font-weight: 500;
+}
+
+.stock.spare.parts.message.success {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--color-success);
+}
+
+.stock.spare.parts.message.error {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--color-error);
+}
+
+.stock.spare.parts.table-wrap {
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+.stock.spare.parts.print-header,
+.stock.spare.parts.print-date {
+  display: none;
+}
+
+.stock.spare.parts.status-badge {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.stock.spare.parts.status-badge.available {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--color-success);
+}
+
+.stock.spare.parts.status-badge.low {
+  background-color: rgba(243, 156, 18, 0.1);
+  color: var(--color-warning);
+}
+
+.stock.spare.parts.status-badge.out {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--color-error);
+}
+
+.stock.spare.parts.equipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stock.spare.parts.equipment-item {
+  background-color: var(--bg-hover);
+  color: var(--text-color);
+  padding: 4px 8px;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  display: inline-block;
+}
+
+.stock.spare.parts.equipment-more {
+  color: var(--bg-disabled);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .stock.spare.parts.container {
+    padding: 15px;
+  }
+}

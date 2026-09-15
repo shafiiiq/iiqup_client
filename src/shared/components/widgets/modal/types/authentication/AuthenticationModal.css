@@ -1,0 +1,11 @@
+.shared.widget.modal.card.type-authentication {
+    min-height: 390px;
+    min-width: 640px;
+    height: auto;
+}
+
+@media (max-width: 900px) {
+    .shared.widget.modal.card.type-authentication {
+        min-width: 95vw;
+    }
+}

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './Explore.css';
 import Button from '@/shared/components/widgets/button/Button';
 import { useNavigate } from 'react-router-dom';
-import { API_URI } from '@/features/core/network/api/api.uri';
 import { apiRequest } from '@/features/core/network/api/api.request';
 
 function Explore() {
@@ -16,7 +15,7 @@ function Explore() {
     const fetchFeatures = async () => {
       try {
         setIsLoading(true);
-        const response = await apiRequest(`${API_URI}/explorer/get-latest-release-for-user`, 'GET');
+        const response = await apiRequest(`/explorer/release/latest`, 'GET');
         const data = await response.json();
 
         if (data.status !== 200 || !data.data) {
@@ -42,7 +41,7 @@ function Explore() {
           release.features.map(async (feature) => {
             try {
               const s3Response = await apiRequest(
-                `${API_URI}/s3/get-pre-signed-url`,
+                `/s3/pre-signed-url`,
                 'POST',
                 { key: feature.videoUrl, isLong: true }
               );
@@ -91,7 +90,7 @@ function Explore() {
 
   const markCurrentFeatureAsExplored = async () => {
     try {
-      await apiRequest(`${API_URI}/explorer/mark-feature-explored`, 'POST', {
+      await apiRequest(`/explorer/mark-feature-explored`, 'POST', {
         releaseId: releaseId,
         featureId: currentFeature.id
       });

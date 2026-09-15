@@ -1,0 +1,14 @@
+.paper-viewport {
+  width: 100%;
+}
+
+.paper-viewport-split {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.paper-viewport-pane {
+  flex-shrink: 0;
+}

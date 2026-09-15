@@ -7,16 +7,10 @@ import {
     paddingMap,
     paddingInlineMap,
     paddingBlockMap,
-    borderWidthMap,
-} from '@/shared/components/widgets/maps/size.map';
+} from '@/shared/helper/size.map.helper';
 import Button from '@/shared/components/widgets/button/Button';
 import Input from '@/shared/components/widgets/input/Input';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SidebarTable
-// columns: [{ key, label, align, width, flex, fontSize, fontWeight, color }]
-// rows: [{ ...data, _actions: [{ label, onClick, colorScheme, variant, textColor, squircle, font, width, height }] }]
-// ─────────────────────────────────────────────────────────────────────────────
 export const SidebarTable = ({
     columns = [],
     rows = [],
@@ -25,17 +19,21 @@ export const SidebarTable = ({
     rowRadius = '12px',
     headRadius = '12px',
     squircle = null,
-    headBg = 'var(--amber-600)',
-    rowBg = 'var(--amber-400)',
-    rowAltBg = 'var(--amber-500)',
+    headBg = 'var(--color-primary-600)',
+    rowBg = 'var(--color-primary-400)',
+    rowAltBg = 'var(--color-primary-500)',
     headGrad = '',
     headGradVariant = 'filled',
     rowGrad = '',
     rowGradVariant = 'filled',
     rowAltGrad = '',
     rowAltGradVariant = 'filled',
-    headColor = 'var(--white-100)',
-    rowColor = 'var(--white-100)',
+    rowColorGrad = '',
+    rowColorGradVariant = 'filled',
+    headColorGrad = '',
+    headColorGradVariant = 'filled',
+    headColor = 'var(--color-white-100)',
+    rowColor = 'var(--color-white-100)',
     headFontSize = '12px',
     headFontWeight = '700',
     rowFontSize = '13px',
@@ -50,14 +48,27 @@ export const SidebarTable = ({
         const color = parts[0];
         const shade = parseInt(parts[1]);
         if (variant === 'gradient') {
-            return `linear-gradient(135deg, var(--${color}-${Math.max(100, shade - 200)}), var(--${color}-${shade}), var(--${color}-${Math.min(900, shade + 100)}))`;
+            return `linear-gradient(135deg, var(--color-${color}-${Math.max(100, shade - 200)}), var(--color-${color}-${shade}), var(--color-${color}-${Math.min(900, shade + 100)}))`;
         }
-        return `var(--${color}-${shade})`;
+        return `var(--color-${color}-${shade})`;
+    };
+
+    const buildSolidColor = (colorScheme) => {
+        if (!colorScheme) return null;
+        const parts = colorScheme.split('-');
+        const color = parts[0];
+        const shade = parseInt(parts[1]);
+        if (!color || Number.isNaN(shade)) return null;
+        return `var(--color-${color}-${shade})`;
     };
 
     const resolvedHeadBg = buildBg(headGrad, headGradVariant) || headBg;
     const resolvedRowBg = buildBg(rowGrad, rowGradVariant) || rowBg;
     const resolvedRowAltBg = buildBg(rowAltGrad, rowAltGradVariant) || rowAltBg;
+    // Text colors must always resolve to a single solid color (never a gradient string),
+    // since CSS `color` cannot accept a linear-gradient value.
+    const resolveHeadColor = buildSolidColor(headColorGrad) || headColor;
+    const resolveRowColor = buildSolidColor(rowColorGrad) || rowColor;
     return (
         <div className="sb-table" style={{ gap: rowGap, ...style }}>
             <div className="sb-table-head" style={{ gap: gap, borderRadius: headRadius, 'corner-shape': squircle ? 'squircle' : null, '--sb-head-bg': resolvedHeadBg }}>
@@ -70,7 +81,7 @@ export const SidebarTable = ({
                             textAlign: col.align || 'left',
                             width: col.width,
                             flex: col.flex ?? 1,
-                            color: col.headColor || headColor,
+                            color: col.headColor || resolveHeadColor,
                             fontSize: col.headFontSize || headFontSize,
                             fontWeight: col.headFontWeight || headFontWeight,
                             borderRadius: headRadius,
@@ -124,7 +135,7 @@ export const SidebarTable = ({
                                 textAlign: col.align || 'left',
                                 width: col.width,
                                 flex: col.flex ?? 1,
-                                color: col.rowColor || rowColor,
+                                color: col.rowColor || resolveRowColor,
                                 fontSize: col.rowFontSize || rowFontSize,
                                 fontWeight: col.rowFontWeight || rowFontWeight,
                                 borderRadius: rowRadius,
@@ -163,15 +174,12 @@ export const SidebarTable = ({
     );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SidebarRow
-// ─────────────────────────────────────────────────────────────────────────────
 export const SidebarRow = ({
     label = '',
     value = '',
     radius = '10px',
     squircle = null,
-    colorScheme = 'amber-400',
+    colorScheme = 'primary-400',
     variant = 'filled',
     labelColor = 'var(--white-100)',
     valueColor = 'var(--white-100)',
@@ -188,8 +196,8 @@ export const SidebarRow = ({
     const color = parts[0];
     const shade = parts[1];
     const bg = variant === 'gradient'
-        ? `linear-gradient(135deg, var(--${color}-${Math.max(100, parseInt(shade) - 200)}), var(--${color}-${shade}), var(--${color}-${Math.min(900, parseInt(shade) + 100)}))`
-        : `var(--${color}-${shade})`;
+        ? `linear-gradient(135deg, var(--color-${color}-${Math.max(100, parseInt(shade) - 200)}), var(--color-${color}-${shade}), var(--color-${color}-${Math.min(900, parseInt(shade) + 100)}))`
+        : `var(--color-${color}-${shade})`;
     return (
     <div className="sb-row" style={{ borderRadius: radius, 'corner-shape': squircle ? 'squircle' : null, background: bg, ...style }}>
         {action && actionPosition === 'left' && (
@@ -228,9 +236,6 @@ export const SidebarRow = ({
     );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SidebarSection
-// ─────────────────────────────────────────────────────────────────────────────
 export const SidebarSection = ({
     title = '',
     titleFontSize = '11px',
@@ -250,10 +255,6 @@ export const SidebarSection = ({
     </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SidebarActions — uses Button component
-// buttons: [{ label, onClick, colorScheme, variant, textColor, squircle, font, width, height, icon, disabled }]
-// ─────────────────────────────────────────────────────────────────────────────
 export const SidebarActions = ({
     buttons = [],
     position = 'left',
@@ -293,10 +294,6 @@ export const SidebarActions = ({
     );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SidebarInput — wraps Input component with sidebar-aware defaults
-// Pass any Input props, they go through directly
-// ─────────────────────────────────────────────────────────────────────────────
 export const SidebarInput = (props) => (
     <Input
         colorScheme={props.colorScheme || 'gray-700'}
@@ -312,10 +309,6 @@ export const SidebarInput = (props) => (
     />
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SidebarBarcode — wraps Barcode component with sidebar-aware defaults
-// Pass any Barcode props, they go through directly
-// ─────────────────────────────────────────────────────────────────────────────
 export const SidebarBarcode = ({
     value = '',
     width = 2,
@@ -339,8 +332,8 @@ export const SidebarBarcode = ({
     const color = parts[0];
     const shade = parts[1];
     const bg = variant === 'gradient'
-        ? `linear-gradient(135deg, var(--${color}-${Math.max(100, parseInt(shade) - 200)}), var(--${color}-${shade}), var(--${color}-${Math.min(900, parseInt(shade) + 100)}))`
-        : `var(--${color}-${shade})`;
+        ? `linear-gradient(135deg, var(--color-${color}-${Math.max(100, parseInt(shade) - 200)}), var(--color-${color}-${shade}), var(--color-${color}-${Math.min(900, parseInt(shade) + 100)}))`
+        : `var(--color-${color}-${shade})`;
     return (
         <div style={{
             background: bg,
@@ -368,9 +361,6 @@ export const SidebarBarcode = ({
     );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Sidebar
-// ─────────────────────────────────────────────────────────────────────────────
 const Sidebar = ({
     show = false,
     onClose = () => { },
@@ -507,7 +497,7 @@ const Sidebar = ({
         if (colorStr.startsWith('rgba') || colorStr.startsWith('#') || colorStr.startsWith('rgb')) return colorStr;
         if (colorStr.includes('-')) {
             const parts = colorStr.split('-');
-            return `var(--${parts[0]}-${parts[1]})`;
+            return `var(--color-${parts[0]}-${parts[1]})`;
         }
         return colorStr;
     };
@@ -526,10 +516,10 @@ const Sidebar = ({
         if (variant === 'gradient') {
             const lighter = Math.max(100, shade - 200);
             const darker = Math.min(900, shade + 100);
-            return `linear-gradient(135deg, var(--${color}-${lighter}), var(--${color}-${shade}), var(--${color}-${darker}))`;
+            return `linear-gradient(135deg, var(--color-${color}-${lighter}), var(--color-${color}-${shade}), var(--color-${color}-${darker}))`;
         }
         if (variant === 'glass') return `var(--gradient-glass-${shade})`;
-        return `var(--${color}-${shade})`;
+        return `var(--color-${color}-${shade})`;
     };
 
     const getBorderRadius = () => cornerRadiusMap?.[squircle || rounded] || 'var(--radius-6xl)';
@@ -552,7 +542,7 @@ const Sidebar = ({
     };
 
     const borderVal = showBorder
-        ? `${borderWidthMap?.[borderWidth] || borderWidth + 'px'} solid ${parseColor(borderColor) || `var(--${color}-${Math.max(100, shade - 200)})`}`
+        ? `${borderWidth + 'px'} solid ${parseColor(borderColor) || `var(--color-${color}-${Math.max(100, shade - 200)})`}`
         : 'none';
 
 const sidebarTransition = 'width 0.42s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.42s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.42s ease';
@@ -620,7 +610,6 @@ const panelStyle = isMinimized ? {
                 {!isMaximized && !isMinimized && (
                     <div className="sidebar-resize-handle" onMouseDown={startResize} />
                 )}
-                {/* Header */}
                 <div className={`sidebar-header ${headerClassName}`} style={{ background: headerBgColor ? parseColor(headerBgColor) : 'transparent' }}>
                     <div className="sidebar-header-left">
                         <div className="sidebar-traffic-lights">
@@ -654,7 +643,6 @@ const panelStyle = isMinimized ? {
                             : isMaximized
                                ? (
                                   <>
-                                      {/* Column 1 — always visible */}
                                       <div className="sidebar-split-pane">
                                           {splitColumns === 1
                                                 ? (currentTertiary
@@ -676,7 +664,6 @@ const panelStyle = isMinimized ? {
                                            }
                                        </div>
                             
-                                        {/* Column 2 — visible at 2+ columns */}
                                         {splitColumns >= 2 && (
                                             <div className="sidebar-split-pane sidebar-split-pane-right">
                                                 {splitColumns === 2
@@ -712,7 +699,6 @@ const panelStyle = isMinimized ? {
                                             </div>
                                         )}
                             
-                                        {/* Column 3 — visible at 3 columns */}
                                         {splitColumns >= 3 && (
                                             <div className="sidebar-split-pane sidebar-split-pane-right">
                                                 {currentTertiary ? (
@@ -743,7 +729,6 @@ const panelStyle = isMinimized ? {
                     }
                 </div>
 
-                {/* Footer */}
                 {footer && !isOnSecondaryScreen && (
                     <div className={`sidebar-footer ${footerClassName}`}>{footer}</div>
                 )}

@@ -1,0 +1,457 @@
+.features.screens.backcharge.form.page {
+  max-width: 100%;
+}
+
+.features.screens.backcharge.form.main.title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 24px;
+  text-decoration: underline;
+  margin: 0.1rem 0;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.info.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.features.screens.backcharge.form.info.full.row {
+  grid-column: 1 / -1;
+  padding: 0 0.3rem;
+}
+
+.features.screens.backcharge.form.dropdown.anchor {
+  position: relative;
+}
+
+.features.screens.backcharge.form.info.field {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.features.screens.backcharge.form.field.label {
+  font-weight: 400;
+  font-size: 20px;
+  margin-right: 0.4rem;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.field.label.wide {
+  font-weight: 400;
+  font-size: 18px;
+  width: 160px;
+  color: var(--color-black);
+  text-align: start;
+}
+
+.features.screens.backcharge.form.field.value {
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.field.value.bold {
+  font-weight: 400;
+  font-size: 20px;
+  display: inline-block;
+  min-width: 150px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.field.value.bold input {
+  font-size: 19px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.signature.label {
+  font-weight: 400;
+  font-size: 19px;
+  margin-left: 3rem;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.editable.input {
+  border: none;
+  border-bottom: 1px dotted #666;
+  padding: 2px 4px;
+  font-size: inherit;
+  background-color: transparent;
+  outline: none;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.dropdown.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  min-width: 260px;
+}
+
+.features.screens.backcharge.form.dropdown.item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.features.screens.backcharge.form.dropdown.item:hover {
+  background-color: #f0f8ff;
+}
+
+.features.screens.backcharge.form.dropdown.item:last-child {
+  border-bottom: none;
+}
+
+.features.screens.backcharge.form.scope.section {
+  padding: 0.6rem 0;
+  font-weight: 400;
+  font-size: 20px;
+  display: flex;
+  width: 100%;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.scope.section.sub {
+  font-weight: 400;
+  font-size: 19px;
+  display: flex;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.scope.label {
+  font-weight: bold;
+  width: 20%;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.scope.value {
+  width: 80%;
+  color: var(--color-black);
+  font-size: 17px;
+}
+
+.features.screens.backcharge.form.parts.section {
+  margin: 0.3rem 0;
+  border-right: 1px solid var(--color-black);
+}
+
+.features.screens.backcharge.form.parts.header {
+  font-weight: bold;
+  text-align: center;
+  padding: 0.2rem 0;
+  border-top: 1px solid var(--color-black);
+  border-left: 1px solid var(--color-black);
+  margin-bottom: 0;
+  font-size: 19px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.parts.table {
+  border-collapse: collapse;
+}
+
+.features.screens.backcharge.form.parts.table.header {
+  border-top: 1px solid var(--color-black);
+  border-bottom: 1px solid var(--color-black);
+  border-left: 1px solid var(--color-black);
+  padding: 0.2rem;
+  font-weight: bold;
+  font-size: 19px;
+  background-color: #ffffff;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.parts.table.sl {
+  width: 8%;
+  text-align: center;
+}
+
+.features.screens.backcharge.form.parts.table.desc.header {
+  text-align: center;
+  width: 50%;
+}
+
+.features.screens.backcharge.form.parts.table.qty {
+  width: 14%;
+  text-align: center;
+}
+
+.features.screens.backcharge.form.parts.table.cost {
+  width: 14%;
+  text-align: center;
+}
+
+.features.screens.backcharge.form.parts.table.total {
+  width: 14%;
+  text-align: center;
+}
+
+.features.screens.backcharge.form.parts.table.cell {
+  border-bottom: 1px solid var(--color-black);
+  border-left: 1px solid var(--color-black);
+  padding: 0.2rem;
+  height: 12px;
+  font-size: 17px;
+  vertical-align: top;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.parts.table.center {
+  text-align: center;
+}
+
+.features.screens.backcharge.form.parts.table.desc {
+  height: 12px;
+}
+
+.features.screens.backcharge.form.parts.table.footer {
+  border-bottom: 1px solid var(--color-black);
+  border-left: 1px solid var(--color-black);
+  padding: 0.2rem;
+  font-size: 18px;
+  background-color: #ffffff;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.parts.table.total.label {
+  text-align: right;
+  font-weight: bold;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.text.center {
+  text-align: center;
+}
+
+.features.screens.backcharge.form.table.input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: inherit;
+  padding: 0;
+  outline: none;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.comments.section {
+  margin: 0.3rem 0;
+  border: 1px solid var(--color-black);
+  padding: 0.2rem 0.5rem 0.5rem 0.5rem;
+}
+
+.features.screens.backcharge.form.comments.label {
+  font-weight: bold;
+  font-size: 24px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.comments.text:nth-child(1) {
+  margin-left: 4.5rem;
+}
+
+.features.screens.backcharge.form.comments.text {
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--color-black);
+  display: block;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+.features.screens.backcharge.form.cost.summary.section {
+  margin: 0.3rem 0;
+  border: 1px solid var(--color-black);
+  padding: 0.8rem 0.2rem 0.7rem 0.2rem;
+}
+
+.features.screens.backcharge.form.cost.summary.title {
+  font-weight: bold;
+  margin-bottom: -2.3rem;
+  font-size: 24px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.cost.summary.content {
+  margin-bottom: 0.3rem;
+  width: 59%;
+  margin-left: auto;
+}
+
+.features.screens.backcharge.form.cost.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.1rem;
+  font-weight: 400;
+  font-size: 20px;
+  padding-top: 0.4rem;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.price.colon {
+  margin-right: 2rem;
+}
+
+.features.screens.backcharge.form.cost.value.container {
+  display: flex;
+  align-items: center;
+  min-width: 250px;
+  max-width: 250px;
+}
+
+.features.screens.backcharge.form.currency {
+  font-weight: 500;
+  margin-right: 1rem;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.cost.label {
+  margin-left: auto;
+  margin-right: 2rem;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.text.underline {
+  border: none;
+  border-bottom: 1px solid var(--color-black) !important;
+  background: transparent;
+  outline: none;
+}
+
+.features.screens.backcharge.form.cost.amount {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--color-black) !important;
+  text-align: left;
+  padding-bottom: 1px;
+  font-size: 20px;
+  background: transparent;
+  outline: none;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.readonly.field {
+  color: #666 !important;
+}
+
+.features.screens.backcharge.form.deduction.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.deduction.label {
+  flex: 1;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  font-size: 20px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.deduction.value.container {
+  display: flex;
+  align-items: center;
+  min-width: 250px;
+  max-width: 250px;
+  font-size: 20px;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.auth.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.features.screens.backcharge.form.auth.header {
+  border-left: 1px solid var(--color-black);
+  border-bottom: 1px solid var(--color-black);
+  border-top: 1px solid var(--color-black);
+  padding: 0.2rem;
+  font-weight: 600;
+  text-align: center;
+  font-size: 19px;
+  background-color: #ffffff;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.auth.header:nth-child(4) {
+  border-right: 1px solid var(--color-black);
+}
+
+.features.screens.backcharge.form.auth.cell {
+  border-left: 1px solid var(--color-black);
+  padding: 0.2rem;
+  text-align: center;
+  font-size: 19px;
+  vertical-align: top;
+  color: var(--color-black);
+  position: relative;
+}
+
+.features.screens.backcharge.form.auth.cell:nth-child(4) {
+  border-right: 1px solid var(--color-black);
+}
+
+.features.screens.backcharge.form.auth.signature.space {
+  height: 210px;
+}
+
+.features.screens.backcharge.form.auth.name {
+  border-top: 1px solid var(--color-black);
+  border-bottom: 1px solid var(--color-black);
+  font-weight: bold;
+  color: var(--color-black);
+}
+
+.features.screens.backcharge.form.toggle.field {
+  cursor: pointer;
+}
+
+.features.screens.backcharge.form.save.status {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.features.screens.backcharge.form.save.status.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.features.screens.backcharge.form.save.status.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+  .features.screens.backcharge.form.cost.row,
+  .features.screens.backcharge.form.deduction.row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .features.screens.backcharge.form.cost.value.container,
+  .features.screens.backcharge.form.deduction.value.container {
+    align-self: flex-end;
+  }
+}

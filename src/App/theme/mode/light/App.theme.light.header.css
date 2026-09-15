@@ -1,0 +1,23 @@
+:root {
+  --header-bg-primary-50: #fafafa;
+  --header-bg-primary-100: linear-gradient(295deg, rgba(163, 163, 163, 0.055) 0%, #e5e5e5a6 100%);
+  --header-bg-primary-200: linear-gradient(185deg, rgb(250, 250, 250) 0%, #f5f5f54f 100%);
+  --header-bg-primary-300: linear-gradient(295deg, rgba(163, 163, 163, 0.164) 0%, #e5e5e5a6 100%);
+  --header-bg-primary-400: linear-gradient(595deg, #f5f5f5fa 0%, rgb(163, 163, 163) 100%);
+  --header-bg-primary-500: linear-gradient(295deg, rgba(64, 64, 64, 0.164) 0%, #d4d4d484 100%);
+  --header-bg-primary-600: linear-gradient(295deg, rgba(82, 82, 82, 0.121) 0%, #a3a3a337 100%);
+  --header-bg-primary-700: linear-gradient(295deg, rgba(163, 163, 163, 0.164) 0%, #f5f5f569 100%);
+  --header-bg-primary-800: linear-gradient(90deg, rgba(64, 64, 64, 0.795) 0%, #e5e5e5 100%);
+  --header-bg-primary-900: linear-gradient(90deg, #171717 0%, rgba(64, 64, 64, 0.205) 100%);
+  --header-bg-primary-1000: linear-gradient(185deg, rgb(250, 250, 250) 0%, #f5f5f54f 100%);
+  --header-color-primary-50: #f5f5f5;
+  --header-color-primary-100: linear-gradient(295deg, rgba(163, 163, 163, 0.055) 0%, #e5e5e5a6 100%);
+  --header-color-primary-200: linear-gradient(185deg, rgba(163, 163, 163, 0.164) 0%, #e5e5e5c7 100%);
+  --header-color-primary-300: linear-gradient(295deg, rgba(163, 163, 163, 0.164) 0%, #e5e5e5a6 100%);
+  --header-color-primary-400: linear-gradient(595deg, #f5f5f5da 0%, rgb(163, 163, 163) 100%);
+  --header-color-primary-500: linear-gradient(295deg, rgba(64, 64, 64, 0.164) 0%, #d4d4d484 100%);
+  --header-color-primary-600: linear-gradient(295deg, rgba(82, 82, 82, 0.121) 0%, #a3a3a337 100%);
+  --header-color-primary-700: linear-gradient(295deg, rgba(163, 163, 163, 0.164) 0%, #f5f5f569 100%);
+  --header-color-primary-800: linear-gradient(90deg, rgba(64, 64, 64, 0.164) 0%, #171717 100%);
+  --header-color-primary-900: linear-gradient(90deg, #171717 0%, rgba(64, 64, 64, 0.205) 100%);
+}

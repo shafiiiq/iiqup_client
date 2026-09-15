@@ -1,0 +1,46 @@
+.widget-card {
+  background: var(--card-background, transparent);
+  border: var(--card-border, none);
+  border-radius: var(--card-radius, 0);
+  corner-shape: var(--card-corner-shape, normal);
+  box-shadow: var(--card-shadow, none);
+  padding: var(--card-padding, 0);
+  min-height: var(--card-min-height, auto);
+  height: var(--card-height, auto);
+  overflow: var(--card-overflow, visible);
+  transition: var(--card-transition, none);
+  pointer-events: auto;
+}
+
+.widget-card:hover {
+  background: var(--card-hover-background, var(--card-background, transparent));
+  border: var(--card-hover-border, var(--card-border, none));
+  box-shadow: var(--card-hover-shadow, var(--card-shadow, none));
+  transform: var(--card-hover-transform, none);
+  cursor: var(--card-hover-cursor, inherit);
+}
+
+.widget-card[data-selected='true'] {
+  background: var(--card-selected-background, var(--card-background, transparent));
+  border: var(--card-selected-border, var(--card-border, none));
+  box-shadow: var(--card-selected-shadow, var(--card-shadow, none));
+}
+
+.widget-card-inner {
+  width: 100%;
+  height: 100%;
+}
+
+.widget-card[data-skeleton='true'] {
+  --card-background: var(--skeleton-base, #e2e2e2) !important;
+  --card-selected-background: var(--skeleton-base, #e2e2e2) !important;
+  cursor: default;
+  pointer-events: none;
+}
+
+.widget-card[data-skeleton='true']:hover {
+  background: var(--card-background);
+  border: var(--card-border, none);
+  box-shadow: var(--card-shadow, none);
+  transform: none;
+}

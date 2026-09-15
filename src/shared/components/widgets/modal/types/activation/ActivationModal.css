@@ -1,0 +1,12 @@
+.shared.widget.modal.card.type-activation {
+    min-height: 600px;
+    min-width: 1200px;
+    height: auto;
+}
+
+@media (max-width: 480px) {
+    .shared.widget.modal.card.type-activation {
+        min-height: 400px;
+        min-width: 0;
+    }
+}

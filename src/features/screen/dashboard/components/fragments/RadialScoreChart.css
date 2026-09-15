@@ -1,0 +1,27 @@
+.features.screen.dashboard.radial-score-dial {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0.5rem auto 0;
+}
+
+.features.screen.dashboard.radial-score-copy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.features.screen.dashboard.radial-score-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.features.screen.dashboard.radial-score-label {
+  font-size: 0.8rem;
+  color: var(--text-color-600);
+  margin-top: 0.15rem;
+}

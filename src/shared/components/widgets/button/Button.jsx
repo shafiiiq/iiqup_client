@@ -1,5 +1,6 @@
 import React from 'react';
 import './Button.css';
+import { IconRegistry } from '@/shared/components/icons/icons.registy';
 
 const Button = ({
   text = '',
@@ -9,7 +10,7 @@ const Button = ({
   onMouseEnter = () => { },
   onMouseLeave = () => { },
   colorScheme = 'primary-500',
-  textColor = 'white',
+  textColor = 'white-100',
   size = 'md',
   font = 'md',
   title = '',
@@ -37,8 +38,12 @@ const Button = ({
   cursor = 'pointer',
   iconLeft = null,
   iconCenter = null,
+  componentIconCenter = null,
+  componentIconLeft = null,
+  componentIconRight = null,
+  componentIconSize = 20,
   iconRight = null,
-  iconColor = null,
+  iconColor = 'primary-500',
   ...props
 }) => {
   const buttonRef = React.useRef(null);
@@ -52,27 +57,35 @@ const Button = ({
   };
 
   const { color, shade } = parseColorScheme(colorScheme);
-  const mainColor = `var(--${color}-${shade})`;
+  const mainColor = `var(--color-${color}-${shade})`;
 
   const getShade = (offset) => {
     const shadeNum = parseInt(shade);
     const newShade = Math.max(100, Math.min(900, shadeNum + offset));
-    return `var(--${color}-${newShade})`;
+    return `var(--color-${color}-${newShade})`;
   };
 
   const getTextColor = () => {
     if (textColor.includes('-')) {
-      const [c, s] = textColor.split('-');
-      return `var(--${c}-${s})`;
+      const [color, shade] = textColor.split('-');
+      return `var(--color-${color}-${shade})`;
     }
     return textColor;
+  };
+
+  const getIconColor = () => {
+    if (iconColor.includes('-')) {
+      const [color, shade] = iconColor.split('-');
+      return `var(--color-${color}-${shade})`;
+    }
+    return iconColor;
   };
 
   const getBorderColor = () => {
     if (borderColor === 'transparent' || borderColor === 'none') return 'transparent';
     if (borderColor.includes('-')) {
-      const [c, s] = borderColor.split('-');
-      return `var(--${c}-${s})`;
+      const [color, shade] = borderColor.split('-');
+      return `var(--color-${color}-${shade})`;
     }
     return borderColor;
   };
@@ -80,8 +93,8 @@ const Button = ({
   const getShadowColor = () => {
     if (!shadowColor) return `${mainColor}60`;
     if (shadowColor.includes('-')) {
-      const [c, s] = shadowColor.split('-');
-      return `var(--${c}-${s})60`;
+      const [color, shade] = shadowColor.split('-');
+      return `var(--color-${color}-${shade})60`;
     }
     return `${shadowColor}60`;
   };
@@ -333,7 +346,7 @@ const Button = ({
     if (!iconName) return null;
 
     const iconStyle = {
-      color: iconColor || getTextColor(),
+      color: getIconColor() || getTextColor(),
       fontSize: 'inherit',
       transition: 'var(--db-transition)',
     };
@@ -349,6 +362,36 @@ const Button = ({
       </span>
     );
   };
+
+  const renderComponentIcon = (componentIcon, position, size) => {
+    if (!componentIcon) return null;
+
+    const IconComponent =
+      typeof componentIcon === 'string'
+        ? IconRegistry[componentIcon]
+        : componentIcon;
+
+    if (!IconComponent) {
+      console.warn(`Icon "${componentIcon}" not found in IconRegistry`);
+      return null;
+    }
+
+    const iconStyle = {
+      color: getIconColor() || getTextColor(),
+      fontSize: 'inherit',
+      transition: 'var(--db-transition)',
+    };
+
+    return (
+      <span
+        className={`dev-button-icon dev-button-icon-${position}`}
+        style={iconStyle}
+      >
+        <IconComponent size={componentIconSize} color={getIconColor() || getTextColor()} />
+      </span>
+    );
+  };
+
 
   return (
     <button
@@ -368,9 +411,12 @@ const Button = ({
       {loading && <span className="dev-button-spinner" />}
       <span className="dev-button-content">
         {iconLeft && renderMaterialIcon(iconLeft, 'left')}
+        {componentIconLeft && renderComponentIcon(componentIconLeft, 'left', componentIconSize)}
         {(text || children) && <span className="dev-button-text">{text || children}</span>}
         {iconRight && renderMaterialIcon(iconRight, 'right')}
+        {componentIconRight && renderComponentIcon(componentIconRight, 'right', componentIconSize)}
         {iconCenter && renderMaterialIcon(iconCenter, 'center')}
+        {componentIconCenter && renderComponentIcon(componentIconCenter, 'center', componentIconSize)}
       </span>
     </button>
   );

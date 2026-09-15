@@ -1,0 +1,169 @@
+.fleet.maintenance.entry.form.container {
+  padding: 20px;
+}
+
+.fleet.maintenance.entry.form.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.fleet.maintenance.entry.form.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.fleet.maintenance.entry.form.layout .shared.component.widget.tabs.container {
+  position: static;
+  width: 260px;
+  height: auto;
+  max-height: none;
+  top: 0;
+  flex-shrink: 0;
+}
+
+.fleet.maintenance.entry.form.layout .shared.component.widget.tabs.brand,
+.fleet.maintenance.entry.form.layout .shared.component.widget.tabs.toggle {
+  display: none;
+}
+
+.fleet.maintenance.entry.form.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--gradient-primary-800, transparent);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  padding: 20px;
+  box-shadow: var(--shadow-outer-4xl);
+}
+
+.fleet.maintenance.entry.form.tab-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.fleet.maintenance.entry.form.type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.fleet.maintenance.entry.form.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-4xl);
+  corner-shape: squircle;
+  border: 2px solid transparent;
+  background: var(--gradient-glass-700, rgba(255, 255, 255, 0.05));
+  cursor: pointer;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+}
+
+.fleet.maintenance.entry.form.type-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fleet.maintenance.entry.form.type-card.selected {
+  border-color: var(--color-primary);
+  background: var(--gradient-primary-500, rgba(52, 152, 219, 0.15));
+}
+
+.fleet.maintenance.entry.form.type-card-image {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-2xl);
+  corner-shape: squircle;
+}
+
+.fleet.maintenance.entry.form.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.fleet.maintenance.entry.form.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fleet.maintenance.entry.form.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.fleet.maintenance.entry.form.checklist-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fleet.maintenance.entry.form.checklist-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.fleet.maintenance.entry.form.checklist-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.fleet.maintenance.entry.form.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fleet.maintenance.entry.form.checklist-item {
+  display: grid;
+  grid-template-columns: 30px 1fr 120px;
+  gap: 10px;
+  align-items: center;
+  color: var(--text-color);
+}
+
+.fleet.maintenance.entry.form.item-status {
+  display: flex;
+  gap: 5px;
+}
+
+.fleet.maintenance.entry.form.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .fleet.maintenance.entry.form.layout {
+    flex-direction: column;
+  }
+
+  .fleet.maintenance.entry.form.layout .shared.component.widget.tabs.container {
+    width: 100%;
+  }
+
+  .fleet.maintenance.entry.form.grid,
+  .fleet.maintenance.entry.form.checklist-grid {
+    grid-template-columns: 1fr;
+  }
+}

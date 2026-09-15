@@ -1,0 +1,156 @@
+.shared.pickers.folder.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.shared.pickers.folder.breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.shared.pickers.folder.breadcrumb-segment {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.shared.pickers.folder.breadcrumb-item {
+    border: none;
+    background: none;
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-full);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.shared.pickers.folder.breadcrumb-item:hover {
+    background: var(--bg-hover);
+    color: var(--color-primary);
+}
+
+.shared.pickers.folder.breadcrumb-separator {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.shared.pickers.folder.status {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-disabled);
+}
+
+.shared.pickers.folder.folder-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+}
+
+.shared.pickers.folder.folder-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.1rem 1.2rem;
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
+    background: var(--gradient-primary-800);
+    border: 1px solid var(--border-primary);
+    color: var(--text-color);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.shared.pickers.folder.folder-card:hover {
+    background: var(--gradient-primary-500);
+    transform: translateY(-2px);
+}
+
+.shared.pickers.folder.folder-icon {
+    font-size: 32px;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.shared.pickers.folder.folder-card-label {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shared.pickers.folder.item-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.shared.pickers.folder.item-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-6xl);
+    corner-shape: squircle;
+    background: var(--gradient-primary-800);
+    border: 1px solid var(--border-primary);
+    color: var(--text-color);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.shared.pickers.folder.item-card:hover {
+    background: var(--gradient-primary-500);
+    transform: translateY(-2px);
+}
+
+.shared.pickers.folder.item-card-primary {
+    font-weight: 700;
+}
+
+.shared.pickers.folder.item-card-separator {
+    opacity: 0.5;
+}
+
+.shared.pickers.folder.item-card-secondary {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+    .shared.pickers.folder.folder-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .shared.pickers.folder.folder-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .shared.pickers.folder.item-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .shared.pickers.folder.folder-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .shared.pickers.folder.folder-grid,
+    .shared.pickers.folder.item-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,25 @@
+.features.screen.dashboard.sparkline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.features.screen.dashboard.sparkline-card {
+  background: var(--bg-tertiary);
+  border-radius: 16px;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.features.screen.dashboard.sparkline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--text-color-600);
+  margin-bottom: 0.35rem;
+}
+
+.features.screen.dashboard.sparkline-header strong {
+  color: var(--text-color);
+  font-size: 1rem;
+}
