@@ -65,22 +65,10 @@ export const OFFICE_STAFF_DEPARTMENTS = [
     department: 'Workshop Department',
     staff: [
       { id: 14, name: 'Mr. Hamza', position: 'Mechanic Supervisor', image: null },
-    ],
-  },
-  {
-    id: 'it',
-    department: 'IT Department',
-    staff: [
       { id: 15, name: 'Mr. Muhammed Shafeek', position: 'IT Head', image: ItHead },
-    ],
-  },
-  {
-    id: 'other',
-    department: 'Other',
-    staff: [
       { id: 16, name: 'Mr. Jaleel Ibrahim', position: '-----', image: null },
     ],
-  },
+  }
 ];
 
 export const NAV_GROUPS = [
