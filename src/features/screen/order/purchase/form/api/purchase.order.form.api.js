@@ -1,4 +1,6 @@
 import { apiRequest } from '@/features/core/network/api/api.request';
+import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 
 export const fetchPurchaseOrderByRef = async (refNo) => {
   const decodedRef = decodeURIComponent(refNo);
@@ -12,11 +14,20 @@ export const fetchLatestPurchaseOrderRef = async () => {
 };
 
 export const fetchEquipments = async (searchTerm = '') => {
-  const response = searchTerm.trim()
-    ? await apiRequest(`/equipments/search-equipments`, 'POST', { searchTerm, page: 1, limit: 1000 })
-    : await apiRequest(`/equipments?page=1&limit=1000`, 'GET');
+  if (!searchTerm.trim()) {
+    const response = await apiRequest(`/equipments?page=1&limit=1000`, 'GET');
+    return response.json();
+  }
 
-  return response.json();
+  const url = buildSearchUrl({
+    source: SEARCH_SOURCES.EQUIPMENT,  
+    q: searchTerm,
+    page: 1,
+    limit: 1000,
+  });
+  const response = await apiRequest(url, 'GET');
+  const responseJson = await response.json();
+  return extractSearchResult(responseJson, SEARCH_SOURCES.EQUIPMENT);
 };
 
 export const fetchCompanies = async () => {

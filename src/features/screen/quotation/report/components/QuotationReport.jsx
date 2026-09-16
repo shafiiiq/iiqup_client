@@ -86,15 +86,6 @@ function ClosingSection({ data, signatureFlags, signatureStates }) {
                 crossOrigin="anonymous"
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
-              {signatureStates.seal?.url && (
-                <img
-                  className="features screen quotation report company-seal"
-                  src={signatureStates.seal.url}
-                  alt="Company Seal"
-                  crossOrigin="anonymous"
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                />
-              )}
             </div>
           ) : (
             <div className="features screen quotation report signature-space" />

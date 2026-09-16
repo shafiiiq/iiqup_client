@@ -4,9 +4,11 @@ import { apiRequest } from '@/features/core/network/api/api.request';
 
 import { SERVICE_TYPES, EQUIPMENT_SEARCH_DEBOUNCE_MS } from '../constants/maintenance.record.form.constant';
 import { calcNextServiceValue, checklistDefaultsForType } from '../helper/maintenance.record.form.helper';
+import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 
 export function useMaintenanceRecordCard(card, onChange) {
-  const [eqResults,   setEqResults]   = useState([]);
+  const [eqResults, setEqResults] = useState([]);
   const [eqSearching, setEqSearching] = useState(false);
   const eqDebounceRef = useRef(null);
 
@@ -19,11 +21,16 @@ export function useMaintenanceRecordCard(card, onChange) {
     eqDebounceRef.current = setTimeout(async () => {
       setEqSearching(true);
       try {
-        const res  = await apiRequest('/equipments/search-equipments', 'POST', {
-          searchTerm: term.trim(), page: 1, limit: 20, searchField: 'all',
+        const url = buildSearchUrl({
+          source: SEARCH_SOURCES.EQUIPMENT,
+          q: term.trim(),
+          page: 1,
+          limit: 20,
         });
-        const data = await res.json();
-        setEqResults(data.data || []);
+        const res = await apiRequest(url, 'GET');
+        const responseJson = await res.json();
+        const result = extractSearchResult(responseJson, SEARCH_SOURCES.EQUIPMENT);
+        setEqResults(result.results || []);
       } catch {
         setEqResults([]);
       } finally {
@@ -66,7 +73,7 @@ export function useMaintenanceRecordCard(card, onChange) {
   };
 
   const markedCount = card.checklistItems.filter((item) => item.status).length;
-  const typeLabel   = SERVICE_TYPES.find((type) => type.value === card.serviceType)?.label || '';
+  const typeLabel = SERVICE_TYPES.find((type) => type.value === card.serviceType)?.label || '';
 
   return {
     eqResults,

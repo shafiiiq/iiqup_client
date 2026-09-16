@@ -219,7 +219,7 @@ function ReportData({ data, signatureFlags, signatureStates, quotationUrl, quota
                     </td>
                     <td className="purchase order report info column right">
                       <div className="purchase order report info line">DATE : {data.date}</div>
-                      <div className="purchase order report info line">PurchaseOrder REF NO : {data.purchaseorderRef}</div>
+                      <div className="purchase order report info line">REF NO : {data.purchaseorderRef}</div>
                       {data.jobCode && <div className="purchase order report info line">JOB/COMPLAINT NO : {data.jobCode}</div>}
                       <div className="purchase order report info line">
                         <span>EQUIPMENT:</span>

@@ -22,7 +22,7 @@ const NAV_ITEMS = [
   { path: '/stock/toolkits', label: 'Safety Items', componentIcon: 'JacketIcon' },
   { path: '/mechanics', label: 'Mechanics', componentIcon: 'IconlyFace' },
   { path: '/operators', label: 'Operators', componentIcon: 'Iconly3user' },
-  { path: '/order/purchase/list', label: 'PurchaseOrder', componentIcon: 'IconlyBag2' },
+  { path: '/order/purchase/list', label: 'Purchase Orders', componentIcon: 'IconlyBag2' },
   { path: '/order/hire/list', label: 'Hire Orders', componentIcon: 'BrandIcon' },
   { path: '/quotation/list', label: 'Quotations', componentIcon: 'IconlyPaper' },
   { path: '/backcharge/list', label: 'Backcharges', componentIcon: 'ReturnIcon' },

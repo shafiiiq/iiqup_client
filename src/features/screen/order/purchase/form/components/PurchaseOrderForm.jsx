@@ -543,7 +543,7 @@ function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipmen
                                         <td className="features screens order purchase form right-col">
 
                                             <div className="features screens order purchase form detail-item">DATE : <span className="features screens order purchase form non-editable">{purchaseorderData.date}</span></div>
-                                            <div className="features screens order purchase form detail-item">PurchaseOrder REF NO : <span className="features screens order purchase form non-editable">{purchaseorderData.purchaseorderRef}</span></div>
+                                            <div className="features screens order purchase form detail-item">REF NO : <span className="features screens order purchase form non-editable">{purchaseorderData.purchaseorderRef}</span></div>
 
                                             <div className="features screens order purchase form detail-item">
                                                 <div className="features screens order purchase form equip-field">

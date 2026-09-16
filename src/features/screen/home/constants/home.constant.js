@@ -27,10 +27,11 @@ export const OFFICE_STAFF_DEPARTMENTS = [
     id: 'operations',
     department: 'Operations Department',
     staff: [
+      { id: 3, name: 'Mr. Joseph Auguestine', position: 'Operation Supervisor', image: null },
       { id: 1, name: 'Mr. Salih Basheer', position: 'Operation Supervisor', image: null },
-      { id: 2, name: 'Mr. Subash', position: 'Operation Supervisor', image: null },
-      { id: 3, name: 'Mr. Joseph Augestine', position: 'Operation Supervisor', image: null },
-      { id: 4, name: 'Mr. Shaheen Sha', position: 'Operation Supervisor', image: null },
+      { id: 2, name: 'Mr. Subash', position: 'Operation Coordinator', image: null },
+      { id: 4, name: 'Mr. Shaheen Sha', position: 'Operation Coordinator', image: null },
+      { id: 5, name: 'Mr. Raju', position: 'Operation Coordinator', image: null },
       { id: 5, name: 'Mr. Bal Bahadur', position: 'Camp Boss', image: null },
     ],
   },
@@ -45,9 +46,9 @@ export const OFFICE_STAFF_DEPARTMENTS = [
     id: 'accounts',
     department: 'Accounts Department',
     staff: [
-      { id: 7, name: 'Mr. Roshan Sha', position: 'Accountant', image: null },
-      { id: 8, name: 'Ms. Charishma', position: 'Chief Accountant', image: null },
-      { id: 9, name: 'Mr. Asarudheen', position: 'Chief Accountant', image: null },
+      { id: 7, name: 'Mr. Roshan Sha', position: 'Chief Accountant', image: null },
+      { id: 8, name: 'Ms. Charishma', position: 'Accountant', image: null },
+      { id: 9, name: 'Mr. Asarudheen', position: 'Accountant', image: null },
     ],
   },
   {
@@ -56,7 +57,8 @@ export const OFFICE_STAFF_DEPARTMENTS = [
     staff: [
       { id: 10, name: 'Mr. Jaleel', position: 'Public Relation Officer', image: null },
       { id: 11, name: 'Mr. Shaheen', position: 'Admin', image: null },
-      { id: 12, name: 'Ms. Najiya', position: 'HR Manager', image: null },
+      { id: 12, name: 'Ms. Najiya', position: '----', image: null },
+      { id: 12, name: 'Ms. Jouhara', position: 'Admin', image: null },
       { id: 13, name: 'Mrs. Sana', position: 'Admin', image: null },
     ],
   },
@@ -66,7 +68,7 @@ export const OFFICE_STAFF_DEPARTMENTS = [
     staff: [
       { id: 14, name: 'Mr. Hamza', position: 'Mechanic Supervisor', image: null },
       { id: 15, name: 'Mr. Muhammed Shafeek', position: 'IT Head', image: ItHead },
-      { id: 16, name: 'Mr. Jaleel Ibrahim', position: '-----', image: null },
+      { id: 16, name: 'Mr. Jaleel Ibrahim', position: 'Workshop Supervisor', image: null },
     ],
   }
 ];

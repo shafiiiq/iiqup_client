@@ -11,8 +11,8 @@
 }
 
 .purchase.order.report.signature.cell img {
-  width: 11rem !important;
-  margin-left: 0 !important;
+  width: 20rem !important;
+  margin-left: -2rem !important;
   bottom: 0 !important;
   position: absolute;
 }
@@ -242,6 +242,7 @@
 .purchase.order.report.signatures.table td {
   width: 240px !important;
   font-size: 18px !important;
+  position: relative;
 }
 
 .purchase.order.report.signatures.date.label {
