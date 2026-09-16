@@ -6,6 +6,7 @@ import {
     fetchLatestPurchaseOrderRef as fetchLatestPurchaseOrderRefService,
     fetchPurchaseOrderByRef as fetchPurchaseOrderByRefService,
     fetchEquipments as fetchEquipmentRecords,
+    fetchEquipmentByRegNo,
     fetchCompanies as fetchCompanyRecords,
     createOrUpdatePurchaseOrder,
     createComplaintPurchaseOrder,
@@ -125,8 +126,8 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
         if (!regNo) return;
 
         try {
-            const data = await fetchEquipments();
-            const equipment = data.data?.find((eq) => eq.regNo === regNo);
+            const result = await fetchEquipmentByRegNo(regNo);
+            const equipment = result.data;
             if (equipment) {
                 setPurchaseOrderData((prev) => ({ ...prev, equipments: [`${equipment.regNo} – ${equipment.machine}`] }));
             }
@@ -241,8 +242,10 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
         try {
             const data = await fetchEquipmentRecords(searchTerm);
             setEquipments(data.data || []);
+            return data;
         } catch (err) {
             console.error('[PurchaseOrderForm] fetchEquipments error:', err);
+            return { data: [] };
         }
     };
 

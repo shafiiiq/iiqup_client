@@ -20,14 +20,29 @@ export const fetchEquipments = async (searchTerm = '') => {
   }
 
   const url = buildSearchUrl({
-    source: SEARCH_SOURCES.EQUIPMENT,  
+    source: SEARCH_SOURCES.EQUIPMENT,
     q: searchTerm,
     page: 1,
     limit: 1000,
   });
   const response = await apiRequest(url, 'GET');
   const responseJson = await response.json();
-  return extractSearchResult(responseJson, SEARCH_SOURCES.EQUIPMENT);
+  const result = extractSearchResult(responseJson, SEARCH_SOURCES.EQUIPMENT);
+  return {
+    success: true,
+    data: result.results,
+    pagination: {
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalCount: result.totalCount,
+      hasMore: result.hasMore,
+    },
+  };
+};
+
+export const fetchEquipmentByRegNo = async (regNo) => {
+  const response = await apiRequest(`/equipments/by-reg/${regNo}`, 'GET');
+  return response.json();
 };
 
 export const fetchCompanies = async () => {
