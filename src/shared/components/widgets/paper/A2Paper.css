@@ -59,6 +59,23 @@
   height: auto;
 }
 
+.a2-paper-probe {
+  position: fixed;
+  top: -10000px;
+  left: -10000px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.a2-paper-measure {
+  position: fixed;
+  top: -10000px;
+  left: -10000px;
+  width: calc(297mm - 32px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @page {
   size: 297mm 420mm;
   margin: 0;

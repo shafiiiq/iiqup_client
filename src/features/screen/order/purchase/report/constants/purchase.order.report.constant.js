@@ -58,7 +58,3 @@ export const SHARED_BTN = {
     shadowPosition: 'to-bottom',
     shadowColor: 'white-600',
 };
-
-export const ITEMS_PER_PAGE = 26;
-
-export const CHARS_PER_LINE = 65; 

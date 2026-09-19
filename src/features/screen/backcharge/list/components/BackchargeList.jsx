@@ -106,6 +106,7 @@ function BackchargeList() {
     filteredData,
     isLoading,
     isLoadingMore,
+    loadMore,
     showDeleteModal,
     selectedBackcharge,
     deleteStatus,
@@ -138,7 +139,6 @@ function BackchargeList() {
   const columns = [
     { key: 'date', header: 'Date', render: (item) => formatDate(item.date) },
     { key: 'refNo', header: 'Ref No' },
-    { key: 'reportNo', header: 'Report No' },
     { key: 'supplierName', header: 'Supplier' },
     { key: 'equipmentType', header: 'Equipment' },
     { key: 'plateNo', header: 'Plate No' },
@@ -285,6 +285,7 @@ function BackchargeList() {
                     getRowVariant={getRowVariant}
                     getRowProps={(item) => ({ 'data-refno': item.refNo })}
                     onRowClick={(item) => handleRowClick(item.refNo)}
+                    onScrollEnd={loadMore}
                     emptyMessage="No matching records found"
                   />
                   {isLoadingMore && (
@@ -305,7 +306,7 @@ function BackchargeList() {
               <button className="features screens backcharge list modal close" onClick={cancelDelete}>×</button>
             </div>
             <div className="features screens backcharge list modal body">
-              <p>Are you sure you want to delete backcharge report <strong>{selectedBackcharge?.reportNo}</strong>?</p>
+              <p>Are you sure you want to delete backcharge report <strong>{selectedBackcharge?.refNo}</strong>?</p>
               <p>This action cannot be undone.</p>
             </div>
             <div className="features screens backcharge list modal footer">

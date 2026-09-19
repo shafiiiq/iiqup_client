@@ -20,6 +20,7 @@ import {
   filterCompaniesByField,
   getModeLabel,
   getStatusTitle,
+  isTermHeading,
 } from '../helper/quotation.form.helper';
 import {
   DEFAULT_COLUMNS,
@@ -60,11 +61,18 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
+  const [showTotalRow, setShowTotalRow] = useState(true);
+  const [manualTotal, setManualTotal] = useState(null);
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
 
   const subtotal = calculateSubtotal(quotationData.items);
   const totalAmount = subtotal - (quotationData.discount || 0);
+
+  const autoTotal = showDiscountInTotal ? totalAmount : subtotal;
+  const parsedManualTotal =
+    manualTotal !== null && manualTotal !== '' && !Number.isNaN(parseFloat(manualTotal)) ? parseFloat(manualTotal) : null;
+  const finalTotal = parsedManualTotal ?? autoTotal;
 
   useEffect(() => {
     if (saveStatus) {
@@ -147,6 +155,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
       if (ho.termsAndConditions?.length) setPaymentTerms(filterEditableTerms(ho.termsAndConditions));
       setShowDiscountInTotal(ho.totalDiscountAmount !== undefined);
+      setShowTotalRow(ho.showTotalRow ?? true);
+      setManualTotal(ho.manualTotal != null ? String(ho.manualTotal) : null);
     } catch (error) {
       console.error('[Quotation] fetchHireOrderForEdit error:', error);
       setSaveStatus('Error loading quotation data');
@@ -196,6 +206,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       if (rawTerms?.length) setPaymentTerms(filterEditableTerms(rawTerms));
 
       setShowDiscountInTotal(latest?.amendedTotalAmount !== undefined || ho.totalDiscountAmount !== undefined);
+      setShowTotalRow(latest?.amendedShowTotalRow ?? ho.showTotalRow ?? true);
+      setManualTotal(latest?.amendedManualTotal != null ? String(latest.amendedManualTotal) : null);
     } catch (error) {
       console.error('[Quotation] fetchHireOrderForAmendmentEdit error:', error);
       setSaveStatus('Error loading quotation data');
@@ -214,7 +226,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   };
 
   const updateColumnLabel = (colId, label) => {
-    setColumns((prev) => prev.map((c) => (c.id === colId && c.type !== 'calculated' ? { ...c, label } : c)));
+    setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, label } : c)));
   };
 
   const addColumn = () => {
@@ -310,14 +322,26 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
 
   const handleDescriptionPaste = (e, index) => {
     const clipboardItems = e.clipboardData?.items;
-    if (!clipboardItems) return;
 
-    for (const clipboardItem of clipboardItems) {
-      if (clipboardItem.type.startsWith('image/')) {
-        const file = clipboardItem.getAsFile();
-        readImageFileForItem(file, index);
-        e.preventDefault();
-        break;
+    if (clipboardItems) {
+      for (const clipboardItem of clipboardItems) {
+        if (clipboardItem.type.startsWith('image/')) {
+          const file = clipboardItem.getAsFile();
+          readImageFileForItem(file, index);
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
+    const clipboardFiles = e.clipboardData?.files;
+    if (clipboardFiles?.length) {
+      for (const file of clipboardFiles) {
+        if (file.type.startsWith('image/')) {
+          readImageFileForItem(file, index);
+          e.preventDefault();
+          return;
+        }
       }
     }
   };
@@ -348,10 +372,11 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   };
 
   const addPaymentTerm = () => setPaymentTerms((prev) => [...prev, '']);
+  const addPaymentTermHeading = () => setPaymentTerms((prev) => [...prev, '## ']);
 
   const updatePaymentTerm = (index, value) => {
     const updated = [...paymentTerms];
-    updated[index] = value;
+    updated[index] = isTermHeading(updated[index]) ? `## ${value}` : value;
     setPaymentTerms(updated);
   };
 
@@ -369,6 +394,12 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     setCustomFields((prev) => prev.map((field) => (field.id === id ? { ...field, value } : field)));
 
   const removeCustomField = (id) => setCustomFields((prev) => prev.filter((field) => field.id !== id));
+
+  const removeTotalRow = () => setShowTotalRow(false);
+  const restoreTotalRow = () => setShowTotalRow(true);
+  const handleManualTotalChange = (e) => setManualTotal(e.target.value);
+  const handleManualTotalBlur = () => { if (manualTotal === '') setManualTotal(null); };
+  const resetManualTotal = () => setManualTotal(null);
 
   const toggleDiscountInTotal = () => setShowDiscountInTotal((prev) => !prev);
   const toggleCeoMode = () => setCeoMode((prev) => (prev === 'CEO' ? 'MANAGING DIRECTOR' : 'CEO'));
@@ -452,6 +483,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
         termsAndConditions: ['Terms & Conditions', ...paymentTerms],
         quotationCounter,
         discount: quotationData.discount,
+        showTotalRow,
+        manualTotal: parsedManualTotal,
         showDiscountInTotal,
         signatures: {
           authorizedSignatory: getSignatoryName(),
@@ -467,8 +500,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
         }),
       };
 
-      if (showDiscountInTotal) payload.totalDiscountAmount = totalAmount;
-      else payload.totalAmount = subtotal;
+      if (showDiscountInTotal) payload.totalDiscountAmount = finalTotal;
+      else payload.totalAmount = finalTotal;
 
       if (complaintId) payload.complaintId = complaintId;
 
@@ -532,6 +565,9 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     autoCalculateTotal,
     subtotal,
     totalAmount,
+    finalTotal,
+    showTotalRow,
+    manualTotal,
     filteredCompanies,
     filteredAttentions,
 
@@ -550,12 +586,18 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     applyDiscount,
     cancelDiscount,
     addPaymentTerm,
+    addPaymentTermHeading,
     updatePaymentTerm,
     removePaymentTerm,
     addCustomField,
     updateCustomFieldLabel,
     updateCustomFieldValue,
     removeCustomField,
+    removeTotalRow,
+    restoreTotalRow,
+    handleManualTotalChange,
+    handleManualTotalBlur,
+    resetManualTotal,
     toggleDiscountInTotal,
     toggleCeoMode,
     getSignatoryName,

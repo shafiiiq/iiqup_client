@@ -1,9 +1,10 @@
 export const generatePurchaseOrderRef = (purchaseorderNumber) => {
   const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const year = now.getFullYear();
-  const padded = String(purchaseorderNumber).padStart(3, '0');
-  return `ATE${padded}/SP/${month}/${year}`;
+  const padded = String(Math.max(0, Math.floor(Number(purchaseorderNumber) || 0))).padStart(3, '0');
+  return `ATE-LPO-SP-${day}${month}${year}-${padded}`;
 };
 
 export const formatDate = (dateString) => {
@@ -17,12 +18,3 @@ export const formatCurrency = (value) =>
   (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const filterEditableTerms = (terms = []) => terms.filter((t) => t !== 'Terms & Conditions');
-
-export const chunkItems = (items, size) => {
-    if (!items.length) return [[]];
-    const chunks = [];
-    for (let i = 0; i < items.length; i += size) {
-        chunks.push(items.slice(i, i + size));
-    }
-    return chunks;
-}

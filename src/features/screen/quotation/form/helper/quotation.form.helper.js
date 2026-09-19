@@ -12,36 +12,24 @@ export const buildCustomField = () => ({
   value: '',
 });
 
-const SEQUENCE_DIGIT_MAP = { 5: 'A', 6: 'B', 7: 'C', 8: 'D', 9: 'E' };
-const SEQUENCE_DIGIT_REVERSE_MAP = { A: '5', B: '6', C: '7', D: '8', E: '9' };
-
 export const encodeSequenceNumber = (number) => {
   const safeNumber = Math.max(0, Math.floor(Number(number) || 0));
-  const padded = String(safeNumber).padStart(8, '0').slice(-8);
-  return padded
-    .split('')
-    .map((digit) => SEQUENCE_DIGIT_MAP[digit] ?? digit)
-    .join('');
+  return String(safeNumber).padStart(3, '0');
 };
 
 export const decodeSequenceNumber = (sequence) => {
   if (!sequence) return 0;
-  const digits = sequence
-    .split('')
-    .map((char) => SEQUENCE_DIGIT_REVERSE_MAP[char] ?? char)
-    .join('');
-  const parsed = parseInt(digits, 10);
+  const parsed = parseInt(sequence, 10);
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-// Format: ATE-[TYPE]-YYYYMMDD-[8-CHAR-SEQUENCE]
 export const generateQuotationRef = (number, type = 'QO') => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const sequence = encodeSequenceNumber(number);
-  return `ATE-${type}-${year}${month}${day}-${sequence}`;
+  return `ATE-${type}-${day}${month}${year}-${sequence}`;
 };
 
 export const formatDate = (dateString) => {
@@ -74,11 +62,11 @@ export const getModeLabel = (isAmendmentMode, isEditMode) =>
 export const getStatusTitle = (saveStatus) =>
   saveStatus.includes('Error') ? 'Error' : saveStatus.includes('Please') ? 'Warning' : 'Success';
 
-export const chunkItems = (items, size) => {
-  if (!items.length) return [[]];
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
+export const isTermHeading = (term) => typeof term === 'string' && term.startsWith('## ');
+
+export const getTermText = (term) => (isTermHeading(term) ? term.slice(3) : term);
+
+export const buildTermNumbers = (terms) => {
+  let count = 0;
+  return terms.map((term) => (isTermHeading(term) ? null : ++count));
 };

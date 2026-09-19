@@ -1,266 +1,18 @@
 import { useRef } from 'react';
 
 import Controls from '@/shared/components/widgets/controls/Controls';
-import A2Paper from '@/shared/components/widgets/paper/A2Paper';
+import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 
 import { useHireOderForm } from '../hooks/useHireOderForm';
-import { formatCurrency, chunkItems } from '../helper/hire.order.form.helper';
-import { SHARED_BTN, ITEMS_PER_PAGE } from '../constants/hire.order.form.constant';
+import { formatCurrency } from '../helper/hire.order.form.helper';
+import { SHARED_BTN } from '../constants/hire.order.form.constant';
 import './HireOrderForm.css';
 
-function HireOrderItemsTable({
-  items,
-  columns,
-  startIndex,
-  showHeader,
-  showTotal,
-  hireOrderData,
-  subtotal,
-  totalAmount,
-  showDiscountInTotal,
-  showDiscount,
-  showAddButton,
-  autoCalculateTotal,
-  isLoading,
-  updateColumnLabel,
-  removeColumn,
-  addItemRow,
-  removeItem,
-  handleItemChange,
-  handleRowMouseEnter,
-  handleRowMouseLeave,
-  handleDiscountPopup,
-  handleDiscountButtonMouseEnter,
-  handleDiscountButtonMouseLeave,
-  toggleDiscountInTotal,
-}) {
-  return (
-    <table className="features screen hire order items-table">
-      {showHeader && (
-        <thead>
-          <tr>
-            <th className="features screen hire order sn-header">SN</th>
-            {columns.map((col) => {
-              const fixed = col.type === 'calculated';
-              return (
-                <th key={col.id}>
-                  {fixed ? (
-                    <div className="features screen hire order column-header-cell fixed-column-header">
-                      <span className="features screen hire order fixed-column-label">{col.label}</span>
-                    </div>
-                  ) : (
-                    <div className="features screen hire order column-header-cell">
-                      <input
-                        type="text"
-                        className="features screen hire order column-header-input"
-                        style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
-                        value={col.label}
-                        onChange={(e) => updateColumnLabel(col.id, e.target.value)}
-                      />
-                      <button
-                        className="features screen hire order remove-column-btn"
-                        onClick={() => removeColumn(col.id)}
-                        title="Remove column"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-      )}
-      <tbody>
-        {items.map((item, localIndex) => {
-          const absoluteIndex = startIndex - 1 + localIndex;
-          return (
-            <tr key={item.id}>
-              <td
-                className="features screen hire order sn-cell"
-                onMouseEnter={() => handleRowMouseEnter(absoluteIndex)}
-                onMouseLeave={handleRowMouseLeave}
-              >
-                {item.id}
-                {showAddButton === absoluteIndex && (
-                  <Controls
-                    justify="end"
-                    wrap={false}
-                    gap="4px"
-                    className="features screen hire order row-controls"
-                    items={[
-                      {
-                        text: '+',
-                        onClick: addItemRow,
-                        colorScheme: 'lime-700',
-                        width: '20px',
-                        height: '20px',
-                        title: 'Add Row',
-                        font: 'sm',
-                        padding: '0',
-                        type: 'submit',
-                        cursor: 'allowed',
-                        ...SHARED_BTN,
-                      },
-                      ...(hireOrderData.items.length > 1 ? [{
-                        text: '-',
-                        onClick: () => removeItem(absoluteIndex),
-                        colorScheme: 'red-700',
-                        width: '20px',
-                        height: '20px',
-                        title: 'Remove Row',
-                        font: 'sm',
-                        padding: '0',
-                        type: 'submit',
-                        cursor: 'allowed',
-                        ...SHARED_BTN,
-                      }] : []),
-                    ]}
-                  />
-                )}
-              </td>
-
-              {columns.map((col) => (
-                <td key={col.id}>
-                  {col.type === 'calculated' ? (
-                    autoCalculateTotal ? (
-                      <span className="features screen hire order calculated-total">{formatCurrency(item[col.id])}</span>
-                    ) : (
-                      <input
-                        type="number"
-                        className="features screen hire order table-input number-input"
-                        value={item[col.id] ?? ''}
-                        onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
-                        step="0.01"
-                      />
-                    )
-                  ) : (
-                    <input
-                      type={col.type === 'number' ? 'number' : 'text'}
-                      className={`features screen hire order table-input ${col.type === 'number' ? 'features screen hire order number-input' : 'features screen hire order description-input'}`}
-                      value={item[col.id] ?? ''}
-                      onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
-                      step={col.type === 'number' ? '0.01' : undefined}
-                      placeholder={col.type === 'text' ? `Enter ${col.label.toLowerCase()}` : undefined}
-                    />
-                  )}
-                </td>
-              ))}
-            </tr>
-          );
-        })}
-
-        {showTotal && (
-          <>
-            {showDiscountInTotal && hireOrderData.discount > 0 && (
-              <tr>
-                <td colSpan={columns.length} className="features screen hire order total-label">Discount (QR)</td>
-                <td className="features screen hire order calculated-total discount-amount">-{formatCurrency(hireOrderData.discount)}</td>
-              </tr>
-            )}
-
-            <tr>
-              <td colSpan={columns.length} className="features screen hire order total-label">
-                <span
-                  className="features screen hire order toggle-field"
-                  onClick={toggleDiscountInTotal}
-                  title="Click to toggle between with/without discount"
-                >
-                  {showDiscountInTotal ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
-                </span>
-                {showDiscountInTotal && (
-                  <div className="features screen hire order discount-controls">
-                    <Controls
-                      justify="start"
-                      wrap={false}
-                      items={[{
-                        text: hireOrderData.discount > 0 ? 'Edit Discount' : 'Add Discount',
-                        onClick: handleDiscountPopup,
-                        onMouseEnter: handleDiscountButtonMouseEnter,
-                        onMouseLeave: handleDiscountButtonMouseLeave,
-                        colorScheme: isLoading ? 'blue-900' : 'blue-800',
-                        width: '120px',
-                        height: '20px',
-                        font: 'sm',
-                        type: isLoading ? 'disabled' : 'submit',
-                        cursor: 'allowed',
-                        ...SHARED_BTN,
-                      }]}
-                    />
-                    {showDiscount && (
-                      <div className="features screen hire order discount-info">
-                        Subtotal: {subtotal.toFixed(2)} QR<br />
-                        Discount: {hireOrderData.discount.toFixed(2)} QR
-                      </div>
-                    )}
-                  </div>
-                )}
-              </td>
-              <td className="features screen hire order calculated-total final-total">
-                {formatCurrency(showDiscountInTotal ? totalAmount : subtotal)}
-              </td>
-            </tr>
-          </>
-        )}
-      </tbody>
-    </table>
-  );
-}
-
-function TermsAndSignaturesContent({
-  paymentTerms,
-  updatePaymentTerm,
-  removePaymentTerm,
-  addPaymentTerm,
-  getSignatoryName,
-  toggleCeoMode,
-  ceoMode,
-}) {
+function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
   return (
     <>
       <table className="features screen hire order terms-table">
         <tbody>
-          <tr className="features screen hire order terms-row-large">
-            <td className="features screen hire order terms-header-large">
-              <div className="features screen hire order payment-terms-container">
-                <div className="features screen hire order payment-terms-header">Terms &amp; Conditions</div>
-                <ul className="features screen hire order payment-terms-list">
-                  {paymentTerms.map((term, index) => (
-                    <li key={index} className="features screen hire order payment-term-item">
-                      <span className="features screen hire order term-bullet">•</span>
-                      <input
-                        type="text"
-                        className="features screen hire order payment-term-input"
-                        value={term}
-                        onChange={(e) => updatePaymentTerm(index, e.target.value)}
-                        placeholder="Enter payment term"
-                      />
-                      {paymentTerms.length > 1 && (
-                        <button className="features screen hire order remove-term-btn" onClick={() => removePaymentTerm(index)} title="Remove term">
-                          ×
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                <Controls
-                  justify="start"
-                  items={[{
-                    text: '+ Add Payment Term',
-                    onClick: addPaymentTerm,
-                    colorScheme: 'lime-800',
-                    width: '170px',
-                    height: '30px',
-                    font: 'sm',
-                    type: 'submit',
-                    cursor: 'pointer',
-                    ...SHARED_BTN,
-                  }]}
-                />
-              </div>
-            </td>
-          </tr>
           <tr>
             <td className="features screen hire order note-row">
               <strong>NOTE:</strong> The hire order copy should be submitted along with the invoice every month for the payment process.
@@ -302,56 +54,468 @@ function TermsAndSignaturesContent({
   );
 }
 
-function TermsAndSignaturesPage(props) {
-  return (
-    <A2Paper>
-      <div className="features screen hire order continuation-divider" />
-      <TermsAndSignaturesContent {...props} />
-    </A2Paper>
-  );
-}
-
 function HireOrderForm({ edit, amendment, amendmentUpdate }) {
-  const componentRef = useRef();
+  const firstPageRef = useRef();
   const hireOrderForm = useHireOderForm({ edit, amendment, amendmentUpdate });
 
-  const itemPages = chunkItems(hireOrderForm.hireOrderData.items, ITEMS_PER_PAGE);
-  const lastPageIndex = itemPages.length - 1;
-  const lastPageItemCount = itemPages[lastPageIndex].length;
-  const showTermsInline = lastPageIndex === 0 ? lastPageItemCount < 6 : lastPageItemCount < 13;
+  const {
+    hireOrderData,
+    columns,
+    paymentTerms,
+    subtotal,
+    finalTotal,
+    customFields,
+    showTotalRow,
+    manualTotal,
+    addCustomField,
+    updateCustomFieldLabel,
+    updateCustomFieldValue,
+    removeCustomField,
+    removeTotalRow,
+    restoreTotalRow,
+    handleManualTotalChange,
+    handleManualTotalBlur,
+    resetManualTotal,
+    showDiscountInTotal,
+    showDiscount,
+    showAddButton,
+    autoCalculateTotal,
+    isLoading,
+    updateColumnLabel,
+    removeColumn,
+    addColumn,
+    addItemRow,
+    removeItem,
+    handleItemChange,
+    handleRowMouseEnter,
+    handleRowMouseLeave,
+    handleDiscountPopup,
+    handleDiscountButtonMouseEnter,
+    handleDiscountButtonMouseLeave,
+    toggleDiscountInTotal,
+    updatePaymentTerm,
+    removePaymentTerm,
+    addPaymentTerm,
+  } = hireOrderForm;
 
-  const itemsTableSharedProps = {
-    columns: hireOrderForm.columns,
-    hireOrderData: hireOrderForm.hireOrderData,
-    subtotal: hireOrderForm.subtotal,
-    totalAmount: hireOrderForm.totalAmount,
-    showDiscountInTotal: hireOrderForm.showDiscountInTotal,
-    showDiscount: hireOrderForm.showDiscount,
-    showAddButton: hireOrderForm.showAddButton,
-    autoCalculateTotal: hireOrderForm.autoCalculateTotal,
-    isLoading: hireOrderForm.isLoading,
-    updateColumnLabel: hireOrderForm.updateColumnLabel,
-    removeColumn: hireOrderForm.removeColumn,
-    addItemRow: hireOrderForm.addItemRow,
-    removeItem: hireOrderForm.removeItem,
-    handleItemChange: hireOrderForm.handleItemChange,
-    handleRowMouseEnter: hireOrderForm.handleRowMouseEnter,
-    handleRowMouseLeave: hireOrderForm.handleRowMouseLeave,
-    handleDiscountPopup: hireOrderForm.handleDiscountPopup,
-    handleDiscountButtonMouseEnter: hireOrderForm.handleDiscountButtonMouseEnter,
-    handleDiscountButtonMouseLeave: hireOrderForm.handleDiscountButtonMouseLeave,
-    toggleDiscountInTotal: hireOrderForm.toggleDiscountInTotal,
+  const buildItemRow = (item, absoluteIndex) => (
+    <tr key={item.id}>
+      <td
+        className="features screen hire order sn-cell"
+        onMouseEnter={() => handleRowMouseEnter(absoluteIndex)}
+        onMouseLeave={handleRowMouseLeave}
+      >
+        {item.id}
+        {showAddButton === absoluteIndex && (
+          <Controls
+            justify="end"
+            wrap={false}
+            gap="4px"
+            className="features screen hire order row-controls"
+            items={[
+              {
+                ...SHARED_BTN, text: '+', onClick: addItemRow, colorScheme: 'success-700', width: '20px', height: '20px',
+                title: 'Add Row', font: 'sm', padding: '0', type: 'submit', cursor: 'allowed'
+              },
+              ...(hireOrderData.items.length > 1 ? [{
+                ...SHARED_BTN, text: '-', onClick: () => removeItem(absoluteIndex), colorScheme: 'error-700', width: '20px', height: '20px',
+                title: 'Remove Row', font: 'sm', padding: '0', type: 'submit', cursor: 'allowed',
+              }] : []),
+            ]}
+          />
+        )}
+      </td>
+
+      {columns.map((col) => (
+        <td key={col.id}>
+          {col.type === 'calculated' ? (
+            autoCalculateTotal ? (
+              <span className="features screen hire order calculated-total">{formatCurrency(item[col.id])}</span>
+            ) : (
+              <input
+                type="number"
+                className="features screen hire order table-input number-input"
+                value={item[col.id] ?? ''}
+                onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
+                step="0.01"
+              />
+            )
+          ) : (
+            <input
+              type={col.type === 'number' ? 'number' : 'text'}
+              className={`features screen hire order table-input ${col.type === 'number' ? 'features screen hire order number-input' : 'features screen hire order description-input'}`}
+              value={item[col.id] ?? ''}
+              onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
+              step={col.type === 'number' ? '0.01' : undefined}
+              placeholder={col.type === 'text' ? `Enter ${col.label.toLowerCase()}` : undefined}
+            />
+          )}
+        </td>
+      ))}
+    </tr>
+  );
+
+  const buildDiscountRow = () => (
+    <tr key="discount">
+      <td colSpan={columns.length} className="features screen hire order total-label">Discount (QR)</td>
+      <td className="features screen hire order calculated-total discount-amount">-{formatCurrency(hireOrderData.discount)}</td>
+    </tr>
+  );
+
+  const buildTotalRow = () => (
+    <tr key="total">
+      <td colSpan={columns.length} className="features screen hire order total-label">
+        <span
+          className="features screen hire order toggle-field"
+          onClick={toggleDiscountInTotal}
+          title="Click to toggle between with/without discount"
+        >
+          {showDiscountInTotal ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
+        </span>
+        {showDiscountInTotal && (
+          <div className="features screen hire order discount-controls">
+            <Controls
+              justify="start"
+              wrap={false}
+              items={[{
+                text: hireOrderData.discount > 0 ? 'Edit Discount' : 'Add Discount',
+                onClick: handleDiscountPopup,
+                onMouseEnter: handleDiscountButtonMouseEnter,
+                onMouseLeave: handleDiscountButtonMouseLeave,
+                colorScheme: isLoading ? 'blue-900' : 'blue-800',
+                width: '120px', height: '20px', font: 'sm',
+                type: isLoading ? 'disabled' : 'submit', cursor: 'allowed', ...SHARED_BTN,
+              }]}
+            />
+            {showDiscount && (
+              <div className="features screen hire order discount-info">
+                Subtotal: {subtotal.toFixed(2)} QR<br />
+                Discount: {hireOrderData.discount.toFixed(2)} QR
+              </div>
+            )}
+          </div>
+        )}
+        <button
+          type="button"
+          className="features screen hire order remove-term-btn"
+          onClick={removeTotalRow}
+          title="Remove total row"
+        >
+          ×
+        </button>
+      </td>
+      <td className="features screen hire order calculated-total final-total">
+        <div className="features screen hire order final-total-wrap">
+          <input
+            type="number"
+            className="features screen hire order table-input number-input final-total-input"
+            value={manualTotal !== null ? manualTotal : Number(finalTotal.toFixed(2))}
+            onChange={handleManualTotalChange}
+            onBlur={handleManualTotalBlur}
+            step="0.01"
+            title="Auto-calculated. Type to override."
+          />
+          {manualTotal !== null && (
+            <button
+              type="button"
+              className="features screen hire order reset-total-btn"
+              onClick={resetManualTotal}
+              title="Back to auto calculation"
+            >
+              ↺
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+
+  const buildTermLi = (term, absoluteIndex) => (
+    <li key={absoluteIndex} className="features screen hire order payment-term-item">
+      <span className="features screen hire order term-bullet">•</span>
+      <input
+        type="text"
+        className="features screen hire order payment-term-input"
+        value={term}
+        onChange={(e) => updatePaymentTerm(absoluteIndex, e.target.value)}
+        placeholder="Enter payment term"
+      />
+      {paymentTerms.length > 1 && (
+        <button className="features screen hire order remove-term-btn" onClick={() => removePaymentTerm(absoluteIndex)} title="Remove term">
+          ×
+        </button>
+      )}
+    </li>
+  );
+
+  const blocks = [
+    ...hireOrderData.items.map((item, absoluteIndex) => ({
+      key: `item-${item.id}`,
+      section: 'item',
+      row: buildItemRow(item, absoluteIndex),
+      content: <table className="features screen hire order items-table"><tbody>{buildItemRow(item, absoluteIndex)}</tbody></table>,
+    })),
+    ...(showTotalRow && showDiscountInTotal && hireOrderData.discount > 0 ? [{
+      key: 'discount', section: 'item', row: buildDiscountRow(),
+      content: <table className="features screen hire order items-table"><tbody>{buildDiscountRow()}</tbody></table>,
+    }] : []),
+    ...(showTotalRow ? [{
+      key: 'total', section: 'item', row: buildTotalRow(),
+      content: <table className="features screen hire order items-table"><tbody>{buildTotalRow()}</tbody></table>,
+    }] : []),
+    ...paymentTerms.map((term, absoluteIndex) => ({
+      key: `term-${absoluteIndex}`,
+      section: 'term',
+      li: buildTermLi(term, absoluteIndex),
+      content: (
+        <table className="features screen hire order terms-table">
+          <tbody><tr><td className="features screen hire order terms-header-large term-measure">
+            <ul className="features screen hire order payment-terms-list">{buildTermLi(term, absoluteIndex)}</ul>
+          </td></tr></tbody>
+        </table>
+      ),
+    })),
+    {
+      key: 'closing',
+      section: 'closing',
+      content: (
+        <SignaturesBlock
+          getSignatoryName={hireOrderForm.getSignatoryName}
+          toggleCeoMode={hireOrderForm.toggleCeoMode}
+          ceoMode={hireOrderForm.ceoMode}
+        />
+      ),
+    },
+  ];
+
+  const renderItemGroup = (group) => (
+    <table key="items" className="features screen hire order items-table">
+      <thead>
+        <tr>
+          <th className="features screen hire order sn-header">SN</th>
+          {columns.map((col) => {
+            const fixed = col.type === 'calculated';
+            return (
+              <th key={col.id}>
+                {fixed ? (
+                  <div className="features screen hire order column-header-cell fixed-column-header">
+                    <span className="features screen hire order fixed-column-label">{col.label}</span>
+                  </div>
+                ) : (
+                  <div className="features screen hire order column-header-cell">
+                    <input
+                      type="text"
+                      className="features screen hire order column-header-input"
+                      style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
+                      value={col.label}
+                      onChange={(e) => updateColumnLabel(col.id, e.target.value)}
+                    />
+                    <button className="features screen hire order remove-column-btn" onClick={() => removeColumn(col.id)} title="Remove column">×</button>
+                  </div>
+                )}
+              </th>
+            );
+          })}
+        </tr>
+      </thead>
+      <tbody>{group.blocks.map((b) => b.row)}</tbody>
+    </table>
+  );
+
+  const renderTermGroup = (group) => {
+    const showHeader = group.blocks[0]?.key === 'term-0';
+    const isLastGroup = paymentTerms.length > 0 && group.blocks.some((b) => b.key === `term-${paymentTerms.length - 1}`);
+
+    return (
+      <table key="terms" className="features screen hire order terms-table">
+        <tbody>
+          <tr className="features screen hire order terms-row-large">
+            <td className="features screen hire order terms-header-large">
+              <div className="features screen hire order payment-terms-container">
+                {showHeader && <div className="features screen hire order payment-terms-header">Terms &amp; Conditions</div>}
+                <ul className="features screen hire order payment-terms-list">{group.blocks.map((b) => b.li)}</ul>
+                {isLastGroup && (
+                  <Controls
+                    justify="start"
+                    items={[{
+                      text: '+ Add Payment Term', onClick: addPaymentTerm, colorScheme: 'lime-800',
+                      width: '170px', height: '30px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
+                    }]}
+                  />
+                )}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    );
   };
 
-  const termsSharedProps = {
-    paymentTerms: hireOrderForm.paymentTerms,
-    updatePaymentTerm: hireOrderForm.updatePaymentTerm,
-    removePaymentTerm: hireOrderForm.removePaymentTerm,
-    addPaymentTerm: hireOrderForm.addPaymentTerm,
-    getSignatoryName: hireOrderForm.getSignatoryName,
-    toggleCeoMode: hireOrderForm.toggleCeoMode,
-    ceoMode: hireOrderForm.ceoMode,
+  const renderGroup = (group) => {
+    if (group.section === 'item') return renderItemGroup(group);
+    if (group.section === 'term') return renderTermGroup(group);
+    return group.blocks[0].content;
   };
+
+  const headerNode = (
+    <>
+      <div className="features screen hire order top-divider" />
+      <div className="features screen hire order title">HIRE ORDER</div>
+
+      <div className="features screen hire order details">
+        <table className="features screen hire order details-table">
+          <tbody>
+            <tr>
+              <td className="features screen hire order left-col">
+                <div className="features screen hire order detail-item">
+                  TO :
+                  <span className="features screen hire order dropdown-container" ref={hireOrderForm.companyRef}>
+                    <input
+                      type="text"
+                      className="features screen hire order editable-input company-input"
+                      value={hireOrderData.vendor}
+                      onChange={hireOrderForm.handleVendorInputChange}
+                      placeholder="Enter company name"
+                    />
+                    {hireOrderForm.companyDropdown && hireOrderForm.filteredCompanies.length > 0 && (
+                      <div className="features screen hire order dropdown-menu">
+                        <div className="features screen hire order dropdown-options">
+                          {hireOrderForm.filteredCompanies.map((company, idx) => (
+                            <div key={idx} className="features screen hire order dropdown-option" onClick={() => hireOrderForm.handleCompanySelect(company)}>
+                              <div className="features screen hire order company-name">{company.vendor}</div>
+                              <div className="features screen hire order company-details">{company.attention} - {company.designation}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </span>
+                </div>
+
+                <div className="features screen hire order detail-item">
+                  ATTN :
+                  <span className="features screen hire order dropdown-container" ref={hireOrderForm.attnRef}>
+                    <input
+                      type="text"
+                      className="features screen hire order editable-input attention-input"
+                      value={hireOrderData.attention}
+                      onChange={hireOrderForm.handleAttentionInputChange}
+                      placeholder="Enter attention name"
+                    />
+                    {hireOrderForm.attnDropdown && hireOrderForm.filteredAttentions.length > 0 && (
+                      <div className="features screen hire order dropdown-menu">
+                        <div className="features screen hire order dropdown-options">
+                          {hireOrderForm.filteredAttentions.map((company, idx) => (
+                            <div key={idx} className="features screen hire order dropdown-option" onClick={() => hireOrderForm.handleAttentionSelect(company)}>
+                              <div className="features screen hire order attention-name">{company.attention}</div>
+                              <div className="features screen hire order attention-designation">{company.designation}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </span>
+                </div>
+
+                <div className="features screen hire order detail-item">
+                  DESIGNATION :
+                  <input
+                    type="text"
+                    className="features screen hire order editable-input designation-input"
+                    value={hireOrderData.designation}
+                    onChange={hireOrderForm.handleDesignationChange}
+                    placeholder="Enter designation"
+                  />
+                </div>
+
+                <div className="features screen hire order detail-item">
+                  Ref No :
+                  <input
+                    type="text"
+                    className="features screen hire order editable-input designation-input"
+                    value={hireOrderData.quoteNo}
+                    onChange={hireOrderForm.handleQuoteNoChange}
+                    placeholder="Enter Quotation Number"
+                  />
+                </div>
+              </td>
+
+              <td className="features screen hire order right-col">
+                <div className="features screen hire order detail-item">DATE : <span className="features screen hire order non-editable">{hireOrderData.date}</span></div>
+                {customFields.map((field) => (
+                  <div className="features screen hire order detail-item custom-field-item" key={field.id}>
+                    <input
+                      type="text"
+                      className="features screen hire order editable-input custom-field-label-input"
+                      value={field.label}
+                      onChange={(e) => updateCustomFieldLabel(field.id, e.target.value)}
+                      placeholder="Field name"
+                    />
+                    :
+                    <input
+                      type="text"
+                      className="features screen hire order editable-input custom-field-value-input"
+                      value={field.value}
+                      onChange={(e) => updateCustomFieldValue(field.id, e.target.value)}
+                      placeholder="Field value"
+                    />
+                    <button
+                      type="button"
+                      className="features screen hire order remove-term-btn"
+                      onClick={() => removeCustomField(field.id)}
+                      title="Remove field"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+
+                <div className="features screen hire order add-field-row">
+                  <Controls
+                    justify="start"
+                    items={[{
+                      text: '+ Add Field', onClick: addCustomField, colorScheme: 'lime-800',
+                      width: '120px', height: '28px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
+                    }]}
+                  />
+                </div>
+
+                <div className="features screen hire order detail-item">LPO REF NO : <span className="features screen hire order non-editable">{hireOrderData.hireOrderRef}</span></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="features screen hire order details-divider" />
+
+      <div className="features screen hire order request-text">
+        <textarea
+          className="features screen hire order request-text-input"
+          value={hireOrderData.requestText}
+          onChange={hireOrderForm.handleRequestTextChange}
+          rows={3}
+        />
+      </div>
+
+      <div className="features screen hire order add-column-row">
+        <Controls
+          justify="end"
+          gap="8px"
+          items={[
+            ...(!showTotalRow ? [{
+              text: '+ Add Total Row', onClick: restoreTotalRow, colorScheme: 'primary-800',
+              width: '140px', height: '28px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
+            }] : []),
+            {
+              text: '+ Add Column', onClick: addColumn, colorScheme: 'lime-800',
+              width: '140px', height: '28px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
+            },
+          ]}
+        />
+      </div>
+    </>
+  );
 
   return (
     <div className="features screen hire order page-container">
@@ -372,166 +536,14 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
         }]}
       />
 
-      <A2Paper ref={componentRef}>
-        <div className="features screen hire order top-divider" />
-        <div className="features screen hire order title">HIRE ORDER</div>
-
-        <div className="features screen hire order details">
-          <table className="features screen hire order details-table">
-            <tbody>
-              <tr>
-                <td className="features screen hire order left-col">
-
-                  <div className="features screen hire order detail-item">
-                    TO :
-                    <span className="features screen hire order dropdown-container" ref={hireOrderForm.companyRef}>
-                      <input
-                        type="text"
-                        className="features screen hire order editable-input company-input"
-                        value={hireOrderForm.hireOrderData.vendor}
-                        onChange={hireOrderForm.handleVendorInputChange}
-                        placeholder="Enter company name"
-                      />
-                      {hireOrderForm.companyDropdown && hireOrderForm.filteredCompanies.length > 0 && (
-                        <div className="features screen hire order dropdown-menu">
-                          <div className="features screen hire order dropdown-options">
-                            {hireOrderForm.filteredCompanies.map((company, idx) => (
-                              <div key={idx} className="features screen hire order dropdown-option" onClick={() => hireOrderForm.handleCompanySelect(company)}>
-                                <div className="features screen hire order company-name">{company.vendor}</div>
-                                <div className="features screen hire order company-details">{company.attention} - {company.designation}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="features screen hire order detail-item">
-                    ATTN :
-                    <span className="features screen hire order dropdown-container" ref={hireOrderForm.attnRef}>
-                      <input
-                        type="text"
-                        className="features screen hire order editable-input attention-input"
-                        value={hireOrderForm.hireOrderData.attention}
-                        onChange={hireOrderForm.handleAttentionInputChange}
-                        placeholder="Enter attention name"
-                      />
-                      {hireOrderForm.attnDropdown && hireOrderForm.filteredAttentions.length > 0 && (
-                        <div className="features screen hire order dropdown-menu">
-                          <div className="features screen hire order dropdown-options">
-                            {hireOrderForm.filteredAttentions.map((company, idx) => (
-                              <div key={idx} className="features screen hire order dropdown-option" onClick={() => hireOrderForm.handleAttentionSelect(company)}>
-                                <div className="features screen hire order attention-name">{company.attention}</div>
-                                <div className="features screen hire order attention-designation">{company.designation}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="features screen hire order detail-item">
-                    DESIGNATION :
-                    <input
-                      type="text"
-                      className="features screen hire order editable-input designation-input"
-                      value={hireOrderForm.hireOrderData.designation}
-                      onChange={hireOrderForm.handleDesignationChange}
-                      placeholder="Enter designation"
-                    />
-                  </div>
-
-                  <div className="features screen hire order detail-item">
-                    Ref No :
-                    <input
-                      type="text"
-                      className="features screen hire order editable-input designation-input"
-                      value={hireOrderForm.hireOrderData.quoteNo}
-                      onChange={hireOrderForm.handleQuoteNoChange}
-                      placeholder="Enter Quotation Number"
-                    />
-                  </div>
-
-                </td>
-
-                <td className="features screen hire order right-col">
-                  <div className="features screen hire order detail-item">DATE : <span className="features screen hire order non-editable">{hireOrderForm.hireOrderData.date}</span></div>
-                  <div className="features screen hire order detail-item">HIRE ORDER REF NO : <span className="features screen hire order non-editable">{hireOrderForm.hireOrderData.hireOrderRef}</span></div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="features screen hire order details-divider" />
-
-        <div className="features screen hire order request-text">
-          <textarea
-            className="features screen hire order request-text-input"
-            value={hireOrderForm.hireOrderData.requestText}
-            onChange={hireOrderForm.handleRequestTextChange}
-            rows={3}
-          />
-        </div>
-
-        <div className="features screen hire order add-column-row">
-          <Controls
-            justify="end"
-            items={[{
-              text: '+ Add Column',
-              onClick: hireOrderForm.addColumn,
-              colorScheme: 'lime-800',
-              width: '140px',
-              height: '28px',
-              font: 'sm',
-              type: 'submit',
-              cursor: 'pointer',
-              ...SHARED_BTN,
-            }]}
-          />
-        </div>
-
-        <HireOrderItemsTable
-          items={itemPages[0]}
-          startIndex={1}
-          showHeader
-          showTotal={lastPageIndex === 0}
-          {...itemsTableSharedProps}
-        />
-
-        {lastPageIndex === 0 && showTermsInline && (
-          <TermsAndSignaturesContent {...termsSharedProps} />
-        )}
-      </A2Paper>
-
-      {itemPages.slice(1).map((pageItems, idx) => {
-        const pageIndex = idx + 1;
-        const isLastItemPage = pageIndex === lastPageIndex;
-        const startIndex = itemPages.slice(0, pageIndex).reduce((sum, p) => sum + p.length, 0) + 1;
-
-        return (
-          <A2Paper key={pageIndex}>
-            <div className="features screen hire order continuation-divider" />
-            <HireOrderItemsTable
-              items={pageItems}
-              startIndex={startIndex}
-              showHeader
-              showTotal={isLastItemPage}
-              {...itemsTableSharedProps}
-            />
-
-            {isLastItemPage && showTermsInline && (
-              <TermsAndSignaturesContent {...termsSharedProps} />
-            )}
+      <A2PaginationEngine blocks={blocks} firstPageHeader={headerNode}>
+        {(pages) => pages.map((pageBlocks, pageIndex) => (
+          <A2Paper key={pageIndex} ref={pageIndex === 0 ? firstPageRef : undefined}>
+            {pageIndex === 0 ? headerNode : <div className="features screen hire order continuation-divider" />}
+            {groupBlocksBySection(pageBlocks).map((group, i) => <div key={i}>{renderGroup(group)}</div>)}
           </A2Paper>
-        );
-      })}
-
-      {!showTermsInline && (
-        <TermsAndSignaturesPage {...termsSharedProps} />
-      )}
+        ))}
+      </A2PaginationEngine>
 
       {hireOrderForm.showDiscountPopup && (
         <div className="features screen hire order discount-popup-overlay">

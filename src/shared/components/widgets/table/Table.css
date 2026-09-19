@@ -1,11 +1,59 @@
 .shared.widget.table.table-container {
-  overflow-x: auto;
   max-width: 100%;
+  max-height: var(--table-max-height, 85vh);
+  overflow: hidden;
   border-radius: var(--radius-6xl);
+  corner-shape: squircle;
   box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  pointer-events: all;
 }
 
-.shared.widget.table.table-container::-webkit-scrollbar {
+.shared.widget.table.table-title-bar {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  background: var(--table-head);
+  border-bottom: var(--border-table);
+  border-radius: var(--radius-6xl) var(--radius-6xl) 0 0;
+  corner-shape: squircle;
+}
+
+.shared.widget.table.table-title-bar[data-position='left'] {
+  justify-content: flex-start;
+}
+
+.shared.widget.table.table-title-bar[data-position='center'] {
+  justify-content: center;
+  text-align: center;
+}
+
+.shared.widget.table.table-title-bar[data-position='right'] {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.shared.widget.table.table-scroll-body {
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.shared.widget.table.table-container:has(.shared.widget.table.table-title-bar) .shared.widget.table.table-scroll-body {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.shared.widget.table.table-scroll-body::-webkit-scrollbar {
   display: none;
 }
 
@@ -22,6 +70,12 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 1px 0 var(--border-primary, rgba(0,0,0,0.1));
+}
+
+.shared.widget.table.table-root {
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .shared.widget.table.table-root th,

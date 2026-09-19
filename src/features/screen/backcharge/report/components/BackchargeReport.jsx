@@ -100,7 +100,7 @@ function BackchargeReport() {
           <div className="features screens backcharge report info full row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="features screens backcharge report info field" style={{ display: 'flex', alignItems: 'center' }}>
               <span className="features screens backcharge report field label">Ref No :</span>
-              <span className="features screens backcharge report field value">{formData.refNo || formData.reportNo || 'N/A'}</span>
+              <span className="features screens backcharge report field value">{formData.refNo || 'N/A'}</span>
             </div>
             <div className="features screens backcharge report info field" style={{ display: 'flex', alignItems: 'center' }}>
               <span className="features screens backcharge report field label">Date :</span>
@@ -114,7 +114,6 @@ function BackchargeReport() {
 
           <div className="features screens backcharge report title hero">
             {[
-              ['reportNo', 'Report No'],
               ['equipmentType', 'Equipment Type'],
               ['plateNo', 'Plate No'],
               ['model', 'Model'],

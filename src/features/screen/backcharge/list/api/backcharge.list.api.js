@@ -1,11 +1,10 @@
 import { apiRequest } from '@/features/core/network/api/api.request';
-import { appendPaginationToUrl, extractPaginationResult } from '@/shared/pagination/pagination.util';
+import { appendPaginationToUrl } from '@/shared/pagination/pagination.util';
 
 export const fetchBackchargeReports = async (pagination) => {
   const url = appendPaginationToUrl(`/backcharge/get-backcharge-reports`, pagination);
   const response = await apiRequest(url, 'GET');
-  const result = await response.json();
-  return extractPaginationResult(result);
+  return response.json();
 };
 
 export const fetchBackchargeTotals = async () => {

@@ -1,11 +1,11 @@
 export const formatCurrency = (value) =>
   (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export const chunkItems = (items, size) => {
-  if (!items.length) return [[]];
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
+export const isTermHeading = (term) => typeof term === 'string' && term.startsWith('## ');
+
+export const getTermText = (term) => (isTermHeading(term) ? term.slice(3) : term);
+
+export const buildTermNumbers = (terms) => {
+  let count = 0;
+  return terms.map((term) => (isTermHeading(term) ? null : ++count));
 };

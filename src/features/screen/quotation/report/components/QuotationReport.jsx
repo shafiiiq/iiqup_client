@@ -1,66 +1,60 @@
-import A2Paper from '@/shared/components/widgets/paper/A2Paper';
+import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 import A2PaperSkeleton from '@/shared/components/widgets/paper/A2PaperSkeleton';
 import Modal from '@/shared/components/widgets/modal/Modal';
 import Controls from '@/shared/components/widgets/controls/Controls';
 
 import useQuotationReport from '../hooks/useQuotationReport';
-import { ITEMS_PER_PAGE, SHARED_BTN, CONFIRMATION_HEADING } from '../constants/quotation.report.constant';
-import { formatCurrency, chunkItems } from '../helper/quotation.report.helper';
+import { SHARED_BTN, CONFIRMATION_HEADING } from '../constants/quotation.report.constant';
+import { formatCurrency, isTermHeading, getTermText, buildTermNumbers } from '../helper/quotation.report.helper';
 import './QuotationReport.css';
 
-function ItemsTable({ items, columns, startIndex, showHeader, showTotal, data, total, lastItemBorder }) {
-  const lastIndex = items.length - 1;
-  const totalValue = data.showDiscountInTotal ? total - (data.discount || 0) : total;
-
-  return (
-    <table className="features screen quotation report items-table">
-      {showHeader && (
-        <thead>
-          <tr>
-            <th>SN</th>
-            {columns.map((col) => <th key={col.id}>{col.label}</th>)}
-          </tr>
-        </thead>
-      )}
-      <tbody>
-        {items.map((item, idx) => (
-          <tr key={item._id || item.id || idx} className={lastItemBorder && idx === lastIndex ? 'features screen quotation report border-bottom' : ''}>
-            <td>{startIndex + idx}</td>
-            {columns.map((col) => (
-              <td
-                key={col.id}
-                className={`${col.id === 'description' && 'purchase order report items description data'}`}
-              >
-                {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
-                {col.id === 'description' && item.image && (
-                  <div className="features screen quotation report item-image-wrap">
-                    <img src={item.image} alt="Item attachment" className="features screen quotation report item-image" />
-                  </div>
-                )}
-              </td>
-            ))}
-          </tr>
-        ))}
-        {showTotal && (
-          <>
-            {data.showDiscountInTotal && data.discount > 0 && (
-              <tr>
-                <td colSpan={columns.length} className="features screen quotation report total-label">Discount (QR)</td>
-                <td>-{formatCurrency(data.discount)}</td>
-              </tr>
-            )}
-            <tr>
-              <td colSpan={columns.length} className="features screen quotation report total-label">
-                {data.showDiscountInTotal ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
-              </td>
-              <td>{formatCurrency(data.totalAmount || totalValue)}</td>
-            </tr>
-          </>
+const buildItemRow = (item, absoluteIndex, columns) => (
+  <tr key={item._id || item.id || absoluteIndex}>
+    <td>{absoluteIndex + 1}</td>
+    {columns.map((col) => (
+      <td
+        key={col.id}
+        className={col.id === 'description' ? 'purchase order report items description data' : ''}
+      >
+        {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
+        {col.id === 'description' && item.image && (
+          <div className="features screen quotation report item-image-wrap">
+            <img src={item.image} alt="Item attachment" className="features screen quotation report item-image" />
+          </div>
         )}
-      </tbody>
-    </table>
+      </td>
+    ))}
+  </tr>
+);
+
+const buildDiscountRow = (data, columns) => (
+  <tr key="discount">
+    <td colSpan={columns.length} className="features screen quotation report total-label">Discount (QR)</td>
+    <td>-{formatCurrency(data.discount)}</td>
+  </tr>
+);
+
+const buildTotalRow = (data, columns, total) => {
+  const totalValue = data.showDiscountInTotal ? total - (data.discount || 0) : total;
+  return (
+    <tr key="total">
+      <td colSpan={columns.length} className="features screen quotation report total-label">
+        {data.showDiscountInTotal ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
+      </td>
+      <td>{formatCurrency(data.totalAmount || totalValue)}</td>
+    </tr>
   );
-}
+};
+
+const buildTermLi = (term, absoluteIndex, number) => (
+  <li
+    key={absoluteIndex}
+    value={isTermHeading(term) ? undefined : number}
+    className={isTermHeading(term) ? 'features screen quotation report term-heading' : ''}
+  >
+    {getTermText(term)}
+  </li>
+);
 
 function ClosingSection({ data, signatureFlags, signatureStates }) {
   const isSigned = signatureFlags?.authorizedSigned && signatureStates?.authorized?.url;
@@ -111,158 +105,151 @@ function ClosingSection({ data, signatureFlags, signatureStates }) {
   );
 }
 
-function TermsSection({ terms, showHeader, isLastTermsPage, data, showClosing, signatureFlags, signatureStates }) {
-  return (
-    <>
-      <table className="features screen quotation report terms-table">
-        <tbody>
-          <tr>
-            <td className="features screen quotation report terms-content">
-              {showHeader && <div className="features screen quotation report terms-header">Terms &amp; Conditions</div>}
-              <ul>
-                {terms.map((term, idx) => <li key={idx}>{term}</li>)}
-              </ul>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      {isLastTermsPage && showClosing && (
-        <ClosingSection data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} />
-      )}
-    </>
-  );
-}
-
 function ReportData({ data, signatureFlags, signatureStates }) {
-  const itemPages = chunkItems(data.items, ITEMS_PER_PAGE);
-  const lastItemPageIndex = itemPages.length - 1;
-  const lastItemPageCount = itemPages[lastItemPageIndex].length;
+  const columns = data.columns;
   const total = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+  const termNumbers = buildTermNumbers(data.termsAndConditions);
 
-  const remainingCapacity = Math.max(0, ITEMS_PER_PAGE - lastItemPageCount);
-  const termsOnLastItemsPage = data.termsAndConditions.slice(0, remainingCapacity);
-  const overflowTerms = data.termsAndConditions.slice(remainingCapacity);
-  const termsPages = chunkItems(overflowTerms, ITEMS_PER_PAGE);
-  const hasOverflowTermsPages = overflowTerms.length > 0;
-  const lastTermsPageIndex = termsPages.length - 1;
-
-  return (
-    <>
-      <A2Paper className="features screen quotation report document-sheet">
-        {data.isAmendment && data.amendmentDate && (
-          <div className="features screen quotation report amendment-banner">[AMENDMENT]</div>
-        )}
-
-        <div className="features screen quotation report divider-header" />
-        <div className="features screen quotation report title">QUOTATION</div>
-
-        <table className="features screen quotation report info-table">
+  const blocks = [
+    ...data.items.map((item, absoluteIndex) => ({
+      key: `item-${item._id || item.id || absoluteIndex}`,
+      section: 'item',
+      row: buildItemRow(item, absoluteIndex, columns),
+      content: (
+        <table className="features screen quotation report items-table">
+          <tbody>{buildItemRow(item, absoluteIndex, columns)}</tbody>
+        </table>
+      ),
+    })),
+    ...(data.showTotalRow !== false && data.showDiscountInTotal && data.discount > 0 ? [{
+      key: 'discount',
+      section: 'item',
+      row: buildDiscountRow(data, columns),
+      content: (
+        <table className="features screen quotation report items-table">
+          <tbody>{buildDiscountRow(data, columns)}</tbody>
+        </table>
+      ),
+    }] : []),
+    ...(data.showTotalRow !== false ? [{
+      key: 'total',
+      section: 'item',
+      row: buildTotalRow(data, columns, total),
+      content: (
+        <table className="features screen quotation report items-table">
+          <tbody>{buildTotalRow(data, columns, total)}</tbody>
+        </table>
+      ),
+    }] : []),
+    ...data.termsAndConditions.map((term, absoluteIndex) => ({
+      key: `term-${absoluteIndex}`,
+      section: 'term',
+      li: buildTermLi(term, absoluteIndex, termNumbers[absoluteIndex]),
+      content: (
+        <table className="features screen quotation report terms-table">
           <tbody>
             <tr>
-              <td className="features screen quotation report info-column-left">
-                <div className="features screen quotation report info-line">TO : {data.vendor}</div>
-                <div className="features screen quotation report info-line">ATTN : {data.attention}</div>
-                <div className="features screen quotation report info-line">DESIGNATION : {data.designation}</div>
-              </td>
-              <td className="features screen quotation report info-column-right">
-                <div className="features screen quotation report info-line">DATE : {data.date}</div>
-                <div className="features screen quotation report info-line">LOCATION : {data.location}</div>
-                {data.customFields?.map((field, idx) => (
-                  <div className="features screen quotation report info-line" key={field.id || idx}>
-                    {(field.label || 'FIELD').toUpperCase()} : {field.value}
-                  </div>
-                ))}
-                <div className="features screen quotation report info-line">QUOTATION REF NO : {data.quotationRef}</div>
+              <td className="features screen quotation report terms-content term-measure">
+                <ul>{buildTermLi(term, absoluteIndex, termNumbers[absoluteIndex])}
+                </ul>
               </td>
             </tr>
           </tbody>
         </table>
+      ),
+    })),
+    {
+      key: 'closing',
+      section: 'closing',
+      content: <ClosingSection data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} />,
+    },
+  ];
 
-        <div className="features screen quotation report divider-details" />
-        <div className="features screen quotation report request-text">{data.requestText}</div>
+  const renderGroup = (group) => {
+    if (group.section === 'item') {
+      return (
+        <table key="items" className="features screen quotation report items-table">
+          <thead>
+            <tr>
+              <th>SN</th>
+              {columns.map((col) => <th key={col.id}>{col.label}</th>)}
+            </tr>
+          </thead>
+          <tbody>{group.blocks.map((b) => b.row)}</tbody>
+        </table>
+      );
+    }
 
-        <ItemsTable
-          items={itemPages[0]}
-          columns={data.columns}
-          startIndex={1}
-          showHeader
-          showTotal={lastItemPageIndex === 0}
-          data={data}
-          total={total}
-          lastItemBorder={lastItemPageIndex !== 0}
-        />
+    if (group.section === 'term') {
+      const showHeader = group.blocks[0]?.key === 'term-0';
+      return (
+        <table key="terms" className="features screen quotation report terms-table">
+          <tbody>
+            <tr>
+              <td className="features screen quotation report terms-content">
+                {showHeader && <div className="features screen quotation report terms-header">Terms &amp; Conditions</div>}
+                <ul>{group.blocks.map((b) => b.li)}</ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      );
+    }
 
-        {lastItemPageIndex === 0 && termsOnLastItemsPage.length > 0 && (
-          <TermsSection
-            terms={termsOnLastItemsPage}
-            showHeader
-            isLastTermsPage={!hasOverflowTermsPages}
-            data={data}
-            showClosing={!hasOverflowTermsPages}
-            signatureFlags={signatureFlags}
-            signatureStates={signatureStates}
-          />
-        )}
-      </A2Paper>
+    return group.blocks[0].content;
+  };
 
-      {itemPages.slice(1).map((pageItems, idx) => {
-        const pageIndex = idx + 1;
-        const isLastItemPage = pageIndex === lastItemPageIndex;
-        const startIndex = itemPages.slice(0, pageIndex).reduce((sum, p) => sum + p.length, 0) + 1;
+  const headerNode = (
+    <>
+      {data.isAmendment && data.amendmentDate && (
+        <div className="features screen quotation report amendment-banner">[AMENDMENT]</div>
+      )}
+      <div className="features screen quotation report divider-header" />
+      <div className="features screen quotation report title">QUOTATION</div>
 
-        return (
-          <A2Paper key={`items-${pageIndex}`} className="features screen quotation report document-sheet">
-            <div className="features screen quotation report divider-header" />
-            <ItemsTable
-              items={pageItems}
-              columns={data.columns}
-              startIndex={startIndex}
-              showHeader
-              showTotal={isLastItemPage}
-              data={data}
-              total={total}
-              lastItemBorder={!isLastItemPage}
-            />
+      <table className="features screen quotation report info-table">
+        <tbody>
+          <tr>
+            <td className="features screen quotation report info-column-left">
+              <div className="features screen quotation report info-line">TO : {data.vendor}</div>
+              <div className="features screen quotation report info-line">ATTN : {data.attention}</div>
+              <div className="features screen quotation report info-line">DESIGNATION : {data.designation}</div>
+            </td>
+            <td className="features screen quotation report info-column-right">
+              <div className="features screen quotation report info-line">DATE : {data.date}</div>
+              <div className="features screen quotation report info-line">LOCATION : {data.location}</div>
+              {data.customFields?.map((field, idx) => (
+                <div className="features screen quotation report info-line" key={field.id || idx}>
+                  {(field.label || 'FIELD').toUpperCase()} : {field.value}
+                </div>
+              ))}
+              <div className="features screen quotation report info-line">QUOTATION REF NO : {data.quotationRef}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-            {isLastItemPage && termsOnLastItemsPage.length > 0 && (
-              <TermsSection
-                terms={termsOnLastItemsPage}
-                showHeader
-                isLastTermsPage={!hasOverflowTermsPages}
-                data={data}
-                showClosing={!hasOverflowTermsPages}
-                signatureFlags={signatureFlags}
-                signatureStates={signatureStates}
-              />
-            )}
-          </A2Paper>
-        );
-      })}
-
-      {termsPages.map((termsChunk, idx) => {
-        const isLastTermsPage = idx === lastTermsPageIndex;
-        return (
-          <A2Paper key={`terms-${idx}`} className="features screen quotation report document-sheet">
-            <div className="features screen quotation report divider-header" />
-            <TermsSection
-              terms={termsChunk}
-              showHeader={termsOnLastItemsPage.length === 0 && idx === 0}
-              isLastTermsPage={isLastTermsPage}
-              data={data}
-              showClosing={isLastTermsPage}
-              signatureFlags={signatureFlags}
-              signatureStates={signatureStates}
-            />
-          </A2Paper>
-        );
-      })}
+      <div className="features screen quotation report divider-details" />
+      <div className="features screen quotation report request-text">{data.requestText}</div>
     </>
+  );
+
+  return (
+    <A2PaginationEngine blocks={blocks} firstPageHeader={headerNode}>
+      {(pages) => pages.map((pageBlocks, pageIndex) => (
+        <A2Paper key={pageIndex} className="features screen quotation report document-sheet">
+          {pageIndex === 0 ? headerNode : <div className="features screen quotation report divider-header" />}
+          {groupBlocksBySection(pageBlocks).map((group, i) => (
+            <div key={i}>{renderGroup(group)}</div>
+          ))}
+        </A2Paper>
+      ))}
+    </A2PaginationEngine>
   );
 }
 
 function QuotationReport() {
   const {
-    refNoOrQuotationRef,
     quotationRef,
     componentRef,
     deviceInfo,

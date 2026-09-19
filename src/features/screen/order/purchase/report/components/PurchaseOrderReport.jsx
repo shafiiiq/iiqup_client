@@ -1,12 +1,12 @@
-import A2Paper from '@/shared/components/widgets/paper/A2Paper';
 import PaperViewport from '@/shared/components/widgets/paper/PaperViewport';
 import QuotationPreview from '@/shared/components/viewer/Pdf/QuotationPreview/QuotationPreview';
 import Modal from '@/shared/components/widgets/modal/Modal';
 import Controls from '@/shared/components/widgets/controls/Controls';
 
 import usePurchaseOrderReport from '../hooks/usePurchaseOrderReport';
-import { ITEMS_PER_PAGE, SHARED_BTN } from '../constants/purchase.order.report.constant';
-import { formatCurrency, signatoryRole, chunkItems, estimateItemLines } from '../helper/purchase.order.report.helper';
+import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
+import { SHARED_BTN } from '../constants/purchase.order.report.constant';
+import { formatCurrency, signatoryRole } from '../helper/purchase.order.report.helper';
 
 import './PurchaseOrderReport.css';
 import A2PaperSkeleton from '@/shared/components/widgets/paper/A2PaperSkeleton';
@@ -103,13 +103,6 @@ function TermsAndSignaturesContent({ data, signatureFlags, signatureStates }) {
     <>
       <table className="purchase order report terms table">
         <tbody>
-          <tr className="purchase order report terms row">
-            <td className="purchase order report terms content purchase order report border-right purchase order report border-bottom purchase order report border-left purchase order report border-top">
-              <ul>
-                {data.termsAndConditions.map((term, termIndex) => <li key={termIndex}>{term}</li>)}
-              </ul>
-            </td>
-          </tr>
           <tr>
             <td className="purchase order report terms note purchase order report border-right purchase order report border-left border-bottom">
               <strong>NOTE:</strong> The PurchaseOrder copy should be submitted along with the invoice every month for the payment process.
@@ -132,163 +125,145 @@ function TermsAndSignaturesPage({ data, signatureFlags, signatureStates }) {
   );
 }
 
-function ItemsTable({ items, startIndex, showHeader, showTotal, data, total, lastItemBorder }) {
-  const lastItemIndex = items.length - 1;
-
-  return (
-    <table className="purchase order report items table">
-      {showHeader && (
-        <thead>
-          <tr>
-            <th>SN</th>
-            <th>Item Description</th>
-            <th>Qty</th>
-            <th>Unit Price(QR)</th>
-            <th>Total Price(QR)</th>
-          </tr>
-        </thead>
-      )}
-      <tbody>
-        {items.map((item, itemIndex) => (
-          <tr
-            key={item._id || item.id || itemIndex}
-            className={lastItemBorder && itemIndex === lastItemIndex ? 'purchase order report border-bottom' : ''}
-          >
-            <td>{startIndex + itemIndex}</td>
-            <td className='purchase order report items description data'>{item.description}</td>
-            <td>{item.quantity}</td>
-            <td>{formatCurrency(item.unitPrice)}</td>
-            <td>{formatCurrency(item.totalPrice)}</td>
-          </tr>
-        ))}
-        {showTotal && (
-          <tr>
-            <td colSpan="4" className="purchase order report items total label">
-              {data.totalDiscountAmount ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
-            </td>
-            <td>{formatCurrency(data.totalDiscountAmount || data.totalAmount || total)}</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  );
-}
-
 function ReportData({ data, signatureFlags, signatureStates, quotationUrl, quotationMime }) {
-  const itemPages = chunkItems(data.items, ITEMS_PER_PAGE);
-  const lastPageIndex = itemPages.length - 1;
   const total = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
 
-  const lastPageItemCount = itemPages[lastPageIndex].reduce(
-    (sum, item) => sum + estimateItemLines(item.description),
-    0
+  const buildItemRow = (item, absoluteIndex) => (
+    <tr key={item._id || item.id || absoluteIndex}>
+      <td>{absoluteIndex + 1}</td>
+      <td className='purchase order report items description data'>{item.description}</td>
+      <td>{item.quantity}</td>
+      <td>{formatCurrency(item.unitPrice)}</td>
+      <td>{formatCurrency(item.totalPrice)}</td>
+    </tr>
   );
-  const showTermsInline = lastPageIndex === 0 ? lastPageItemCount < 14 : lastPageItemCount < 21;
 
-  const termsSharedProps = { data, signatureFlags, signatureStates };
+  const buildTotalRow = () => (
+    <tr key="total">
+      <td colSpan="4" className="purchase order report items total label">
+        {data.totalDiscountAmount ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
+      </td>
+      <td>{formatCurrency(data.totalDiscountAmount || data.totalAmount || total)}</td>
+    </tr>
+  );
+
+  const buildTermLi = (term, absoluteIndex) => (
+    <li key={absoluteIndex} className={absoluteIndex === 0 ? 'purchase order report terms-first-line' : ''}>{term}</li>
+  );
+
+  const blocks = [
+    ...data.items.map((item, absoluteIndex) => ({
+      key: `item-${item._id || item.id || absoluteIndex}`,
+      section: 'item',
+      row: buildItemRow(item, absoluteIndex),
+      content: <table className="purchase order report items table"><tbody>{buildItemRow(item, absoluteIndex)}</tbody></table>,
+    })),
+    {
+      key: 'total', section: 'item', row: buildTotalRow(),
+      content: <table className="purchase order report items table"><tbody>{buildTotalRow()}</tbody></table>,
+    },
+    ...data.termsAndConditions.map((term, absoluteIndex) => ({
+      key: `term-${absoluteIndex}`,
+      section: 'term',
+      li: buildTermLi(term, absoluteIndex),
+      content: (
+        <table className="purchase order report terms table">
+          <tbody><tr className="purchase order report terms row"><td className="purchase order report terms content terms-measure"><ul>{buildTermLi(term, absoluteIndex)}</ul></td></tr></tbody>
+        </table>
+      ),
+    })),
+    {
+      key: 'closing',
+      section: 'closing',
+      content: <TermsAndSignaturesContent data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} closingOnly />,
+    },
+  ];
+
+  const renderGroup = (group) => {
+    if (group.section === 'item') {
+      return (
+        <table key="items" className="purchase order report items table">
+          <thead><tr><th>SN</th><th>Item Description</th><th>Qty</th><th>Unit Price(QR)</th><th>Total Price(QR)</th></tr></thead>
+          <tbody>{group.blocks.map((b) => b.row)}</tbody>
+        </table>
+      );
+    }
+    if (group.section === 'term') {
+      return (
+        <table key="terms" className="purchase order report terms table">
+          <tbody><tr className="purchase order report terms row"><td className="purchase order report terms content"><ul>{group.blocks.map((b) => b.li)}</ul></td></tr></tbody>
+        </table>
+      );
+    }
+    return group.blocks[0].content;
+  };
+
+  const headerNode = (
+    <>
+      {data.isAmendment && data.amendmentDate && (
+        <div style={{ textAlign: 'center', padding: '8px', margin: '10px 0', fontWeight: 'bold' }}>[AMENDMENT 1]</div>
+      )}
+      <div className="purchase order report divider header" />
+      <div className="purchase order report title">PURCHASE/HIRE ORDER</div>
+
+      <div className="purchase order report info panel">
+        <table className="purchase order report info table">
+          <tbody>
+            <tr>
+              <td className="purchase order report info column left">
+                <div className="purchase order report info line">TO : {data.vendor}</div>
+                <div className="purchase order report info line">ATTN : {data.attention}</div>
+                <div className="purchase order report info line">DESIGNATION : {data.designation}</div>
+                <div className="purchase order report info line">Ref No : {data.quoteNo}</div>
+              </td>
+              <td className="purchase order report info column right">
+                <div className="purchase order report info line">DATE : {data.date}</div>
+                <div className="purchase order report info line">REF NO : {data.purchaseorderRef}</div>
+                {data.jobCode && <div className="purchase order report info line">JOB/COMPLAINT NO : {data.jobCode}</div>}
+                <div className="purchase order report info line">
+                  <span>EQUIPMENT:</span>
+                  <ul>{data.equipments.map((equipment, equipmentIndex) => <li key={equipmentIndex}>{equipment}</li>)}</ul>
+                </div>
+                <div className="purchase order report info line">
+                  {data.workingHrs ? `WORKING HRS : ${data.workingHrs}` : data.runningKm ? `RUNNING KM : ${data.runningKm}` : ''}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="purchase order report divider details" />
+      <div className="purchase order report request note">{data.requestText}</div>
+    </>
+  );
 
   return (
-    <>
-      <PaperViewport
-        left={quotationUrl && (
-          <div className="purchase order report quotation preview panel no-print">
-            <QuotationPreview url={quotationUrl} mimeType={quotationMime} />
-          </div>
-        )}
-        right={
-          <A2Paper className="purchase order report document sheet">
-
-            {data.isAmendment && data.amendmentDate && (
-              <div style={{ textAlign: 'center', padding: '8px', margin: '10px 0', fontWeight: 'bold' }}>
-                [AMENDMENT 1]
+    <A2PaginationEngine blocks={blocks} firstPageHeader={headerNode}>
+      {(pages) => pages.map((pageBlocks, pageIndex) => (
+        pageIndex === 0 ? (
+          <PaperViewport
+            key={pageIndex}
+            left={quotationUrl && (
+              <div className="purchase order report quotation preview panel no-print">
+                <QuotationPreview url={quotationUrl} mimeType={quotationMime} />
               </div>
             )}
-
-            <div className="purchase order report divider header" />
-            <div className="purchase order report title">PURCHASE/HIRE ORDER</div>
-
-            <div className="purchase order report info panel">
-              <table className="purchase order report info table">
-                <tbody>
-                  <tr>
-                    <td className="purchase order report info column left">
-                      <div className="purchase order report info line">TO : {data.vendor}</div>
-                      <div className="purchase order report info line">ATTN : {data.attention}</div>
-                      <div className="purchase order report info line">DESIGNATION : {data.designation}</div>
-                      <div className="purchase order report info line">Ref No : {data.quoteNo}</div>
-                    </td>
-                    <td className="purchase order report info column right">
-                      <div className="purchase order report info line">DATE : {data.date}</div>
-                      <div className="purchase order report info line">REF NO : {data.purchaseorderRef}</div>
-                      {data.jobCode && <div className="purchase order report info line">JOB/COMPLAINT NO : {data.jobCode}</div>}
-                      <div className="purchase order report info line">
-                        <span>EQUIPMENT:</span>
-                        <ul>
-                          {data.equipments.map((equipment, equipmentIndex) => <li key={equipmentIndex}>{equipment}</li>)}
-                        </ul>
-                      </div>
-                      <div className="purchase order report info line">
-                        {data.workingHrs
-                          ? `WORKING HRS : ${data.workingHrs}`
-                          : data.runningKm
-                            ? `RUNNING KM : ${data.runningKm}`
-                            : ''}
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="purchase order report divider details" />
-            <div className="purchase order report request note">{data.requestText}</div>
-
-            <ItemsTable
-              items={itemPages[0]}
-              startIndex={1}
-              showHeader
-              showTotal={lastPageIndex === 0}
-              data={data}
-              total={total}
-              lastItemBorder={lastPageIndex !== 0}
-            />
-
-            {lastPageIndex === 0 && showTermsInline && (
-              <TermsAndSignaturesContent {...termsSharedProps} />
-            )}
-          </A2Paper>
-        }
-      />
-
-      {itemPages.slice(1).map((pageItems, idx) => {
-        const pageIndex = idx + 1;
-        const isLastItemPage = pageIndex === lastPageIndex;
-        const startIndex = itemPages.slice(0, pageIndex).reduce((sum, p) => sum + p.length, 0) + 1;
-
-        return (
+            right={
+              <A2Paper className="purchase order report document sheet">
+                {headerNode}
+                {groupBlocksBySection(pageBlocks).map((group, i) => <div key={i}>{renderGroup(group)}</div>)}
+              </A2Paper>
+            }
+          />
+        ) : (
           <A2Paper key={pageIndex} className="purchase order report document sheet">
             <div className="purchase order report divider header" />
-            <ItemsTable
-              items={pageItems}
-              startIndex={startIndex}
-              showHeader
-              showTotal={isLastItemPage}
-              data={data}
-              total={total}
-              lastItemBorder={!isLastItemPage}
-            />
-
-            {isLastItemPage && showTermsInline && (
-              <TermsAndSignaturesContent {...termsSharedProps} />
-            )}
+            {groupBlocksBySection(pageBlocks).map((group, i) => <div key={i}>{renderGroup(group)}</div>)}
           </A2Paper>
-        );
-      })}
-
-      {!showTermsInline && (
-        <TermsAndSignaturesPage data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} />
-      )}
-    </>
+        )
+      ))}
+    </A2PaginationEngine>
   );
 }
 

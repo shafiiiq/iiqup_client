@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { CHARS_PER_LINE, DEFAULT_COLUMNS } from '../constants/hire.order.report.constant';
+import { DEFAULT_COLUMNS } from '../constants/hire.order.report.constant';
 
 const BG_STYLE_KEYS = ['background', 'backgroundImage', 'backgroundSize', 'backgroundRepeat', 'backgroundPosition', 'backgroundAttachment'];
 const PAPER_WIDTH_MM = 297;
@@ -126,35 +126,6 @@ export const buildPdf = async () => {
   }
 
   return pdf;
-};
-
-export const estimateItemLines = (description = '') => {
-  if (!description) return 1;
-  return Math.max(1, Math.ceil(description.length / CHARS_PER_LINE));
-};
-
-export const chunkItems = (items, size) => {
-  if (!items.length) return [[]];
-
-  const chunks = [];
-  let currentChunk = [];
-  let currentWeight = 0;
-
-  items.forEach((item) => {
-    const weight = estimateItemLines(item.description);
-
-    if (currentChunk.length && currentWeight + weight > size) {
-      chunks.push(currentChunk);
-      currentChunk = [];
-      currentWeight = 0;
-    }
-
-    currentChunk.push(item);
-    currentWeight += weight;
-  });
-
-  if (currentChunk.length) chunks.push(currentChunk);
-  return chunks;
 };
 
 export const buildOverrideMessage = (unsignedAboveRoles) =>

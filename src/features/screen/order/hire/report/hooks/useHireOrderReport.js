@@ -341,6 +341,8 @@ export const useHireOrderReport = () => {
         date: order.date || '',
         hireOrderRef: order.hireOrderRef || '',
         quoteNo: order.quoteNo || '',
+        customFields: order.customFields || [],
+        showTotalRow: order.showTotalRow ?? true,
         attention: order.company?.attention || '',
         designation: order.company?.designation || '',
         requestText: order.requestText || '',
@@ -368,6 +370,9 @@ export const useHireOrderReport = () => {
           attention: latest.amendedCompany?.attention || order.company?.attention || '',
           designation: latest.amendedCompany?.designation || order.company?.designation || '',
           quoteNo: latest.amendedQuoteNo || order.quoteNo || '',
+          customFields: latest.amendedCustomFields?.length ? latest.amendedCustomFields : (order.customFields || []),
+          showTotalRow: latest.amendedShowTotalRow ?? order.showTotalRow ?? true,
+          totalDiscountAmount: order.totalDiscountAmount != null ? (latest.amendedTotalAmount ?? order.totalDiscountAmount) : null,
           requestText: latest.amendedRequestText || order.requestText || '',
           items: latest.amendedItems?.length ? latest.amendedItems : order.items || [],
           columns: latest.amendedColumns?.length ? latest.amendedColumns : builtData.columns,
@@ -436,7 +441,7 @@ export const useHireOrderReport = () => {
     });
   };
 
-    const handleDownloadPdf = async () => {
+  const handleDownloadPdf = async () => {
     if (!guardImagesLoaded()) return;
 
     setShowLoadingModal(true);

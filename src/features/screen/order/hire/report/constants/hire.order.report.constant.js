@@ -74,6 +74,3 @@ export const ROLE_LABELS = {
 export const EMAIL_FORM_FIELDS = [
   { name: 'emails', label: 'Recipient Emails (comma-separated)', type: 'text', placeholder: 'vendor@example.com, other@example.com', required: true },
 ];
-
-export const ITEMS_PER_PAGE = 26;
-export const CHARS_PER_LINE = 65;

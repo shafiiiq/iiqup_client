@@ -4,6 +4,10 @@
   gap: 20px;
 }
 
+.features.screens.backcharge.list.table.summary {
+  text-align: end;
+}
+
 .features.screens.backcharge.list.content {
   flex: 1;
   min-width: 0;

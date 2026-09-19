@@ -61,6 +61,10 @@ function Table({
   columnNavigation = false,
   cellNavigation = false,
   onExpandControlsReady,
+  title = false,
+  titlePosition = 'left',
+  maxHeight,
+  onScrollEnd,
   style = {}
 }) {
   const columnCount = columns.length;
@@ -135,59 +139,82 @@ function Table({
     : !data?.length;
 
   return (
-    <div className="shared widget table table-container" style={style}>
-      <table className="shared widget table table-root" ref={tableRef}>
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                data-clickable={columnNavigation && column.onHeaderClick ? 'true' : undefined}
-                onClick={
-                  columnNavigation && column.onHeaderClick
-                    ? () => column.onHeaderClick(column)
-                    : undefined
-                }
-                className={column.headerCenter && 'shared widget table header center'}
-              >
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
+    <div
+      className="shared widget table table-container"
+      style={{
+        ...(maxHeight ? { height: maxHeight, maxHeight } : {}),
+        ...style,
+      }}
+    >
+      {title && (
+        <div className="shared widget table table-title-bar" data-position={titlePosition}>
+          {title}
+        </div>
+      )}
+      <div
+        className="shared widget table table-scroll-body"
+        onScroll={
+          onScrollEnd
+            ? (e) => {
+              const el = e.currentTarget;
+              if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) onScrollEnd();
+            }
+            : undefined
+        }
+      >
+        <table className="shared widget table table-root" ref={tableRef}>
+          <thead>
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  data-clickable={columnNavigation && column.onHeaderClick ? 'true' : undefined}
+                  onClick={
+                    columnNavigation && column.onHeaderClick
+                      ? () => column.onHeaderClick(column)
+                      : undefined
+                  }
+                  className={column.headerCenter && 'shared widget table header center'}
+                >
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
 
-        <tbody>
-          {loading ? (
-            <tr>
-              <td colSpan={columnCount} className="shared widget table table-loading-row">
-                {loadingContent}
-              </td>
-            </tr>
-          ) : isEmpty ? (
-            <tr>
-              <td colSpan={columnCount} className="shared widget table table-empty-row">
-                {emptyMessage}
-              </td>
-            </tr>
-          ) : groups ? (
-            groupEntries.map(([groupKey, items]) => {
-              const groupHeaderContent = renderGroupHeader?.(groupKey, items);
-              return (
-                <React.Fragment key={groupKey}>
-                  {groupHeaderContent && (
-                    <tr className="shared widget table table-group-header-row">
-                      <td colSpan={columnCount}>{groupHeaderContent}</td>
-                    </tr>
-                  )}
-                  {items.map((item, index) => renderRow(item, index, groupKey))}
-                </React.Fragment>
-              );
-            })
-          ) : (
-            data.map((item, index) => renderRow(item, index))
-          )}
-        </tbody>
-      </table>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={columnCount} className="shared widget table table-loading-row">
+                  {loadingContent}
+                </td>
+              </tr>
+            ) : isEmpty ? (
+              <tr>
+                <td colSpan={columnCount} className="shared widget table table-empty-row">
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : groups ? (
+              groupEntries.map(([groupKey, items]) => {
+                const groupHeaderContent = renderGroupHeader?.(groupKey, items);
+                return (
+                  <React.Fragment key={groupKey}>
+                    {groupHeaderContent && (
+                      <tr className="shared widget table table-group-header-row">
+                        <td colSpan={columnCount}>{groupHeaderContent}</td>
+                      </tr>
+                    )}
+                    {items.map((item, index) => renderRow(item, index, groupKey))}
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              data.map((item, index) => renderRow(item, index))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

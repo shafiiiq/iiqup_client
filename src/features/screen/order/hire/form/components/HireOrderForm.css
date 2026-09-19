@@ -207,6 +207,7 @@
 .features.screen.hire.order.items-table th {
   font-weight: bold !important;
   background-color: white !important;
+  max-width: 100px;
 }
 
 .features.screen.hire.order.sn-header,
@@ -313,6 +314,48 @@
   font-weight: bold;
   font-size: 16px;
   background: #f8f9fa;
+}
+
+.features.screen.hire.order.final-total-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.features.screen.hire.order.final-total-input {
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.features.screen.hire.order.reset-total-btn {
+  background: none;
+  border: none;
+  color: #0066cc;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 2px;
+}
+
+.features.screen.hire.order.custom-field-item {
+  gap: 6px;
+}
+
+.features.screen.hire.order.custom-field-label-input {
+  min-width: 120px !important;
+  max-width: 140px !important;
+  font-weight: bold !important;
+}
+
+.features.screen.hire.order.custom-field-value-input {
+  min-width: 150px !important;
+  flex: 1;
+}
+
+.features.screen.hire.order.add-field-row {
+  display: flex;
+  justify-content: flex-start;
+  margin: 4px 0 15px 0;
 }
 
 .features.screen.hire.order.total-label {
@@ -455,6 +498,11 @@
   font-size: 12pt !important;
   vertical-align: top !important;
   padding: 15px !important;
+}
+
+.features.screen.hire.order.terms-table td.term-measure {
+  padding-top: 0 !important;
+  padding-bottom: 35px !important;
 }
 
 .features.screen.hire.order.payment-terms-container {

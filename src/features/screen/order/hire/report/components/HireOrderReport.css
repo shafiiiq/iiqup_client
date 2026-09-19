@@ -116,8 +116,8 @@
 }
 
 .features.screen.hire.order.report.items-description-data {
-  width: 600px;
-  max-width: 600%;
+  width: 300px;
+  max-width: 300px;
 }
 
 .features.screen.hire.order.report.items-total-label {
@@ -153,6 +153,11 @@
   font-size: 18px !important;
   vertical-align: top !important;
   padding: 10px !important;
+}
+
+.features.screen.hire.order.report.terms-table td.term-measure {
+  padding-top: 0 !important;
+  padding-bottom: 8px !important;
 }
 
 .features.screen.hire.order.report.terms-content ul {

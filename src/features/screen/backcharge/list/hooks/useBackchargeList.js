@@ -141,7 +141,7 @@ export const useBackchargeList = () => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleApplyFilters = () => {};
+  const handleApplyFilters = () => { };
 
   const handleResetFilters = () => {
     setFilters(DEFAULT_FILTERS);
@@ -164,7 +164,7 @@ export const useBackchargeList = () => {
   };
 
   const handleViewBackcharge = (backcharge) => {
-    const documentId = backcharge?.refNo || backcharge?.reportNo;
+    const documentId = backcharge?.refNo;
     if (documentId) navigate(`/backcharge/report/${encodeURIComponent(documentId)}`);
   };
 
@@ -263,6 +263,7 @@ export const useBackchargeList = () => {
     filteredData,
     isLoading: isInitialLoading,
     isLoadingMore,
+    loadMore,
     showDeleteModal,
     selectedBackcharge,
     deleteStatus,

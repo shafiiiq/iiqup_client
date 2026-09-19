@@ -283,6 +283,11 @@
     padding: 15px !important;
 }
 
+.features.screens.order.purchase.form.terms-table td.term-measure {
+    padding-top: 0 !important;
+    padding-bottom: 35px !important;
+}
+
 .features.screens.order.purchase.form.note-row {
     font-size: 12pt !important;
     padding: 10px !important;

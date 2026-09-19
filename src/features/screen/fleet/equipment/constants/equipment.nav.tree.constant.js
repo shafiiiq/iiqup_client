@@ -22,6 +22,7 @@ export const buildEquipmentNavTree = (tabCounts, current) => {
         { key: 'sold', label: 'Sold', badge: formatBadge(loadedCount, tabCounts.own.sold, isOwnTab && statusFilter === 'sold') },
       ],
     },
+    { key: EQUIPMENT_TABS.IDLE_LIST, label: 'Idle List' },
     { key: EQUIPMENT_TABS.HIRED, label: 'Hired', badge: formatBadge(loadedCount, tabCounts.hired, activeTab === EQUIPMENT_TABS.HIRED) },
     { key: EQUIPMENT_TABS.LEASED, label: 'Leased to Client', badge: formatBadge(loadedCount, tabCounts.leased, activeTab === EQUIPMENT_TABS.LEASED) },
     {

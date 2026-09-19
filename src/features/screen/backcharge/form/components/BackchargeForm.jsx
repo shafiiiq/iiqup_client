@@ -37,11 +37,7 @@ const BackchargeForm = () => {
         grandPartsTotal
     } = useBackchargeForm();
 
-    // Field configuration for the title-hero block. Mirrors the report's
-    // static field list, but adds autocomplete-dropdown metadata for the
-    // three searchable fields.
     const fieldsConfig = [
-        { field: 'reportNo', label: 'Report No' },
         { field: 'equipmentType', label: 'Equipment Type' },
         {
             field: 'plateNo',

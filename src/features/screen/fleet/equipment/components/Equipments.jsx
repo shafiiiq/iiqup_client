@@ -16,10 +16,15 @@ import EquipmentSidebar from './fragments/EquipmentSidebar';
 import FullscreenViewer from './fragments/FullscreenViewer';
 import EquipmentModals from './fragments/EquipmentModals';
 import EquipmentRecords from './fragments/EquipmentRecords';
+import IdleRoster from './fragments/IdleRoster';
+import EquipmentTable, { EQUIPMENT_TABLE_COLUMN_COUNT } from './fragments/EquipmentTable';
+import Button from '@/shared/components/widgets/button/Button';
+import TableSkeleton from '@/shared/components/widgets/table/TableSkeleton';
 
 import { BUTTON_PROPS, EQUIPMENT_TABS, EQUIPMENT_ALL_SITES_FILTER } from '../constants/equipment.constant';
 import { buildEquipmentNavTree } from '../constants/equipment.nav.tree.constant';
 import NothingToSeeHere from '@/shared/components/widgets/nothing/NothingToSeeHere';
+import { useEquipmentTableScroll } from '../hooks/useEquipmentTableScroll';
 import SiteMachineBreakdown from './fragments/SiteMachineBreakdown';
 import { useEquipmentRecordsComparison } from '../hooks/useEquipmentRecordsComparison';
 import { useState } from 'react';
@@ -28,6 +33,7 @@ function Equipments() {
   const { searchTerm, equipment, actions, isEquipmentGridTab } = useEquipmentPage();
   const comparison = useEquipmentRecordsComparison();
   const [isDragOverSidebar, setIsDragOverSidebar] = useState(false);
+  const [viewMode, setViewMode] = useState('card');
 
   const handleEquipmentDragStart = (e, item) => {
     const isDraggingSelection = actions.isSelectMode
@@ -63,7 +69,17 @@ function Equipments() {
     isLoadingMore: equipment.isLoadingMoreEquipment,
     isLoading: equipment.isLoadingEquipmentList,
     fetchEquipmentList: equipment.fetchEquipmentList,
-    enabled: isEquipmentGridTab,
+    enabled: isEquipmentGridTab && viewMode === 'card',
+  });
+
+  const tableInfiniteScroll = useEquipmentTableScroll({
+    items: equipment.equipmentList,
+    currentPage: equipment.currentPage,
+    hasMore: equipment.hasMoreEquipmentPages,
+    isLoadingMore: equipment.isLoadingMoreEquipment,
+    isLoading: equipment.isLoadingEquipmentList,
+    fetchEquipmentList: equipment.fetchEquipmentList,
+    enabled: isEquipmentGridTab && viewMode === 'table',
   });
 
   const navTree = buildEquipmentNavTree(equipment.tabCounts, {
@@ -97,6 +113,7 @@ function Equipments() {
   };
 
   const isRecordsTab = equipment.activeTab === EQUIPMENT_TABS.RECORDS;
+  const isIdleListTab = equipment.activeTab === EQUIPMENT_TABS.IDLE_LIST;
   const isSiteAllView = equipment.activeTab === EQUIPMENT_TABS.SITE_BASED && equipment.siteFilter === EQUIPMENT_ALL_SITES_FILTER;
   const isSiteSpecificView = equipment.activeTab === EQUIPMENT_TABS.SITE_BASED && equipment.siteFilter !== EQUIPMENT_ALL_SITES_FILTER;
 
@@ -133,7 +150,7 @@ function Equipments() {
         </div>
 
         <div className="fleet equipment layout-content">
-          {!isRecordsTab && (
+          {!isRecordsTab && !isIdleListTab && (
             <EquipmentControls
               isSelectMode={actions.isSelectMode}
               selectedEquipment={actions.selectedEquipment}
@@ -145,6 +162,31 @@ function Equipments() {
 
           {isSiteSpecificView && <SiteMachineBreakdown site={equipment.siteFilter} />}
 
+          {isEquipmentGridTab && !equipment.isLoadingEquipmentList && (
+            <div className="fleet equipment view-toggle">
+              <Button
+                {...BUTTON_PROPS}
+                width="42px"
+                height="42px"
+                componentIconCenter="GridViewIcon"
+                componentIconSize={22}
+                onClick={() => setViewMode('card')}
+                colorScheme={viewMode === 'card' ? 'primary-600' : 'black-200'}
+                iconColor="white-200"
+              />
+              <Button
+                {...BUTTON_PROPS}
+                width="42px"
+                height="42px"
+                componentIconCenter="TableViewIcon"
+                componentIconSize={22}
+                onClick={() => setViewMode('table')}
+                colorScheme={viewMode === 'table' ? 'primary-600' : 'black-200'}
+                iconColor="white-200"
+              />
+            </div>
+          )}
+
           {isRecordsTab ? (
             <EquipmentRecords
               comparedEquipment={comparison.comparedEquipment}
@@ -152,11 +194,43 @@ function Equipments() {
               onRemoveCompared={comparison.removeComparedEquipment}
               onClearCompared={comparison.clearComparedEquipment}
             />
+          ) : isIdleListTab ? (
+            <IdleRoster actions={actions} />
           ) : equipment.isLoadingEquipmentList ? (
-            <EquipmentSkeletonGrid isSiteAllView={isSiteAllView} />
+            isEquipmentGridTab && viewMode === 'table' ? (
+              <TableSkeleton columns={EQUIPMENT_TABLE_COLUMN_COUNT} rows={8} />
+            ) : (
+              <EquipmentSkeletonGrid isSiteAllView={isSiteAllView} />
+            )
           ) : (
             <>
-              {isEquipmentGridTab && (
+              {isEquipmentGridTab && viewMode === 'table' && (
+                <div>
+                  <EquipmentTable
+                    items={equipment.equipmentList}
+                    onScrollEnd={tableInfiniteScroll.onScrollEnd}
+                    onEdit={actions.handleEdit}
+                    onDelete={actions.handleDeleteClick}
+                    onServiceHistory={actions.handleRowClick}
+                    onViewDetails={actions.handleViewDetails}
+                    onMobilize={actions.handleMobilizeClick}
+                    onDemobilize={actions.handleDemobilizeClick}
+                    onMarkAsSold={actions.handleMarkAsSoldClick}
+                    onSetIdleLocation={actions.handleSetIdleLocationClick}
+                    onOpenRemarks={actions.handleOpenRemarksModal}
+                  />
+                  {equipment.isLoadingMoreEquipment && (
+                    <LoadMoreSkeleton
+                      count={1}
+                      renderItem={() => (
+                        <TableSkeleton columns={EQUIPMENT_TABLE_COLUMN_COUNT} rows={3} showHeader={false} />
+                      )}
+                    />
+                  )}
+                </div>
+              )}
+
+              {isEquipmentGridTab && viewMode === 'card' && (
                 <div
                   ref={gridVirtualization.containerRef}
                   className="fleet equipment grid virtual-grid"

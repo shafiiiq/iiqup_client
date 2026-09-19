@@ -6,6 +6,7 @@ import Text from '@/shared/components/widgets/text/Text';
 import Toast from '@/shared/components/widgets/toast/Toast';
 import Table from '@/shared/components/widgets/table/Table';
 import TableSkeleton from '@/shared/components/widgets/table/TableSkeleton';
+import LoadMoreSkeleton from '@/shared/components/widgets/loader/skeleton/LoadMoreSkeleton';
 import EquipmentPicker from '@/shared/components/pickers/equipment/EquipmentPicker';
 import { useMemo, useEffect } from 'react';
 
@@ -100,6 +101,7 @@ function PurchaseOrderList({ purchaseOrderOfSpecificEquipment }) {
         purchaseorders,
         filteredData,
         isLoading,
+        isLoadingMore,
         hasMore,
         loadMore,
         activeView,
@@ -146,7 +148,7 @@ function PurchaseOrderList({ purchaseOrderOfSpecificEquipment }) {
     } = usePurchaseOrderList({ purchaseOrderOfSpecificEquipment });
 
     useEffect(() => {
-        if (!hasMore || isLoading) return undefined;
+        if (!hasMore || isLoading || isLoadingMore) return undefined;
 
         let debounceTimer = null;
 
@@ -166,7 +168,7 @@ function PurchaseOrderList({ purchaseOrderOfSpecificEquipment }) {
             window.removeEventListener('scroll', handleScroll);
             if (debounceTimer) clearTimeout(debounceTimer);
         };
-    }, [hasMore, isLoading, loadMore]);
+    }, [hasMore, isLoading, isLoadingMore, loadMore]);
 
     const vendorOptions = useMemo(() => buildVendorOptions(purchaseorders), [purchaseorders]);
     const equipmentTypeOptions = useMemo(() => buildEquipmentTypeOptions(purchaseorders), [purchaseorders]);
@@ -275,22 +277,34 @@ function PurchaseOrderList({ purchaseOrderOfSpecificEquipment }) {
                             {isLoading ? (
                                 <TableSkeleton columns={columns.length} rows={25} />
                             ) : (
-                                <Table
-                                    tableRef={tableRef}
-                                    columns={columns}
-                                    data={filteredData || []}
-                                    emptyMessage="No PurchaseOrder data available"
-                                    rowKey={(purchaseorder) => purchaseorder._id}
-                                    getRowProps={(purchaseorder) => ({ 'data-purchaseorderref': purchaseorder.purchaseorderRef })}
-                                    onRowClick={(purchaseorder) => handleRowClick(purchaseorder.purchaseorderRef)}
-                                    onExpandControlsReady={registerExpandControls}
-                                    getExpandedRows={(purchaseorder) => (purchaseorder.items || []).slice(1)}
-                                    rowNavigation={false}
-                                    columnNavigation={false}
-                                    cellNavigation={false}
-                                    buttonNavigation
-                                    style={{ margin: '0 20px' }}
-                                />
+                                <>
+                                    <Table
+                                        tableRef={tableRef}
+                                        columns={columns}
+                                        data={filteredData || []}
+                                        emptyMessage="No PurchaseOrder data available"
+                                        rowKey={(purchaseorder) => purchaseorder._id}
+                                        getRowProps={(purchaseorder) => ({ 'data-purchaseorderref': purchaseorder.purchaseorderRef })}
+                                        onRowClick={(purchaseorder) => handleRowClick(purchaseorder.purchaseorderRef)}
+                                        onExpandControlsReady={registerExpandControls}
+                                        getExpandedRows={(purchaseorder) => (purchaseorder.items || []).slice(1)}
+                                        rowNavigation={false}
+                                        columnNavigation={false}
+                                        cellNavigation={false}
+                                        buttonNavigation
+                                        style={{ margin: '0 20px' }}
+                                    />
+                                    {isLoadingMore && (
+                                        <div style={{ margin: '0 20px' }}>
+                                            <LoadMoreSkeleton
+                                                count={1}
+                                                renderItem={() => (
+                                                    <TableSkeleton columns={columns.length} rows={3} showHeader={false} />
+                                                )}
+                                            />
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </>
                     )}

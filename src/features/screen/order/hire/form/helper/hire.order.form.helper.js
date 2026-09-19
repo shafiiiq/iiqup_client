@@ -6,13 +6,35 @@ export const buildDefaultItem = (columns, id = 1) => {
   return item;
 };
 
+export const encodeSequenceNumber = (number) => {
+  const safeNumber = Math.max(0, Math.floor(Number(number) || 0));
+  return String(safeNumber).padStart(3, '0');
+};
+
+export const decodeSequenceNumber = (sequence) => {
+  if (!sequence) return 0;
+  const parsed = parseInt(sequence, 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
 export const generateHireOrderRef = (number) => {
   const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const year = now.getFullYear();
-  const padded = String(number).padStart(3, '0');
-  return `ATE${padded}/HO/${month}/${year}`;
+  return `ATE-LPO-${day}${month}${year}-${encodeSequenceNumber(number)}`;
 };
+
+export const getNextHireOrderNumber = (latestRef) => {
+  if (!latestRef || !latestRef.startsWith('ATE-LPO-')) return 1;
+  return decodeSequenceNumber(latestRef.split('-').pop()) + 1;
+};
+
+export const buildCustomField = () => ({
+  id: `field_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+  label: '',
+  value: '',
+});
 
 export const formatDate = (dateString) => {
   const now = new Date(dateString);
@@ -43,12 +65,3 @@ export const getModeLabel = (isAmendmentMode, isEditMode) =>
 
 export const getStatusTitle = (saveStatus) =>
   saveStatus.includes('Error') ? 'Error' : saveStatus.includes('Please') ? 'Warning' : 'Success';
-
-export const chunkItems = (items, size) => {
-  if (!items.length) return [[]];
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
-};

@@ -3,7 +3,7 @@ import logoImage from '@assets/images/al-ansari-color.png';
 import alAnsariText from '@assets/images/al-ansari-text.png';
 import { useHeaderTitle } from '@/shared/context/TitleContext';
 import { fetchBackchargeReports, checkLatestBackchargeRef, addBackcharge } from '../api/backcharge.form.api';
-import { getTodayDateInput } from '../helper/backcharge.form.helper';
+import { getTodayDateInput, generateBackchargeRef } from '../helper/backcharge.form.helper';
 
 const useBackchargeForm = () => {
     const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -23,7 +23,6 @@ const useBackchargeForm = () => {
 
     const [formData, setFormData] = useState({
         refNo: '',
-        reportNo: '',
         equipmentType: '',
         plateNo: '',
         model: '',
@@ -123,26 +122,11 @@ const useBackchargeForm = () => {
         setIsGeneratingRef(true);
         try {
             const data = await checkLatestBackchargeRef();
-            if (data.success && data.data) {
-                const latestNumber = data.data.latestNumber || 140;
-                const currentDate = new Date();
-                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-                const year = String(currentDate.getFullYear()).slice(-2);
-                const newRefNumber = `ATE${latestNumber + 1}-${month}-${year}`;
-                return newRefNumber;
-            }
-
-            const currentDate = new Date();
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const year = String(currentDate.getFullYear()).slice(-2);
-            return `ATE141-${month}-${year}`;
-
+            const latestNumber = data.success && data.data ? (data.data.latestNumber || 140) : 140;
+            return generateBackchargeRef(latestNumber + 1);
         } catch (error) {
             console.error('Error generating ref number:', error);
-            const currentDate = new Date();
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const year = String(currentDate.getFullYear()).slice(-2);
-            return `ATE141-${month}-${year}`;
+            return generateBackchargeRef(141);
         } finally {
             setIsGeneratingRef(false);
         }
@@ -293,7 +277,6 @@ const useBackchargeForm = () => {
 
         try {
             const backchargeData = {
-                reportNo: formData.reportNo,
                 refNo: formData.refNo,
                 equipmentType: formData.equipmentType,
                 plateNo: formData.plateNo,

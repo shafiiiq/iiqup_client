@@ -145,28 +145,30 @@ function EquipmentCard({
         )}
 
         {!isSold && (
-          item.status === 'idle'
-            ? <Button {...BUTTON_PROPS} text="Mobilize" componentIconLeft='ApartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onMobilize(e, item)} colorScheme="primary-600" width="225px" height="38px" textColor="white-200" />
-            : <MobDateHover item={item} onAddShift={onAddShift} />
-        )}
+          <div className="fleet equipment mob-demob-sold-group">
+            {item.status === 'idle'
+              ? <Button {...BUTTON_PROPS} text="Mobilize" componentIconLeft='ApartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onMobilize(e, item)} colorScheme="primary-600" width="225px" height="38px" textColor="white-200" />
+              : <MobDateHover item={item} onAddShift={onAddShift} />
+            }
 
-        {!isSold && (
-          item.status !== 'idle'
-            ? <Button {...BUTTON_PROPS} text="Demobilize" componentIconLeft='DepartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onDemobilize(e, item)} colorScheme="primary-600" width="225px" height="38px" textColor="white-200" />
-            : (
-              <div className="fleet equipment detail-item demob-data">
-                <span className="fleet equipment detail-label">Last Demob :</span>
-                <span className="fleet equipment detail-value">{item.demobDate ? new Date(item.demobDate).toLocaleDateString('en-GB') : 'N/A'}</span>
-              </div>
-            )
+            {item.status !== 'idle'
+              ? <Button {...BUTTON_PROPS} text="Demobilize" componentIconLeft='DepartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onDemobilize(e, item)} colorScheme="primary-600" width="225px" height="38px" textColor="white-200" />
+              : (
+                <div className="fleet equipment detail-item demob-data">
+                  <span className="fleet equipment detail-label">Last Demob :</span>
+                  <span className="fleet equipment detail-value">{item.demobDate ? new Date(item.demobDate).toLocaleDateString('en-GB') : 'N/A'}</span>
+                </div>
+              )
+            }
+
+            {onMarkAsSold && (
+              <Button {...BUTTON_PROPS} text='Mark as Sold' componentIconLeft='SellIcon' componentIconSize='30' onClick={(e) => onMarkAsSold(e, item)} colorScheme="yellow-700" width="fit-content" height="38px" iconColor="error-600" textColor='error-300' />
+            )}
+          </div>
         )}
 
         {!isSold && onReplaceEquipment && (
           <Button {...BUTTON_PROPS} text="Replace Equipment" componentIconLeft='IconlySwap' componentIconSize='25' iconColor='white-200' onClick={(e) => onReplaceEquipment(e, item)} colorScheme="primary-800" width="225px" height="38px" textColor="white-200" />
-        )}
-
-        {!isSold && onMarkAsSold && (
-          <Button {...BUTTON_PROPS} text='Mark as Sold' componentIconLeft='SellIcon' componentIconSize='30' onClick={(e) => onMarkAsSold(e, item)} colorScheme="yellow-700" width="fit-content" height="38px" iconColor="error-600" textColor='error-300' />
         )}
       </>
     );
@@ -208,28 +210,32 @@ function EquipmentCard({
           <div className="fleet equipment detail-item">
             <span className="fleet equipment detail-label">Operator{item.certificationBody?.length > 1 ? 's' : ''}</span>
             <span className="fleet equipment detail-value">
-              {item.certificationBody?.length > 0
-                ? item.certificationBody.map((cb, i) => (
-                  <span key={i} style={{ display: 'block', fontSize: '18px' }}>
-                    {cb.operatorName}
-                    {cb.shiftName ? ` (${cb.shiftName})` : cb.shiftStart && cb.shiftEnd ? ` (${cb.shiftStart}–${cb.shiftEnd})` : ''}
-                  </span>
-                ))
-                : 'N/A'
+              {isSold ? 'N/A' : item.status === 'idle'
+                ? 'Unassigned'
+                : item.certificationBody?.length > 0
+                  ? item.certificationBody.map((cb, i) => (
+                    <span key={i} style={{ display: 'block', fontSize: '18px' }}>
+                      {cb.operatorName}
+                      {cb.shiftName ? ` (${cb.shiftName})` : cb.shiftStart && cb.shiftEnd ? ` (${cb.shiftStart}–${cb.shiftEnd})` : ''}
+                    </span>
+                  ))
+                  : 'N/A'
               }
             </span>
           </div>
           <div className="fleet equipment detail-item">
             <span className="fleet equipment detail-label">Site</span>
-            <span className="fleet equipment detail-value">{item.site?.at(-1) || 'N/A'}</span>
+            <span className="fleet equipment detail-value">
+              {item.status === 'idle' ? 'Unassigned' : item.site?.at(-1) || 'N/A'}
+            </span>
           </div>
-          {item.location?.length > 0 && (
+          {item.status !== 'idle' && item.location?.length > 0 && (
             <div className="fleet equipment detail-item">
               <span className="fleet equipment detail-label">Location</span>
               <span className="fleet equipment detail-value">{item.location}</span>
             </div>
           )}
-          {item.rentRate?.basis && (
+          {item.status !== 'idle' && item.rentRate?.basis && (
             <>
               <div className="fleet equipment detail-item">
                 <span className="fleet equipment detail-label">Rent Basis</span>

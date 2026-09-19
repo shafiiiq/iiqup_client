@@ -31,7 +31,6 @@ const INLINE_INPUT_STYLE = {
 
 const DEFAULT_FORM_DATA = {
   refNo: '',
-  reportNo: '',
   date: '',
   equipmentType: '',
   plateNo: '',
@@ -387,7 +386,7 @@ export const useBackchargeReport = () => {
     }
   };
 
-  const getFileName = () => `Backcharge-Report-${formData.reportNo}-${formData.equipmentType}`;
+  const getFileName = () => `Backcharge-Report-${formData.refNo}-${formData.equipmentType}`;
 
   const inputStyle = () => (isEditing ? INLINE_INPUT_STYLE : { ...INLINE_INPUT_STYLE, cursor: 'default' });
 

@@ -9,7 +9,9 @@ import {
 } from '../api/hire.order.form.api';
 import {
   buildDefaultItem,
+  buildCustomField,
   generateHireOrderRef,
+  getNextHireOrderNumber,
   formatDate,
   filterEditableTerms,
   itemHasContent,
@@ -54,11 +56,19 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
+  const [customFields, setCustomFields] = useState([]);
+  const [showTotalRow, setShowTotalRow] = useState(true);
+  const [manualTotal, setManualTotal] = useState(null);
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
 
   const subtotal = calculateSubtotal(hireOrderData.items);
   const totalAmount = subtotal - (hireOrderData.discount || 0);
+
+  const autoTotal = showDiscountInTotal ? totalAmount : subtotal;
+  const parsedManualTotal =
+    manualTotal !== null && manualTotal !== '' && !Number.isNaN(parseFloat(manualTotal)) ? parseFloat(manualTotal) : null;
+  const finalTotal = parsedManualTotal ?? autoTotal;
 
   useEffect(() => {
     if (saveStatus) {
@@ -97,12 +107,12 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
   const fetchLatestHireOrderNumber = async () => {
     try {
       const data = await fetchLatestHireOrderRef();
-      const latestNo = parseInt(data.data?.latestRef?.split('/')[0]?.replace('ATE', '') || 130) + 1;
+      const latestNo = getNextHireOrderNumber(data.data?.latestRef);
       setHireOrderCounter(latestNo);
       setHireOrderData((prev) => ({ ...prev, hireOrderRef: generateHireOrderRef(latestNo) }));
     } catch (error) {
       console.error('[HroForm] fetchLatestHireOrderNumber error:', error);
-      setHireOrderData((prev) => ({ ...prev, hireOrderRef: generateHireOrderRef(131) }));
+      setHireOrderData((prev) => ({ ...prev, hireOrderRef: generateHireOrderRef(1) }));
     }
   };
 
@@ -134,6 +144,9 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
       if (ho.termsAndConditions?.length) setPaymentTerms(filterEditableTerms(ho.termsAndConditions));
       setShowDiscountInTotal(ho.totalDiscountAmount !== undefined);
+      setCustomFields(ho.customFields?.length ? ho.customFields : []);
+      setShowTotalRow(ho.showTotalRow ?? true);
+      setManualTotal(ho.manualTotal != null ? String(ho.manualTotal) : null);
     } catch (error) {
       console.error('[HroForm] fetchHireOrderForEdit error:', error);
       setSaveStatus('Error loading hire order data');
@@ -174,6 +187,13 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
       if (rawTerms?.length) setPaymentTerms(filterEditableTerms(rawTerms));
 
       setShowDiscountInTotal(latest?.amendedTotalAmount !== undefined || ho.totalDiscountAmount !== undefined);
+      setCustomFields(
+        latest?.amendedCustomFields?.length
+          ? latest.amendedCustomFields
+          : (ho.customFields?.length ? ho.customFields : [])
+      );
+      setShowTotalRow(latest?.amendedShowTotalRow ?? ho.showTotalRow ?? true);
+      setManualTotal(latest?.amendedManualTotal != null ? String(latest.amendedManualTotal) : null);
     } catch (error) {
       console.error('[HroForm] fetchHireOrderForAmendmentEdit error:', error);
       setSaveStatus('Error loading hire order data');
@@ -293,6 +313,22 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
     setPaymentTerms((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addCustomField = () => setCustomFields((prev) => [...prev, buildCustomField()]);
+
+  const updateCustomFieldLabel = (id, label) =>
+    setCustomFields((prev) => prev.map((field) => (field.id === id ? { ...field, label } : field)));
+
+  const updateCustomFieldValue = (id, value) =>
+    setCustomFields((prev) => prev.map((field) => (field.id === id ? { ...field, value } : field)));
+
+  const removeCustomField = (id) => setCustomFields((prev) => prev.filter((field) => field.id !== id));
+
+  const removeTotalRow = () => setShowTotalRow(false);
+  const restoreTotalRow = () => setShowTotalRow(true);
+  const handleManualTotalChange = (e) => setManualTotal(e.target.value);
+  const handleManualTotalBlur = () => { if (manualTotal === '') setManualTotal(null); };
+  const resetManualTotal = () => setManualTotal(null);
+
   const toggleDiscountInTotal = () => setShowDiscountInTotal((prev) => !prev);
   const toggleCeoMode = () => setCeoMode((prev) => (prev === 'CEO' ? 'MANAGING DIRECTOR' : 'CEO'));
   const getSignatoryName = () => SIGNATORY_MAP[ceoMode] || SIGNATORY_MAP.CEO;
@@ -362,12 +398,15 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
           designation: hireOrderData.designation,
         },
         quoteNo: hireOrderData.quoteNo,
+        customFields,
         requestText: hireOrderData.requestText,
         columns,
         items: hireOrderData.items.filter((item) => itemHasContent(item, columns)),
         termsAndConditions: ['Terms & Conditions', ...paymentTerms],
         hireOrderCounter,
         discount: hireOrderData.discount,
+        showTotalRow,
+        manualTotal: parsedManualTotal,
         showDiscountInTotal,
         signatures: {
           accountsDept: 'ROSHAN SHA',
@@ -386,8 +425,8 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
         }),
       };
 
-      if (showDiscountInTotal) payload.totalDiscountAmount = totalAmount;
-      else payload.totalAmount = subtotal;
+      if (showDiscountInTotal) payload.totalDiscountAmount = finalTotal;
+      else payload.totalAmount = finalTotal;
 
       if (complaintId) payload.complaintId = complaintId;
 
@@ -450,6 +489,10 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
     autoCalculateTotal,
     subtotal,
     totalAmount,
+    finalTotal,
+    customFields,
+    showTotalRow,
+    manualTotal,
     filteredCompanies,
     filteredAttentions,
 
@@ -465,6 +508,15 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
     addPaymentTerm,
     updatePaymentTerm,
     removePaymentTerm,
+    addCustomField,
+    updateCustomFieldLabel,
+    updateCustomFieldValue,
+    removeCustomField,
+    removeTotalRow,
+    restoreTotalRow,
+    handleManualTotalChange,
+    handleManualTotalBlur,
+    resetManualTotal,
     toggleDiscountInTotal,
     toggleCeoMode,
     getSignatoryName,

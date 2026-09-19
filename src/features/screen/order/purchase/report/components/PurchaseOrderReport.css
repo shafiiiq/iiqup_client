@@ -117,8 +117,9 @@
 }
 
 .purchase.order.report.items.description.data {
-  width: 600px;
-  max-width: 600px;
+  width: 300px;
+  max-width: 300px;
+  word-break: break-all;
 }
 
 .purchase.order.report.items.total.label {
@@ -156,6 +157,11 @@
   padding: 10px !important;
 }
 
+.purchase.order.report.terms.table td.terms-measure {
+  padding-top: 0 !important;
+  padding-bottom: 8px !important;
+}
+
 .purchase.order.report.terms.content ul {
   margin: 0 !important;
   padding-left: 20px !important;
@@ -166,7 +172,7 @@
   margin-bottom: 8px !important;
 }
 
-.purchase.order.report.terms.content li:nth-child(1) {
+.purchase.order.report.terms-first-line {
   text-decoration: underline !important;
   font-size: 16px !important;
   font-weight: bold !important;

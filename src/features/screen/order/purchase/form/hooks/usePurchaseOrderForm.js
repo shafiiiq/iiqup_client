@@ -140,12 +140,12 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
         try {
             const data = await fetchLatestPurchaseOrderRefService();
 
-            const newPurchaseOrderNumber = parseInt(data.data?.latestRef || 130) + 1;
+            const newPurchaseOrderNumber = (parseInt(data.data?.latestRef, 10) || 0) + 1;
             setPurchaseOrderCounter(newPurchaseOrderNumber);
             setPurchaseOrderData((prev) => ({ ...prev, purchaseorderRef: generatePurchaseOrderRef(newPurchaseOrderNumber) }));
         } catch (err) {
             console.error('[PurchaseOrderForm] fetchLatestPurchaseOrderNumber error:', err);
-            setPurchaseOrderData((prev) => ({ ...prev, purchaseorderRef: generatePurchaseOrderRef(131) }));
+            setPurchaseOrderData((prev) => ({ ...prev, purchaseorderRef: generatePurchaseOrderRef(1) }));
         }
     };
 

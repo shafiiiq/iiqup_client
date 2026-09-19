@@ -1,11 +1,11 @@
-import A2Paper from '@/shared/components/widgets/paper/A2Paper';
+import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 import A2PaperSkeleton from '@/shared/components/widgets/paper/A2PaperSkeleton';
 import Modal from '@/shared/components/widgets/modal/Modal';
 import Controls from '@/shared/components/widgets/controls/Controls';
 
 import useHireOrderReport from '../hooks/useHireOrderReport';
-import { ITEMS_PER_PAGE, SHARED_BTN, EMAIL_FORM_FIELDS } from '../constants/hire.order.report.constant';
-import { formatCurrency, signatoryRole, chunkItems, estimateItemLines, getEffectiveColumns } from '../helper/hire.order.report.helper';
+import { SHARED_BTN, EMAIL_FORM_FIELDS } from '../constants/hire.order.report.constant';
+import { formatCurrency, signatoryRole, getEffectiveColumns } from '../helper/hire.order.report.helper';
 import './HireOrderReport.css';
 
 function SignatureCell({ isSigned, url, alt, imageClassName = 'features screen hire order report signature-image', withSeal = false, sealUrl = '' }) {
@@ -13,21 +13,9 @@ function SignatureCell({ isSigned, url, alt, imageClassName = 'features screen h
     <td className="features screen hire order report signature-cell features screen hire order report border-left">
       {isSigned && url ? (
         <div className="features screen hire order report signature-image-group">
-          <img
-            className={imageClassName}
-            src={url}
-            alt={alt}
-            crossOrigin="anonymous"
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
+          <img className={imageClassName} src={url} alt={alt} crossOrigin="anonymous" onError={(e) => { e.target.style.display = 'none'; }} />
           {withSeal && sealUrl && (
-            <img
-              className="features screen hire order report company-seal"
-              src={sealUrl}
-              alt="Company Seal"
-              crossOrigin="anonymous"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+            <img className="features screen hire order report company-seal" src={sealUrl} alt="Company Seal" crossOrigin="anonymous" onError={(e) => { e.target.style.display = 'none'; }} />
           )}
         </div>
       ) : (
@@ -48,27 +36,17 @@ function SignaturesTable({ data, signatureFlags, signatureStates }) {
           <td colSpan="4" className="features screen hire order report signatures-company-name features screen hire order report border-right features screen hire order report border-left">
             AL ANSARI TRANSPORT &amp; ENTERPRISES W.L.L
           </td>
-          <td className="features screen hire order report service-provider features screen hire order report border-right">
-            Subcontractor OR<br />Service Provider
-          </td>
+          <td className="features screen hire order report service-provider features screen hire order report border-right">Subcontractor OR<br />Service Provider</td>
         </tr>
 
         <tr>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">
-            Operations Manager
-          </td>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">
-            Purchase Manager
-          </td>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">
-            Accounts Dept:
-          </td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">Operations Manager</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">Purchase Manager</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">Accounts Dept:</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">
             Authorized Signatory<br />{signatoryRole(data.signatures.authorizedSignatoryTitle)}
           </td>
-          <td className="features screen hire order report signatures-date-label features screen hire order report border-top features screen hire order report border-right features screen hire order report text-center">
-            (Date &amp; Sign with Stamp)
-          </td>
+          <td className="features screen hire order report signatures-date-label features screen hire order report border-top features screen hire order report border-right features screen hire order report text-center">(Date &amp; Sign with Stamp)</td>
         </tr>
 
         <tr className="features screen hire order report signatures-image-row">
@@ -80,18 +58,10 @@ function SignaturesTable({ data, signatureFlags, signatureStates }) {
         </tr>
 
         <tr>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">
-            {data.signatures.operationsManager}
-          </td>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">
-            {data.signatures.purchasingManager}
-          </td>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">
-            {data.signatures.accountsDept}
-          </td>
-          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">
-            {data.signatures.authorizedSignatory}
-          </td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">{data.signatures.operationsManager}</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">{data.signatures.purchasingManager}</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">{data.signatures.accountsDept}</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">{data.signatures.authorizedSignatory}</td>
           <td className="features screen hire order report border-right features screen hire order report border-bottom" />
         </tr>
       </tbody>
@@ -99,18 +69,11 @@ function SignaturesTable({ data, signatureFlags, signatureStates }) {
   );
 }
 
-function TermsAndSignaturesContent({ data, signatureFlags, signatureStates }) {
+function ClosingSection({ data, signatureFlags, signatureStates }) {
   return (
     <>
       <table className="features screen hire order report terms-table">
         <tbody>
-          <tr className="features screen hire order report terms-row">
-            <td className="features screen hire order report terms-content features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top">
-              <ul>
-                {data.termsAndConditions.map((term, idx) => <li key={idx}>{term}</li>)}
-              </ul>
-            </td>
-          </tr>
           <tr>
             <td className="features screen hire order report terms-note features screen hire order report border-right features screen hire order report border-left features screen hire order report border-bottom">
               <strong>NOTE:</strong> The hire order copy should be submitted along with the invoice every month for the payment process.
@@ -124,144 +87,136 @@ function TermsAndSignaturesContent({ data, signatureFlags, signatureStates }) {
   );
 }
 
-function TermsAndSignaturesPage({ data, signatureFlags, signatureStates }) {
-  return (
-    <A2Paper className="features screen hire order report document-sheet">
-      <div className="features screen hire order report divider-header" />
-      <TermsAndSignaturesContent data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} />
-    </A2Paper>
-  );
-}
-
-function ItemsTable({ items, startIndex, showHeader, showTotal, data, total, lastItemBorder }) {
-  const columns = getEffectiveColumns(data);
-  const lastItemIndex = items.length - 1;
-  const totalValue = data.showDiscountInTotal ? total - (data.discount || 0) : total;
-
-  return (
-    <table className="features screen hire order report items-table">
-      {showHeader && (
-        <thead>
-          <tr>
-            <th>SN</th>
-            {columns.map((col) => <th key={col.id}>{col.label}</th>)}
-          </tr>
-        </thead>
-      )}
-      <tbody>
-        {items.map((item, itemIndex) => (
-          <tr
-            key={item._id || item.id || itemIndex}
-            className={lastItemBorder && itemIndex === lastItemIndex ? 'features screen hire order report border-bottom' : ''}
-          >
-            <td>{startIndex + itemIndex}</td>
-            {columns.map((col) => (
-              <td key={col.id} className={col.id === 'description' ? 'features screen hire order report items-description-data' : ''}>
-                {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
-              </td>
-            ))}
-          </tr>
-        ))}
-        {showTotal && (
-          <tr>
-            <td colSpan={columns.length} className="features screen hire order report items-total-label">
-              {data.totalDiscountAmount != null ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
-            </td>
-            <td>{formatCurrency(data.totalDiscountAmount ?? data.totalAmount ?? totalValue)}</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  );
-}
-
 function ReportData({ data, signatureFlags, signatureStates }) {
-  const itemPages = chunkItems(data.items, ITEMS_PER_PAGE);
-  const lastPageIndex = itemPages.length - 1;
+  const columns = getEffectiveColumns(data);
   const total = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
 
-  const lastPageItemCount = itemPages[lastPageIndex].reduce(
-    (sum, item) => sum + estimateItemLines(item.description),
-    0
+  const buildItemRow = (item, absoluteIndex) => (
+    <tr key={item._id || item.id || absoluteIndex}>
+      <td>{absoluteIndex + 1}</td>
+      {columns.map((col) => (
+        <td key={col.id} className={col.id === 'description' ? 'features screen hire order report items-description-data' : ''}>
+          {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
+        </td>
+      ))}
+    </tr>
   );
-  const showTermsInline = lastPageIndex === 0 ? lastPageItemCount < 14 : lastPageItemCount < 21;
 
-  const termsSharedProps = { data, signatureFlags, signatureStates };
+  const buildTotalRow = () => (
+    <tr key="total">
+      <td colSpan={columns.length} className="features screen hire order report items-total-label">
+        {data.totalDiscountAmount != null ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
+      </td>
+      <td>{formatCurrency(data.totalDiscountAmount ?? data.totalAmount ?? total)}</td>
+    </tr>
+  );
 
-  return (
-    <>
-      <A2Paper className="features screen hire order report document-sheet">
-        {data.isAmendment && data.amendmentDate && (
-          <div className="features screen hire order report amendment-banner">[AMENDMENT]</div>
-        )}
+  const buildTermLi = (term, absoluteIndex) => <li key={absoluteIndex}>{term}</li>;
 
-        <div className="features screen hire order report divider-header" />
-        <div className="features screen hire order report title">HIRE ORDER</div>
-
-        <table className="features screen hire order report info-table">
-          <tbody>
-            <tr>
-              <td className="features screen hire order report info-column-left">
-                <div className="features screen hire order report info-line">TO : {data.vendor}</div>
-                <div className="features screen hire order report info-line">ATTN : {data.attention}</div>
-                <div className="features screen hire order report info-line">DESIGNATION : {data.designation}</div>
-                <div className="features screen hire order report info-line">Ref No : {data.quoteNo}</div>
-              </td>
-              <td className="features screen hire order report info-column-right">
-                <div className="features screen hire order report info-line">DATE : {data.date}</div>
-                <div className="features screen hire order report info-line">HIRE ORDER REF NO : {data.hireOrderRef}</div>
-              </td>
-            </tr>
+  const blocks = [
+    ...data.items.map((item, absoluteIndex) => ({
+      key: `item-${item._id || item.id || absoluteIndex}`,
+      section: 'item',
+      row: buildItemRow(item, absoluteIndex),
+      content: <table className="features screen hire order report items-table"><tbody>{buildItemRow(item, absoluteIndex)}</tbody></table>,
+    })),
+    ...(data.showTotalRow !== false ? [{
+      key: 'total', section: 'item', row: buildTotalRow(),
+      content: <table className="features screen hire order report items-table"><tbody>{buildTotalRow()}</tbody></table>,
+    }] : []),
+    ...data.termsAndConditions.map((term, absoluteIndex) => ({
+      key: `term-${absoluteIndex}`,
+      section: 'term',
+      li: buildTermLi(term, absoluteIndex),
+      content: (
+        <table className="features screen hire order report terms-table">
+          <tbody><tr className="features screen hire order report terms-row border-left border-right">
+            <td className="features screen hire order report terms-content term-measure">
+              <ul>{buildTermLi(term, absoluteIndex)}
+              </ul>
+            </td>
+          </tr>
           </tbody>
         </table>
+      ),
+    })),
+    {
+      key: 'closing',
+      section: 'closing',
+      content: <ClosingSection data={data} signatureFlags={signatureFlags} signatureStates={signatureStates} />,
+    },
+  ];
 
-        <div className="features screen hire order report divider-details" />
-        <div className="features screen hire order report request-note">{data.requestText}</div>
+  const renderGroup = (group) => {
+    if (group.section === 'item') {
+      return (
+        <table key="items" className="features screen hire order report items-table">
+          <thead><tr><th>SN</th>{columns.map((col) => <th key={col.id}>{col.label}</th>)}</tr></thead>
+          <tbody>{group.blocks.map((b) => b.row)}</tbody>
+        </table>
+      );
+    }
+    if (group.section === 'term') {
+      return (
+        <table key="terms" className="features screen hire order report terms-table">
+          <tbody><tr className="features screen hire order report terms-row border-left border-right">
+            <td className="features screen hire order report terms-content">
+              <ul>{
+                group.blocks.map((b) => b.li)}
+              </ul>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      );
+    }
+    return group.blocks[0].content;
+  };
 
-        <ItemsTable
-          items={itemPages[0]}
-          startIndex={1}
-          showHeader
-          showTotal={lastPageIndex === 0}
-          data={data}
-          total={total}
-          lastItemBorder={lastPageIndex !== 0}
-        />
-
-        {lastPageIndex === 0 && showTermsInline && (
-          <TermsAndSignaturesContent {...termsSharedProps} />
-        )}
-      </A2Paper>
-
-      {itemPages.slice(1).map((pageItems, idx) => {
-        const pageIndex = idx + 1;
-        const isLastItemPage = pageIndex === lastPageIndex;
-        const startIndex = itemPages.slice(0, pageIndex).reduce((sum, p) => sum + p.length, 0) + 1;
-
-        return (
-          <A2Paper key={pageIndex} className="features screen hire order report document-sheet">
-            <div className="features screen hire order report divider-header" />
-            <ItemsTable
-              items={pageItems}
-              startIndex={startIndex}
-              showHeader
-              showTotal={isLastItemPage}
-              data={data}
-              total={total}
-              lastItemBorder={!isLastItemPage}
-            />
-
-            {isLastItemPage && showTermsInline && (
-              <TermsAndSignaturesContent {...termsSharedProps} />
-            )}
-          </A2Paper>
-        );
-      })}
-
-      {!showTermsInline && (
-        <TermsAndSignaturesPage {...termsSharedProps} />
+  const headerNode = (
+    <>
+      {data.isAmendment && data.amendmentDate && (
+        <div className="features screen hire order report amendment-banner">[AMENDMENT]</div>
       )}
+      <div className="features screen hire order report divider-header" />
+      <div className="features screen hire order report title">HIRE ORDER</div>
+
+      <table className="features screen hire order report info-table">
+        <tbody>
+          <tr>
+            <td className="features screen hire order report info-column-left">
+              <div className="features screen hire order report info-line">TO : {data.vendor}</div>
+              <div className="features screen hire order report info-line">ATTN : {data.attention}</div>
+              <div className="features screen hire order report info-line">DESIGNATION : {data.designation}</div>
+              <div className="features screen hire order report info-line">Ref No : {data.quoteNo}</div>
+            </td>
+            <td className="features screen hire order report info-column-right">
+              <div className="features screen hire order report info-line">DATE : {data.date}</div>
+              {data.customFields?.map((field, idx) => (
+                <div className="features screen hire order report info-line" key={field.id || idx}>
+                  {(field.label || 'FIELD').toUpperCase()} : {field.value}
+                </div>
+              ))}
+              <div className="features screen hire order report info-line">LPO REF NO : {data.hireOrderRef}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="features screen hire order report divider-details" />
+      <div className="features screen hire order report request-note">{data.requestText}</div>
     </>
+  );
+
+  return (
+    <A2PaginationEngine blocks={blocks} firstPageHeader={headerNode}>
+      {(pages) => pages.map((pageBlocks, pageIndex) => (
+        <A2Paper key={pageIndex} className="features screen hire order report document-sheet">
+          {pageIndex === 0 ? headerNode : <div className="features screen hire order report divider-header" />}
+          {groupBlocksBySection(pageBlocks).map((group, i) => <div key={i}>{renderGroup(group)}</div>)}
+        </A2Paper>
+      ))}
+    </A2PaginationEngine>
   );
 }
 
@@ -320,9 +275,7 @@ function HireOrderReport() {
 
       {h.amendmentData && (
         <>
-          <div className="features screen hire order report amendment-divider">
-            ===== AMENDED DOCUMENT FOLLOWS =====
-          </div>
+          <div className="features screen hire order report amendment-divider">===== AMENDED DOCUMENT FOLLOWS =====</div>
           <ReportData data={h.amendmentData} signatureFlags={h.signatureFlags} signatureStates={h.signatureStates} />
         </>
       )}

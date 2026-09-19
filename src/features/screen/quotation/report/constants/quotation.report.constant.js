@@ -50,5 +50,4 @@ export const SHARED_BTN = {
   shadowColor: 'white-600',
 };
 
-export const ITEMS_PER_PAGE = 17;
 export const CONFIRMATION_HEADING = 'Please fill out the following details and revert to us to confirm the hire.';
