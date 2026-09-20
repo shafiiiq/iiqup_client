@@ -66,19 +66,30 @@
   color: black;
   word-break: break-word;
   overflow-wrap: break-word;
+  overflow: hidden;
 }
 
 .features.screen.quotation.report.items-table th {
   font-weight: bold;
 }
 
+.features.screen.quotation.report.items-description-data {
+  max-width: 0;
+  text-align: left;
+}
+
 .features.screen.quotation.report.item-image-wrap {
   margin-top: 6px;
+  max-width: 100%;
 }
 
 .features.screen.quotation.report.item-image {
+  display: block;
+  width: 100%;
   max-width: 160px;
+  height: auto;
   max-height: 120px;
+  object-fit: contain;
   border: 1px solid #ddd;
   border-radius: 4px;
 }

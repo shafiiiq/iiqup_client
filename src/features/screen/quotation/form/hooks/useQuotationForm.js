@@ -21,6 +21,7 @@ import {
   getModeLabel,
   getStatusTitle,
   isTermHeading,
+  compressImageDataUrl,
 } from '../helper/quotation.form.helper';
 import {
   DEFAULT_COLUMNS,
@@ -317,7 +318,10 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const readImageFileForItem = (file, index) => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
-    reader.onload = () => handleItemImageChange(index, reader.result);
+    reader.onload = async () => {
+      const compressed = await compressImageDataUrl(reader.result);
+      handleItemImageChange(index, compressed);
+    };
     reader.readAsDataURL(file);
   };
 

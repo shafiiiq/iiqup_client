@@ -14,7 +14,7 @@ const buildItemRow = (item, absoluteIndex, columns) => (
     {columns.map((col) => (
       <td
         key={col.id}
-        className={col.id === 'description' ? 'purchase order report items description data' : ''}
+        className={col.id === 'description' ? 'features screen quotation report items-description-data' : ''}
       >
         {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
         {col.id === 'description' && item.image && (
