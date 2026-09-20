@@ -5,7 +5,7 @@ import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/comp
 
 import { useHireOderForm } from '../hooks/useHireOderForm';
 import { formatCurrency } from '../helper/hire.order.form.helper';
-import { SHARED_BTN } from '../constants/hire.order.form.constant';
+import { SHARED_BTN, COLUMN_TEMPLATE_LABELS } from '../constants/hire.order.form.constant';
 import './HireOrderForm.css';
 
 function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
@@ -61,6 +61,8 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
   const {
     hireOrderData,
     columns,
+    columnTemplate,
+    handleColumnTemplateChange,
     paymentTerms,
     subtotal,
     finalTotal,
@@ -362,7 +364,7 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
   const headerNode = (
     <>
       <div className="features screen hire order top-divider" />
-      <div className="features screen hire order title">HIRE ORDER</div>
+      <div className="features screen hire order title">PURCHASE ORDER/IRE ORDER</div>
 
       <div className="features screen hire order details">
         <table className="features screen hire order details-table">
@@ -431,7 +433,7 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
                 </div>
 
                 <div className="features screen hire order detail-item">
-                  Ref No :
+                  QUOTE REF NO :
                   <input
                     type="text"
                     className="features screen hire order editable-input designation-input"
@@ -472,6 +474,8 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
                   </div>
                 ))}
 
+                <div className="features screen hire order detail-item">REF NO : <span className="features screen hire order non-editable">{hireOrderData.hireOrderRef}</span></div>
+
                 <div className="features screen hire order add-field-row">
                   <Controls
                     justify="start"
@@ -482,7 +486,6 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
                   />
                 </div>
 
-                <div className="features screen hire order detail-item">LPO REF NO : <span className="features screen hire order non-editable">{hireOrderData.hireOrderRef}</span></div>
               </td>
             </tr>
           </tbody>
@@ -501,6 +504,15 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
       </div>
 
       <div className="features screen hire order add-column-row">
+        <select
+          className="features screen hire order column-template-select"
+          value={columnTemplate}
+          onChange={handleColumnTemplateChange}
+        >
+          {Object.entries(COLUMN_TEMPLATE_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
         <Controls
           justify="end"
           gap="8px"

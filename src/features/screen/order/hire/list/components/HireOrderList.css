@@ -14,8 +14,9 @@
 }
 
 .features.screen.order.hire.list.table-info {
-  text-align: right;
+  text-align: left;
   margin-bottom: 10px;
+  margin-left: 40px;
 }
 
 .features.screen.order.hire.list.modal-overlay {

@@ -525,11 +525,18 @@
   width: 100%;
 }
 
+.features.screen.quotation.form.payment-terms-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
 .features.screen.quotation.form.payment-terms-header {
   font-weight: bold;
   font-size: 14pt;
   text-decoration: underline;
-  margin-bottom: 10px;
 }
 
 .features.screen.quotation.form.payment-terms-list {
@@ -568,6 +575,14 @@
   background: transparent;
   border-bottom: 1px dotted #666;
   outline: none;
+}
+
+.features.screen.quotation.form.term-template-select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 11pt;
+  flex-shrink: 0;
 }
 
 .features.screen.quotation.form.remove-term-btn {

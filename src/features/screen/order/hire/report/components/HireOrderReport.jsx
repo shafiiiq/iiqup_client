@@ -179,7 +179,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
         <div className="features screen hire order report amendment-banner">[AMENDMENT]</div>
       )}
       <div className="features screen hire order report divider-header" />
-      <div className="features screen hire order report title">HIRE ORDER</div>
+      <div className="features screen hire order report title">PURCHASE ORDER/HIRE ORDER</div>
 
       <table className="features screen hire order report info-table">
         <tbody>
@@ -188,16 +188,16 @@ function ReportData({ data, signatureFlags, signatureStates }) {
               <div className="features screen hire order report info-line">TO : {data.vendor}</div>
               <div className="features screen hire order report info-line">ATTN : {data.attention}</div>
               <div className="features screen hire order report info-line">DESIGNATION : {data.designation}</div>
-              <div className="features screen hire order report info-line">Ref No : {data.quoteNo}</div>
+              <div className="features screen hire order report info-line">QUOTE REF NO : {data.quoteNo}</div>
             </td>
             <td className="features screen hire order report info-column-right">
               <div className="features screen hire order report info-line">DATE : {data.date}</div>
+              <div className="features screen hire order report info-line">REF NO : {data.hireOrderRef}</div>
               {data.customFields?.map((field, idx) => (
                 <div className="features screen hire order report info-line" key={field.id || idx}>
                   {(field.label || 'FIELD').toUpperCase()} : {field.value}
                 </div>
               ))}
-              <div className="features screen hire order report info-line">LPO REF NO : {data.hireOrderRef}</div>
             </td>
           </tr>
         </tbody>

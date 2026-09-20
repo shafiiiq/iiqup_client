@@ -8,7 +8,6 @@ export const useEquipmentSearch = ({
   activeTab,
   fetchEquipments,
   setFilteredData,
-  setShowNoResultsModal,
   hydrateWithImages,
   setIsSearchActive,
 }) => {
@@ -20,14 +19,13 @@ export const useEquipmentSearch = ({
     if (!searchTerm?.trim()) {
       setIsSearchActive(false);
       fetchEquipments(1, false);
-      setShowNoResultsModal(false);
       globalSearch.clear();
       return;
     }
 
     setIsSearchActive(true);
     globalSearch.search(searchTerm.trim());
-  }, [searchTerm, fetchEquipments, setShowNoResultsModal, setIsSearchActive, globalSearch]);
+  }, [searchTerm, fetchEquipments, setIsSearchActive, globalSearch]);
 
   useEffect(() => {
     const timer = setTimeout(runSearch, 500);
@@ -48,7 +46,6 @@ export const useEquipmentSearch = ({
 
       const resultsWithImages = await hydrateWithImages(filtered);
       setFilteredData(resultsWithImages);
-      setShowNoResultsModal(resultsWithImages.length === 0);
     };
 
     applyResults();

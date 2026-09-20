@@ -35,7 +35,7 @@ function QuotationList() {
   return (
     <div className="features screen quotation list">
       <div className="features screen quotation list controls-container">
-        <Button {...SHARED_BTN} text="Create Quotation" onClick={handleAddQuotation} colorScheme="lime-800" />
+        <Button {...SHARED_BTN} text="Create Quotation" onClick={handleAddQuotation} colorScheme="success-800" />
       </div>
 
       <Text as="div" variant="caption" color="disabled" className="features screen quotation list table-info">

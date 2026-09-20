@@ -176,7 +176,17 @@
 .features.screen.hire.order.add-column-row {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
   margin: 8px 0;
+}
+
+.features.screen.hire.order.column-template-select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 11pt;
+  flex-shrink: 0;
 }
 
 .features.screen.hire.order.continuation-divider {

@@ -12,6 +12,37 @@ export const DEFAULT_COLUMNS = [
   { id: 'totalPrice', label: 'Total Price(QR)', type: 'calculated', deletable: false },
 ];
 
+export const COLUMN_TEMPLATES = {
+  DEFAULT: DEFAULT_COLUMNS,
+  TUV_TPC_RENEWAL: [
+    { id: 'description', label: 'Item Description', type: 'text', deletable: true },
+    { id: 'validityRequired', label: 'Validity Required', type: 'text', deletable: true },
+    { id: 'location', label: 'Location', type: 'text', deletable: true },
+    { id: 'totalPrice', label: 'Total Price(QR)', type: 'calculated', deletable: false },
+  ],
+  OPERATOR_TPC_TUV: [
+    { id: 'operator', label: 'Operator', type: 'text', deletable: true },
+    { id: 'location', label: 'Location', type: 'text', deletable: true },
+    { id: 'quantity', label: 'Qty', type: 'number', deletable: true },
+    { id: 'unitPrice', label: 'Unit Price(QR)', type: 'number', deletable: true },
+    { id: 'totalPrice', label: 'Total Price(QR)', type: 'calculated', deletable: false },
+  ],
+  EQUIPMENT_HIRING_FROM_SUPPLIER: [
+    { id: 'description', label: 'Item Description', type: 'text', deletable: true },
+    { id: 'mobDate', label: 'Mob Date', type: 'text', deletable: true },
+    { id: 'quantity', label: 'Qty', type: 'number', deletable: true },
+    { id: 'unitPrice', label: 'Unit Price(QR)', type: 'number', deletable: true },
+    { id: 'remarks', label: 'Remarks', type: 'text', deletable: true },
+  ],
+};
+
+export const COLUMN_TEMPLATE_LABELS = {
+  DEFAULT: 'Default',
+  TUV_TPC_RENEWAL: 'TUV/TPC Renewal',
+  OPERATOR_TPC_TUV: 'Operator TPC/TUV',
+  EQUIPMENT_HIRING_FROM_SUPPLIER: 'Equipment Hiring From Supplier',
+};
+
 export const DEFAULT_HIRE_ORDER_DATA = {
   vendor: '',
   date: new Date().toLocaleDateString('en-GB'),

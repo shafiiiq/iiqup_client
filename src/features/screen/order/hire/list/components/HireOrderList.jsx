@@ -1,5 +1,4 @@
 import Modal from '@/shared/components/widgets/modal/Modal';
-import Button from '@/shared/components/widgets/button/Button';
 import Text from '@/shared/components/widgets/text/Text';
 import Toast from '@/shared/components/widgets/toast/Toast';
 import Table from '@/shared/components/widgets/table/Table';
@@ -71,7 +70,7 @@ function HireOrderList() {
         justify="space-between"
         width="20%"
         columns={3}
-        margin="0 0 20px 20px"
+        margin="0 20px 20px auto"
         buttons={[
           { ...SHARED_BTN, text: 'Color Hint', onClick: () => setShowLegendModal(true), colorScheme: 'info-800' },
           { ...SHARED_BTN, text: 'Create Hire Order', onClick: handleAddHireOrder, colorScheme: 'success-800' },

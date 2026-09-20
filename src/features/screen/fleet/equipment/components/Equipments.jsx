@@ -408,9 +408,7 @@ function Equipments() {
         showFuelProgressModal={actions.showFuelProgressModal}
         fuelProgress={actions.fuelProgress}
 
-        showNoResultsModal={actions.showNoResultsModal}
         outsideEquipmentForm={actions.outsideEquipmentForm}
-        onNoResultsClose={actions.onNoResultsClose}
         onAddAsOutside={actions.onAddAsOutside}
 
         showAddShiftModal={actions.showAddShiftModal}

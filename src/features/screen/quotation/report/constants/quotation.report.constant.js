@@ -1,8 +1,10 @@
 export const DEFAULT_COLUMNS = [
   { id: 'description', label: 'Item Description', type: 'text' },
-  { id: 'quantity', label: 'Qty', type: 'number' },
-  { id: 'unitPrice', label: 'Unit Price(QR)', type: 'number' },
-  { id: 'totalPrice', label: 'Total Price(QR)', type: 'calculated' },
+  { id: 'unitPriceDaily', label: 'Unit Price (QR)/Daily (10 Hrs/Day)', type: 'text' },
+  { id: 'unitPriceWeekly', label: 'Unit Price (QR)/Weekly (10 Hrs & 6 Days)', type: 'text' },
+  { id: 'unitPriceMonthly', label: 'Unit Price (QR)/Monthly (10 hrs & 26 Days)', type: 'text' },
+  { id: 'mobDemobCharges', label: 'Unit Price (QR) Mob & Demob Charges', type: 'text' },
+  { id: 'remarks', label: 'Remarks', type: 'text' },
 ];
 
 export const DEFAULT_QUOTATION_DATA = {

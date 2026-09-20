@@ -31,6 +31,7 @@ import {
   DEFAULT_CONTACT_TEXT,
   MIN_EDITABLE_COLUMNS,
   SIGNATORY_MAP,
+  TERM_TEMPLATES,
 } from '../constants/quotation.form.constant';
 
 export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
@@ -48,6 +49,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const [quotationData, setQuotationData] = useState(DEFAULT_QUOTATION_DATA);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [paymentTerms, setPaymentTerms] = useState(DEFAULT_PAYMENT_TERMS);
+  const [termTemplate, setTermTemplate] = useState('WITH_OPERATOR');
   const [customFields, setCustomFields] = useState([]);
   const [quotationCounter, setQuotationCounter] = useState(1);
   const [ceoMode, setCeoMode] = useState('CEO');
@@ -386,6 +388,12 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     setDiscountInput('');
   };
 
+  const handleTermTemplateChange = (e) => {
+    const key = e.target.value;
+    setTermTemplate(key);
+    setPaymentTerms(TERM_TEMPLATES[key] || DEFAULT_PAYMENT_TERMS);
+  };
+
   const addPaymentTerm = () => setPaymentTerms((prev) => [...prev, '']);
   const addPaymentTermHeading = () => setPaymentTerms((prev) => [...prev, '## ']);
 
@@ -563,6 +571,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     quotationData,
     columns,
     paymentTerms,
+    termTemplate,
     customFields,
     quotationCounter,
     ceoMode,
@@ -603,6 +612,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     cancelDiscount,
     addPaymentTerm,
     addPaymentTermHeading,
+    handleTermTemplateChange,
     updatePaymentTerm,
     removePaymentTerm,
     addCustomField,

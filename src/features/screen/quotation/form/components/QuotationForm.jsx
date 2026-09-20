@@ -5,7 +5,7 @@ import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/comp
 
 import { useQuotationForm } from '../hooks/useQuotationForm';
 import { formatCurrency, isTermHeading, getTermText, buildTermNumbers } from '../helper/quotation.form.helper';
-import { SHARED_BTN, CONFIRMATION_HEADING } from '../constants/quotation.form.constant';
+import { SHARED_BTN, CONFIRMATION_HEADING, TERM_TEMPLATE_LABELS } from '../constants/quotation.form.constant';
 import './QuotationForm.css';
 
 function ClosingSection({
@@ -110,6 +110,8 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
     removePaymentTerm,
     addPaymentTerm,
     addPaymentTermHeading,
+    termTemplate,
+    handleTermTemplateChange,
     updateCustomFieldLabel,
     updateCustomFieldValue,
     removeCustomField,
@@ -428,7 +430,18 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
             <td className="features screen quotation form terms-header-large">
               <div className="features screen quotation form payment-terms-container">
                 {showHeader && (
-                  <div className="features screen quotation form payment-terms-header">Terms &amp; Conditions</div>
+                  <div className="features screen quotation form payment-terms-header-row">
+                    <span className="features screen quotation form payment-terms-header">Terms &amp; Conditions</span>
+                    <select
+                      className="features screen quotation form term-template-select"
+                      value={termTemplate}
+                      onChange={handleTermTemplateChange}
+                    >
+                      {Object.entries(TERM_TEMPLATE_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
                 )}
                 <ul className="features screen quotation form payment-terms-list">{group.blocks.map((b) => b.li)}</ul>
                 {isLastTermsGroup && (
@@ -588,7 +601,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
                   </div>
                 ))}
 
-                <div className="features screen quotation form detail-item">QUOTATION REF NO : <span className="features screen quotation form non-editable">{quotationData.quotationRef}</span></div>
+                <div className="features screen quotation form detail-item">REF NO : <span className="features screen quotation form non-editable">{quotationData.quotationRef}</span></div>
                 <div className="features screen quotation form add-field-row">
                   <Controls
                     justify="start"

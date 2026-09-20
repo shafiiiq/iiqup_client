@@ -27,6 +27,7 @@ import {
   DEFAULT_PAYMENT_TERMS,
   MIN_EDITABLE_COLUMNS,
   SIGNATORY_MAP,
+  COLUMN_TEMPLATES,
 } from '../constants/hire.order.form.constant';
 
 export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
@@ -43,6 +44,7 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
 
   const [hireOrderData, setHireOrderData] = useState(DEFAULT_HIRE_ORDER_DATA);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
+  const [columnTemplate, setColumnTemplate] = useState('DEFAULT');
   const [paymentTerms, setPaymentTerms] = useState(DEFAULT_PAYMENT_TERMS);
   const [hireOrderCounter, setHireOrderCounter] = useState(1);
   const [ceoMode, setCeoMode] = useState('CEO');
@@ -251,6 +253,14 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
         return rest;
       }),
     }));
+  };
+
+  const handleColumnTemplateChange = (e) => {
+    const key = e.target.value;
+    const newColumns = COLUMN_TEMPLATES[key] || DEFAULT_COLUMNS;
+    setColumnTemplate(key);
+    setColumns(newColumns);
+    setHireOrderData((prev) => ({ ...prev, items: [buildDefaultItem(newColumns)] }));
   };
 
   const addTotalColumn = () => {
@@ -487,6 +497,7 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
 
     hireOrderData,
     columns,
+    columnTemplate,
     paymentTerms,
     hireOrderCounter,
     ceoMode,
@@ -512,6 +523,7 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
     filteredAttentions,
 
     updateColumnLabel,
+    handleColumnTemplateChange,
     addColumn,
     addTotalColumn,
     removeColumn,

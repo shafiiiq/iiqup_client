@@ -35,7 +35,6 @@ export const useEquipmentPage = () => {
     activeTab: equipment.activeTab,
     fetchEquipments: equipment.fetchEquipmentList,
     setFilteredData: equipment.setEquipmentList,
-    setShowNoResultsModal: actions.setShowNoResultsModal,
     hydrateWithImages: equipment.hydrateEquipmentListWithImages,
     setIsSearchActive: equipment.setIsSearchActive,
   });
@@ -172,14 +171,8 @@ export const useEquipmentPage = () => {
     actions.setReplaceEquipmentForm(prev => patchReplaceEquipmentFormField(prev, field, value, operatorSearch.operators));
   }, [actions, operatorSearch]);
 
-  const onNoResultsClose = useCallback(() => {
-    actions.setShowNoResultsModal(false);
-    setSearchTerm('');
-  }, [actions, setSearchTerm]);
-
   const onAddAsOutside = useCallback(() => {
     actions.setOutsideEquipmentForm(prev => ({ ...prev, regNo: searchTerm }));
-    actions.setShowNoResultsModal(false);
     actions.setShowOutsideEquipmentModal(true);
   }, [actions, searchTerm]);
 
@@ -218,7 +211,6 @@ export const useEquipmentPage = () => {
       onDemobilizeFormChange,
       onReplaceOperatorFormChange,
       onReplaceEquipmentFormChange,
-      onNoResultsClose,
       onAddAsOutside,
       closeAddModal,
       closeEditModal,

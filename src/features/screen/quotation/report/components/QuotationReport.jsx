@@ -223,7 +223,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
                   {(field.label || 'FIELD').toUpperCase()} : {field.value}
                 </div>
               ))}
-              <div className="features screen quotation report info-line">QUOTATION REF NO : {data.quotationRef}</div>
+              <div className="features screen quotation report info-line">REF NO : {data.quotationRef}</div>
             </td>
           </tr>
         </tbody>

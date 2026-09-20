@@ -65,8 +65,6 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
   const [showFuelProgressModal, setShowFuelProgressModal] = useState(false);
   const [fuelProgress, setFuelProgress] = useState(0);
 
-  const [showNoResultsModal, setShowNoResultsModal] = useState(false);
-
   const [showMobilizeModal, setShowMobilizeModal] = useState(false);
   const [mobilizeForm, setMobilizeForm] = useState(EQUIPMENT_MOBILIZE_FORM_DEFAULTS);
 
@@ -573,8 +571,6 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     sidebarTitle, setSidebarTitle,
     isLoadingFuels, showFuelProgressModal, fuelProgress,
     handleViewDetails, handleViewAllFuels,
-
-    showNoResultsModal, setShowNoResultsModal,
 
     showMobilizeModal, closeMobilizeModal, handleMobilizeClick,
     mobilizeForm, setMobilizeForm, handleMobilizeSubmit,

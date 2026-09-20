@@ -5,6 +5,8 @@ import Modal from '@/shared/components/widgets/modal/Modal';
 import Controls from '@/shared/components/widgets/controls/Controls';
 import Loader from '@/shared/components/widgets/loader/spinner/Spinner';
 import Tabs from '@/shared/components/widgets/tabs/Tabs';
+import MaintenanceHistoryFilters from './fragments/MaintenanceHistoryFilters';
+import { getDateRangeLabel } from '../helper/maintenance.history.helper';
 
 import HistoryTable from './fragments/HistoryTable';
 
@@ -43,8 +45,18 @@ const MaintenanceHistory = () => {
             onSelect={([tabKey]) => maintenanceHistory.setActiveTab(tabKey)}
             maxHeight="1090px"
             controlsColumns={2}
+            filterToggleLabel={`Filters · ${getDateRangeLabel(maintenanceHistory.appliedFilters)}`}
+            filters={
+              <MaintenanceHistoryFilters
+                fields={maintenanceHistory.filterFormFields}
+                values={maintenanceHistory.draftFilters}
+                onChange={maintenanceHistory.handleFilterFormChange}
+                onApply={maintenanceHistory.handleApplyFilters}
+                onReset={maintenanceHistory.handleResetFilters}
+              />
+            }
             controls={[
-              { ...BUTTON_PROPS, text: 'Excel',  onClick: maintenanceHistory.handleExportToExcel, colorScheme: 'black-200', textColor: 'white-100', componentIconLeft: 'ExcelIcon', componentIconSize: '30', iconColor: 'white-200' },
+              { ...BUTTON_PROPS, text: 'Excel', onClick: maintenanceHistory.handleExportToExcel, colorScheme: 'black-200', textColor: 'white-100', componentIconLeft: 'ExcelIcon', componentIconSize: '30', iconColor: 'white-200' },
               { ...BUTTON_PROPS, text: 'PDF', onClick: maintenanceHistory.handleExportToPdf, colorScheme: 'black-200', textColor: 'white-100', componentIconLeft: 'PdfIcon', componentIconSize: '30', iconColor: 'white-200' },
               { ...BUTTON_PROPS, text: 'PDFs', onClick: maintenanceHistory.handleExportToSeparatePdfs, colorScheme: 'black-200', textColor: 'white-100', componentIconLeft: 'LayeredPanelIcon', componentIconSize: '30', iconColor: 'white-200' },
               { ...BUTTON_PROPS, text: 'Print', onClick: maintenanceHistory.handlePrint, colorScheme: 'black-200', textColor: 'white-200', componentIconLeft: 'PrinterIcon', componentIconSize: '30', iconColor: 'white-200', },
@@ -59,7 +71,7 @@ const MaintenanceHistory = () => {
             rows={1}
             columns={3}
             buttons={[
-              { ...BUTTON_PROPS, text: 'Add Service', componentIconLeft: 'IconlyPlus', componentIconSize: '25', iconColor: 'white-200', onClick: maintenanceHistory.navigateToAddSingleServiceRecord, colorScheme: 'success-800'},
+              { ...BUTTON_PROPS, text: 'Add Service', componentIconLeft: 'IconlyPlus', componentIconSize: '25', iconColor: 'white-200', onClick: maintenanceHistory.navigateToAddSingleServiceRecord, colorScheme: 'success-800' },
               { ...BUTTON_PROPS, text: 'Add Multiple Records', componentIconLeft: 'CreateMutipleFilesIcon', componentIconSize: '25', iconColor: 'white-200', onClick: maintenanceHistory.navigateToAddMultipleServiceRecords, colorScheme: 'success-800' },
               { ...BUTTON_PROPS, text: 'View All Documents', componentIconLeft: 'MutipleFilesIcon', componentIconSize: '25', iconColor: 'white-200', onClick: maintenanceHistory.navigateToAllServiceDocuments, colorScheme: 'info-800', width: 'fit-content' },
             ]}
@@ -105,21 +117,6 @@ const MaintenanceHistory = () => {
         secondaryButtonText="Cancel"
         onButtonClick={maintenanceHistory.handleConfirmDeleteReport}
         onSecondaryClick={maintenanceHistory.handleCloseDeleteModal}
-      />
-
-      <Modal
-        isOpen={maintenanceHistory.showFiltersModal}
-        onClose={maintenanceHistory.handleCloseFiltersModal}
-        type="form"
-        title="Service History Filters"
-        message="Customize your view with advanced filtering options"
-        formFields={maintenanceHistory.filterFormFields}
-        formValues={maintenanceHistory.draftFilters}
-        onFormChange={maintenanceHistory.handleFilterFormChange}
-        buttonText="Apply Filters"
-        secondaryButtonText="Reset"
-        onButtonClick={maintenanceHistory.handleApplyFilters}
-        onSecondaryClick={maintenanceHistory.handleResetFilters}
       />
 
       <Modal

@@ -38,8 +38,9 @@
 }
 
 .purchase.order.list.table.info {
-  text-align: right;
+  text-align: left;
   margin-bottom: 10px;
+  margin-left: 40px;
 }
 
 .purchase.order.list.modal.overlay {

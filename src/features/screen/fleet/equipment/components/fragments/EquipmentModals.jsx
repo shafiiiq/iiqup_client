@@ -44,10 +44,7 @@ function EquipmentModals({
 
   showFuelProgressModal,
   fuelProgress,
-
-  showNoResultsModal,
   outsideEquipmentForm,
-  onNoResultsClose,
   onAddAsOutside,
 
   showMobilizeModal,
@@ -231,18 +228,6 @@ function EquipmentModals({
         message="Fetching fuel consumption data, please wait..."
         progress={fuelProgress}
         progressText="Processing..."
-      />
-
-      <Modal
-        isOpen={showNoResultsModal}
-        onClose={onNoResultsClose}
-        type="warning"
-        title="No Equipment Found"
-        message={`No matching records found for "${searchTerm}". Would you like to add this as a hired equipment?`}
-        buttonText="Add as Outside Equipment"
-        onButtonClick={onAddAsOutside}
-        secondaryButtonText="Clear"
-        onSecondaryClick={onNoResultsClose}
       />
 
       <Modal

@@ -2,12 +2,13 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 20px;
+  margin-right: 20px;
 }
 
 .features.screen.quotation.list.table-info {
-  text-align: right;
+  text-align: left;
   margin-bottom: 10px;
-  margin-right: 40px;
+  margin-left: 40px;
 }
 
 .features.screen.quotation.list.modal-overlay {
