@@ -82,7 +82,9 @@
 }
 
 @media print {
-  html, body {
+
+  html,
+  body {
     width: 297mm !important;
     height: 420mm !important;
     margin: 0 !important;
@@ -90,7 +92,11 @@
     background: #fff !important;
   }
 
-  body *:not(.a2-paper):not(.a2-paper *):not(:has(.a2-paper)) {
+  .a2-paper-measure {
+    display: block !important;
+  }
+
+  body *:not(.a2-paper):not(.a2-paper *):not(.a2-paper-measure):not(.a2-paper-measure *):not(:has(.a2-paper)) {
     display: none !important;
   }
 
@@ -102,7 +108,14 @@
     height: auto !important;
   }
 
-  .a2-paper {
+  body,
+  body>* {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .a2-paper:not(.a2-paper-probe) {
     position: relative !important;
     margin: 0 !important;
     box-shadow: none !important;
@@ -110,8 +123,18 @@
     break-after: page;
   }
 
-  .a2-paper:last-of-type {
+  .a2-paper:not(.a2-paper-probe):last-of-type {
     page-break-after: auto;
     break-after: auto;
+  }
+
+  .a2-paper-probe {
+    position: fixed !important;
+    top: -10000px !important;
+    left: -10000px !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
   }
 }
