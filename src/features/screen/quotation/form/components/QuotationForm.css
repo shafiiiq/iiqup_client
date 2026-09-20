@@ -550,6 +550,18 @@
   align-items: flex-start;
   margin-bottom: 8px;
   gap: 6px;
+  cursor: grab;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.features.screen.quotation.form.payment-term-item:active {
+  cursor: grabbing;
+}
+
+.features.screen.quotation.form.payment-term-item.term-selected {
+  background-color: #f0f8ff;
+  outline: 1px dashed #0066cc;
 }
 
 .features.screen.quotation.form.term-bullet {

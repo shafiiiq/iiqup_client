@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 import Controls from '@/shared/components/widgets/controls/Controls';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
@@ -108,9 +108,13 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
     toggleDiscountInTotal,
     updatePaymentTerm,
     removePaymentTerm,
+    moveTerm,
+    moveTermUp,
+    moveTermDown,
     addPaymentTerm,
     addPaymentTermHeading,
     termTemplate,
+    termKeys,
     handleTermTemplateChange,
     updateCustomFieldLabel,
     updateCustomFieldValue,
@@ -296,16 +300,51 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
     </tr >
   );
 
+  const [selectedTermIndex, setSelectedTermIndex] = useState(null);
+  const [dragTermIndex, setDragTermIndex] = useState(null);
+
+  const handleTermKeyDown = (e, absoluteIndex) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (absoluteIndex === 0) return;
+      moveTermUp(absoluteIndex);
+      setSelectedTermIndex(absoluteIndex - 1);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (absoluteIndex === paymentTerms.length - 1) return;
+      moveTermDown(absoluteIndex);
+      setSelectedTermIndex(absoluteIndex + 1);
+    }
+  };
+
   const buildTermLi = (term, absoluteIndex, number) => {
     const heading = isTermHeading(term);
+    const isSelected = selectedTermIndex === absoluteIndex;
     return (
-      <li key={absoluteIndex} className={`features screen quotation form payment-term-item${heading ? ' term-heading' : ''}`}>
+      <li
+        key={termKeys[absoluteIndex] ?? absoluteIndex}
+        draggable
+        onDragStart={() => setDragTermIndex(absoluteIndex)}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (dragTermIndex === null || dragTermIndex === absoluteIndex) return;
+          moveTerm(dragTermIndex, absoluteIndex);
+          setSelectedTermIndex(absoluteIndex);
+          setDragTermIndex(null);
+        }}
+        onDragEnd={() => setDragTermIndex(null)}
+        className={`features screen quotation form payment-term-item${heading ? ' term-heading' : ''}${isSelected ? ' term-selected' : ''}`}
+        title="Drag to reorder, or click then use ↑/↓ to reorder"
+      >
         {!heading && <span className="features screen quotation form term-bullet">{number}.</span>}
         <input
           type="text"
           className={`features screen quotation form payment-term-input${heading ? ' term-heading-input' : ''}`}
           value={getTermText(term)}
           onChange={(e) => updatePaymentTerm(absoluteIndex, e.target.value)}
+          onFocus={() => setSelectedTermIndex(absoluteIndex)}
+          onKeyDown={(e) => handleTermKeyDown(e, absoluteIndex)}
           placeholder={heading ? 'Enter sub heading' : 'Enter term'}
         />
         <button className="features screen quotation form remove-term-btn" onClick={() => removePaymentTerm(absoluteIndex)} title="Remove term">

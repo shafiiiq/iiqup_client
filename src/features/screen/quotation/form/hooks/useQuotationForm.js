@@ -21,6 +21,7 @@ import {
   getModeLabel,
   getStatusTitle,
   isTermHeading,
+  generateTermKey,
   compressImageDataUrl,
 } from '../helper/quotation.form.helper';
 import {
@@ -50,6 +51,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const [quotationData, setQuotationData] = useState(DEFAULT_QUOTATION_DATA);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [paymentTerms, setPaymentTerms] = useState(DEFAULT_PAYMENT_TERMS);
+  const [termKeys, setTermKeys] = useState(() => DEFAULT_PAYMENT_TERMS.map(() => generateTermKey()));
   const [termTemplate, setTermTemplate] = useState('WITH_OPERATOR');
   const [customFields, setCustomFields] = useState([]);
   const [quotationCounter, setQuotationCounter] = useState(1);
@@ -156,7 +158,11 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       setCustomFields(ho.customFields?.length ? ho.customFields : []);
 
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
-      if (ho.termsAndConditions?.length) setPaymentTerms(filterEditableTerms(ho.termsAndConditions));
+      if (ho.termsAndConditions?.length) {
+        const loadedTerms = filterEditableTerms(ho.termsAndConditions);
+        setPaymentTerms(loadedTerms);
+        setTermKeys(loadedTerms.map(() => generateTermKey()));
+      }
       setShowDiscountInTotal(ho.totalDiscountAmount !== undefined);
       setShowTotalRow(ho.showTotalRow ?? true);
       setManualTotal(ho.manualTotal != null ? String(ho.manualTotal) : null);
@@ -206,7 +212,11 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
 
       const rawTerms = latest?.amendedTermsAndConditions || ho.termsAndConditions;
-      if (rawTerms?.length) setPaymentTerms(filterEditableTerms(rawTerms));
+      if (rawTerms?.length) {
+        const loadedTerms = filterEditableTerms(rawTerms);
+        setPaymentTerms(loadedTerms);
+        setTermKeys(loadedTerms.map(() => generateTermKey()));
+      }
 
       setShowDiscountInTotal(latest?.amendedTotalAmount !== undefined || ho.totalDiscountAmount !== undefined);
       setShowTotalRow(latest?.amendedShowTotalRow ?? ho.showTotalRow ?? true);
@@ -394,12 +404,20 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
 
   const handleTermTemplateChange = (e) => {
     const key = e.target.value;
+    const newTerms = TERM_TEMPLATES[key] || DEFAULT_PAYMENT_TERMS;
     setTermTemplate(key);
-    setPaymentTerms(TERM_TEMPLATES[key] || DEFAULT_PAYMENT_TERMS);
+    setPaymentTerms(newTerms);
+    setTermKeys(newTerms.map(() => generateTermKey()));
   };
 
-  const addPaymentTerm = () => setPaymentTerms((prev) => [...prev, '']);
-  const addPaymentTermHeading = () => setPaymentTerms((prev) => [...prev, '## ']);
+  const addPaymentTerm = () => {
+    setPaymentTerms((prev) => [...prev, '']);
+    setTermKeys((prev) => [...prev, generateTermKey()]);
+  };
+  const addPaymentTermHeading = () => {
+    setPaymentTerms((prev) => [...prev, '## ']);
+    setTermKeys((prev) => [...prev, generateTermKey()]);
+  };
 
   const updatePaymentTerm = (index, value) => {
     const updated = [...paymentTerms];
@@ -410,7 +428,28 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const removePaymentTerm = (index) => {
     if (paymentTerms.length <= 1) return;
     setPaymentTerms((prev) => prev.filter((_, i) => i !== index));
+    setTermKeys((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const moveTerm = (fromIndex, toIndex) => {
+    setPaymentTerms((prev) => {
+      if (toIndex < 0 || toIndex >= prev.length) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
+    setTermKeys((prev) => {
+      if (toIndex < 0 || toIndex >= prev.length) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
+  };
+
+  const moveTermUp = (index) => moveTerm(index, index - 1);
+  const moveTermDown = (index) => moveTerm(index, index + 1);
 
   const addCustomField = () => setCustomFields((prev) => [...prev, buildCustomField()]);
 
@@ -575,6 +614,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     quotationData,
     columns,
     paymentTerms,
+    termKeys,
     termTemplate,
     customFields,
     quotationCounter,
@@ -619,6 +659,9 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     handleTermTemplateChange,
     updatePaymentTerm,
     removePaymentTerm,
+    moveTerm,
+    moveTermUp,
+    moveTermDown,
     addCustomField,
     updateCustomFieldLabel,
     updateCustomFieldValue,

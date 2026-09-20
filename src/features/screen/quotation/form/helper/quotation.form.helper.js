@@ -33,6 +33,8 @@ export const buildCustomField = () => ({
   value: '',
 });
 
+export const generateTermKey = () => `term_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
 export const encodeSequenceNumber = (number) => {
   const safeNumber = Math.max(0, Math.floor(Number(number) || 0));
   return String(safeNumber).padStart(3, '0');
