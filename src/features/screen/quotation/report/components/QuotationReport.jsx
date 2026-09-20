@@ -5,7 +5,7 @@ import Controls from '@/shared/components/widgets/controls/Controls';
 
 import useQuotationReport from '../hooks/useQuotationReport';
 import { SHARED_BTN, CONFIRMATION_HEADING } from '../constants/quotation.report.constant';
-import { formatCurrency, isTermHeading, getTermText, buildTermNumbers } from '../helper/quotation.report.helper';
+import { formatCurrency, isTermHeading, getTermText, buildTermNumbers, splitHeaderLabel } from '../helper/quotation.report.helper';
 import './QuotationReport.css';
 
 const buildItemRow = (item, absoluteIndex, columns) => (
@@ -172,7 +172,13 @@ function ReportData({ data, signatureFlags, signatureStates }) {
           <thead>
             <tr>
               <th>SN</th>
-              {columns.map((col) => <th key={col.id}>{col.label}</th>)}
+              {columns.map((col) => (
+                <th key={col.id}>
+                  {splitHeaderLabel(col.label).map((line, i, arr) => (
+                    <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+                  ))}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>{group.blocks.map((b) => b.row)}</tbody>
@@ -211,8 +217,8 @@ function ReportData({ data, signatureFlags, signatureStates }) {
         <tbody>
           <tr>
             <td className="features screen quotation report info-column-left">
-              <div className="features screen quotation report info-line">TO : {data.vendor}</div>
-              <div className="features screen quotation report info-line">ATTN : {data.attention}</div>
+              <div className="features screen quotation report info-line">TO : M/S {data.vendor}</div>
+              <div className="features screen quotation report info-line">ATTN : M/S {data.attention}</div>
               <div className="features screen quotation report info-line">DESIGNATION : {data.designation}</div>
             </td>
             <td className="features screen quotation report info-column-right">

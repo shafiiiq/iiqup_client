@@ -199,7 +199,7 @@ const useQuotationReport = () => {
         discount: q.discount || 0,
         showDiscountInTotal: q.showDiscountInTotal ?? true,
         showTotalRow: q.showTotalRow ?? true,
-        termsAndConditions: q.termsAndConditions || [],
+        termsAndConditions: (q.termsAndConditions || []).filter((t) => t !== 'Terms & Conditions'),
         signatures: q.signatures || DEFAULT_QUOTATION_DATA.signatures,
         isAmendment: amendment === 'true' || amendment === true,
       };
@@ -227,7 +227,7 @@ const useQuotationReport = () => {
           totalAmount: latest.amendedTotalAmount ?? q.totalAmount ?? 0,
           discount: latest.amendedDiscount ?? q.discount ?? 0,
           showTotalRow: latest.amendedShowTotalRow ?? q.showTotalRow ?? true,
-          termsAndConditions: latest.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : q.termsAndConditions || [],
+          termsAndConditions: (latest.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : q.termsAndConditions || []).filter((t) => t !== 'Terms & Conditions'),
           isAmendment: true,
           amendmentDate: new Date(latest.amendmentDate).toLocaleDateString('en-GB'),
         });
