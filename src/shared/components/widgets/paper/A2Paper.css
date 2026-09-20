@@ -90,10 +90,6 @@
     background: #fff !important;
   }
 
-  .a2-paper-probe {
-    display: none !important;
-  }
-
   body *:not(.a2-paper):not(.a2-paper *):not(:has(.a2-paper)) {
     display: none !important;
   }
