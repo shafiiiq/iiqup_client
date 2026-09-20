@@ -84,6 +84,7 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
     updateColumnLabel,
     removeColumn,
     addColumn,
+    addTotalColumn,
     addItemRow,
     removeItem,
     handleItemChange,
@@ -300,6 +301,7 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
                 {fixed ? (
                   <div className="features screen hire order column-header-cell fixed-column-header">
                     <span className="features screen hire order fixed-column-label">{col.label}</span>
+                    <button className="features screen hire order remove-column-btn" onClick={() => removeColumn(col.id)} title="Remove column">×</button>
                   </div>
                 ) : (
                   <div className="features screen hire order column-header-cell">
@@ -503,6 +505,10 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
           justify="end"
           gap="8px"
           items={[
+            ...(!columns.some((c) => c.type === 'calculated') ? [{
+              text: '+ Add Total Price', onClick: addTotalColumn, colorScheme: 'primary-800',
+              width: '160px', height: '28px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
+            }] : []),
             ...(!showTotalRow ? [{
               text: '+ Add Total Row', onClick: restoreTotalRow, colorScheme: 'primary-800',
               width: '140px', height: '28px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,

@@ -92,6 +92,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
     updateColumnLabel,
     removeColumn,
     addColumn,
+    addTotalColumn,
     addItemRow,
     removeItem,
     handleItemChange,
@@ -333,7 +334,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
         </table>
       ),
     }] : []),
-        ...(showTotalRow ? [{
+    ...(showTotalRow ? [{
       key: 'total',
       section: 'item',
       row: buildTotalRow(),
@@ -389,13 +390,17 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
           {columns.map((col) => (
             <th key={col.id}>
               <div className="features screen quotation form column-header-cell">
-                <input
-                  type="text"
-                  className="features screen quotation form column-header-input"
-                  style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
-                  value={col.label}
-                  onChange={(e) => updateColumnLabel(col.id, e.target.value)}
-                />
+                {col.type === 'calculated' ? (
+                  <span className="features screen quotation form fixed-column-label">{col.label}</span>
+                ) : (
+                  <input
+                    type="text"
+                    className="features screen quotation form column-header-input"
+                    style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
+                    value={col.label}
+                    onChange={(e) => updateColumnLabel(col.id, e.target.value)}
+                  />
+                )}
                 <button
                   className="features screen quotation form remove-column-btn"
                   onClick={() => removeColumn(col.id)}
@@ -583,6 +588,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
                   </div>
                 ))}
 
+                <div className="features screen quotation form detail-item">QUOTATION REF NO : <span className="features screen quotation form non-editable">{quotationData.quotationRef}</span></div>
                 <div className="features screen quotation form add-field-row">
                   <Controls
                     justify="start"
@@ -600,7 +606,6 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
                   />
                 </div>
 
-                <div className="features screen quotation form detail-item">QUOTATION REF NO : <span className="features screen quotation form non-editable">{quotationData.quotationRef}</span></div>
               </td>
             </tr>
           </tbody>
@@ -618,11 +623,22 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
         />
       </div>
 
-            <div className="features screen quotation form add-column-row">
+      <div className="features screen quotation form add-column-row">
         <Controls
           justify="end"
           gap="8px"
           items={[
+            ...(!columns.some((c) => c.type === 'calculated') ? [{
+              text: '+ Add Total Price',
+              onClick: addTotalColumn,
+              colorScheme: 'primary-800',
+              width: '160px',
+              height: '28px',
+              font: 'sm',
+              type: 'submit',
+              cursor: 'pointer',
+              ...SHARED_BTN,
+            }] : []),
             ...(!showTotalRow ? [{
               text: '+ Add Total Row',
               onClick: restoreTotalRow,

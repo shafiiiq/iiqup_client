@@ -226,7 +226,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   };
 
   const updateColumnLabel = (colId, label) => {
-    setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, label } : c)));
+    setColumns((prev) => prev.map((c) => (c.id === colId && c.type !== 'calculated' ? { ...c, label } : c)));
   };
 
   const addColumn = () => {
@@ -247,21 +247,36 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   };
 
   const removeColumn = (colId) => {
+    const isCalculated = columns.find((c) => c.id === colId)?.type === 'calculated';
     const editableCount = columns.filter((c) => c.type !== 'calculated').length;
 
-    if (editableCount <= MIN_EDITABLE_COLUMNS) {
+    if (!isCalculated && editableCount <= MIN_EDITABLE_COLUMNS) {
       setSaveStatus(`Please keep at least ${MIN_EDITABLE_COLUMNS} columns between SN and Total Price`);
       setTimeout(() => setSaveStatus(''), 2500);
       return;
     }
 
     setColumns((prev) => prev.filter((c) => c.id !== colId));
+    if (isCalculated) return;
     setQuotationData((prev) => ({
       ...prev,
       items: prev.items.map((item) => {
         const { [colId]: _removed, ...rest } = item;
         return rest;
       }),
+    }));
+  };
+
+  const addTotalColumn = () => {
+    if (columns.some((c) => c.type === 'calculated')) return;
+
+    setColumns((prev) => [...prev, { id: 'totalPrice', label: 'Total Price(QR)', type: 'calculated', deletable: true }]);
+    setQuotationData((prev) => ({
+      ...prev,
+      items: prev.items.map((item) => ({
+        ...item,
+        totalPrice: item.totalPrice ?? (autoCalculateTotal ? (item.quantity || 0) * (item.unitPrice || 0) : 0),
+      })),
     }));
   };
 
@@ -573,6 +588,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
 
     updateColumnLabel,
     addColumn,
+    addTotalColumn,
     removeColumn,
     addItemRow,
     removeItem,
