@@ -26,7 +26,7 @@ function MobDateHover({ item, onAddShift }) {
           {...BUTTON_PROPS}
           text="+ Add Shift"
           onClick={(e) => onAddShift(e, item)}
-          colorScheme="lime-600"
+          colorScheme="success-700"
           width="225px"
           height="38px"
           textColor="white-200"
@@ -147,12 +147,12 @@ function EquipmentCard({
         {!isSold && (
           <div className="fleet equipment mob-demob-sold-group">
             {item.status === 'idle'
-              ? <Button {...BUTTON_PROPS} text="Mobilize" componentIconLeft='ApartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onMobilize(e, item)} colorScheme="primary-600" width="225px" height="38px" textColor="white-200" />
+              ? <Button {...BUTTON_PROPS} text="Mobilize" componentIconLeft='ApartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onMobilize(e, item)} colorScheme="success-900" width="225px" height="38px" textColor="white-200" />
               : <MobDateHover item={item} onAddShift={onAddShift} />
             }
 
             {item.status !== 'idle'
-              ? <Button {...BUTTON_PROPS} text="Demobilize" componentIconLeft='DepartureIcon' componentIconSize='25' iconColor='white-200' onClick={(e) => onDemobilize(e, item)} colorScheme="primary-600" width="225px" height="38px" textColor="white-200" />
+              ? <Button {...BUTTON_PROPS} text="Demobilize" componentIconLeft='DepartureIcon' componentIconSize='25' iconColor='error-200' onClick={(e) => onDemobilize(e, item)} colorScheme="error-900" width="225px" height="38px" textColor="white-200" />
               : (
                 <div className="fleet equipment detail-item demob-data">
                   <span className="fleet equipment detail-label">Last Demob :</span>

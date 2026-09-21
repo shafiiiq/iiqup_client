@@ -403,6 +403,17 @@ function EquipmentModals({
         title={`Demobilize Equipment - ${selectedEquipmentForAction?.regNo || ''}`}
         message="Select the demobilization date"
         formFields={[
+          ...(demobilizeForm.allShifts?.length > 1 ? [{
+            name: 'demobAll', label: 'Demobilize Entire Equipment', type: 'checkbox',
+            description: 'Uncheck to demobilize only one shift',
+          }] : []),
+          ...(demobilizeForm.allShifts?.length > 1 && !demobilizeForm.demobAll ? [{
+            name: 'selectedShift', label: 'Select Shift to Demobilize', type: 'select', required: true,
+            options: demobilizeForm.allShifts.map(s => ({
+              value: s.shiftName || s.operatorName,
+              label: s.shiftName ? `${s.shiftName} — ${s.operatorName}` : s.operatorName,
+            })),
+          }] : []),
           { name: 'date', label: 'Demobilization Date', type: 'date', required: true },
           { name: 'time', label: 'Time (Optional)', type: 'time' },
           { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Add any notes' },
@@ -411,7 +422,7 @@ function EquipmentModals({
         onFormChange={onDemobilizeFormChange}
         buttonText="Demobilize"
         onButtonClick={onDemobilizeSubmit}
-        secondaryButtonText="Reset"
+        secondaryButtonText="Cancel"
         onSecondaryClick={onDemobilizeClose}
       />
 
@@ -497,7 +508,7 @@ function EquipmentModals({
         onSecondaryClick={onMarkSoldClose}
       />
 
-            <Modal
+      <Modal
         isOpen={showIdleLocationModal}
         onClose={onIdleLocationClose}
         type="form"

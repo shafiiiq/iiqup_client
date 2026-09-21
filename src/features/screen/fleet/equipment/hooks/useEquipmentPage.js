@@ -15,6 +15,7 @@ import {
   patchReplaceOperatorFormField,
   patchReplaceEquipmentFormField,
   createEmptyShiftEntry,
+  patchDemobilizeFormField,
 } from '../helper/equipment.form.helper';
 import { isOperatorNameField } from '../helper/equipment.helper';
 import { EQUIPMENT_GRID_TABS, EQUIPMENT_TABS, EQUIPMENT_ALL_SITES_FILTER, EQUIPMENT_DEFAULT_EXPORT_COLUMNS } from '../constants/equipment.constant';
@@ -150,7 +151,7 @@ export const useEquipmentPage = () => {
   }, [actions]);
 
   const onDemobilizeFormChange = useCallback((field, value) => {
-    actions.setDemobilizeForm(prev => ({ ...prev, [field]: value }));
+    actions.setDemobilizeForm(prev => patchDemobilizeFormField(prev, field, value));
   }, [actions]);
 
   const onReplaceOperatorFormChange = useCallback((field, value) => {

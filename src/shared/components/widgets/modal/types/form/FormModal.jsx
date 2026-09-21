@@ -238,19 +238,20 @@ const FormModal = ({
       modalWidth={modalWidth}
       modalHeight={modalHeight}
       secondaryButtonText={secondaryButtonText || 'Reset'}
+      onSecondaryClick={onSecondaryClick}
     >
       <div className="shared widget modal form-section">
         {message && <p className="shared widget modal message form-message">{message}</p>}
         <div
           className={`shared widget modal form-fields ${formFields.length === 1
-              ? 'form-field-single'
-              : formFields.length === 2
-                ? 'form-field-double'
-                : formFields.length === 3
-                  ? 'form-field-triple'
-                  : formFields.length >= 4
-                    ? 'form-field-quad'
-                    : ''
+            ? 'form-field-single'
+            : formFields.length === 2
+              ? 'form-field-double'
+              : formFields.length === 3
+                ? 'form-field-triple'
+                : formFields.length >= 4
+                  ? 'form-field-quad'
+                  : ''
             }`}
         >
           {formFields.map((field, index) => (

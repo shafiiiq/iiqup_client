@@ -320,8 +320,14 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     e.stopPropagation();
     triggerVibration();
     setSelectedEquipmentForAction(equipment);
-    setDemobilizeDatePrompt(false);
-    setDemobilizeForm(EQUIPMENT_DEMOBILIZE_FORM_DEFAULTS);
+    const allShifts = equipment.certificationBody || [];
+    setDemobilizeDatePrompt(allShifts.length > 1);
+    setDemobilizeForm({
+      ...EQUIPMENT_DEMOBILIZE_FORM_DEFAULTS,
+      allShifts,
+      demobAll: allShifts.length <= 1,
+      selectedShift: allShifts.length <= 1 ? (allShifts[0]?.shiftName || allShifts[0]?.operatorName || '') : '',
+    });
     setShowDemobilizeModal(true);
   };
 

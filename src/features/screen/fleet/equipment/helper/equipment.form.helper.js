@@ -94,6 +94,17 @@ export const patchMobilizeFormField = (prevForm, field, value, operatorOptions) 
   return { ...prevForm, [field]: value };
 };
 
+export const patchDemobilizeFormField = (prevForm, field, value) => {
+  if (field === 'selectedShift') {
+    const shift = prevForm.allShifts.find(s => (s.shiftName || s.operatorName) === value);
+    return { ...prevForm, selectedShift: value, targetShiftName: shift?.shiftName || '' };
+  }
+  if (field === 'demobAll') {
+    return { ...prevForm, demobAll: value, selectedShift: value ? '' : prevForm.selectedShift };
+  }
+  return { ...prevForm, [field]: value };
+};
+
 export const patchReplaceOperatorFormField = (prevForm, field, value, operatorOptions) => {
   if (field === 'selectedShift') {
     const shift = prevForm.allShifts.find(s => (s.shiftName || s.operatorName) === value);
@@ -203,10 +214,10 @@ export const buildMobilizePayload = (equipment, form) => {
 
   const operators = form.withOperator
     ? (form.withShift
-        ? form.operators
-        : form.operator
-          ? [{ operatorName: form.operator, operatorId: form.operatorId, shiftStart: '', shiftEnd: '', shiftName: form.singleOperatorShift || 'Full Shift' }]
-          : [])
+      ? form.operators
+      : form.operator
+        ? [{ operatorName: form.operator, operatorId: form.operatorId, shiftStart: '', shiftEnd: '', shiftName: form.singleOperatorShift || 'Full Shift' }]
+        : [])
     : [];
 
   return {
@@ -248,6 +259,7 @@ export const buildAddShiftPayload = (equipment, form) => {
 
 export const buildDemobilizePayload = (equipment, form) => {
   const { month, year, time } = resolveActionDateTime(form.date, form.time);
+  const targetShift = form.allShifts?.find(s => (s.shiftName || s.operatorName) === form.selectedShift);
 
   return {
     equipmentId: equipment._id,
@@ -256,6 +268,10 @@ export const buildDemobilizePayload = (equipment, form) => {
     month, year, time,
     selectedDate: form.date || null,
     remarks: form.remarks || '',
+    demobAll: form.demobAll !== false,
+    targetShiftName: targetShift?.shiftName || '',
+    targetOperatorName: targetShift?.operatorName || '',
+    targetOperatorId: targetShift?.operatorId || '',
   };
 };
 
