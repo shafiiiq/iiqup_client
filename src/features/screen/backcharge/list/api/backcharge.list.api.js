@@ -31,9 +31,20 @@ export const fetchBackchargeGrowth = async (granularity) => {
   return result.data;
 };
 
-export const fetchPendingSignatures = async (uniqueCode) => {
-  const response = await apiRequest(`/backcharge/pending-signatures`, 'POST', { uniqueCode: encodeURIComponent(uniqueCode) });
-  return response.json();
+export const fetchPendingSignatures = async () => {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user?.uniqueCode) return { data: [], count: 0 };
+
+    const response = await apiRequest(`/backcharge/pending-signatures`, 'POST', {
+      uniqueCode: encodeURIComponent(user.uniqueCode),
+    });
+
+    return response.json();
+  } catch (error) {
+    console.error('[BackchargeService] fetchPendingSignatures:', error);
+    return { data: [], count: 0 };
+  }
 };
 
 export const fetchSignedByUser = async (uniqueCode) => {

@@ -101,10 +101,10 @@ function SignaturesTable({ data, signatureFlags, signatureStates }) {
 function TermsAndSignaturesContent({ data, signatureFlags, signatureStates }) {
   return (
     <>
-      <table className="purchase order report terms table">
+      <table className="purchase order report terms table border-left border-right">
         <tbody>
           <tr>
-            <td className="purchase order report terms note purchase order report border-right purchase order report border-left border-bottom">
+            <td className="purchase order report terms note purchase order report border-right purchase order report border-left border-bottom border-top">
               <strong>NOTE:</strong> The PurchaseOrder copy should be submitted along with the invoice every month for the payment process.
             </td>
           </tr>
@@ -139,7 +139,7 @@ function ReportData({ data, signatureFlags, signatureStates, quotationUrl, quota
   );
 
   const buildTotalRow = () => (
-    <tr key="total">
+    <tr key="total" className='purchase order report items total row border-bottom'>
       <td colSpan="4" className="purchase order report items total label">
         {data.totalDiscountAmount ? 'Total Amount After Discount (QR)' : 'Total Amount (QR)'}
       </td>
@@ -167,7 +167,7 @@ function ReportData({ data, signatureFlags, signatureStates, quotationUrl, quota
       section: 'term',
       li: buildTermLi(term, absoluteIndex),
       content: (
-        <table className="purchase order report terms table">
+        <table className="purchase order report terms table border-left border-right">
           <tbody><tr className="purchase order report terms row"><td className="purchase order report terms content terms-measure"><ul>{buildTermLi(term, absoluteIndex)}</ul></td></tr></tbody>
         </table>
       ),
@@ -190,7 +190,7 @@ function ReportData({ data, signatureFlags, signatureStates, quotationUrl, quota
     }
     if (group.section === 'term') {
       return (
-        <table key="terms" className="purchase order report terms table">
+        <table key="terms" className="purchase order report terms table border-left border-right">
           <tbody><tr className="purchase order report terms row"><td className="purchase order report terms content"><ul>{group.blocks.map((b) => b.li)}</ul></td></tr></tbody>
         </table>
       );

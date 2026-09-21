@@ -8,10 +8,16 @@ import Tabs from '@/shared/components/widgets/tabs/Tabs';
 import Button from '@/shared/components/widgets/button/Button';
 import Text from '@/shared/components/widgets/text/Text';
 import Toast from '@/shared/components/widgets/toast/Toast';
+import Modal from '@/shared/components/widgets/modal/Modal';
 import { useBackchargeList } from '../hooks/useBackchargeList';
 import { buildBackchargeFilterGroups } from '../helper/backcharge.list.filter.helper';
-import { ACTION_BUTTON_PROPS, BACKCHARGE_TAB_ITEMS, BACKCHARGE_VIEW } from '../constants/backcharge.list.constant';
+import { ACTION_BUTTON_PROPS, BACKCHARGE_TAB_ITEMS, BACKCHARGE_VIEW, SIGNATURE_STATUS, DRAFT_STATUS, SIGNATURE_LEGEND_GROUPS } from '../constants/backcharge.list.constant';
 import BackchargeStats from './fragments/BackchargeStats';
+
+const getSignatureStatus = (item, getRowClass) => {
+  if (item.status === 'draft') return DRAFT_STATUS;
+  return SIGNATURE_STATUS[getRowClass(item)] ?? DRAFT_STATUS;
+};
 
 const truncate = (text, length = 50) => {
   const value = text || '';
@@ -131,6 +137,13 @@ function BackchargeList() {
     formatCurrency,
     isPendingForUser,
     isSignedByUser,
+    getRowClass,
+    sigToast,
+    handleSigCellEnter,
+    handleSigCellLeave,
+    closeSigToast,
+    showLegendModal,
+    setShowLegendModal,
   } = useBackchargeList();
 
   const filterGroups = buildBackchargeFilterGroups({ filters, backcharges });
@@ -178,6 +191,16 @@ function BackchargeList() {
       header: 'Deduction',
       variant: () => 'currency',
       render: (item) => formatCurrency(item.costSummary?.approvedDeduction),
+    },
+    {
+      key: 'signStatus',
+      header: 'Status',
+      progress: true,
+      headerCenter: true,
+      dataCenter: true,
+      render: (item) => getSignatureStatus(item, getRowClass),
+      onProgressEnter: (item) => handleSigCellEnter(item),
+      onProgressLeave: () => handleSigCellLeave(),
     },
     {
       key: 'report',
@@ -252,6 +275,12 @@ function BackchargeList() {
                 justify="start"
                 margin="0 20px 24px auto"
                 items={[
+                  {
+                    text: 'Color Hint',
+                    onClick: () => setShowLegendModal(true),
+                    colorScheme: 'info-800',
+                    ...ACTION_BUTTON_PROPS,
+                  },
                   {
                     text: 'Create Backcharge',
                     onClick: handleAddBackcharge,
@@ -333,6 +362,27 @@ function BackchargeList() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={showLegendModal}
+        onClose={() => setShowLegendModal(false)}
+        type="hint"
+        title="Signature Status Color Hint"
+        modalWidth="680px"
+        buttonText="Got it"
+        onButtonClick={() => setShowLegendModal(false)}
+        filterGroups={SIGNATURE_LEGEND_GROUPS}
+      />
+
+      <Toast
+        isOpen={sigToast.show}
+        onClose={closeSigToast}
+        type="info"
+        message={sigToast.message}
+        duration={0}
+        position="top-center"
+        showCloseButton={false}
+      />
 
       <Toast
         isOpen={showPendingToast}

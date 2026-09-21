@@ -34,6 +34,10 @@ function BackchargeReport() {
     activationLoading,
     unsignedAboveRoles,
     supplierMail,
+    isSubmittingApproval,
+    showUploadSuccessModal,
+    setShowUploadSuccessModal,
+    sendToApprove,
     setActivationKey,
     handleInputChange,
     handleTableChange,
@@ -72,6 +76,7 @@ function BackchargeReport() {
     ]
     : [
       { key: 'edit', ...SHARED_BTN, text: 'Edit', onClick: handleEdit, colorScheme: 'warning-800', width: '160px' },
+      formData.status === 'draft' && { key: 'approve', ...SHARED_BTN, text: isSubmittingApproval ? 'Sending...' : 'Send For Approval', onClick: sendToApprove, colorScheme: 'info-800', width: '160px', disabled: isSubmittingApproval },
       { key: 'sign', ...SHARED_BTN, text: isSigningDoc ? 'Signing...' : 'Sign Document', onClick: handleSignButtonClick, colorScheme: 'warning-800', width: '160px', disabled: isSigningDoc },
       { key: 'download', ...SHARED_BTN, text: 'Download PDF', onClick: handleDownloadPdf, colorScheme: 'success-800', width: '160px' },
       supplierMail && { key: 'send', ...SHARED_BTN, text: 'Send to client', onClick: handleOpenEmailModal, colorScheme: 'warning-700', width: '160px' },
@@ -483,6 +488,18 @@ function BackchargeReport() {
         message="Your signature has been recorded successfully."
         buttonText="OK"
         onButtonClick={handleCloseSignConfirmModal}
+        autoClose
+        autoCloseDelay={3000}
+      />
+
+      <Modal
+        isOpen={showUploadSuccessModal}
+        onClose={() => setShowUploadSuccessModal(false)}
+        type="success"
+        title="Backcharge Submitted"
+        message="The backcharge document has been submitted successfully for approval."
+        buttonText="OK"
+        onButtonClick={() => setShowUploadSuccessModal(false)}
         autoClose
         autoCloseDelay={3000}
       />

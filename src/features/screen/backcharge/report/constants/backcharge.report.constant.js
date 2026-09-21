@@ -1,3 +1,5 @@
+export const SIGN_TYPES = ['wm', 'pm', 'manager', 'authorized', 'seal'];
+
 export const SHARED_BTN = {
   variant: 'gradient',
   font: 'md',

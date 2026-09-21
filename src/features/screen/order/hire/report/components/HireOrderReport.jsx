@@ -5,7 +5,7 @@ import Controls from '@/shared/components/widgets/controls/Controls';
 
 import useHireOrderReport from '../hooks/useHireOrderReport';
 import { SHARED_BTN, EMAIL_FORM_FIELDS } from '../constants/hire.order.report.constant';
-import { formatCurrency, signatoryRole, getEffectiveColumns } from '../helper/hire.order.report.helper';
+import { formatCurrency, signatoryRole, getEffectiveColumns, splitHeaderLabel } from '../helper/hire.order.report.helper';
 import './HireOrderReport.css';
 
 function SignatureCell({ isSigned, url, alt, imageClassName = 'features screen hire order report signature-image', withSeal = false, sealUrl = '' }) {
@@ -130,7 +130,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
       li: buildTermLi(term, absoluteIndex),
       content: (
         <table className="features screen hire order report terms-table">
-          <tbody><tr className="features screen hire order report terms-row border-left border-right">
+          <tbody><tr className="features screen hire order report terms-row border-left border-right border-bottom">
             <td className="features screen hire order report terms-content term-measure">
               <ul>{buildTermLi(term, absoluteIndex)}
               </ul>
@@ -151,7 +151,13 @@ function ReportData({ data, signatureFlags, signatureStates }) {
     if (group.section === 'item') {
       return (
         <table key="items" className="features screen hire order report items-table">
-          <thead><tr><th>SN</th>{columns.map((col) => <th key={col.id}>{col.label}</th>)}</tr></thead>
+          <thead><tr><th>SN</th>{columns.map((col) => (
+            <th key={col.id}>
+              {splitHeaderLabel(col.label).map((line, i, arr) => (
+                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+              ))}
+            </th>
+          ))}</tr></thead>
           <tbody>{group.blocks.map((b) => b.row)}</tbody>
         </table>
       );
@@ -159,7 +165,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
     if (group.section === 'term') {
       return (
         <table key="terms" className="features screen hire order report terms-table">
-          <tbody><tr className="features screen hire order report terms-row border-left border-right">
+          <tbody><tr className="features screen hire order report terms-row border-left border-right border-bottom">
             <td className="features screen hire order report terms-content">
               <ul>{
                 group.blocks.map((b) => b.li)}
@@ -185,8 +191,8 @@ function ReportData({ data, signatureFlags, signatureStates }) {
         <tbody>
           <tr>
             <td className="features screen hire order report info-column-left">
-              <div className="features screen hire order report info-line">TO : {data.vendor}</div>
-              <div className="features screen hire order report info-line">ATTN : {data.attention}</div>
+              <div className="features screen hire order report info-line">TO : M/S {data.vendor}</div>
+              <div className="features screen hire order report info-line">ATTN : M/S {data.attention}</div>
               <div className="features screen hire order report info-line">DESIGNATION : {data.designation}</div>
               <div className="features screen hire order report info-line">QUOTE REF NO : {data.quoteNo}</div>
             </td>

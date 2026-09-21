@@ -40,6 +40,8 @@ export const useBackchargeList = () => {
   const [pendingSignatures, setPendingSignatures] = useState([]);
   const [showPendingToast, setShowPendingToast] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [sigToast, setSigToast] = useState({ show: false, message: '' });
+  const [showLegendModal, setShowLegendModal] = useState(false);
 
   const refreshList = useCallback(() => {
     resetPagination();
@@ -255,6 +257,53 @@ export const useBackchargeList = () => {
   const isPendingForUser = (refNo) => pendingSignatures.some((item) => item.refNo === refNo || item.backchargeRef === refNo);
   const isSignedByUser = () => false;
 
+  const getRowClass = (item) => {
+    if (item.status === 'draft') return '';
+
+    const wm = item.signatures?.workshopManager?.signed;
+    const pm = item.signatures?.purchaseManager?.signed;
+    const ops = item.signatures?.operationsManager?.signed;
+    const auth = item.signatures?.authorizedSignatory?.signed;
+
+    if (wm && pm && ops && auth) return 'backcharge-sig-all';
+    if (isPendingForUser(item.refNo)) return 'backcharge-sig-pending';
+
+    if (wm && pm && ops && !auth) return 'backcharge-sig-wm-pm-ops';
+    if (wm && pm && !ops && auth) return 'backcharge-sig-wm-pm-auth';
+    if (wm && !pm && ops && auth) return 'backcharge-sig-wm-ops-auth';
+    if (!wm && pm && ops && auth) return 'backcharge-sig-pm-ops-auth';
+
+    if (wm && pm && !ops && !auth) return 'backcharge-sig-wm-pm';
+    if (wm && !pm && ops && !auth) return 'backcharge-sig-wm-ops';
+    if (wm && !pm && !ops && auth) return 'backcharge-sig-wm-auth';
+    if (!wm && pm && ops && !auth) return 'backcharge-sig-pm-ops';
+    if (!wm && pm && !ops && auth) return 'backcharge-sig-pm-auth';
+    if (!wm && !pm && ops && auth) return 'backcharge-sig-ops-auth';
+
+    if (wm && !pm && !ops && !auth) return 'backcharge-sig-wm-only';
+    if (!wm && pm && !ops && !auth) return 'backcharge-sig-pm-only';
+    if (!wm && !pm && ops && !auth) return 'backcharge-sig-ops-only';
+    if (!wm && !pm && !ops && auth) return 'backcharge-sig-auth-only';
+
+    return 'backcharge-sig-none';
+  };
+
+  const handleSigCellEnter = (item) => {
+    const signed = [
+      item.signatures?.workshopManager?.signed && 'Workshop Manager',
+      item.signatures?.purchaseManager?.signed && 'Purchase Manager',
+      item.signatures?.operationsManager?.signed && 'Operations Manager',
+      item.signatures?.authorizedSignatory?.signed && 'Authorized Signatory',
+    ].filter(Boolean);
+    setSigToast({
+      show: true,
+      message: signed.length > 0 ? 'Signed by: ' + signed.join(' | ') : 'Nobody signed yet',
+    });
+  };
+
+  const handleSigCellLeave = () => setSigToast({ show: false, message: '' });
+  const closeSigToast = () => setSigToast({ show: false, message: '' });
+
   return {
     tableRef,
     activeView,
@@ -288,5 +337,12 @@ export const useBackchargeList = () => {
     formatCurrency,
     isPendingForUser,
     isSignedByUser,
+    getRowClass,
+    sigToast,
+    handleSigCellEnter,
+    handleSigCellLeave,
+    closeSigToast,
+    showLegendModal,
+    setShowLegendModal,
   };
 };

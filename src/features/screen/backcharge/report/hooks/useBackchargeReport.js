@@ -11,6 +11,7 @@ import {
   activateSignature,
   downloadBackchargePdf,
 } from '../api/backcharge.report.api';
+import { SIGN_TYPES } from '../constants/backcharge.report.constant';
 import {
   buildPdf,
   hideControls,
@@ -20,7 +21,6 @@ import {
   BLANK_ROW,
 } from '../helper/backcharge.report.helper';
 
-const SIGN_TYPE = 'backcharge';
 const SIGNED_FROM = 'web';
 
 const INLINE_INPUT_STYLE = {
@@ -118,6 +118,8 @@ export const useBackchargeReport = () => {
   const [emailFormValues, setEmailFormValues] = useState({ email: '', recipientName: '' });
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [supplierMail, setSupplierMail] = useState(null);
+  const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
+  const [showUploadSuccessModal, setShowUploadSuccessModal] = useState(false);
 
   const [signatureFlags, setSignatureFlags] = useState({
     workshopManager: false,
@@ -253,8 +255,14 @@ export const useBackchargeReport = () => {
 
   const checkActivationStatus = async (info) => {
     try {
-      const response = await verifyDeviceTrust(SIGN_TYPE, info);
-      return { isActivated: response.isActivated, isTrusted: response.isTrusted };
+      let allActivated = true;
+      let allTrusted = true;
+      for (const signType of SIGN_TYPES) {
+        const response = await verifyDeviceTrust(signType, info);
+        if (!response.isActivated) allActivated = false;
+        if (!response.isTrusted) allTrusted = false;
+      }
+      return { isActivated: allActivated, isTrusted: allTrusted };
     } catch (error) {
       console.error('Error checking activation:', error);
       return { isActivated: false, isTrusted: false };
@@ -322,6 +330,21 @@ export const useBackchargeReport = () => {
   const handleSaveEdit = () => updateBackchargeData();
   const handleCancelEdit = () => setIsEditing(false);
 
+  const sendToApprove = async () => {
+    try {
+      setIsSubmittingApproval(true);
+      const response = await updateBackcharge(formData._id, { status: 'submitted' });
+      if (response.success) {
+        setFormData((prev) => ({ ...prev, status: 'submitted' }));
+        setShowUploadSuccessModal(true);
+      }
+    } catch (error) {
+      console.error('Error sending backcharge for approval:', error);
+    } finally {
+      setIsSubmittingApproval(false);
+    }
+  };
+
   const handleSignButtonClick = async () => {
     if (!globalActivation.isActivated || !globalActivation.isTrusted) {
       setShowActivationModal(true);
@@ -338,15 +361,18 @@ export const useBackchargeReport = () => {
 
     try {
       setActivationLoading(true);
-      const response = await activateSignature(activationKey, SIGN_TYPE, deviceInfo);
-      if (response.success) {
-        setGlobalActivation({ isActivated: true, isTrusted: true, checked: true });
-        setShowActivationModal(false);
-        setActivationKey('');
-        setActivationError('');
-      } else {
-        setActivationError(response.message || 'Activation failed');
+      for (const signType of SIGN_TYPES) {
+        const response = await activateSignature(activationKey, signType, deviceInfo);
+        if (!response.success) {
+          setActivationError(response.message || `Failed to activate ${signType}`);
+          setActivationLoading(false);
+          return;
+        }
       }
+      setGlobalActivation({ isActivated: true, isTrusted: true, checked: true });
+      setShowActivationModal(false);
+      setActivationKey('');
+      setActivationError('');
     } catch (error) {
       setActivationError('Error during activation');
       console.error('Activation error:', error);
@@ -446,6 +472,10 @@ export const useBackchargeReport = () => {
     activationLoading,
     unsignedAboveRoles,
     supplierMail,
+    isSubmittingApproval,
+    showUploadSuccessModal,
+    setShowUploadSuccessModal,
+    sendToApprove,
     setFormData,
     setActivationKey,
     setActivationError,
