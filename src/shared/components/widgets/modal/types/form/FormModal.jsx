@@ -98,6 +98,7 @@ const FormModal = ({
   fileValues = {},
   buttonText,
   onButtonClick,
+  buttonDisabled,
   modalWidth,
   modalHeight,
   secondaryButtonText,
@@ -235,6 +236,7 @@ const FormModal = ({
       showMessage={false}
       buttonText={buttonText}
       onButtonClick={onButtonClick}
+      buttonDisabled={buttonDisabled}
       modalWidth={modalWidth}
       modalHeight={modalHeight}
       secondaryButtonText={secondaryButtonText || 'Reset'}

@@ -8,7 +8,7 @@ import DeviceInfoPanel from './fragments/DeviceInfoPanel';
 
 const ModalBase = ({
   isOpen = false,
-  onClose = () => {},
+  onClose = () => { },
   mode = DEFAULT_MODAL_MODE,
   type = 'success',
   title = '',
@@ -24,6 +24,7 @@ const ModalBase = ({
   buttonDisabled = false,
   secondaryButtonText = null,
   onSecondaryClick = null,
+  secondaryButtonDisabled = false,
   renderExtraFooterAction = null,
   submitOnEnter = false,
   onSubmit = null,
@@ -55,6 +56,7 @@ const ModalBase = ({
   };
 
   const handleSecondaryClick = () => {
+    if (secondaryButtonDisabled) return;
     if (onSecondaryClick) onSecondaryClick();
   };
 
@@ -120,7 +122,11 @@ const ModalBase = ({
               <div className="shared widget modal footer">
                 {renderExtraFooterAction}
                 {secondaryButtonText && (
-                  <button className="shared widget modal cta cta-secondary" onClick={handleSecondaryClick}>
+                  <button
+                    className="shared widget modal cta cta-secondary"
+                    onClick={handleSecondaryClick}
+                    disabled={secondaryButtonDisabled}
+                  >
                     {secondaryButtonText}
                   </button>
                 )}

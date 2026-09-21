@@ -67,16 +67,20 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
   const [showMobilizeModal, setShowMobilizeModal] = useState(false);
   const [mobilizeForm, setMobilizeForm] = useState(EQUIPMENT_MOBILIZE_FORM_DEFAULTS);
+  const [isMobilizing, setIsMobilizing] = useState(false);
 
   const [showAddShiftModal, setShowAddShiftModal] = useState(false);
   const [addShiftForm, setAddShiftForm] = useState(EQUIPMENT_ADD_SHIFT_FORM_DEFAULTS);
+  const [isAddingShift, setIsAddingShift] = useState(false);
 
   const [showDemobilizeModal, setShowDemobilizeModal] = useState(false);
   const [demobilizeDatePrompt, setDemobilizeDatePrompt] = useState(false);
   const [demobilizeForm, setDemobilizeForm] = useState(EQUIPMENT_DEMOBILIZE_FORM_DEFAULTS);
+  const [isDemobilizing, setIsDemobilizing] = useState(false);
 
   const [showReplaceOperatorModal, setShowReplaceOperatorModal] = useState(false);
   const [replaceOperatorForm, setReplaceOperatorForm] = useState(EQUIPMENT_REPLACE_OPERATOR_FORM_DEFAULTS);
+  const [isReplacingOperator, setIsReplacingOperator] = useState(false);
 
   const [showReplaceEquipmentModal, setShowReplaceEquipmentModal] = useState(false);
   const [replaceEquipmentForm, setReplaceEquipmentForm] = useState(EQUIPMENT_REPLACE_EQUIPMENT_FORM_DEFAULTS);
@@ -266,7 +270,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
   const handleMobilizeSubmit = async (e) => {
     e?.preventDefault();
-    if (!selectedEquipmentForAction) return;
+    if (!selectedEquipmentForAction || isMobilizing) return;
+    setIsMobilizing(true);
 
     const payload = buildMobilizePayload(selectedEquipmentForAction, mobilizeForm);
 
@@ -277,6 +282,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     } catch (err) {
       closeMobilizeModal();
       showStatus('Error mobilizing equipment: ' + err.message, true);
+    } finally {
+      setIsMobilizing(false);
     }
   };
 
@@ -296,7 +303,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
   const handleAddShiftSubmit = async (e) => {
     e?.preventDefault();
-    if (!selectedEquipmentForAction) return;
+    if (!selectedEquipmentForAction || isAddingShift) return;
+    setIsAddingShift(true);
 
     const payload = buildAddShiftPayload(selectedEquipmentForAction, addShiftForm);
 
@@ -307,6 +315,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     } catch (err) {
       closeAddShiftModal();
       showStatus('Error adding shifts: ' + err.message, true);
+    } finally {
+      setIsAddingShift(false);
     }
   };
 
@@ -335,7 +345,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
   const handleDemobilizeSubmit = async (e) => {
     e?.preventDefault();
-    if (!selectedEquipmentForAction) return;
+    if (!selectedEquipmentForAction || isDemobilizing) return;
+    setIsDemobilizing(true);
 
     const payload = buildDemobilizePayload(selectedEquipmentForAction, demobilizeForm);
 
@@ -346,6 +357,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     } catch (err) {
       closeDemobilizeModal();
       showStatus('Error demobilizing equipment: ' + err.message, true);
+    } finally {
+      setIsDemobilizing(false);
     }
   };
 
@@ -366,7 +379,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
 
   const handleReplaceOperatorSubmit = async (e) => {
     e?.preventDefault();
-    if (!selectedEquipmentForAction) return;
+    if (!selectedEquipmentForAction || isReplacingOperator) return;
+    setIsReplacingOperator(true);
 
     const payload = buildReplaceOperatorPayload(selectedEquipmentForAction, replaceOperatorForm);
 
@@ -378,6 +392,8 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     } catch (err) {
       closeReplaceOperatorModal();
       showStatus('Error replacing operator: ' + err.message, true);
+    } finally {
+      setIsReplacingOperator(false);
     }
   };
 
@@ -579,15 +595,15 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     handleViewDetails, handleViewAllFuels,
 
     showMobilizeModal, closeMobilizeModal, handleMobilizeClick,
-    mobilizeForm, setMobilizeForm, handleMobilizeSubmit,
+    mobilizeForm, setMobilizeForm, handleMobilizeSubmit, isMobilizing,
 
     showDemobilizeModal, closeDemobilizeModal, handleDemobilizeClick,
     demobilizeDatePrompt, demobilizeForm, setDemobilizeForm,
-    handleDemobilizeAskDate, handleDemobilizeSubmit,
+    handleDemobilizeAskDate, handleDemobilizeSubmit, isDemobilizing,
     selectedEquipmentForAction,
 
     showReplaceOperatorModal, closeReplaceOperatorModal, handleReplaceOperatorClick,
-    replaceOperatorForm, setReplaceOperatorForm, handleReplaceOperatorSubmit,
+    replaceOperatorForm, setReplaceOperatorForm, handleReplaceOperatorSubmit, isReplacingOperator,
 
     showReplaceEquipmentModal, closeReplaceEquipmentModal, handleReplaceEquipmentClick,
     replaceEquipmentForm, setReplaceEquipmentForm,
@@ -595,7 +611,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     handleReplaceEquipmentSearch, handleReplaceEquipmentSelect,
     handleReplaceEquipmentSubmit,
     showAddShiftModal, closeAddShiftModal, handleAddShiftClick,
-    addShiftForm, setAddShiftForm, handleAddShiftSubmit,
+    addShiftForm, setAddShiftForm, handleAddShiftSubmit, isAddingShift,
 
     showExportModal, setShowExportModal,
     exportColumns, setExportColumns,

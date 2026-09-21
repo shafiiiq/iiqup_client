@@ -10,8 +10,10 @@ const WarningModal = ({
   message,
   buttonText,
   onButtonClick,
+  buttonDisabled,
   secondaryButtonText,
   onSecondaryClick,
+  secondaryButtonDisabled,
   autoClose = false,
   autoCloseDelay = 4000,
   modalWidth,
@@ -26,8 +28,10 @@ const WarningModal = ({
     message={message}
     buttonText={buttonText}
     onButtonClick={onButtonClick}
+    buttonDisabled={buttonDisabled}
     secondaryButtonText={secondaryButtonText}
     onSecondaryClick={onSecondaryClick}
+    secondaryButtonDisabled={secondaryButtonDisabled}
     autoClose={autoClose}
     autoCloseDelay={autoCloseDelay}
     modalWidth={modalWidth}

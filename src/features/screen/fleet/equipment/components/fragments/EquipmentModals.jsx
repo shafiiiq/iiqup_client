@@ -56,6 +56,7 @@ function EquipmentModals({
   onMobilizeOperatorRemove,
   onMobilizeSubmit,
   onMobilizeClose,
+  isMobilizing,
 
   showAddShiftModal,
   addShiftForm,
@@ -64,6 +65,7 @@ function EquipmentModals({
   onAddShiftOperatorRemove,
   onAddShiftSubmit,
   onAddShiftClose,
+  isAddingShift,
 
   showDemobilizeModal,
   demobilizeDatePrompt,
@@ -72,12 +74,14 @@ function EquipmentModals({
   onDemobilizeAskDate,
   onDemobilizeSubmit,
   onDemobilizeClose,
+  isDemobilizing,
 
   showReplaceOperatorModal,
   replaceOperatorForm,
   onReplaceOperatorFormChange,
   onReplaceOperatorSubmit,
   onReplaceOperatorClose,
+  isReplacingOperator,
 
   showReplaceEquipmentModal,
   replaceEquipmentForm,
@@ -307,8 +311,9 @@ function EquipmentModals({
         ]}
         formValues={mobilizeForm}
         onFormChange={onMobilizeFormChange}
-        buttonText="Mobilize Equipment"
+        buttonText={isMobilizing ? 'Mobilizing...' : 'Mobilize Equipment'}
         onButtonClick={onMobilizeSubmit}
+        buttonDisabled={isMobilizing}
         secondaryButtonText="Reset"
         onSecondaryClick={onMobilizeClose}
       />
@@ -376,8 +381,9 @@ function EquipmentModals({
           addShift_remarks: addShiftForm.remarks || '',
         }}
         onFormChange={onAddShiftFormChange}
-        buttonText="Add Shifts"
+        buttonText={isAddingShift ? 'Adding Shifts...' : 'Add Shifts'}
         onButtonClick={onAddShiftSubmit}
+        buttonDisabled={isAddingShift}
         secondaryButtonText="Cancel"
         onSecondaryClick={onAddShiftClose}
       />
@@ -390,8 +396,10 @@ function EquipmentModals({
         message={`Are you sure you want to demobilize ${selectedEquipmentForAction?.machine || 'this equipment'}? Do you want to select a custom date?`}
         buttonText="Yes, Select Date"
         onButtonClick={onDemobilizeAskDate}
-        secondaryButtonText="Demobilize"
+        buttonDisabled={isDemobilizing}
+        secondaryButtonText={isDemobilizing ? 'Demobilizing...' : 'Demobilize'}
         onSecondaryClick={onDemobilizeSubmit}
+        secondaryButtonDisabled={isDemobilizing}
       />
 
       <Modal
@@ -420,9 +428,10 @@ function EquipmentModals({
         ]}
         formValues={demobilizeForm}
         onFormChange={onDemobilizeFormChange}
-        buttonText="Demobilize"
+        buttonText={isDemobilizing ? 'Demobilizing...' : 'Demobilize'}
         onButtonClick={onDemobilizeSubmit}
-        secondaryButtonText="Cancel"
+        buttonDisabled={isDemobilizing}
+        secondaryButtonText="Reset"
         onSecondaryClick={onDemobilizeClose}
       />
 
@@ -465,8 +474,9 @@ function EquipmentModals({
         ]}
         formValues={replaceOperatorForm}
         onFormChange={onReplaceOperatorFormChange}
-        buttonText="Replace Operator"
+        buttonText={isReplacingOperator ? 'Replacing...' : 'Replace Operator'}
         onButtonClick={onReplaceOperatorSubmit}
+        buttonDisabled={isReplacingOperator}
         secondaryButtonText="Cancel"
         onSecondaryClick={onReplaceOperatorClose}
       />

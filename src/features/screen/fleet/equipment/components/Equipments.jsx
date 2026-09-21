@@ -418,6 +418,7 @@ function Equipments() {
         onAddShiftOperatorRemove={actions.onAddShiftOperatorRemove}
         onAddShiftSubmit={actions.handleAddShiftSubmit}
         onAddShiftClose={actions.closeAddShiftModal}
+        isAddingShift={actions.isAddingShift}
 
         showMobilizeModal={actions.showMobilizeModal}
         mobilizeForm={actions.mobilizeForm}
@@ -428,6 +429,7 @@ function Equipments() {
         onMobilizeOperatorRemove={actions.onMobilizeOperatorRemove}
         onMobilizeSubmit={actions.handleMobilizeSubmit}
         onMobilizeClose={actions.closeMobilizeModal}
+        isMobilizing={actions.isMobilizing}
 
         showDemobilizeModal={actions.showDemobilizeModal}
         demobilizeDatePrompt={actions.demobilizeDatePrompt}
@@ -436,6 +438,7 @@ function Equipments() {
         onDemobilizeAskDate={actions.handleDemobilizeAskDate}
         onDemobilizeSubmit={actions.handleDemobilizeSubmit}
         onDemobilizeClose={actions.closeDemobilizeModal}
+        isDemobilizing={actions.isDemobilizing}
 
         showReplaceOperatorModal={actions.showReplaceOperatorModal}
         replaceOperatorForm={actions.replaceOperatorForm}
@@ -443,6 +446,7 @@ function Equipments() {
         onReplaceOperatorClick={actions.handleReplaceOperatorClick}
         onReplaceOperatorSubmit={actions.handleReplaceOperatorSubmit}
         onReplaceOperatorClose={actions.closeReplaceOperatorModal}
+        isReplacingOperator={actions.isReplacingOperator}
 
         showReplaceEquipmentModal={actions.showReplaceEquipmentModal}
         replaceEquipmentForm={actions.replaceEquipmentForm}
