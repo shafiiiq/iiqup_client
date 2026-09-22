@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import DashboardShell from './DashboardShell';
+import MiniStatCards from './fragments/MiniStatCards';
 import { DashboardLoading, DashboardError } from './DashboardStates';
 import GranularityTabs from './fragments/GranularityTabs';
 import SpotlightRow from './fragments/SpotlightRow';
@@ -65,7 +66,7 @@ const Dashboard = () => {
   ] : [];
 
   return (
-    <DashboardShell title={WELCOME_COPY.title} subtitle={WELCOME_COPY.subtitle} headerStats={headerStats}>
+    <DashboardShell title={WELCOME_COPY.title} subtitle={WELCOME_COPY.subtitle} headerStats={headerStats} headerExtra={<MiniStatCards />}>
       <GranularityTabs active={granularity} onChange={setGranularity} loading={numbersLoading} />
 
       {spotlightItems.length > 0 && <SpotlightRow items={spotlightItems} />}

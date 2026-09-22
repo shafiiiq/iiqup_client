@@ -47,15 +47,20 @@
 
 .shared.pickers.folder.folder-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 1rem;
 }
 
 .shared.pickers.folder.folder-card {
+    flex-direction: column;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.75rem;
     padding: 1.1rem 1.2rem;
+    width: 100%;
+    min-width: 0;
+    height: 300px;
     border-radius: var(--radius-6xl);
     corner-shape: squircle;
     background: var(--gradient-primary-800);
@@ -78,10 +83,14 @@
 }
 
 .shared.pickers.folder.folder-card-label {
-    font-weight: 600;
+    font-size: var(--text-xl);
+    font-weight: var(--font-light);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
+    width: 100%;
+    text-align: center;
 }
 
 .shared.pickers.folder.item-grid {
@@ -126,6 +135,20 @@
     white-space: nowrap;
 }
 
+.shared.pickers.folder.folder-card-skeleton,
+.shared.pickers.folder.item-card-skeleton {
+    cursor: default;
+    pointer-events: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+}
+
+.shared.pickers.folder.load-more-sentinel {
+    grid-column: 1 / -1;
+    height: 1px;
+}
+
 @media (max-width: 1200px) {
     .shared.pickers.folder.folder-grid {
         grid-template-columns: repeat(4, 1fr);
@@ -149,6 +172,7 @@
 }
 
 @media (max-width: 640px) {
+
     .shared.pickers.folder.folder-grid,
     .shared.pickers.folder.item-grid {
         grid-template-columns: 1fr;

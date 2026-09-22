@@ -159,7 +159,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     const payload = buildUpdateEquipmentPayload(editEquipment, editFormData);
 
     try {
-      const response = await apiRequest(`/equipments/by-reg/${editEquipment.regNo}`, 'PUT', payload);
+      const response = await apiRequest(`/equipments/${editEquipment.regNo}`, 'PUT', payload);
       const data = await response.json();
       handleActionResult(data, `Equipment ${editEquipment.regNo} successfully updated.`, closeEditModal);
     } catch (err) {

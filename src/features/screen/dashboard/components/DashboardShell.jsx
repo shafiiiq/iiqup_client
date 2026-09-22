@@ -64,12 +64,12 @@ const buildActivePath = (activeItem, pathname) => {
     : [activeItem.key];
 };
 
-const DashboardShell = ({ title, subtitle, headerStats, children }) => {
+const DashboardShell = ({ title, subtitle, headerStats, headerExtra, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-    const activeItem = findActiveItem(location.pathname);
+  const activeItem = findActiveItem(location.pathname);
   const activePath = buildActivePath(activeItem, location.pathname);
 
   const handleSelect = (path) => {
@@ -101,7 +101,7 @@ const DashboardShell = ({ title, subtitle, headerStats, children }) => {
         />
       </div>
       <main className="features screen dashboard dashboard-main">
-        <WelcomeHeader title={title} subtitle={subtitle} stats={headerStats} />
+        <WelcomeHeader title={title} subtitle={subtitle} stats={headerStats} extra={headerExtra} />
         {children}
       </main>
     </div>

@@ -5,11 +5,13 @@ import Table from '@/shared/components/widgets/table/Table';
 import TableSkeleton from '@/shared/components/widgets/table/TableSkeleton';
 
 import useHireOrderList from '../hooks/useHireOrderList';
-import { SHARED_BTN, SIGNATURE_LEGEND_GROUPS } from '../constants/hire.order.list.constant';
+import { HIRE_ORDER_TAB_ITEMS, SHARED_BTN, SIGNATURE_LEGEND_GROUPS } from '../constants/hire.order.list.constant';
 import { buildVendorOptions, buildFilterGroups } from '../helper/hire.order.list.helper';
 import { buildHireOrderTableColumns } from '../helper/hire.order.list.column.helper';
 import './HireOrderList.css';
 import Controls from '@/shared/components/widgets/controls/Controls';
+import Tabs from '@/shared/components/widgets/tabs/Tabs';
+import HireOrderStats from './fragments/HireOrderStats';
 
 function HireOrderList() {
   const {
@@ -50,6 +52,9 @@ function HireOrderList() {
     handlePendingToastAction,
     registerExpandControls,
     toggleExpandRow,
+    activeView,
+    statsTab,
+    handleTabSelect
   } = useHireOrderList();
 
   const vendorOptions = buildVendorOptions(hireOrders);
@@ -66,50 +71,68 @@ function HireOrderList() {
 
   return (
     <div className="features screen order hire list">
-      <Controls
-        justify="space-between"
-        width="20%"
-        columns={3}
-        margin="0 20px 20px auto"
-        buttons={[
-          { ...SHARED_BTN, text: 'Color Hint', onClick: () => setShowLegendModal(true), colorScheme: 'info-800' },
-          { ...SHARED_BTN, text: 'Create Hire Order', onClick: handleAddHireOrder, colorScheme: 'success-800' },
-          { ...SHARED_BTN, text: 'Print', onClick: handlePrint, colorScheme: 'success-800' },
-        ]}
-      />
-
-      <Text
-        as="div"
-        variant="caption"
-        color="disabled"
-        className="features screen order hire list table-info"
-        style={{ marginRight: '40px' }}
-      >
-        {searchTerm
-          ? `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
-          : `Showing ${filteredData?.length || 0} entries`}
-      </Text>
-
-      {isLoading ? (
-        <TableSkeleton columns={columns.length} rows={20} />
-      ) : (
-        <Table
-          tableRef={tableRef}
-          columns={columns}
-          data={filteredData || []}
-          emptyMessage="No Hire Order data available"
-          rowKey={(h) => h._id}
-          getRowProps={(h) => ({ 'data-hireorderref': h.hireOrderRef })}
-          onRowClick={(h) => handleRowClick(h.hireOrderRef)}
-          onExpandControlsReady={registerExpandControls}
-          getExpandedRows={(h) => (h.items || []).slice(1)}
-          rowNavigation={false}
-          columnNavigation={false}
-          cellNavigation={false}
-          buttonNavigation
-          style={{ margin: '0 20px' }}
+      <div className="features screen order hire list layout">
+        <Tabs
+          title="Hire Order"
+          items={HIRE_ORDER_TAB_ITEMS}
+          activePath={activeView === 'stats' ? ['statistics', statsTab] : ['hire-order', 'all']}
+          onSelect={handleTabSelect}
+          showSearch={false}
         />
-      )}
+
+        <div className="features screen order hire list content">
+          {activeView !== 'stats' && (
+            <Controls
+              justify="space-between"
+              width="20%"
+              columns={3}
+              margin="0 20px 20px auto"
+              buttons={[
+                { ...SHARED_BTN, text: 'Color Hint', onClick: () => setShowLegendModal(true), colorScheme: 'info-800' },
+                { ...SHARED_BTN, text: 'Create Hire Order', onClick: handleAddHireOrder, colorScheme: 'success-800' },
+                { ...SHARED_BTN, text: 'Print', onClick: handlePrint, colorScheme: 'success-800' },
+              ]}
+            />
+          )}
+
+          {activeView === 'stats' ? <HireOrderStats statsTab={statsTab} /> : (
+            <>
+              <Text
+                as="div"
+                variant="caption"
+                color="disabled"
+                className="features screen order hire list table-info"
+                style={{ marginRight: '40px' }}
+              >
+                {searchTerm
+                  ? `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
+                  : `Showing ${filteredData?.length || 0} entries`}
+              </Text>
+
+              {isLoading ? (
+                <TableSkeleton columns={columns.length} rows={20} />
+              ) : (
+                <Table
+                  tableRef={tableRef}
+                  columns={columns}
+                  data={filteredData || []}
+                  emptyMessage="No Hire Order data available"
+                  rowKey={(h) => h._id}
+                  getRowProps={(h) => ({ 'data-hireorderref': h.hireOrderRef })}
+                  onRowClick={(h) => handleRowClick(h.hireOrderRef)}
+                  onExpandControlsReady={registerExpandControls}
+                  getExpandedRows={(h) => (h.items || []).slice(1)}
+                  rowNavigation={false}
+                  columnNavigation={false}
+                  cellNavigation={false}
+                  buttonNavigation
+                  style={{ margin: '0 20px' }}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
       {showDeleteModal && (
         <div className="features screen order hire list modal-overlay">

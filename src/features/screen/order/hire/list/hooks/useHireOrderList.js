@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '@/shared/context/SearchContext';
 import { deleteHireOrder, fetchHireOrderList, fetchPendingSignatures } from '../api/hire.order.list.api';
-import { DEFAULT_FILTERS, SIGNED_WORKFLOW_STATUSES } from '../constants/hire.order.list.constant';
+import { DEFAULT_FILTERS, SIGNED_WORKFLOW_STATUSES, STATS_TAB } from '../constants/hire.order.list.constant';
 
 const useHireOrderList = () => {
   const navigate = useNavigate();
@@ -23,12 +23,19 @@ const useHireOrderList = () => {
   const [showLegendModal, setShowLegendModal] = useState(false);
   const [sigToast, setSigToast] = useState({ show: false, message: '' });
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-
+  const [activeView, setActiveView] = useState('list');
+  const [statsTab, setStatsTab] = useState(STATS_TAB.OVERVIEW);
+  
   useEffect(() => {
     fetchHireOrders();
     fetchPendingSignaturesData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleTabSelect = (path, node) => {
+    if (Object.values(STATS_TAB).includes(node.key)) { setActiveView('stats'); setStatsTab(node.key); return; }
+    setActiveView('list');
+  };
 
   const fetchHireOrders = async () => {
     setIsLoading(true);
@@ -311,6 +318,9 @@ const useHireOrderList = () => {
     handlePendingToastAction,
     registerExpandControls,
     toggleExpandRow,
+    activeView,
+    statsTab,
+    handleTabSelect
   };
 };
 

@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '@/features/core/network/api/api.request';
 import { useSearch as useUserSearch } from '@/shared/search/useSearch';
 import { useSearch as useHeaderSearch } from '@/shared/context/SearchContext';
 import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 
 const USER_SECTIONS = [
-    { key: 'staff', label: 'Office', icon: 'business_center', endpoint: '/users/staff', extract: (data) => data.data || [] },
-    { key: 'mechanic', label: 'Mechanics', icon: 'engineering', endpoint: '/users/mechanics', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.MECHANICS },
-    { key: 'operator', label: 'Operators', icon: 'person', endpoint: '/users/operators', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.OPERATORS },
+    { key: 'staff', label: 'Office', icon: 'IconlyOfficeWorker', endpoint: '/users/staff', extract: (data) => data.data || [] },
+    { key: 'mechanic', label: 'Mechanics', icon: 'WrenchIcon', endpoint: '/users/mechanics', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.MECHANICS },
+    { key: 'operator', label: 'Operators', icon: 'JacketIcon', endpoint: '/users/operators', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.OPERATORS },
 ];
 
 function useUserSections() {
@@ -69,47 +69,59 @@ export function useUserPickerNode(onSelect) {
         onSelectItem: (user) => onSelect(user, section.key),
     });
 
-    const sectionNodes = USER_SECTIONS.map((section) => ({
-        type: 'collection',
-        key: `user-section-${section.key}`,
-        label: section.label,
-        icon: section.icon,
-        items: usersBySection[section.key] || [],
-        isLoading,
-        isLoadingMore: false,
-        hasMore: false,
-        onLoadMore: undefined,
-        getItemKey: (user) => user._id || user.id || user.qatarId,
-        getItemPrimaryText: (user) => user.name,
-        getItemSecondaryText: () => null,
-        onSelectItem: (user) => onSelect(user, section.key),
-        search: buildSearchCollection(section, searchBySection[section.key]),
-    }));
+    const sectionNodes = useMemo(
+        () =>
+            USER_SECTIONS.map((section) => ({
+                type: 'collection',
+                key: `user-section-${section.key}`,
+                label: section.label,
+                icon: section.icon,
+                items: usersBySection[section.key] || [],
+                isLoading,
+                isLoadingMore: false,
+                hasMore: false,
+                onLoadMore: undefined,
+                getItemKey: (user) => user._id || user.id || user.qatarId,
+                getItemPrimaryText: (user) => user.name,
+                getItemSecondaryText: () => null,
+                onSelectItem: (user) => onSelect(user, section.key),
+                search: buildSearchCollection(section, searchBySection[section.key]),
+            })),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [usersBySection, isLoading, searchBySection, onSelect]
+    );
 
-       const combinedUsersSearchCollection = {
-        items: USER_SECTIONS.flatMap((section) =>
-            searchBySection[section.key].results.map((u) => ({ ...u, __sectionKey: section.key }))
-        ),
-        isLoading: Object.values(searchBySection).some((s) => s.loading),
-        isLoadingMore: false,
-        hasMore: Object.values(searchBySection).some((s) => s.hasMore),
-        onLoadMore: undefined,
-        getItemKey: (user) => user._id || user.id || user.qatarId,
-        getItemPrimaryText: (user) => user.name,
-        getItemSecondaryText: (user) => USER_SECTIONS.find((s) => s.key === user.__sectionKey)?.label,
-        onSelectItem: (user) => onSelect(user, user.__sectionKey),
-    };
+    const combinedUsersSearchCollection = useMemo(
+        () => ({
+            items: USER_SECTIONS.flatMap((section) =>
+                searchBySection[section.key].results.map((u) => ({ ...u, __sectionKey: section.key }))
+            ),
+            isLoading: Object.values(searchBySection).some((s) => s.loading),
+            isLoadingMore: false,
+            hasMore: Object.values(searchBySection).some((s) => s.hasMore),
+            onLoadMore: undefined,
+            getItemKey: (user) => user._id || user.id || user.qatarId,
+            getItemPrimaryText: (user) => user.name,
+            getItemSecondaryText: (user) => USER_SECTIONS.find((s) => s.key === user.__sectionKey)?.label,
+            onSelectItem: (user) => onSelect(user, user.__sectionKey),
+        }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [searchBySection, onSelect]
+    );
 
-    return {
-        type: 'folder',
-        key: 'users',
-        label: 'Users',
-        icon: 'group',
-        isLoading,
-        hasMore: false,
-        isLoadingMore: false,
-        onLoadMore: undefined,
-        children: sectionNodes,
-        search: combinedUsersSearchCollection,
-    };
+    return useMemo(
+        () => ({
+            type: 'folder',
+            key: 'users',
+            label: 'Users',
+            icon: 'IconlyFace',
+            isLoading,
+            hasMore: false,
+            isLoadingMore: false,
+            onLoadMore: undefined,
+            children: sectionNodes,
+            search: combinedUsersSearchCollection,
+        }),
+        [isLoading, sectionNodes, combinedUsersSearchCollection]
+    );
 }

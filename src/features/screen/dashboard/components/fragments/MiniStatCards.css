@@ -1,0 +1,55 @@
+.features.screen.dashboard.mini-stat-cards {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.features.screen.dashboard.mini-stat-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 0.75rem 1rem;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.features.screen.dashboard.mini-stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.features.screen.dashboard.mini-stat-card {
+  min-width: 150px;
+}
+
+.features.screen.dashboard.mini-stat-value {
+  font-size: 1.1rem;
+}
+
+.features.screen.dashboard.mini-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-color-600);
+  white-space: nowrap;
+}
+
+.features.screen.dashboard.mini-stat-rate {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.features.screen.dashboard.mini-stat-rate.up { color: #3fb27f; }
+.features.screen.dashboard.mini-stat-rate.down { color: #e0654f; }
+
+.features.screen.dashboard.mini-stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.features.screen.dashboard.mini-stat-chart {
+  margin-top: 0.15rem;
+}

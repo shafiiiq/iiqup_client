@@ -1,11 +1,13 @@
-import Button from '@/shared/components/widgets/button/Button';
 import Text from '@/shared/components/widgets/text/Text';
 import Table from '@/shared/components/widgets/table/Table';
 import TableSkeleton from '@/shared/components/widgets/table/TableSkeleton';
+import Tabs from '@/shared/components/widgets/tabs/Tabs';
+import Controls from '@/shared/components/widgets/controls/Controls';
 
 import useQuotationList from '../hooks/useQuotationList';
-import { SHARED_BTN } from '../constants/quotation.list.constant';
+import { QUOTATION_TAB_ITEMS, SHARED_BTN } from '../constants/quotation.list.constant';
 import { buildQuotationTableColumns } from '../helper/quotation.list.column.helper';
+import QuotationStats from './fragments/QuotationStats';
 import './QuotationList.css';
 
 function QuotationList() {
@@ -28,37 +30,65 @@ function QuotationList() {
     closeStatusModal,
     registerExpandControls,
     toggleExpandRow,
+    activeView,
+    statsTab,
+    handleTabSelect
   } = useQuotationList();
 
   const columns = buildQuotationTableColumns({ handleViewQuotation, handleDeleteClick, handleAmendment, toggleExpandRow });
 
   return (
     <div className="features screen quotation list">
-      <div className="features screen quotation list controls-container">
-        <Button {...SHARED_BTN} text="Create Quotation" onClick={handleAddQuotation} colorScheme="success-800" />
-      </div>
-
-      <Text as="div" variant="caption" color="disabled" className="features screen quotation list table-info">
-        {searchTerm
-          ? `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
-          : `Showing ${filteredData?.length || 0} entries`}
-      </Text>
-
-      {isLoading ? (
-        <TableSkeleton columns={columns.length} rows={20} />
-      ) : (
-        <Table
-          tableRef={tableRef}
-          columns={columns}
-          data={filteredData || []}
-          emptyMessage="No Quotation data available"
-          rowKey={(q) => q._id}
-          getRowProps={(q) => ({ 'data-quotationref': q.quotationRef })}
-          onRowClick={(q) => handleRowClick(q.quotationRef)}
-          onExpandControlsReady={registerExpandControls}
-          getExpandedRows={(q) => (q.items || []).slice(1)}
+      <div className="features screen quotation list layout">
+        <Tabs
+          title="Quotation"
+          items={QUOTATION_TAB_ITEMS}
+          activePath={activeView === 'stats' ? ['statistics', statsTab] : ['quotation', 'all']}
+          onSelect={handleTabSelect}
+          showSearch={false}
         />
-      )}
+
+        <div className="features screen quotation list content">
+          {activeView !== 'stats' && (
+            <Controls
+              justify="space-between"
+              margin="0 20px 0 auto"
+              width="fit-content"
+              items={[
+                { text: 'Create Quotation', onClick: handleAddQuotation, colorScheme: 'success-800', textColor: 'white-200', ...SHARED_BTN },
+              ]}
+            />
+          )}
+
+          {activeView === 'stats' ? (
+            <QuotationStats statsTab={statsTab} />
+          ) : (
+            <>
+              <Text as="div" variant="caption" color="disabled" className="features screen quotation list table-info">
+                {searchTerm
+                  ? `Found ${filteredData?.length || 0} matching ${filteredData?.length === 1 ? 'entry' : 'entries'}`
+                  : `Showing ${filteredData?.length || 0} entries`}
+              </Text>
+
+              {isLoading ? (
+                <TableSkeleton columns={columns.length} rows={20} />
+              ) : (
+                <Table
+                  tableRef={tableRef}
+                  columns={columns}
+                  data={filteredData || []}
+                  emptyMessage="No Quotation data available"
+                  rowKey={(q) => q._id}
+                  getRowProps={(q) => ({ 'data-quotationref': q.quotationRef })}
+                  onRowClick={(q) => handleRowClick(q.quotationRef)}
+                  onExpandControlsReady={registerExpandControls}
+                  getExpandedRows={(q) => (q.items || []).slice(1)}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
       {showDeleteModal && (
         <div className="features screen quotation list modal-overlay">

@@ -23,6 +23,11 @@ function usePickerRoot(types, onSelect) {
             getItemKey: (item) => `${item.__nodeKey}-${searchableChildren.find((c) => c.key === item.__nodeKey).search.getItemKey(item)}`,
             getItemPrimaryText: (item) => searchableChildren.find((c) => c.key === item.__nodeKey).search.getItemPrimaryText(item),
             getItemSecondaryText: (item) => searchableChildren.find((c) => c.key === item.__nodeKey).search.getItemSecondaryText?.(item),
+            renderItem: undefined,
+            resolveItemRenderer: (item) => {
+                const childCollection = searchableChildren.find((c) => c.key === item.__nodeKey).search;
+                return childCollection.renderItem;
+            },
             onSelectItem: (item) => searchableChildren.find((c) => c.key === item.__nodeKey).search.onSelectItem(item),
         }
         : undefined;

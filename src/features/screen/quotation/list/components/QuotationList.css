@@ -1,8 +1,12 @@
-.features.screen.quotation.list.controls-container {
+.features.screen.quotation.list.layout {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-  margin-right: 20px;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.features.screen.quotation.list.content {
+  flex: 1;
+  min-width: 0;
 }
 
 .features.screen.quotation.list.table-info {

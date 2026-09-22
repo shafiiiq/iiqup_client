@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '@/shared/context/SearchContext';
 import { fetchQuotations, deleteQuotation } from '../api/quotation.list.api';
+import { STATS_TAB } from '../constants/quotation.list.constant';
 
 const useQuotationList = () => {
   const navigate = useNavigate();
@@ -16,6 +17,12 @@ const useQuotationList = () => {
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [activeView, setActiveView] = useState('list');
+  const [statsTab, setStatsTab] = useState(STATS_TAB.OVERVIEW);
+  const handleTabSelect = (path, node) => {
+    if (Object.values(STATS_TAB).includes(node.key)) { setActiveView('stats'); setStatsTab(node.key); return; }
+    setActiveView('list');
+  };
 
   useEffect(() => {
     loadQuotations();
@@ -100,6 +107,9 @@ const useQuotationList = () => {
     closeStatusModal,
     registerExpandControls,
     toggleExpandRow,
+    activeView,
+    statsTab,
+    handleTabSelect
   };
 };
 

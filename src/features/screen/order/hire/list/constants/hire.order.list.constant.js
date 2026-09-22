@@ -124,3 +124,21 @@ export const SIGNATURE_STATUS = {
   'hire-order-sig-mgr-acc-ceo': { label: 'In Progress', background: '#5a6b0d', color: '#ffffff' },
   'hire-order-sig-pm-acc-ceo': { label: 'In Progress', background: '#8924db', color: '#ffffff' },
 };
+
+export const STATS_TAB = { OVERVIEW: 'overview', ANALYTICS: 'analytics', GROWTH: 'growth' };
+export const STATS_GRANULARITIES = [
+    { key: 'today', label: 'Today' },
+    { key: 'week', label: 'This Week' },
+    { key: 'month', label: 'This Month' },
+    { key: 'year', label: 'This Year' },
+    { key: 'allYears', label: 'By Year' },
+];
+export const DEFAULT_STATS_GRANULARITY = 'month';
+export const HIRE_ORDER_TAB_ITEMS = [
+  { key: 'hire-order', label: 'Hire Order', children: [{ key: 'all', label: 'All' }] },
+  { key: 'statistics', label: 'Statistics', children: [
+    { key: STATS_TAB.OVERVIEW, label: 'Overview' },
+    { key: STATS_TAB.ANALYTICS, label: 'Analytics' },
+    { key: STATS_TAB.GROWTH, label: 'Growth' },
+  ]},
+];

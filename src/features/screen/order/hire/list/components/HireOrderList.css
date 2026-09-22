@@ -1,10 +1,12 @@
-.features.screen.order.hire.list.controls-container {
+.features.screen.order.hire.list.layout {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.features.screen.order.hire.list.content {
+  flex: 1;
+  min-width: 0;
 }
 
 .features.screen.order.hire.list.buttons-container {
