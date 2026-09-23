@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useSearch } from '@/shared/context/SearchContext';
 import { deleteHireOrder, fetchHireOrderList, fetchPendingSignatures } from '../api/hire.order.list.api';
 import { DEFAULT_FILTERS, SIGNED_WORKFLOW_STATUSES, STATS_TAB } from '../constants/hire.order.list.constant';
+import { apiRequest } from '@/features/core/network/api/api.request';
+import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 
 const useHireOrderList = () => {
   const navigate = useNavigate();
@@ -25,7 +28,7 @@ const useHireOrderList = () => {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('list');
   const [statsTab, setStatsTab] = useState(STATS_TAB.OVERVIEW);
-  
+
   useEffect(() => {
     fetchHireOrders();
     fetchPendingSignaturesData();
@@ -96,10 +99,36 @@ const useHireOrderList = () => {
     return 'hire-order-sig-none';
   };
 
+  const [searchResults, setSearchResults] = useState(null);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setSearchResults(null);
+      return;
+    }
+
+    let cancelled = false;
+    const runSearch = async () => {
+      try {
+        const url = buildSearchUrl({ source: SEARCH_SOURCES.HIRE_ORDERS, q: searchTerm, limit: 1000 });
+        const response = await apiRequest(url, 'GET');
+        const responseJson = await response.json();
+        const result = extractSearchResult(responseJson, SEARCH_SOURCES.HIRE_ORDERS);
+        if (!cancelled) setSearchResults(result.results);
+      } catch (error) {
+        console.error('[HireOrderList] search error:', error);
+        if (!cancelled) setSearchResults([]);
+      }
+    };
+
+    runSearch();
+    return () => { cancelled = true; };
+  }, [searchTerm]);
+
   useEffect(() => {
     applyAllFilters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hireOrders, searchTerm, filters]);
+  }, [hireOrders, searchResults, filters]);
 
   const handleRowClick = (hireOrderRef) => navigate(`/order/hire/report/${encodeURIComponent(hireOrderRef)}`);
 
@@ -238,14 +267,7 @@ const useHireOrderList = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter((h) =>
-        Object.values(h).some((value) => {
-          if (value && typeof value === 'object') {
-            return Object.values(value).some((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase()));
-          }
-          return String(value).toLowerCase().includes(searchTerm.toLowerCase());
-        })
-      );
+      filtered = searchResults || [];
     }
 
     setFilteredData(filtered);

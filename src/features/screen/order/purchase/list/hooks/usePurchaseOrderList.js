@@ -4,6 +4,9 @@ import { useSearch } from '@/shared/context/SearchContext';
 import { deletePurchaseOrder, fetchPurchaseOrderList, fetchPendingSignatures } from '../api/purchase.order.list.api';
 import { DEFAULT_FILTERS, SIGNED_WORKFLOW_STATUSES, PURCHASE_ORDER_LIST_TYPE, STATS_TAB } from '../constants/purchase.order.list.constant';
 import { usePagination } from '@/shared/pagination/usePagination';
+import { apiRequest } from '@/features/core/network/api/api.request';
+import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 
 const usePurchaseOrderList = ({ purchaseOrderOfSpecificEquipment } = {}) => {
     const navigate = useNavigate();
@@ -100,10 +103,36 @@ const usePurchaseOrderList = ({ purchaseOrderOfSpecificEquipment } = {}) => {
         return 'purchaseorder-sig-none';
     };
 
+    const [searchResults, setSearchResults] = useState(null);
+
+    useEffect(() => {
+        if (!searchTerm) {
+            setSearchResults(null);
+            return;
+        }
+
+        let cancelled = false;
+        const runSearch = async () => {
+            try {
+                const url = buildSearchUrl({ source: SEARCH_SOURCES.PURCHASE_ORDERS, q: searchTerm, limit: 1000 });
+                const response = await apiRequest(url, 'GET');
+                const responseJson = await response.json();
+                const result = extractSearchResult(responseJson, SEARCH_SOURCES.PURCHASE_ORDERS);
+                if (!cancelled) setSearchResults(result.results);
+            } catch (error) {
+                console.error('[PurchaseOrderList] search error:', error);
+                if (!cancelled) setSearchResults([]);
+            }
+        };
+
+        runSearch();
+        return () => { cancelled = true; };
+    }, [searchTerm]);
+
     useEffect(() => {
         applyAllFilters();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [purchaseorders, searchTerm, filters]);
+    }, [purchaseorders, searchResults, filters]);
 
     const handleTabSelect = (path, node) => {
         if (Object.values(STATS_TAB).includes(node.key)) {
@@ -291,16 +320,7 @@ const usePurchaseOrderList = ({ purchaseOrderOfSpecificEquipment } = {}) => {
         }
 
         if (searchTerm) {
-            filtered = filtered.filter(purchaseorder => {
-                return Object.values(purchaseorder).some(value => {
-                    if (typeof value === 'object' && value !== null) {
-                        return Object.values(value).some(v =>
-                            String(v).toLowerCase().includes(searchTerm.toLowerCase())
-                        );
-                    }
-                    return String(value).toLowerCase().includes(searchTerm.toLowerCase());
-                });
-            });
+            filtered = searchResults || [];
         }
 
         setFilteredData(filtered);

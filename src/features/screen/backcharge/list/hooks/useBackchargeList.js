@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBackchargeReports, fetchPendingSignatures, deleteBackcharge } from '../api/backcharge.list.api';
 import { usePagination } from '@/shared/pagination/usePagination';
+import { useSearch } from '@/shared/context/SearchContext';
+import { apiRequest } from '@/features/core/network/api/api.request';
+import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 import {
   DEFAULT_FILTERS,
   BACKCHARGE_LIST_PAGE_SIZE,
@@ -14,6 +18,7 @@ import {
 export const useBackchargeList = () => {
   const navigate = useNavigate();
   const tableRef = useRef(null);
+  const { searchTerm } = useSearch();
 
   const [activeView, setActiveView] = useState(BACKCHARGE_VIEW.LIST);
   const [statsTab, setStatsTab] = useState(STATS_TAB.OVERVIEW);
@@ -92,7 +97,38 @@ export const useBackchargeList = () => {
     };
   }, [hasMore, isLoading, loadMore]);
 
+  const [searchResults, setSearchResults] = useState(null);
+
   useEffect(() => {
+    if (!searchTerm) {
+      setSearchResults(null);
+      return;
+    }
+
+    let cancelled = false;
+    const runSearch = async () => {
+      try {
+        const url = buildSearchUrl({ source: SEARCH_SOURCES.BACKCHARGES, q: searchTerm, limit: 1000 });
+        const response = await apiRequest(url, 'GET');
+        const responseJson = await response.json();
+        const result = extractSearchResult(responseJson, SEARCH_SOURCES.BACKCHARGES);
+        if (!cancelled) setSearchResults(result.results);
+      } catch (error) {
+        console.error('[BackchargeList] search error:', error);
+        if (!cancelled) setSearchResults([]);
+      }
+    };
+
+    runSearch();
+    return () => { cancelled = true; };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (searchTerm) {
+      setFilteredData(searchResults || []);
+      return;
+    }
+
     if (!backcharges.length) {
       setFilteredData([]);
       return;
@@ -137,7 +173,7 @@ export const useBackchargeList = () => {
     }
 
     setFilteredData(next);
-  }, [backcharges, filters]);
+  }, [backcharges, filters, searchTerm, searchResults]);
 
   const handleFilterChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));

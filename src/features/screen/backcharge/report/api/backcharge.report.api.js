@@ -20,8 +20,8 @@ export const verifyDeviceTrust = async (signType, deviceInfo) => {
   return response.json();
 };
 
-export const getBackchargeSignatureKey = async (endpoint, deviceInfo) => {
-  const response = await apiRequest(`/users/${endpoint}`, 'POST', { deviceInfo });
+export const getSignatureKey = async (signType, info) => {
+  const response = await apiRequest(`/authz/sign-key/${signType}`, 'POST', { deviceInfo: info });
   return response.json();
 };
 

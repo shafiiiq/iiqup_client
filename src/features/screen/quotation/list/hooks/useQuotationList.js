@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useSearch } from '@/shared/context/SearchContext';
 import { fetchQuotations, deleteQuotation } from '../api/quotation.list.api';
 import { STATS_TAB } from '../constants/quotation.list.constant';
+import { apiRequest } from '@/features/core/network/api/api.request';
+import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 
 const useQuotationList = () => {
   const navigate = useNavigate();
@@ -29,10 +32,36 @@ const useQuotationList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [searchResults, setSearchResults] = useState(null);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setSearchResults(null);
+      return;
+    }
+
+    let cancelled = false;
+    const runSearch = async () => {
+      try {
+        const url = buildSearchUrl({ source: SEARCH_SOURCES.QUOTATIONS, q: searchTerm, limit: 1000 });
+        const response = await apiRequest(url, 'GET');
+        const responseJson = await response.json();
+        const result = extractSearchResult(responseJson, SEARCH_SOURCES.QUOTATIONS);
+        if (!cancelled) setSearchResults(result.results);
+      } catch (error) {
+        console.error('[QuotationList] search error:', error);
+        if (!cancelled) setSearchResults([]);
+      }
+    };
+
+    runSearch();
+    return () => { cancelled = true; };
+  }, [searchTerm]);
+
   useEffect(() => {
     applySearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotations, searchTerm]);
+  }, [quotations, searchResults]);
 
   const loadQuotations = async () => {
     setIsLoading(true);
@@ -49,15 +78,7 @@ const useQuotationList = () => {
 
   const applySearch = () => {
     if (!searchTerm) { setFilteredData(quotations); return; }
-    const filtered = quotations.filter((q) =>
-      Object.values(q).some((value) => {
-        if (value && typeof value === 'object') {
-          return Object.values(value).some((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase()));
-        }
-        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
-      })
-    );
-    setFilteredData(filtered);
+    setFilteredData(searchResults || []);
   };
 
   const handleRowClick = (ref) => navigate(`/quotation/report/${encodeURIComponent(ref)}`);

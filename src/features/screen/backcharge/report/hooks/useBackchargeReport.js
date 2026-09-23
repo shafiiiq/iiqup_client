@@ -7,6 +7,8 @@ import {
   updateBackcharge,
   sendBackchargeEmail,
   verifyDeviceTrust,
+  getSignatureKey,
+  getPreSignedUrl,
   signBackcharge,
   activateSignature,
   downloadBackchargePdf,
@@ -168,6 +170,13 @@ export const useBackchargeReport = () => {
     setGrantTotal(total);
   }, [formData.tableRows]);
 
+  useEffect(() => {
+    if (globalActivation.isActivated && globalActivation.isTrusted && deviceInfo && !isLoading) {
+      loadAllSignatures(deviceInfo, signatureFlags);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globalActivation.isTrusted, globalActivation.isActivated, deviceInfo, isLoading]);
+
   const fetchBackchargeData = useCallback(async () => {
     if (!refNo) return;
     try {
@@ -189,11 +198,22 @@ export const useBackchargeReport = () => {
           totalCost: raw.costSummary?.totalCost ?? 0,
           approvedDeduction: raw.costSummary?.approvedDeduction ?? 0,
         });
+
+        const flags = {
+          workshopManager: raw.signatures?.workshopManager?.signed || false,
+          purchaseManager: raw.signatures?.purchaseManager?.signed || false,
+          operationsManager: raw.signatures?.operationsManager?.signed || false,
+          authorizedSignatory: raw.signatures?.authorizedSignatory?.signed || false,
+        };
+
         setDocumentExists(true);
         setDocumentId(raw._id);
-        setSignatureFlags(raw.signatureFlags || {});
-        setSignatureStates(raw.signatureStates || {});
-        setSupplierMail(raw.supplierEmail);
+        setSignatureFlags(flags);
+        setSupplierMail(raw.supplierMail || null);
+
+        if (globalActivation.isActivated && globalActivation.isTrusted && deviceInfo) {
+          await loadAllSignatures(deviceInfo, flags);
+        }
       }
     } catch (error) {
       console.error('Error fetching backcharge data:', error);
@@ -214,6 +234,9 @@ export const useBackchargeReport = () => {
         const location = await getLocationInfo();
         const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+        const isPdfRender = new URLSearchParams(window.location.search).get('pdf') === '1';
+        const pdfRenderSecret = isPdfRender ? (localStorage.getItem('pdfRenderSecret') || '') : '';
+
         const info = {
           userId: user._id || '',
           uniqueCode: fingerprint.uniqueCode,
@@ -222,10 +245,13 @@ export const useBackchargeReport = () => {
           location: `${location.city}, ${location.region}, ${location.country}`,
           userAgent: fingerprint.userAgent,
           browserInfo: fingerprint.browserInfo,
+          ...(pdfRenderSecret && { pdfRenderSecret }),
         };
 
         setDeviceInfo(info);
-        const status = await checkActivationStatus(info);
+        const status = isPdfRender
+          ? { isActivated: true, isTrusted: true }
+          : await checkActivationStatus(info);
         setGlobalActivation({ ...status, checked: true });
       } catch (err) {
         console.error('[BackchargeReport] device init error:', err);
@@ -259,8 +285,8 @@ export const useBackchargeReport = () => {
       let allTrusted = true;
       for (const signType of SIGN_TYPES) {
         const response = await verifyDeviceTrust(signType, info);
-        if (!response.isActivated) allActivated = false;
-        if (!response.isTrusted) allTrusted = false;
+        if (!response.data?.isActivated) allActivated = false;
+        if (!response.data?.isTrusted) allTrusted = false;
       }
       return { isActivated: allActivated, isTrusted: allTrusted };
     } catch (error) {
@@ -268,6 +294,29 @@ export const useBackchargeReport = () => {
       return { isActivated: false, isTrusted: false };
     }
   };
+
+  const SIGN_TYPE_FIELD_MAP = { wm: 'workshopManager', pm: 'purchaseManager', manager: 'operationsManager', authorized: 'authorizedSignatory' };
+
+  const loadSignature = async (signType, info, flags) => {
+    const field = SIGN_TYPE_FIELD_MAP[signType];
+    if (!field || !flags[field]) return;
+
+    setSignatureStates((prev) => ({ ...prev, [field]: { ...prev[field], loading: true } }));
+
+    try {
+      const keyData = await getSignatureKey(signType, info);
+      if (!keyData?.data?.sign_key) throw new Error('Failed to get signature key');
+
+      const s3Data = await getPreSignedUrl(keyData.data.sign_key);
+      setSignatureStates((prev) => ({ ...prev, [field]: { url: s3Data.dataUrl, loading: false } }));
+    } catch (err) {
+      console.error(`[BackchargeReport] loadSignature(${signType}) error:`, err);
+      setSignatureStates((prev) => ({ ...prev, [field]: { url: '', loading: false } }));
+    }
+  };
+
+  const loadAllSignatures = (info, flags) =>
+    Promise.all(Object.keys(SIGN_TYPE_FIELD_MAP).map((t) => loadSignature(t, info, flags)));
 
   const handleDownloadPdf = async () => {
     try {
