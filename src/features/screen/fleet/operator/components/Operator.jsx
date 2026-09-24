@@ -48,8 +48,6 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
   { key: 'uniqueCode', header: 'Unique Code', render: (row) => row.operator.uniqueCode },
   { key: 'nationality', header: 'Nationality', render: (row) => row.operator.nationality },
   { key: 'sponsorship', header: 'Sponsorship', render: (row) => row.operator.sponsorship },
-  { key: 'equipmentNumber', header: 'Equipment No', render: (row) => row.operator.equipmentNumber || 'Unassigned' },
-  { key: 'designation', header: 'Designation', render: (row) => row.operator.designation || 'N/A' },
   {
     key: 'mobStatus',
     header: 'Mobilization',
@@ -58,6 +56,9 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
     dataCenter: true,
     render: (row) => MOBILIZATION_STATUS_LABELS[row.operator.status] ?? MOBILIZATION_STATUS_LABELS.demobilized,
   },
+  { key: 'equipmentNumber', header: 'Equipment No', render: (row) => row.operator.equipmentNumber || 'Unassigned' },
+  { key: 'designation', header: 'Designation', render: (row) => row.operator.designation || 'N/A' },
+  { key: 'site', header: 'Site', render: (row) => row.operator.site?.length ? row.operator.site.join(', ') : 'Unassigned' },
   {
     key: 'mode',
     header: 'Working As',
@@ -110,7 +111,16 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
         justify="center"
         gap="6px"
         items={[
-          { componentIconCenter: 'IconlySwap', componentIconSize: '25', iconColor: 'info-400', onClick: () => handleReplaceOperatorClick(row.operator), colorScheme: 'yellow-700', textColor: 'white-200', ...SHARED_BUTTON },
+          {
+            componentIconCenter: 'IconlySwap',
+            componentIconSize: '25',
+            iconColor: 'info-400',
+            onClick: () => handleReplaceOperatorClick(row.operator),
+            colorScheme: 'yellow-700',
+            textColor: 'white-200',
+            disabled: row.operator.mode !== 'operator-only' ? true : false,
+            ...SHARED_BUTTON
+          },
         ]}
       />
     ),
