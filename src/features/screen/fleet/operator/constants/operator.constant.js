@@ -29,6 +29,7 @@ export const EMPTY_FORM = {
   email:                    '',
   password:                 '',
   equipmentNumber:          '',
+  mode:                     '',
   isVerified:               false,
   toolkits:                 [],
   hired:                    false,
@@ -75,6 +76,16 @@ export const MOBILIZATION_STATUS_LABELS = {
   demobilized: { label: 'Demobilized', background: '#681111', color: '#ffffff' },
 };
 
+export const MODE_LABELS = {
+  'with-equipment': 'With Equipment',
+  'operator-only':  'Operator Only',
+};
+
+export const MODE_OPTIONS = [
+  { label: 'With Equipment', value: 'with-equipment' },
+  { label: 'Operator Only',  value: 'operator-only' },
+];
+
 export const DEPLOY_TYPE_OPTIONS = [
   { value: 'site', label: 'Site' },
   { value: 'company', label: 'Client Company (Lease)' },
@@ -95,8 +106,6 @@ export const RENT_BASIS_OPTIONS = [
   { value: 'trip', label: 'Trip' },
 ];
 
-export const DESIGNATION_OPTIONS = ['Operator', 'Driver', 'Helper', 'Rigger', 'Foreman', 'Supervisor'];
-
 export const MOBILIZE_FORM_DEFAULTS = {
   deployType: 'site',
   regNo: '',
@@ -111,6 +120,17 @@ export const MOBILIZE_FORM_DEFAULTS = {
 };
 
 export const DEMOBILIZE_FORM_DEFAULTS = {
+  remarks: '',
+  demobilizeMode: 'operator-only',
+};
+
+export const REPLACE_OPERATOR_FORM_DEFAULTS = {
+  newOperatorName: '',
+  assignmentAction: 'demobilize',
+  deployType: 'site',
+  site: '',
+  clientCompany: '',
+  regNo: '',
   remarks: '',
 };
 

@@ -10,7 +10,7 @@ import Modal from '@/shared/components/widgets/modal/Modal';
 
 import OperatorSidebar from './fragments/OperatorSidebar';
 import { useOperator } from '../hooks/useOperator';
-import { SHARED_BUTTON, OPERATOR_NAV_TREE, VERIFICATION_STATUS_LABELS, MOBILIZATION_STATUS_LABELS } from '../constants/operator.constant';
+import { SHARED_BUTTON, OPERATOR_NAV_TREE, MOBILIZATION_STATUS_LABELS, MODE_LABELS } from '../constants/operator.constant';
 
 const FullScreenImageViewer = ({ src, onClose }) => {
   if (!src) return null;
@@ -28,7 +28,7 @@ const FullScreenImageViewer = ({ src, onClose }) => {
   );
 };
 
-const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick, handleMobilizeClick, handleShowFullScreen, handleProfilePicError }) => [
+const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick, handleMobilizeClick, handleReplaceOperatorClick, handleShowFullScreen, handleProfilePicError }) => [
   {
     key: 'profile',
     header: 'Profile',
@@ -48,7 +48,8 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
   { key: 'uniqueCode', header: 'Unique Code', render: (row) => row.operator.uniqueCode },
   { key: 'nationality', header: 'Nationality', render: (row) => row.operator.nationality },
   { key: 'sponsorship', header: 'Sponsorship', render: (row) => row.operator.sponsorship },
-  { key: 'equipmentNumber', header: 'Equipment No', render: (row) => row.operator.equipmentNumber || 'N/A' },
+  { key: 'equipmentNumber', header: 'Equipment No', render: (row) => row.operator.equipmentNumber || 'Unassigned' },
+  { key: 'designation', header: 'Designation', render: (row) => row.operator.designation || 'N/A' },
   {
     key: 'mobStatus',
     header: 'Mobilization',
@@ -58,12 +59,11 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
     render: (row) => MOBILIZATION_STATUS_LABELS[row.operator.status] ?? MOBILIZATION_STATUS_LABELS.demobilized,
   },
   {
-    key: 'status',
-    header: 'Status',
-    progress: true,
+    key: 'mode',
+    header: 'Working As',
     headerCenter: true,
     dataCenter: true,
-    render: (row) => VERIFICATION_STATUS_LABELS[row.status],
+    render: (row) => MODE_LABELS[row.operator.mode] || 'Unassigned',
   },
   {
     key: 'details',
@@ -95,6 +95,22 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
           row.operator.status === 'mobilized'
             ? { componentIconCenter: 'DepartureIcon', componentIconSize: '25', iconColor: 'error-500', onClick: () => handleDemobilizeClick(row.operator), colorScheme: 'yellow-700', textColor: 'white-200', ...SHARED_BUTTON }
             : { componentIconCenter: 'ApartureIcon', componentIconSize: '25', iconColor: 'success-500', onClick: () => handleMobilizeClick(row.operator), colorScheme: 'yellow-700', textColor: 'white-200', ...SHARED_BUTTON },
+        ]}
+      />
+    ),
+  },
+  {
+    key: 'replace',
+    header: 'Replace',
+    actions: true,
+    headerCenter: true,
+    dataCenter: true,
+    render: (row) => (
+      <Controls
+        justify="center"
+        gap="6px"
+        items={[
+          { componentIconCenter: 'IconlySwap', componentIconSize: '25', iconColor: 'info-400', onClick: () => handleReplaceOperatorClick(row.operator), colorScheme: 'yellow-700', textColor: 'white-200', ...SHARED_BUTTON },
         ]}
       />
     ),
@@ -137,6 +153,11 @@ const Operator = () => {
     demobilizeFormFields,
     isDemobilizing,
 
+    showReplaceOperatorModal,
+    replaceOperatorForm,
+    replaceOperatorFormFields,
+    isReplacingOperator,
+
     handleTabSelect,
     handleSort,
 
@@ -170,11 +191,16 @@ const Operator = () => {
     onDemobilizeFormChange,
     handleDemobilizeSubmit,
 
+    handleReplaceOperatorClick,
+    closeReplaceOperatorModal,
+    onReplaceOperatorFormChange,
+    handleReplaceOperatorSubmit,
+
     formatDate,
     isExpired,
   } = useOperator();
 
-  const columns = buildColumns({ handleSort, handleSelectOperator, handleDemobilizeClick, handleMobilizeClick, handleShowFullScreen, handleProfilePicError });
+  const columns = buildColumns({ handleSort, handleSelectOperator, handleDemobilizeClick, handleMobilizeClick, handleReplaceOperatorClick, handleShowFullScreen, handleProfilePicError });
   const activePath = [activeTab];
 
   return (
@@ -187,7 +213,7 @@ const Operator = () => {
         <div className="operators-layout-content">
           <Controls
             justify="start"
-            items={[{ ...SHARED_BUTTON, text: 'Add Operator', componentIconLeft: 'IconlyPlus', componentIconSize: '25', iconColor: 'white-200', onClick: openAddForm, colorScheme: 'success-800', textColor: 'white-200'}]}
+            items={[{ ...SHARED_BUTTON, text: 'Add Operator', componentIconLeft: 'IconlyPlus', componentIconSize: '25', iconColor: 'white-200', onClick: openAddForm, colorScheme: 'success-800', textColor: 'white-200' }]}
           />
 
           {loading ? (
@@ -228,6 +254,7 @@ const Operator = () => {
         onEditOperator={openEditForm}
         onMobilizeOperator={handleMobilizeClick}
         onDemobilizeOperator={handleDemobilizeClick}
+        onReplaceOperator={handleReplaceOperatorClick}
         onDeleteOperator={handleDeleteClick}
         formatDate={formatDate}
         isExpired={isExpired}
@@ -237,6 +264,8 @@ const Operator = () => {
         isOpen={formOpen}
         onClose={handleCloseForm}
         type="form"
+        mode="sheet"
+        modalWidth='80%'
         title={formMode === 'add' ? 'Add New Operator' : 'Edit Operator'}
         buttonText={uploading ? 'Uploading...' : formMode === 'add' ? 'Add Operator' : 'Update Operator'}
         secondaryButtonText="Cancel"
@@ -290,6 +319,23 @@ const Operator = () => {
         onButtonClick={handleDemobilizeSubmit}
         secondaryButtonText="Cancel"
         onSecondaryClick={closeDemobilizeModal}
+      />
+
+      <Modal
+        isOpen={showReplaceOperatorModal}
+        onClose={closeReplaceOperatorModal}
+        type="form"
+        mode="sheet"
+        modalWidth="98%"
+        title={`Replace Operator - ${selectedOperatorForAction?.name || ''}`}
+        message="Select the new operator and what happens next"
+        formFields={replaceOperatorFormFields}
+        formValues={replaceOperatorForm}
+        onFormChange={onReplaceOperatorFormChange}
+        buttonText={isReplacingOperator ? 'Replacing...' : 'Replace Operator'}
+        onButtonClick={handleReplaceOperatorSubmit}
+        secondaryButtonText="Cancel"
+        onSecondaryClick={closeReplaceOperatorModal}
       />
 
       <FullScreenImageViewer src={fullScreenImage} onClose={handleCloseFullScreen} />

@@ -11,7 +11,9 @@ import {
 import {
   mobilizeOperator as mobilizeOperatorApi,
   demobilizeOperator as demobilizeOperatorApi,
+  replaceOperator as replaceOperatorApi,
   fetchSiteOptions,
+  fetchDesignationOptions,
 } from '../api/operator.mobilization.api';
 import { apiRequest } from '@/features/core/network/api/api.request';
 
@@ -21,14 +23,15 @@ import {
   WORKING_IN_OPTIONS,
   LICENCE_TYPE_OPTIONS,
   WORKMEN_COMPENSATION_OPTIONS,
+  MODE_OPTIONS,
   DEPLOY_TYPE_OPTIONS,
   SHIFT_OPTIONS,
   RENT_BASIS_OPTIONS,
-  DESIGNATION_OPTIONS,
   EMPTY_FORM,
   OPERATOR_TABS,
   MOBILIZE_FORM_DEFAULTS,
   DEMOBILIZE_FORM_DEFAULTS,
+  REPLACE_OPERATOR_FORM_DEFAULTS,
   OPERATOR_LIST_PAGE_SIZE,
   OPERATOR_SCROLL_DEBOUNCE_MS,
   OPERATOR_SCROLL_BOTTOM_OFFSET_PX,
@@ -46,6 +49,7 @@ export const useOperator = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [siteOptions, setSiteOptions] = useState([]);
+  const [designationOptions, setDesignationOptions] = useState([]);
 
   const [currentOperatorPage, setCurrentOperatorPage] = useState(1);
   const [hasMoreOperators, setHasMoreOperators] = useState(true);
@@ -78,6 +82,10 @@ export const useOperator = () => {
   const [showDemobilizeModal, setShowDemobilizeModal] = useState(false);
   const [demobilizeForm, setDemobilizeForm] = useState(DEMOBILIZE_FORM_DEFAULTS);
   const [isDemobilizing, setIsDemobilizing] = useState(false);
+
+  const [showReplaceOperatorModal, setShowReplaceOperatorModal] = useState(false);
+  const [replaceOperatorForm, setReplaceOperatorForm] = useState(REPLACE_OPERATOR_FORM_DEFAULTS);
+  const [isReplacingOperator, setIsReplacingOperator] = useState(false);
 
   const loadOperators = useCallback(async (page = 1, append = false) => {
     if (page === 1) setLoading(true);
@@ -147,6 +155,7 @@ export const useOperator = () => {
 
   useEffect(() => {
     fetchSiteOptions().then(setSiteOptions).catch(() => setSiteOptions([]));
+    fetchDesignationOptions().then(setDesignationOptions).catch(() => setDesignationOptions([]));
   }, []);
 
   const getProfilePicUrl = useCallback(async (filePath) => {
@@ -251,6 +260,7 @@ export const useOperator = () => {
       email: operator.email,
       password: operator.password,
       equipmentNumber: operator.equipmentNumber,
+      mode: operator.mode || '',
       isVerified: operator.isVerified,
       toolkits: operator.toolkits || [],
       hired: operator.hired || false,
@@ -451,6 +461,58 @@ export const useOperator = () => {
     }
   };
 
+  const handleReplaceOperatorClick = (operator) => {
+    setSelectedOperatorForAction(operator);
+    setReplaceOperatorForm(REPLACE_OPERATOR_FORM_DEFAULTS);
+    setShowReplaceOperatorModal(true);
+  };
+
+  const closeReplaceOperatorModal = () => {
+    setShowReplaceOperatorModal(false);
+    setSelectedOperatorForAction(null);
+    setReplaceOperatorForm(REPLACE_OPERATOR_FORM_DEFAULTS);
+  };
+
+  const onReplaceOperatorFormChange = (field, value) => {
+    setReplaceOperatorForm(prev => {
+      if (field === 'deployType') {
+        return { ...prev, deployType: value, site: value === 'company' ? '' : prev.site, clientCompany: value === 'site' ? '' : prev.clientCompany };
+      }
+      return { ...prev, [field]: value };
+    });
+  };
+
+  const handleReplaceOperatorSubmit = async () => {
+    if (!selectedOperatorForAction) return;
+    const newOperator = operators.find((op) => op.name === replaceOperatorForm.newOperatorName);
+    if (!newOperator) {
+      alert('Please select a valid operator');
+      return;
+    }
+    setIsReplacingOperator(true);
+    try {
+      const result = await replaceOperatorApi({
+        currentOperatorId: selectedOperatorForAction._id,
+        newOperatorId: newOperator._id,
+        assignmentAction: replaceOperatorForm.assignmentAction,
+        deployType: replaceOperatorForm.deployType,
+        site: replaceOperatorForm.site,
+        clientCompany: replaceOperatorForm.clientCompany,
+        regNo: replaceOperatorForm.regNo,
+        remarks: replaceOperatorForm.remarks,
+      });
+      if (!result.ok) throw new Error(result.message || 'Failed to replace operator');
+      refreshOperator(result.data.currentOperator);
+      refreshOperator(result.data.newOperator);
+      closeReplaceOperatorModal();
+    } catch (err) {
+      console.error('Error replacing operator:', err);
+      alert(`Failed to replace operator: ${err.message}`);
+    } finally {
+      setIsReplacingOperator(false);
+    }
+  };
+
   const operatorFormFields = [
     { name: 'profilePic', label: 'Profile Picture', type: 'file', accept: 'image/*', currentPreview: profilePicUrls[formData.qatarId] || null },
     { name: 'name', label: 'Full Name', type: 'text', placeholder: 'Full name', required: true },
@@ -462,6 +524,7 @@ export const useOperator = () => {
     ...(formData.sponsorship === 'HIRED' ? [{ name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Company / organization name', required: true }] : []),
     { name: 'workingIn', label: 'Working In', type: 'allow-add-select', options: WORKING_IN_OPTIONS },
     { name: 'equipmentNumber', label: 'Equipment Number', type: 'text', placeholder: 'Equipment number' },
+    { name: 'mode', label: 'Working As', type: 'select', options: MODE_OPTIONS },
     { name: 'workmenCompensationAdded', label: 'Workmen Compensation', type: 'select', options: WORKMEN_COMPENSATION_OPTIONS },
     { name: 'passportNo', label: 'Passport Number', type: 'text', placeholder: 'Passport number' },
     { name: 'licenceType', label: 'Licence Type', type: 'allow-add-select', options: LICENCE_TYPE_OPTIONS },
@@ -481,7 +544,14 @@ export const useOperator = () => {
     { name: 'site', label: 'Site', type: 'search-select', placeholder: 'Search or add site...', disabled: mobilizeForm.deployType === 'company', options: siteOptions.map((s) => ({ label: s, value: s })) },
     { name: 'clientCompany', label: 'Client Company', type: 'text', placeholder: 'Enter client company name', disabled: mobilizeForm.deployType === 'site' },
     { name: 'regNo', label: 'Equipment Reg No (Optional)', type: 'text', placeholder: 'Link to equipment if applicable' },
-    { name: 'designation', label: 'Designation', type: 'allow-add-select', options: DESIGNATION_OPTIONS },
+    {
+      name: 'designation',
+      label: 'Designation',
+      type: 'search-select',
+      placeholder: 'Search or add designation...',
+      options: designationOptions.map((d) => ({ label: d, value: d })),
+      onSearchFocus: () => fetchDesignationOptions().then(setDesignationOptions).catch(() => {}),
+    },
     { name: 'shiftName', label: 'Shift (Optional)', type: 'select', options: SHIFT_OPTIONS },
     { name: 'rentRate.basis', label: 'Rent Basis (Optional)', type: 'select', options: RENT_BASIS_OPTIONS },
     { name: 'rentRate.rate', label: 'Rent Rate QAR (Optional)', type: 'number', placeholder: 'Enter rate amount' },
@@ -489,6 +559,42 @@ export const useOperator = () => {
   ];
 
   const demobilizeFormFields = [
+    ...(selectedOperatorForAction?.equipmentNumber ? [{
+      name: 'demobilizeMode',
+      label: 'Demobilize',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'operator-only', label: 'Demobilize Operator Only' },
+        { value: 'with-equipment', label: 'Demobilize Operator With Equipment' },
+      ],
+    }] : []),
+    { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Add any notes' },
+  ];
+
+  const replaceOperatorFormFields = [
+    {
+      name: 'newOperatorName',
+      label: 'New Operator',
+      type: 'search-select',
+      placeholder: 'Search operator...',
+      required: true,
+      options: operators.filter((op) => op._id !== selectedOperatorForAction?._id).map((op) => ({ label: op.name, value: op.name })),
+    },
+    {
+      name: 'assignmentAction',
+      label: 'Assign New Operator To',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'demobilize', label: 'No Assignment (Demobilized)' },
+        { value: 'mobilize', label: 'Mobilize To Site/Equipment' },
+      ],
+    },
+    { name: 'deployType', label: 'Deploy To', type: 'select', options: DEPLOY_TYPE_OPTIONS, disabled: replaceOperatorForm.assignmentAction !== 'mobilize' },
+    { name: 'site', label: 'Site', type: 'search-select', placeholder: 'Search or add site...', options: siteOptions.map((s) => ({ label: s, value: s })), disabled: replaceOperatorForm.assignmentAction !== 'mobilize' || replaceOperatorForm.deployType === 'company' },
+    { name: 'clientCompany', label: 'Client Company', type: 'text', disabled: replaceOperatorForm.assignmentAction !== 'mobilize' || replaceOperatorForm.deployType === 'site' },
+    { name: 'regNo', label: 'Equipment Reg No (Optional)', type: 'text', disabled: replaceOperatorForm.assignmentAction !== 'mobilize' },
     { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Add any notes' },
   ];
 
@@ -530,6 +636,12 @@ export const useOperator = () => {
     demobilizeForm,
     demobilizeFormFields,
     isDemobilizing,
+    selectedOperatorForAction,
+
+    showReplaceOperatorModal,
+    replaceOperatorForm,
+    replaceOperatorFormFields,
+    isReplacingOperator,
 
     handleTabSelect,
     handleSort,
@@ -563,6 +675,11 @@ export const useOperator = () => {
     closeDemobilizeModal,
     onDemobilizeFormChange,
     handleDemobilizeSubmit,
+
+    handleReplaceOperatorClick,
+    closeReplaceOperatorModal,
+    onReplaceOperatorFormChange,
+    handleReplaceOperatorSubmit,
 
     formatDate,
     isExpired,

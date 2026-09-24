@@ -32,6 +32,7 @@ function OperatorSidebar({
   onEditOperator,
   onMobilizeOperator,
   onDemobilizeOperator,
+  onReplaceOperator,
   onDeleteOperator,
   formatDate,
   isExpired,
@@ -163,11 +164,12 @@ function OperatorSidebar({
               position="left"
               gap="8px"
               buttons={[
-                { label: 'Edit Operator', onClick: () => onEditOperator(op), colorScheme: 'primary-600', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '31%' },
+                { label: 'Edit Operator', onClick: () => onEditOperator(op), colorScheme: 'primary-600', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '23%' },
                 op.status === 'mobilized'
-                  ? { label: 'Demobilize', onClick: () => onDemobilizeOperator(op), colorScheme: 'primary-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '31%' }
-                  : { label: 'Mobilize', onClick: () => onMobilizeOperator(op), colorScheme: 'primary-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '31%' },
-                { label: 'Delete Operator', onClick: () => onDeleteOperator(op), colorScheme: 'primary-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '31%' },
+                  ? { label: 'Demobilize', onClick: () => onDemobilizeOperator(op), colorScheme: 'primary-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '23%' }
+                  : { label: 'Mobilize', onClick: () => onMobilizeOperator(op), colorScheme: 'primary-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '23%' },
+                { label: 'Replace Operator', onClick: () => onReplaceOperator(op), colorScheme: 'primary-700', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '23%' },
+                { label: 'Delete Operator', onClick: () => onDeleteOperator(op), colorScheme: 'primary-800', textColor: 'white-100', squircle: '6xl', font: 'xl', height: '45px', width: '23%' },
               ]}
             />
           </SidebarSection>

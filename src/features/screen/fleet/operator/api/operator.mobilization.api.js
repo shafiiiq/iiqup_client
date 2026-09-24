@@ -25,3 +25,14 @@ export const fetchSiteOptions = async () => {
   const result = await response.json();
   return Array.isArray(result.data) ? result.data : [];
 };
+
+export const replaceOperator = async (payload) => {
+  const response = await apiRequest(`/users/operators/replace-operator`, 'POST', payload);
+  return response.json();
+};
+
+export const fetchDesignationOptions = async () => {
+  const response = await apiRequest(`/users/operators/designations`, 'GET');
+  const result = await response.json();
+  return Array.isArray(result.data) ? result.data : [];
+};
