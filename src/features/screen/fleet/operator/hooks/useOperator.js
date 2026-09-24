@@ -274,7 +274,7 @@ export const useOperator = () => {
     if (!profilePicFile) return null;
     setUploading(true);
     try {
-      const res = await apiRequest(`/operators/profile`, 'POST', { qatarId }, {}, profilePicFile);
+      const res = await apiRequest(`/users/operators/profile`, 'POST', { qatarId }, {}, profilePicFile);
       if (!res.ok) throw new Error('Failed to upload profile picture');
       const result = await res.json();
       return result.data.profilePic;
@@ -291,7 +291,7 @@ export const useOperator = () => {
       const isAdd = formMode === 'add';
       const url = isAdd
         ? `/users/operators`
-        : `/operators/${selectedOperator._id}`;
+        : `/users/operators/${selectedOperator._id}`;
 
       const res = await apiRequest(url, isAdd ? 'POST' : 'PUT', payload);
       if (!res.ok) throw new Error(`Failed to ${formMode} operator`);
@@ -525,6 +525,14 @@ export const useOperator = () => {
     { name: 'workingIn', label: 'Working In', type: 'allow-add-select', options: WORKING_IN_OPTIONS },
     { name: 'equipmentNumber', label: 'Equipment Number', type: 'text', placeholder: 'Equipment number' },
     { name: 'mode', label: 'Working As', type: 'select', options: MODE_OPTIONS },
+    {
+      name: 'designation',
+      label: 'Designation',
+      type: 'search-select',
+      placeholder: 'Search or add designation...',
+      options: designationOptions.map((d) => ({ label: d, value: d })),
+      onSearchFocus: () => fetchDesignationOptions().then(setDesignationOptions).catch(() => {}),
+    },
     { name: 'workmenCompensationAdded', label: 'Workmen Compensation', type: 'select', options: WORKMEN_COMPENSATION_OPTIONS },
     { name: 'passportNo', label: 'Passport Number', type: 'text', placeholder: 'Passport number' },
     { name: 'licenceType', label: 'Licence Type', type: 'allow-add-select', options: LICENCE_TYPE_OPTIONS },
