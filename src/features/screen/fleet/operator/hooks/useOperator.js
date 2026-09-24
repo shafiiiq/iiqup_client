@@ -533,6 +533,7 @@ export const useOperator = () => {
       options: designationOptions.map((d) => ({ label: d, value: d })),
       onSearchFocus: () => fetchDesignationOptions().then(setDesignationOptions).catch(() => {}),
     },
+    { name: 'site', label: 'Site', type: 'search-select', placeholder: 'Search or add site...', disabled: mobilizeForm.deployType === 'company', options: siteOptions.map((s) => ({ label: s, value: s })) },
     { name: 'workmenCompensationAdded', label: 'Workmen Compensation', type: 'select', options: WORKMEN_COMPENSATION_OPTIONS },
     { name: 'passportNo', label: 'Passport Number', type: 'text', placeholder: 'Passport number' },
     { name: 'licenceType', label: 'Licence Type', type: 'allow-add-select', options: LICENCE_TYPE_OPTIONS },
