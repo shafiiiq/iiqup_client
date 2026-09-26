@@ -200,7 +200,7 @@ export const TERM_TEMPLATE_LABELS = {
 
 export const DEFAULT_PAYMENT_TERMS = TERM_TEMPLATES.WITH_OPERATOR;
 
-export const DEFAULT_NOTICE_TEXT = 'Note: Equipment hired on weekly basis will be charged for the complete first week even if the equipment returns early.';
+export const DEFAULT_NOTICE_TEXT = 'Note: Equipment hired on daily basis will be charged for the complete first week even if the equipment returns early.';
 export const DEFAULT_PRICE_STATEMENT_TEXT = 'The price we have quoted is the best according to present standards, and considering our experience in the field we offer you a smooth and timely execution of job.';
 export const DEFAULT_CONTACT_TEXT = 'For any further clarifications, please feel free to contact either the Operations Manager Mr. Suresh Kanth Mob: 51700488 OR Sales Manager Mr. Sruthin Mob: 51700489.';
 export const CONFIRMATION_HEADING = 'Please fill out the following details and revert to us to confirm the hire.';
