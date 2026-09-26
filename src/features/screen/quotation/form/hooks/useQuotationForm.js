@@ -362,12 +362,15 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
 
   const handleDescriptionPaste = (e, index) => {
     const clipboardItems = e.clipboardData?.items;
-    console.log('[Quotation] paste clipboard types:', clipboardItems ? Array.from(clipboardItems).map((i) => i.type) : 'none');
 
     if (clipboardItems) {
-      for (const clipboardItem of clipboardItems) {
-        if (clipboardItem.type.startsWith('image/')) {
-          const file = clipboardItem.getAsFile();
+      const imageItems = Array.from(clipboardItems).filter(
+        (item) => item.type.startsWith('image/') && item.type !== 'image/svg+xml'
+      );
+
+      for (const clipboardItem of imageItems) {
+        const file = clipboardItem.getAsFile();
+        if (file) {
           readImageFileForItem(file, index, 4);
           e.preventDefault();
           return;
@@ -378,15 +381,13 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     const clipboardFiles = e.clipboardData?.files;
     if (clipboardFiles?.length) {
       for (const file of clipboardFiles) {
-        if (file.type.startsWith('image/')) {
+        if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
           readImageFileForItem(file, index, 4);
           e.preventDefault();
           return;
         }
       }
     }
-
-    console.warn('[Quotation] paste: no image type found in clipboard');
   };
 
   const handleDescriptionDrop = (e, index) => {
