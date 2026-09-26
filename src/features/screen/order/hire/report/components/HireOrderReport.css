@@ -67,6 +67,15 @@
   font-size: 18px;
 }
 
+.features.screen.hire.order.report.info-column-right {
+  text-align: right;
+}
+
+.features.screen.hire.order.report.info-right-block {
+  display: inline-block;
+  text-align: left;
+}
+
 .features.screen.hire.order.report.info-line {
   display: flex !important;
   align-items: start !important;

@@ -217,15 +217,17 @@ function ReportData({ data, signatureFlags, signatureStates, quotationUrl, quota
                 <div className="purchase order report info line">Ref No : {data.quoteNo}</div>
               </td>
               <td className="purchase order report info column right">
-                <div className="purchase order report info line">DATE : {data.date}</div>
-                <div className="purchase order report info line">REF NO : {data.purchaseorderRef}</div>
-                {data.jobCode && <div className="purchase order report info line">JOB/COMPLAINT NO : {data.jobCode}</div>}
-                <div className="purchase order report info line">
-                  <span>EQUIPMENT:</span>
-                  <ul>{data.equipments.map((equipment, equipmentIndex) => <li key={equipmentIndex}>{equipment}</li>)}</ul>
-                </div>
-                <div className="purchase order report info line">
-                  {data.workingHrs ? `WORKING HRS : ${data.workingHrs}` : data.runningKm ? `RUNNING KM : ${data.runningKm}` : ''}
+                <div className="purchase order report info right block">
+                  <div className="purchase order report info line">DATE : {data.date}</div>
+                  <div className="purchase order report info line">REF NO : {data.purchaseorderRef}</div>
+                  {data.jobCode && <div className="purchase order report info line">JOB/COMPLAINT NO : {data.jobCode}</div>}
+                  <div className="purchase order report info line">
+                    <span>EQUIPMENT:</span>
+                    <ul>{data.equipments.map((equipment, equipmentIndex) => <li key={equipmentIndex}>{equipment}</li>)}</ul>
+                  </div>
+                  <div className="purchase order report info line">
+                    {data.workingHrs ? `WORKING HRS : ${data.workingHrs}` : data.runningKm ? `RUNNING KM : ${data.runningKm}` : ''}
+                  </div>
                 </div>
               </td>
             </tr>
