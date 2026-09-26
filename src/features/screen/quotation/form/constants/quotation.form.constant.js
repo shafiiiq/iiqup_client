@@ -1,6 +1,6 @@
 import { buildDefaultItem } from '../helper/quotation.form.helper';
 
-export const DEFAULT_REQUEST_TEXT = 'You are requested to supply the following manpower and equipment as per the agreed hire terms.';
+export const DEFAULT_REQUEST_TEXT = 'Dear Sir,\n       Further to your request, we would like to quote our best possible price for the requirement of equipment as given below.';
 
 export const TERM_TEMPLATES = {
   WITH_OPERATOR: [

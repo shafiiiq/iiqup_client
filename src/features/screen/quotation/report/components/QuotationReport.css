@@ -81,6 +81,8 @@
 .features.screen.quotation.report.item-image-wrap {
   margin-top: 6px;
   max-width: 100%;
+  display: inline-block;
+  overflow: hidden;
 }
 
 .features.screen.quotation.report.item-image {
