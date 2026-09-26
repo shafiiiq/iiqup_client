@@ -33,6 +33,10 @@
   width: 50%;
 }
 
+.features.screen.quotation.report.info-column-right {
+  padding-left: 200px !important;
+}
+
 .features.screen.quotation.report.info-line {
   margin-bottom: 8px;
   font-size: 12pt;
