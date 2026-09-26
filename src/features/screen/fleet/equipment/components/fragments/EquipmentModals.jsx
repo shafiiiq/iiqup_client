@@ -492,13 +492,28 @@ function EquipmentModals({
         formFields={[
           { name: 'replacedEquipmentRegNo', label: 'New Equipment Reg No', type: 'search-select', placeholder: 'Search equipment by reg no...', required: true, options: replaceEquipmentResults.map(eq => ({ label: `${eq.regNo} - ${eq.machine}`, value: eq.regNo })) },
           { name: 'replacedEquipmentMachine', label: 'New Equipment Machine', type: 'text', placeholder: 'Auto-filled', disabled: true },
-          { name: 'operator', label: 'Operator (Current Equipment)', type: 'search-select', placeholder: 'Search operator...', options: operatorOptions(operator) },
+          ...(replaceEquipmentForm.operators || []).flatMap((op, index) => [
+            {
+              name: `operators[${index}].operatorName`,
+              label: replaceEquipmentForm.operators.length > 1
+                ? `Operator ${index + 1}${op.shiftName ? ` — ${op.shiftName}` : ''} (Current Equipment)`
+                : 'Operator (Current Equipment)',
+              type: 'search-select', placeholder: 'Search operator...',
+              options: operatorOptions(operator),
+            },
+          ]),
           { name: 'newSiteForReplaced', label: 'New Site for Current Equipment (Optional)', type: 'search-select', placeholder: 'Search or add site...', options: siteOptions(sites), onSearchFocus: onSiteFocus },
           { name: 'date', label: 'Date (Optional)', type: 'date' },
           { name: 'time', label: 'Time (Optional)', type: 'time' },
           { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Reason for replacement or notes' },
         ]}
-        formValues={replaceEquipmentForm}
+        formValues={{
+          ...replaceEquipmentForm,
+          ...(replaceEquipmentForm.operators || []).reduce((acc, op, i) => ({
+            ...acc,
+            [`operators[${i}].operatorName`]: op.operatorName || '',
+          }), {}),
+        }}
         onFormChange={onReplaceEquipmentFormChange}
         buttonText="Replace Equipment"
         onButtonClick={onReplaceEquipmentSubmit}

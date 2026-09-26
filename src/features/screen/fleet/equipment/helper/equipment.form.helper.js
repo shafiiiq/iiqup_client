@@ -142,9 +142,19 @@ export const patchReplaceEquipmentFormField = (prevForm, field, value, operatorO
   if (field === 'replacedEquipmentRegNo') {
     return { ...prevForm, replacedEquipmentRegNo: value, replacedEquipmentMachine: '', replacedEquipmentId: '' };
   }
-  if (field === 'operator') {
-    return { ...prevForm, operator: value, operatorId: matchOperatorId(operatorOptions, value) };
+
+  const operatorFieldMatch = field.match(/^operators\[(\d+)\]\.operatorName$/);
+  if (operatorFieldMatch) {
+    const index = Number(operatorFieldMatch[1]);
+    const updatedOperators = [...prevForm.operators];
+    updatedOperators[index] = {
+      ...updatedOperators[index],
+      operatorName: value,
+      operatorId: matchOperatorId(operatorOptions, value),
+    };
+    return { ...prevForm, operators: updatedOperators };
   }
+
   return { ...prevForm, [field]: value };
 };
 
@@ -311,8 +321,7 @@ export const buildReplaceEquipmentPayload = (equipment, form) => {
     month, year, time,
     selectedDate: form.date || null,
     remarks: form.remarks,
-    operator: form.operator || '',
-    operatorId: form.operatorId || '',
+    operators: (form.operators || []).filter(op => op.operatorName),
   };
 };
 

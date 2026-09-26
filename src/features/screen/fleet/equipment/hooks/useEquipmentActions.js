@@ -409,8 +409,11 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     setSelectedEquipmentForAction(equipment);
     setReplaceEquipmentForm({
       ...EQUIPMENT_REPLACE_EQUIPMENT_FORM_DEFAULTS,
-      operator: equipment.certificationBody?.at(-1)?.operatorName || '',
-      operatorId: equipment.certificationBody?.at(-1)?.operatorId || '',
+      operators: (equipment.certificationBody || []).map(cb => ({
+        operatorName: cb.operatorName || '',
+        operatorId: cb.operatorId || '',
+        shiftName: cb.shiftName || '',
+      })),
     });
     setShowReplaceEquipmentModal(true);
   };
