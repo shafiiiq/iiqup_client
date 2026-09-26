@@ -23,6 +23,8 @@ import {
   isTermHeading,
   generateTermKey,
   compressImageDataUrl,
+  derivePeriodsFromColumns,
+  applyPeriodsToNoticeText,
 } from '../helper/quotation.form.helper';
 import {
   DEFAULT_COLUMNS,
@@ -70,6 +72,15 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const [manualTotal, setManualTotal] = useState(null);
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
+
+  useEffect(() => {
+    const periods = derivePeriodsFromColumns(columns);
+    setQuotationData((prev) => {
+      const updatedNotice = applyPeriodsToNoticeText(prev.noticeText, periods);
+      if (updatedNotice === prev.noticeText) return prev;
+      return { ...prev, noticeText: updatedNotice };
+    });
+  }, [columns]);
 
   const subtotal = calculateSubtotal(quotationData.items);
   const totalAmount = subtotal - (quotationData.discount || 0);

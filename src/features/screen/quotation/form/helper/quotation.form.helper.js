@@ -101,3 +101,23 @@ export const buildTermNumbers = (terms) => {
   let count = 0;
   return terms.map((term) => (isTermHeading(term) ? null : ++count));
 };
+
+const PERIOD_ORDER = ['Hourly', 'Daily', 'Weekly', 'Monthly', 'Yearly'];
+
+export const derivePeriodsFromColumns = (columns = []) => {
+  const found = new Set();
+  columns.forEach((col) => {
+    if (col.type === 'calculated') return;
+    PERIOD_ORDER.forEach((period) => {
+      if (new RegExp(period, 'i').test(col.label || '')) found.add(period.toLowerCase());
+    });
+  });
+  return PERIOD_ORDER.map((p) => p.toLowerCase()).filter((p) => found.has(p));
+};
+
+const PERIOD_PATTERN = /\b(hourly|daily|weekly|monthly|yearly)(\s*\/\s*(hourly|daily|weekly|monthly|yearly))*\b/i;
+
+export const applyPeriodsToNoticeText = (noticeText, periods) => {
+  if (!periods.length || !PERIOD_PATTERN.test(noticeText)) return noticeText;
+  return noticeText.replace(PERIOD_PATTERN, periods.join('/'));
+};
