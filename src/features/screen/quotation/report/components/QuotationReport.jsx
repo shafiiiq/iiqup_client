@@ -49,10 +49,10 @@ const buildTotalRow = (data, columns, total) => {
 const buildTermLi = (term, absoluteIndex, number) => (
   <li
     key={absoluteIndex}
-    value={isTermHeading(term) ? undefined : number}
-    className={isTermHeading(term) ? 'features screen quotation report term-heading' : ''}
+    className={isTermHeading(term) ? 'features screen quotation report term-heading' : 'features screen quotation report term-item'}
   >
-    {getTermText(term)}
+    {!isTermHeading(term) && <span className="features screen quotation report term-number">{number}.</span>}
+    <span className="features screen quotation report term-text">{getTermText(term)}</span>
   </li>
 );
 
