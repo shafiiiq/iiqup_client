@@ -326,12 +326,21 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   };
 
   const readImageFileForItem = (file, index, trim = 0) => {
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file || !file.type.startsWith('image/')) {
+      console.warn('[Quotation] readImageFileForItem: no valid image file', file);
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async () => {
-      const compressed = await compressImageDataUrl(reader.result, 1000, 0.6, trim);
-      handleItemImageChange(index, compressed);
+      try {
+        const compressed = await compressImageDataUrl(reader.result, 1000, 0.6, trim);
+        handleItemImageChange(index, compressed);
+      } catch (err) {
+        console.error('[Quotation] compressImageDataUrl failed:', err);
+        handleItemImageChange(index, reader.result);
+      }
     };
+    reader.onerror = (err) => console.error('[Quotation] FileReader error:', err);
     reader.readAsDataURL(file);
   };
 
@@ -353,6 +362,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
 
   const handleDescriptionPaste = (e, index) => {
     const clipboardItems = e.clipboardData?.items;
+    console.log('[Quotation] paste clipboard types:', clipboardItems ? Array.from(clipboardItems).map((i) => i.type) : 'none');
 
     if (clipboardItems) {
       for (const clipboardItem of clipboardItems) {
@@ -375,6 +385,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
         }
       }
     }
+
+    console.warn('[Quotation] paste: no image type found in clipboard');
   };
 
   const handleDescriptionDrop = (e, index) => {
