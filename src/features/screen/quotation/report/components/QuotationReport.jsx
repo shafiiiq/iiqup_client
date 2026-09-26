@@ -222,14 +222,16 @@ function ReportData({ data, signatureFlags, signatureStates }) {
               <div className="features screen quotation report info-line">DESIGNATION : {data.designation}</div>
             </td>
             <td className="features screen quotation report info-column-right">
-              <div className="features screen quotation report info-line">DATE : {data.date}</div>
-              <div className="features screen quotation report info-line">LOCATION : {data.location}</div>
-              {data.customFields?.map((field, idx) => (
-                <div className="features screen quotation report info-line" key={field.id || idx}>
-                  {(field.label || 'FIELD').toUpperCase()} : {field.value}
-                </div>
-              ))}
-              <div className="features screen quotation report info-line">REF NO : {data.quotationRef}</div>
+              <div className="features screen quotation report info-right-block">
+                <div className="features screen quotation report info-line">DATE : {data.date}</div>
+                <div className="features screen quotation report info-line">LOCATION : {data.location}</div>
+                {data.customFields?.map((field, idx) => (
+                  <div className="features screen quotation report info-line" key={field.id || idx}>
+                    {(field.label || 'FIELD').toUpperCase()} : {field.value}
+                  </div>
+                ))}
+                <div className="features screen quotation report info-line">REF NO : {data.quotationRef}</div>
+              </div>
             </td>
           </tr>
         </tbody>

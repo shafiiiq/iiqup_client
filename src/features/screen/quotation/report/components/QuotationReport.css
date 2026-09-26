@@ -34,7 +34,12 @@
 }
 
 .features.screen.quotation.report.info-column-right {
-  padding-left: 200px !important;
+  text-align: right;
+}
+
+.features.screen.quotation.report.info-right-block {
+  display: inline-block;
+  text-align: left;
 }
 
 .features.screen.quotation.report.info-line {
