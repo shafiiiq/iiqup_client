@@ -325,11 +325,11 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     setQuotationData((prev) => ({ ...prev, items: newItems }));
   };
 
-  const readImageFileForItem = (file, index) => {
+  const readImageFileForItem = (file, index, trim = 0) => {
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = async () => {
-      const compressed = await compressImageDataUrl(reader.result);
+      const compressed = await compressImageDataUrl(reader.result, 1000, 0.6, trim);
       handleItemImageChange(index, compressed);
     };
     reader.readAsDataURL(file);
@@ -358,7 +358,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       for (const clipboardItem of clipboardItems) {
         if (clipboardItem.type.startsWith('image/')) {
           const file = clipboardItem.getAsFile();
-          readImageFileForItem(file, index);
+          readImageFileForItem(file, index, 4);
           e.preventDefault();
           return;
         }
@@ -369,7 +369,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     if (clipboardFiles?.length) {
       for (const file of clipboardFiles) {
         if (file.type.startsWith('image/')) {
-          readImageFileForItem(file, index);
+          readImageFileForItem(file, index, 4);
           e.preventDefault();
           return;
         }

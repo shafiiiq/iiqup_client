@@ -1,19 +1,27 @@
-export const compressImageDataUrl = (dataUrl, maxDimension = 1000, quality = 0.6) =>
+export const compressImageDataUrl = (dataUrl, maxDimension = 1000, quality = 0.6, trim = 0) =>
   new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      let { width, height } = img;
-      if (width > maxDimension || height > maxDimension) {
-        const scale = maxDimension / Math.max(width, height);
-        width = Math.round(width * scale);
-        height = Math.round(height * scale);
+      try {
+        const safeTrim = Math.max(0, Math.min(trim, Math.floor(img.width / 2) - 1, Math.floor(img.height / 2) - 1));
+        const sourceWidth = img.width - safeTrim * 2;
+        const sourceHeight = img.height - safeTrim * 2;
+        let width = sourceWidth;
+        let height = sourceHeight;
+        if (width > maxDimension || height > maxDimension) {
+          const scale = maxDimension / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, safeTrim, safeTrim, sourceWidth, sourceHeight, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch (err) {
+        resolve(dataUrl);
       }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
