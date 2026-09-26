@@ -218,7 +218,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
           <tr>
             <td className="features screen quotation report info-column-left">
               <div className="features screen quotation report info-line">TO : M/S {data.vendor}</div>
-              <div className="features screen quotation report info-line">ATTN : M/S {data.attention}</div>
+              <div className="features screen quotation report info-line">ATTN : {data.attention}</div>
               <div className="features screen quotation report info-line">DESIGNATION : {data.designation}</div>
             </td>
             <td className="features screen quotation report info-column-right">
