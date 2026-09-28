@@ -63,7 +63,12 @@ export const buildQuotationTableColumns = ({ handleViewQuotation, handleDeleteCl
     headerCenter: true,
     dataCenter: true,
     progress: true,
-    render: (q) => (q.isAmendmented ? STATUS_LABELS.yes : STATUS_LABELS.no)
+    render: (q) => {
+      const count = q.amendments?.length || 0;
+      return count > 0
+        ? { ...STATUS_LABELS.yes, label: `${count} ${count === 1 ? 'time' : 'times'}` }
+        : STATUS_LABELS.no;
+    },
   },
   { key: 'totalAmount', header: 'Total Amount', render: (q) => (q.totalAmount ?? 0).toFixed(2) },
   {
