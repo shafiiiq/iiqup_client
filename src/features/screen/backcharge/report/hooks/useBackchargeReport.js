@@ -145,7 +145,7 @@ export const useBackchargeReport = () => {
   const [unsignedAboveRoles, setUnsignedAboveRoles] = useState([]);
 
   const [showActivationModal, setShowActivationModal] = useState(false);
-  const [showTrustModal] = useState(false);
+  const [showTrustModal, setShowTrustModal] = useState(false);
   const [showNotTrustedModal, setShowNotTrustedModal] = useState(false);
   const [showSignConfirmModal, setShowSignConfirmModal] = useState(false);
   const [showUnauthorisedModal, setShowUnauthorisedModal] = useState(false);
@@ -418,8 +418,9 @@ export const useBackchargeReport = () => {
           return;
         }
       }
-      setGlobalActivation({ isActivated: true, isTrusted: true, checked: true });
+      setGlobalActivation({ isActivated: true, isTrusted: false, checked: true });
       setShowActivationModal(false);
+      setShowTrustModal(true);
       setActivationKey('');
       setActivationError('');
     } catch (error) {
@@ -484,7 +485,11 @@ export const useBackchargeReport = () => {
   const handleOpenSignConfirmModal = () => setShowSignConfirmModal(true);
   const handleCloseSignConfirmModal = () => setShowSignConfirmModal(false);
 
-  const handleCloseActivationModal = () => setShowActivationModal(false);
+  const handleCloseActivationModal = () => {
+    setShowActivationModal(false);
+    setShowTrustModal(false);
+    setGlobalActivation((prev) => ({ ...prev, isTrusted: true }));
+  };
   const handleCloseNotTrustedModal = () => setShowNotTrustedModal(false);
   const handleCloseUnauthorisedModal = () => setShowUnauthorisedModal(false);
 
