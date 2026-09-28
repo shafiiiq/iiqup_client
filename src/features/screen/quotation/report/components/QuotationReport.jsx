@@ -208,7 +208,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
   const headerNode = (
     <>
       {data.isAmendment && data.amendmentDate && (
-        <div className="features screen quotation report amendment-banner">[AMENDMENT]</div>
+        <div className="features screen quotation report amendment-banner">[AMENDMENT 1]</div>
       )}
       <div className="features screen quotation report divider-header" />
       <div className="features screen quotation report title">QUOTATION</div>
@@ -231,6 +231,9 @@ function ReportData({ data, signatureFlags, signatureStates }) {
                   </div>
                 ))}
                 <div className="features screen quotation report info-line">REF NO : {data.quotationRef}</div>
+                {data.isAmendment && data.amendmentDate && (
+                  <div className="features screen quotation report info-line">REF NO : REV 1 ({data.quotationRef})</div>
+                )}
               </div>
             </td>
           </tr>

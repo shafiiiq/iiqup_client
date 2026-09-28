@@ -19,11 +19,11 @@ import {
   NAV_GROUPS,
 } from '../constants/home.constant';
 
-import Excavator from '@assets/images/fleet/excavator.jpg';
-import Excavators from '@assets/images/fleet/excavators.jpg';
+import Excavator from '@assets/images/fleet/driller.jpg';
+import Excavators from '@assets/images/fleet/driller.jpg';
 import Dozer from '@assets/images/fleet/dozer.jpg';
 import DumpTruck from '@assets/images/fleet/dump-truck.jpg';
-import Crane from '@assets/images/fleet/crane.jpg';
+import Crane from '@assets/images/fleet/driller.jpg';
 import Driller from '@assets/images/fleet/driller.jpg';
 
 import './Home.css';
