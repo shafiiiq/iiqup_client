@@ -56,6 +56,11 @@ export const getLocationInfo = async () => {
     return locationCache;
   } catch (error) {
     console.error('Error getting location:', error);
+    if (cached) {
+      const { data } = JSON.parse(cached);
+      locationCache = data;
+      return data;
+    }
     return {
       city: 'Unknown',
       region: 'Unknown',
