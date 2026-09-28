@@ -395,6 +395,10 @@ export const useBackchargeReport = () => {
   };
 
   const handleSignButtonClick = async () => {
+    if (formData.status === 'draft') {
+      alert('Please send this document for approval before signing.');
+      return;
+    }
     if (!globalActivation.isActivated || !globalActivation.isTrusted) {
       setShowActivationModal(true);
       return;

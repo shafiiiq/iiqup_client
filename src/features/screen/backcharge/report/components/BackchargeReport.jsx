@@ -77,7 +77,7 @@ function BackchargeReport() {
     : [
       { key: 'edit', ...SHARED_BTN, text: 'Edit', onClick: handleEdit, colorScheme: 'warning-800', width: '160px' },
       formData.status === 'draft' && { key: 'approve', ...SHARED_BTN, text: isSubmittingApproval ? 'Sending...' : 'Send For Approval', onClick: sendToApprove, colorScheme: 'info-800', width: '160px', disabled: isSubmittingApproval },
-      { key: 'sign', ...SHARED_BTN, text: isSigningDoc ? 'Signing...' : 'Sign Document', onClick: handleSignButtonClick, colorScheme: 'warning-800', width: '160px', disabled: isSigningDoc },
+      { key: 'sign', ...SHARED_BTN, text: isSigningDoc ? 'Signing...' : 'Sign Document', onClick: handleSignButtonClick, colorScheme: 'warning-800', width: '160px', disabled: isSigningDoc || formData.status === 'draft' },
       { key: 'download', ...SHARED_BTN, text: 'Download PDF', onClick: handleDownloadPdf, colorScheme: 'success-800', width: '160px' },
       supplierMail && { key: 'send', ...SHARED_BTN, text: 'Send to client', onClick: handleOpenEmailModal, colorScheme: 'warning-700', width: '160px' },
       { key: 'print', ...SHARED_BTN, text: 'Print', onClick: handlePrint, colorScheme: 'success-800', width: '160px' },
