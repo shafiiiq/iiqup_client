@@ -208,7 +208,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
   const headerNode = (
     <>
       {data.isAmendment && data.amendmentDate && (
-        <div className="features screen quotation report amendment-banner">[AMENDMENT 1]</div>
+        <div className="features screen quotation report amendment-banner">[AMENDMENT {data.amendmentNumber}]</div>
       )}
       <div className="features screen quotation report divider-header" />
       <div className="features screen quotation report title">QUOTATION</div>
@@ -230,9 +230,15 @@ function ReportData({ data, signatureFlags, signatureStates }) {
                     {(field.label || 'FIELD').toUpperCase()} : {field.value}
                   </div>
                 ))}
-                <div className="features screen quotation report info-line">REF NO : {data.quotationRef}</div>
-                {data.isAmendment && data.amendmentDate && (
-                  <div className="features screen quotation report info-line">AMENDMENT REF NO : REV 1 ({data.quotationRef})</div>
+                <div className="features screen quotation report info-line">
+                  {data.isAmendment && data.amendmentNumber > 1
+                    ? `REF NO : REV ${data.amendmentNumber - 1} (${data.quotationRef})`
+                    : `REF NO : ${data.quotationRef}`}
+                </div>
+                {data.isAmendment && data.amendmentNumber > 0 && (
+                  <div className="features screen quotation report info-line">
+                    AMENDMENT REF NO : REV {data.amendmentNumber} ({data.quotationRef})
+                  </div>
                 )}
               </div>
             </td>

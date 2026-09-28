@@ -236,6 +236,7 @@ const useQuotationReport = () => {
           termsAndConditions: (latest.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : q.termsAndConditions || []).filter((t) => t !== 'Terms & Conditions'),
           isAmendment: true,
           amendmentDate: new Date(latest.amendmentDate).toLocaleDateString('en-GB'),
+          amendmentNumber: q.amendments.length,
         });
       }
 

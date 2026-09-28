@@ -526,6 +526,9 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
 
   const headerNode = (
     <>
+      {quotationForm.isAmendmentMode && (
+        <div className="features screen quotation form amendment-banner">[AMENDMENT {quotationForm.amendmentNumber}]</div>
+      )}
       <div className="features screen quotation form top-divider" />
       <div className="features screen quotation form title">QUOTATION</div>
 
@@ -640,7 +643,20 @@ function QuotationForm({ edit, amendment, amendmentUpdate }) {
                   </div>
                 ))}
 
-                <div className="features screen quotation form detail-item">REF NO : <span className="features screen quotation form non-editable">{quotationData.quotationRef}</span></div>
+                <div className="features screen quotation form detail-item">
+                  REF NO : <span className="features screen quotation form non-editable">
+                    {quotationForm.isAmendmentMode && quotationForm.amendmentNumber > 1
+                      ? `REV ${quotationForm.amendmentNumber - 1} (${quotationData.quotationRef})`
+                      : quotationData.quotationRef}
+                  </span>
+                </div>
+                {quotationForm.isAmendmentMode && quotationForm.amendmentNumber > 0 && (
+                  <div className="features screen quotation form detail-item">
+                    AMENDMENT REF NO : <span className="features screen quotation form non-editable">
+                      REV {quotationForm.amendmentNumber} ({quotationData.quotationRef})
+                    </span>
+                  </div>
+                )}
                 <div className="features screen quotation form add-field-row">
                   <Controls
                     justify="start"

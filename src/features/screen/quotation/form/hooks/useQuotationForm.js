@@ -70,6 +70,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
   const [showTotalRow, setShowTotalRow] = useState(true);
   const [manualTotal, setManualTotal] = useState(null);
+  const [amendmentNumber, setAmendmentNumber] = useState(0);
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
 
@@ -105,7 +106,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   }, [quotationCounter, saveStatus, quotationData.quotationRef, isAmendmentMode, isEditMode, setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
-    if (isAmendmentEditMode && quotationRef) fetchHireOrderForAmendmentEdit();
+    if (isAmendmentMode && quotationRef) fetchHireOrderForAmendmentEdit();
     else if ((isEditMode || isAmendmentMode) && quotationRef) fetchHireOrderForEdit();
     else fetchLatestHireOrderNumber();
 
@@ -193,18 +194,19 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       if (!data.success || !data.data) return;
       const ho = data.data;
       const latest = ho.amendments?.[ho.amendments.length - 1];
+      setAmendmentNumber((ho.amendments?.length || 0) + 1);
 
       const loadedColumns = latest?.amendedColumns?.length ? latest.amendedColumns : (ho.columns?.length ? ho.columns : DEFAULT_COLUMNS);
 
       setQuotationCounter(ho.quotationCounter || 1);
       setColumns(loadedColumns);
       setQuotationData({
-        vendor: latest?.amendedCompany?.vendor || '',
+        vendor: latest?.amendedCompany?.vendor || ho.company?.vendor || '',
         date: latest?.amendmentDate ? formatDate(latest.amendmentDate) : new Date().toLocaleDateString('en-GB'),
         quotationRef: ho.quotationRef || '',
         complaintId: ho.complaintId || '',
-        attention: latest?.amendedCompany?.attention || '',
-        designation: latest?.amendedCompany?.designation || '',
+        attention: latest?.amendedCompany?.attention || ho.company?.attention || '',
+        designation: latest?.amendedCompany?.designation || ho.company?.designation || '',
         location: latest?.amendedLocation || ho.location || '',
         requestText: latest?.amendedRequestText || ho.requestText || '',
         items: latest?.amendedItems?.length ? latest.amendedItems : (ho.items?.length ? ho.items : [buildDefaultItem(loadedColumns)]),
@@ -643,6 +645,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
     customFields,
     quotationCounter,
     ceoMode,
+    amendmentNumber,
     companyDropdown,
     attnDropdown,
     showDiscount,
