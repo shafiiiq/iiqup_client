@@ -154,7 +154,12 @@ export const useBackchargeReport = () => {
   useEffect(() => {
     if (refNo) {
       setHeaderTitle(`Ref No: ${refNo}`);
-      setHeaderSubtitle(`Backcharge Of: ${formData.supplierName}`);
+      const authStatus = !globalActivation.checked
+        ? 'Checking Authorization...'
+        : globalActivation.isActivated && globalActivation.isTrusted
+        ? 'E-Sign Activated'
+        : 'E-Sign Not Activated';
+      setHeaderSubtitle(`Backcharge Of: ${formData.supplierName} · ${authStatus}`);
     } else {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -163,7 +168,7 @@ export const useBackchargeReport = () => {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
     };
-  }, [refNo, formData.supplierName, setHeaderTitle, setHeaderSubtitle]);
+  }, [refNo, formData.supplierName, globalActivation.checked, globalActivation.isActivated, globalActivation.isTrusted, setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
     const total = formData.tableRows.reduce((sum, row) => sum + (parseFloat(row.total) || 0), 0);
@@ -395,6 +400,9 @@ export const useBackchargeReport = () => {
   };
 
   const handleSignButtonClick = async () => {
+    if (!globalActivation.checked) {
+      return;
+    }
     if (formData.status === 'draft') {
       alert('Please send this document for approval before signing.');
       return;
@@ -405,7 +413,7 @@ export const useBackchargeReport = () => {
     }
     setShowSignConfirmModal(true);
   };
-
+  
   const handleActivation = async () => {
     if (!activationKey.trim()) {
       setActivationError('Activation key is required');
