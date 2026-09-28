@@ -153,13 +153,13 @@ export const useBackchargeReport = () => {
 
   useEffect(() => {
     if (refNo) {
-      setHeaderTitle(`Ref No: ${refNo}`);
       const authStatus = !globalActivation.checked
         ? 'Checking Authorization...'
         : globalActivation.isActivated && globalActivation.isTrusted
         ? 'E-Sign Activated'
         : 'E-Sign Not Activated';
-      setHeaderSubtitle(`Backcharge Of: ${formData.supplierName} · ${authStatus}`);
+      setHeaderTitle(`Ref No: ${refNo}  •  ${authStatus}`);
+      setHeaderSubtitle(`Backcharge Of: ${formData.supplierName}`);
     } else {
       setHeaderTitle(null);
       setHeaderSubtitle(null);
@@ -171,7 +171,7 @@ export const useBackchargeReport = () => {
   }, [refNo, formData.supplierName, globalActivation.checked, globalActivation.isActivated, globalActivation.isTrusted, setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
-    const total = formData.tableRows.reduce((sum, row) => sum + (parseFloat(row.total) || 0), 0);
+    const total = formData.tableRows.reduce((sum,row) => sum + (parseFloat(row.total) || 0), 0);
     setGrantTotal(total);
   }, [formData.tableRows]);
 
@@ -413,7 +413,7 @@ export const useBackchargeReport = () => {
     }
     setShowSignConfirmModal(true);
   };
-  
+
   const handleActivation = async () => {
     if (!activationKey.trim()) {
       setActivationError('Activation key is required');
@@ -469,6 +469,19 @@ export const useBackchargeReport = () => {
       }
     } catch (error) {
       console.error('Error signing document:', error);
+      const errMsg =
+        error?.message ||
+        error?.data?.message ||
+        error?.response?.data?.message ||
+        error?.body?.message ||
+        JSON.stringify(error || '');
+
+      if (errMsg.includes('already been signed')) {
+        setSignResult('already_signed');
+      } else if (error?.requireOverride || error?.data?.requireOverride) {
+        setUnsignedAboveRoles(error.unsignedAbove || error.data?.unsignedAbove || []);
+        setShowOverrideModal(true);
+      }
     } finally {
       setIsSigningDoc(false);
     }
