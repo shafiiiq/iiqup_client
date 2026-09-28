@@ -239,7 +239,7 @@ export const useBackchargeReport = () => {
 
         const info = {
           userId: user._id || '',
-          uniqueCode: fingerprint.uniqueCode,
+          uniqueCode: user.uniqueCode || '',
           deviceFingerprint: fingerprint.uniqueCode,
           ipAddress: location.ipAddress,
           location: `${location.city}, ${location.region}, ${location.country}`,
