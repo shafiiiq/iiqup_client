@@ -452,7 +452,7 @@ export const useBackchargeReport = () => {
       } else if (response.requireOverride) {
         setUnsignedAboveRoles(response.unsignedAbove || []);
         setShowOverrideModal(true);
-      } else if (response.message?.includes('already signed')) {
+      } else if (response.message?.includes('already been signed')) {
         setSignResult('already_signed');
       }
     } catch (error) {
