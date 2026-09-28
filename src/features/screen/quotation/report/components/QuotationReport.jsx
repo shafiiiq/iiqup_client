@@ -232,7 +232,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
                 ))}
                 <div className="features screen quotation report info-line">REF NO : {data.quotationRef}</div>
                 {data.isAmendment && data.amendmentDate && (
-                  <div className="features screen quotation report info-line">REF NO : REV 1 ({data.quotationRef})</div>
+                  <div className="features screen quotation report info-line">AMENDMENT REF NO : REV 1 ({data.quotationRef})</div>
                 )}
               </div>
             </td>
