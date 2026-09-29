@@ -87,10 +87,13 @@
 
 .features.screen.quotation.report.items-description-data {
   max-width: 0;
-  text-align: left;
+  text-align: center;
+}
+
+.features.screen.quotation.report.item-cell-content {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .features.screen.quotation.report.item-image-wrap {

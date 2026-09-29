@@ -16,14 +16,16 @@ const buildItemRow = (item, absoluteIndex, columns) => (
         key={col.id}
         className={col.id === 'description' ? 'features screen quotation report items-description-data' : ''}
       >
-        <span className="features screen quotation report item-text">
-          {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
-        </span>
-        {col.id === 'description' && item.image && (
-          <div className="features screen quotation report item-image-wrap">
-            <img src={item.image} alt="Item attachment" className="features screen quotation report item-image" />
-          </div>
-        )}
+        <div className="features screen quotation report item-cell-content">
+          <span className="features screen quotation report item-text">
+            {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
+          </span>
+          {col.id === 'description' && item.image && (
+            <div className="features screen quotation report item-image-wrap">
+              <img src={item.image} alt="Item attachment" className="features screen quotation report item-image" />
+            </div>
+          )}
+        </div>
       </td>
     ))}
   </tr>
