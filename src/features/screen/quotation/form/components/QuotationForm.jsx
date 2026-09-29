@@ -67,9 +67,9 @@ function ClosingSection({
   );
 }
 
-function QuotationForm({ edit, amendment, amendmentUpdate }) {
+function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
   const firstPageRef = useRef();
-  const quotationForm = useQuotationForm({ edit, amendment, amendmentUpdate });
+  const quotationForm = useQuotationForm({ edit, amendment, amendmentUpdate, editAmendment });
 
   const {
     quotationData,

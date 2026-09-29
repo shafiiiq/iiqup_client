@@ -38,7 +38,7 @@ import {
   TERM_TEMPLATES,
 } from '../constants/quotation.form.constant';
 
-export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
+export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendment }) => {
   const navigate = useNavigate();
   const { quotationRef, complaintId } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -49,6 +49,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
   const isEditMode = !!(edit && quotationRef);
   const isAmendmentEditMode = !!(amendment && amendmentUpdate && quotationRef);
   const isAmendmentMode = !!(amendment && quotationRef);
+  const isEditAmendmentMode = !!(editAmendment && quotationRef);
 
   const [quotationData, setQuotationData] = useState(DEFAULT_QUOTATION_DATA);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
@@ -194,7 +195,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
       if (!data.success || !data.data) return;
       const ho = data.data;
       const latest = ho.amendments?.[ho.amendments.length - 1];
-      setAmendmentNumber((ho.amendments?.length || 0) + 1);
+      setAmendmentNumber(isEditAmendmentMode ? (ho.amendments?.length || 0) : (ho.amendments?.length || 0) + 1);
 
       const loadedColumns = latest?.amendedColumns?.length ? latest.amendedColumns : (ho.columns?.length ? ho.columns : DEFAULT_COLUMNS);
 
@@ -583,6 +584,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate }) => {
           authorizedSignatoryTitle: ceoMode,
         },
         isAmendmented: isAmendmentMode ? true : false,
+        editLastAmendment: isEditAmendmentMode,
         ...(isAmendmentMode && {
           accountsSigned: false,
           managerSigned: false,
