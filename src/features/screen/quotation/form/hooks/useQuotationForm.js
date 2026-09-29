@@ -5,6 +5,7 @@ import {
   fetchLatestQuotationRef,
   getQuotationByRef,
   fetchCompanyDetails,
+  fetchItemDescriptions,
   createOrUpdateQuotation,
 } from '../api/quotation.form.api';
 import {
@@ -66,6 +67,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const [discountInput, setDiscountInput] = useState('');
   const [showAddButton, setShowAddButton] = useState(null);
   const [companies, setCompanies] = useState([]);
+  const [itemDescriptions, setItemDescriptions] = useState([]);
+  const [descDropdownIndex, setDescDropdownIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
@@ -112,6 +115,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     else fetchLatestHireOrderNumber();
 
     fetchCompanies();
+    fetchItemDescriptionsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotationRef, isEditMode, isAmendmentMode]);
 
@@ -250,6 +254,45 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     } catch (error) {
       console.error('[Quotation] fetchCompanies error:', error);
     }
+  };
+
+  const fetchItemDescriptionsList = async () => {
+    try {
+      const data = await fetchItemDescriptions();
+      if (data.success) setItemDescriptions(data.data || []);
+    } catch (error) {
+      console.error('[Quotation] fetchItemDescriptionsList error:', error);
+    }
+  };
+
+  const handleDescriptionFocus = (index) => {
+    setDescDropdownIndex(index);
+    if (!itemDescriptions.length) fetchItemDescriptionsList();
+  };
+
+  const handleDescriptionBlur = () => {
+    setTimeout(() => setDescDropdownIndex(null), 150);
+  };
+
+  const getFilteredItemDescriptions = (index) => {
+    const search = (quotationData.items[index]?.description || '').trim().toLowerCase();
+    if (!search) return [];
+    return itemDescriptions
+      .filter((d) => d.description.toLowerCase().includes(search))
+      .slice(0, 8);
+  };
+
+  const handleDescriptionSelect = (index, desc) => {
+    setQuotationData((prev) => {
+      const items = [...prev.items];
+      items[index] = {
+        ...items[index],
+        description: desc.description,
+        ...(desc.image ? { image: desc.image } : {}),
+      };
+      return { ...prev, items };
+    });
+    setDescDropdownIndex(null);
   };
 
   const updateColumnLabel = (colId, label) => {
@@ -655,6 +698,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     discountInput,
     showAddButton,
     companies,
+    itemDescriptions,
+    descDropdownIndex,
     isLoading,
     saveStatus,
     showDiscountInTotal,
@@ -680,6 +725,10 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     handleDescriptionPaste,
     handleDescriptionDrop,
     handleDescriptionDragOver,
+    handleDescriptionFocus,
+    handleDescriptionBlur,
+    getFilteredItemDescriptions,
+    handleDescriptionSelect,
     handleDiscountPopup,
     applyDiscount,
     cancelDiscount,

@@ -179,13 +179,35 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
               onDrop={(e) => handleDescriptionDrop(e, absoluteIndex)}
               onDragOver={handleDescriptionDragOver}
             >
-              <input
-                type="text"
-                className="features screen quotation form table-input description-input"
-                value={item[col.id] ?? ''}
-                onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
-                placeholder={`Enter ${col.label.toLowerCase()}, or paste/drop an image here`}
-              />
+              <span className="features screen quotation form dropdown-container">
+                <input
+                  type="text"
+                  className="features screen quotation form table-input description-input"
+                  value={item[col.id] ?? ''}
+                  onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
+                  onFocus={() => quotationForm.handleDescriptionFocus(absoluteIndex)}
+                  onBlur={quotationForm.handleDescriptionBlur}
+                  placeholder={`Enter ${col.label.toLowerCase()}, or paste/drop an image here`}
+                />
+                {quotationForm.descDropdownIndex === absoluteIndex && quotationForm.getFilteredItemDescriptions(absoluteIndex).length > 0 && (
+                  <div className="features screen quotation form dropdown-menu">
+                    <div className="features screen quotation form dropdown-options">
+                      {quotationForm.getFilteredItemDescriptions(absoluteIndex).map((desc, idx) => (
+                        <div
+                          key={idx}
+                          className="features screen quotation form dropdown-option desc-option"
+                          onMouseDown={() => quotationForm.handleDescriptionSelect(absoluteIndex, desc)}
+                        >
+                          <div className="features screen quotation form company-name">{desc.description}</div>
+                          {desc.image && (
+                            <img src={desc.image} alt="" className="features screen quotation form desc-option-image" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </span>
               {item.image && (
                 <div className="features screen quotation form description-image-wrap">
                   <img

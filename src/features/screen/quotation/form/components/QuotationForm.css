@@ -138,6 +138,22 @@
   border-bottom: none;
 }
 
+.features.screen.quotation.form.desc-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.features.screen.quotation.form.desc-option-image {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
 .features.screen.quotation.form.company-name,
 .features.screen.quotation.form.attention-name {
   font-weight: bold;
@@ -284,6 +300,7 @@
 
 .features.screen.quotation.form.table-input {
   width: 100% !important;
+  box-sizing: border-box !important;
   border: none !important;
   background: transparent !important;
   text-align: center;
@@ -298,11 +315,17 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
-  min-width: 200px;
+  width: 100%;
+  min-width: 0;
   max-width: 320px;
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
+}
+
+.features.screen.quotation.form.description-cell .dropdown-container {
+  display: block;
+  width: 100%;
 }
 
 .features.screen.quotation.form.description-image-wrap {

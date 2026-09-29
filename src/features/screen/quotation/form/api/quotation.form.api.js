@@ -16,6 +16,11 @@ export const fetchCompanyDetails = async () => {
   return response.json();
 };
 
+export const fetchItemDescriptions = async () => {
+  const response = await apiRequest(`/quotation/item-descriptions`);
+  return response.json();
+};
+
 export const createOrUpdateQuotation = async (endpoint, method, payload) => {
   const response = await apiRequest(endpoint, method, payload);
   return response.json();
