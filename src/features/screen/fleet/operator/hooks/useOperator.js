@@ -405,10 +405,13 @@ export const useOperator = () => {
     if (!selectedOperatorForAction) return;
     setIsMobilizing(true);
     try {
-      const { 'rentRate.basis': _basis, 'rentRate.rate': _rate, ...rest } = mobilizeForm;
+         const { 'rentRate.basis': _basis, 'rentRate.rate': _rate, date: _date, time: _time, ...rest } = mobilizeForm;
       const payload = {
         operatorId: selectedOperatorForAction._id,
         ...rest,
+        selectedDate: mobilizeForm.date
+          ? new Date(`${mobilizeForm.date}T${mobilizeForm.time || '00:00'}`).toISOString()
+          : null,
         rentRate: {
           basis: mobilizeForm['rentRate.basis'] || 'daily',
           rate: Number(mobilizeForm['rentRate.rate']) || 0,
@@ -446,9 +449,13 @@ export const useOperator = () => {
     if (!selectedOperatorForAction) return;
     setIsDemobilizing(true);
     try {
+      const { date: _date, time: _time, ...restDemobilize } = demobilizeForm;
       const result = await demobilizeOperatorApi({
         operatorId: selectedOperatorForAction._id,
-        ...demobilizeForm,
+        ...restDemobilize,
+        selectedDate: demobilizeForm.date
+          ? new Date(`${demobilizeForm.date}T${demobilizeForm.time || '00:00'}`).toISOString()
+          : null,
       });
       if (!result.ok) throw new Error(result.message || 'Failed to demobilize operator');
       refreshOperator(result.data.operator);
@@ -561,6 +568,8 @@ export const useOperator = () => {
       options: designationOptions.map((d) => ({ label: d, value: d })),
       onSearchFocus: () => fetchDesignationOptions().then(setDesignationOptions).catch(() => {}),
     },
+    { name: 'date', label: 'Date (Optional)', type: 'date' },
+    { name: 'time', label: 'Time (Optional)', type: 'time' },
     { name: 'shiftName', label: 'Shift (Optional)', type: 'select', options: SHIFT_OPTIONS },
     { name: 'rentRate.basis', label: 'Rent Basis (Optional)', type: 'select', options: RENT_BASIS_OPTIONS },
     { name: 'rentRate.rate', label: 'Rent Rate QAR (Optional)', type: 'number', placeholder: 'Enter rate amount' },
@@ -578,6 +587,8 @@ export const useOperator = () => {
         { value: 'with-equipment', label: 'Demobilize Operator With Equipment' },
       ],
     }] : []),
+    { name: 'date', label: 'Date (Optional)', type: 'date' },
+    { name: 'time', label: 'Time (Optional)', type: 'time' },
     { name: 'remarks', label: 'Remarks (Optional)', type: 'textarea', placeholder: 'Add any notes' },
   ];
 

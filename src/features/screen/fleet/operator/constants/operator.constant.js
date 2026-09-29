@@ -116,10 +116,14 @@ export const MOBILIZE_FORM_DEFAULTS = {
   rentRate: { basis: 'daily', rate: '' },
   'rentRate.basis': 'daily',
   'rentRate.rate': '',
+  date: '',
+  time: '',
   remarks: '',
 };
 
 export const DEMOBILIZE_FORM_DEFAULTS = {
+  date: '',
+  time: '',
   remarks: '',
   demobilizeMode: 'operator-only',
 };
