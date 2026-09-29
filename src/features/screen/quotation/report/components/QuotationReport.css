@@ -88,6 +88,9 @@
 .features.screen.quotation.report.items-description-data {
   max-width: 0;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .features.screen.quotation.report.item-image-wrap {
