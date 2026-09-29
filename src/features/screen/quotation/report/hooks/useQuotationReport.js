@@ -397,7 +397,7 @@ const useQuotationReport = () => {
   const handleEditQuotation = () => {
     const encodedRef = encodeURIComponent(quotationData.quotationRef);
     navigate(amendmentData
-      ? `/quotation/form/amendment/update/${encodedRef}`
+      ? `/quotation/form/amendment/${encodedRef}`
       : `/quotation/form/edit/${encodedRef}`
     );
   };
