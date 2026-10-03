@@ -17,7 +17,9 @@ export const usePdfPages = (documents, enabled) => {
         const pdfs = {};
         const pages = [];
         for (const documentItem of documents) {
-          const pdf = await pdfjsLib.getDocument(documentItem.fileUrl).promise;
+          const fileResponse = await fetch(documentItem.fileUrl, { cache: 'no-store', mode: 'cors' });
+          if (!fileResponse.ok) throw new Error('Failed to fetch file');
+          const pdf = await pdfjsLib.getDocument({ data: await fileResponse.arrayBuffer() }).promise;
           loadedPdfs.push(pdf);
           pdfs[documentItem._id] = pdf;
           for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {

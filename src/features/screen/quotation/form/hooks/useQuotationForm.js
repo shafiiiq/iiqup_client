@@ -227,7 +227,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
           : (ho.customFields?.length ? ho.customFields : [])
       );
 
-      if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
+      const amendedSignatoryTitle = latest?.amendedSignatures?.authorizedSignatoryTitle || ho.signatures?.authorizedSignatoryTitle;
+      if (amendedSignatoryTitle === 'MANAGING DIRECTOR') setCeoMode('MANAGING DIRECTOR');
 
       const rawTerms = latest?.amendedTermsAndConditions || ho.termsAndConditions;
       if (rawTerms?.length) {

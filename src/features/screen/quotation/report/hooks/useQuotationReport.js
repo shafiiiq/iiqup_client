@@ -219,6 +219,7 @@ const useQuotationReport = () => {
         const latest = q.amendments[q.amendments.length - 1];
         setAmendmentData({
           ...builtData,
+          signatures: latest.amendedSignatures || q.signatures || DEFAULT_QUOTATION_DATA.signatures,
           vendor: latest.amendedCompany?.vendor || q.company?.vendor || '',
           attention: latest.amendedCompany?.attention || q.company?.attention || '',
           designation: latest.amendedCompany?.designation || q.company?.designation || '',
