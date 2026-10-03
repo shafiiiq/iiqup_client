@@ -4,6 +4,7 @@ export const DRAGGED_DOCUMENT_TYPE = 'application/x-document-id';
 
 export const DOCUMENT_TOOLBAR_ICONS = {
   newFolder: 'IconlyPlus',
+  hint: 'KeyBoardIcon',
   view: "IconlyShow",
   download: 'IconlyDownload',
   dates: "IconlyCalendar",

@@ -127,14 +127,16 @@ export const IconlyDownload = ({ size = 24, color = "#7e2828" }) => {
 	)
 }
 
-export const IconlyUpload = ({ size = 24, color = "#7e2828" }) => {
-	return (
-		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<path d="M12.1208 2.209V14.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-			<path d="M9.20483 5.13574L12.1208 2.20774L15.0368 5.13574" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-			<path d="M7.63 7.64026C4.05 7.97026 2.75 9.31026 2.75 14.6403C2.75 21.7413 5.06 21.7413 12 21.7413C18.94 21.7413 21.25 21.7413 21.25 14.6403C21.25 9.31026 19.95 7.97026 16.37 7.64026" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-		</svg>
-	)
+export const IconlyUpload = ({ size = 24, color = "#000000"}) => {
+    return (
+		<svg width={size} height={size} viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<path d="M12.3699 12.2729V14.2759" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+		<path d="M12.3699 2.23462V9.23962" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+		<path d="M9.44995 5.16152L12.37 2.23352L15.29 5.16152" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+		<path d="M12.2498 21.7665C19.1898 21.7665 21.4998 21.7665 21.4998 14.6655C21.4998 9.33553 20.1998 7.99553 16.6198 7.66553" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+		<path d="M7.88024 7.66553C4.30024 7.99553 3.00024 9.33553 3.00024 14.6655C3.00024 20.1895 4.39824 21.4165 8.28624 21.6885" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+		</svg> 
+		) 
 }
 
 export const IconlyFilter = ({ size = 24, color = "#7e2828" }) => {
@@ -1821,6 +1823,145 @@ export const SplitIcon = ({
 
       <path
         d="M11.5 2a.5.5 0 0 1 0 1h-1v14h1a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1h1V3h-1a.5.5 0 0 1 0-1zm-3 14H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h3.5zM15 4a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-3.5V4z"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const RotateClockWiseFilledIcon = ({
+size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <path
+        d="M16.75 22h-4.5C8.5 22 7 20.5 7 16.75v-4.5C7 8.5 8.5 7 12.25 7h4.5C20.5 7 22 8.5 22 12.25v4.5C22 20.5 20.5 22 16.75 22m-14-11.5c.41 0 .75-.34.75-.75c0-2.96 2.06-5.44 4.83-6.09l-.27.45c-.21.36-.1.82.26 1.03s.82.1 1.03-.26l1.05-1.75c.14-.23.14-.52.01-.75A.78.78 0 0 0 9.75 2C5.48 2 2 5.48 2 9.75c0 .41.34.75.75.75"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const RotateClockWiseIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <path
+        d="M7 15c0 3.3 0 4.95 1.025 5.975S10.7 22 14 22s4.95 0 5.975-1.025S21 18.3 21 15s0-4.95-1.025-5.975S17.3 8 14 8S9.05 8 8.025 9.025S7 11.7 7 15M9.58 2l1.346 1.11c.716.591 1.074.886 1.074 1.254h-1c-3.771 0-5.657 0-6.828 1.171S3 8.592 3 12.364V13"
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+
+export const RotateAllIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <g fill={color}>
+        <path d="M2.57324 14.4121C2.89783 14.1549 3.36968 14.2097 3.62695 14.5342C3.88419 14.8588 3.82954 15.3307 3.50488 15.5879C2.93142 16.0423 2.75001 16.4431 2.75 16.75C2.75 17.0164 2.88426 17.3492 3.29688 17.7334C3.7107 18.1186 4.35082 18.5 5.2041 18.8359C6.41454 19.3125 7.97903 19.6683 9.75 19.834V19.375C9.75001 19.0807 9.92246 18.814 10.1904 18.6924C10.4584 18.5709 10.7727 18.6168 10.9941 18.8105L12.4941 20.123C12.6568 20.2655 12.75 20.4713 12.75 20.6875C12.75 20.9037 12.6568 21.1095 12.4941 21.252L10.9941 22.5645C10.7727 22.7582 10.4584 22.8041 10.1904 22.6826C9.92245 22.561 9.75 22.2943 9.75 22V21.3408C7.80587 21.1703 6.04985 20.7819 4.6543 20.2324C3.69794 19.8559 2.87264 19.3889 2.27441 18.832C1.67512 18.2741 1.25 17.5708 1.25 16.75C1.25001 15.7999 1.81634 15.0119 2.57324 14.4121Z" />
+        <path d="M20.373 14.5342C20.6303 14.2097 21.1022 14.1549 21.4268 14.4121C22.1837 15.0119 22.75 15.7999 22.75 16.75C22.75 18.1281 21.5817 19.1608 20.2031 19.8516C18.7614 20.5739 16.7905 21.0851 14.5752 21.3096C14.1633 21.3511 13.7957 21.0506 13.7539 20.6387C13.7124 20.2267 14.0128 19.8591 14.4248 19.8174C16.5221 19.6048 18.3013 19.127 19.5312 18.5107C20.8244 17.8627 21.25 17.2066 21.25 16.75C21.25 16.4431 21.0686 16.0423 20.4951 15.5879C20.1705 15.3307 20.1158 14.8588 20.373 14.5342Z" />
+        <path d="M15 4.25C15.4142 4.25 15.75 4.58579 15.75 5C15.75 5.41421 15.4142 5.75 15 5.75H9C8.58579 5.75 8.25 5.41421 8.25 5C8.25 4.58579 8.58579 4.25 9 4.25H15Z" />
+        <path
+          d="M19 9V19C19 19 14.8431 21 12 21C9.15694 21 5 19 5 19V9C5 6.19108 5 4.78661 5.67412 3.77772C5.96596 3.34096 6.34096 2.96596 6.77772 2.67412C7.78661 2 9.19108 2 12 2C14.8089 2 16.2134 2 17.2223 2.67412C17.659 2.96596 18.034 3.34096 18.3259 3.77772C19 4.78661 19 6.19108 19 9Z"
+          opacity=".5"
+        />
+      </g>
+    </svg>
+  );
+};
+
+export const SplitAllIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 16 16"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h16v16H0z"
+        fill="none"
+      />
+      <path
+        d="M8.5 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0zM1 5.5A2.5 2.5 0 0 1 3.5 3h3v10h-3A2.5 2.5 0 0 1 1 10.5zm2 0v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0M3.5 9a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-.5-.5m6 4V3h3A2.5 2.5 0 0 1 15 5.5v5a2.5 2.5 0 0 1-2.5 2.5zM12 5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0m.5 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-.5-.5"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const KeyBoardIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 16 16"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h16v16H0z"
+        fill="none"
+      />
+      <path
+        d="M3 12H1v-2h2zm9 0H4v-2h8zm3 0h-2v-2h2zM4 9H1V7h3zm3 0H5V7h2zm3 0H8V7h2zm5 0h-4V7h4zM3 6H1V4h2zm3 0H4V4h2zm3 0H7V4h2zm3 0h-2V4h2zm3 0h-2V4h2z"
         fill={color}
       />
     </svg>

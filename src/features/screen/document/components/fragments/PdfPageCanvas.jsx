@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 
 const PAGE_ASPECT_RATIO = 1.414;
 
-function PdfPageCanvas({ pdf, pageNumber, width, lazy = false }) {
+function PdfPageCanvas({ pdf, pageNumber, width, box, zoom = 1, rotation = 0, lazy = false }) {
   const wrapperRef = useRef(null);
   const canvasRef = useRef(null);
   const [isVisible, setIsVisible] = useState(!lazy);
+  const boxWidth = box?.width;
+  const boxHeight = box?.height;
 
   useEffect(() => {
     if (!lazy) return undefined;
@@ -29,14 +31,18 @@ function PdfPageCanvas({ pdf, pageNumber, width, lazy = false }) {
 
     pdf.getPage(pageNumber).then((page) => {
       if (isCancelled) return;
-      const baseViewport = page.getViewport({ scale: 1 });
+      const pageRotation = (page.rotate + rotation) % 360;
+      const baseViewport = page.getViewport({ scale: 1, rotation: pageRotation });
+      const cssScale = boxWidth
+        ? Math.min(boxWidth / baseViewport.width, boxHeight / baseViewport.height) * zoom
+        : width / baseViewport.width;
       const pixelRatio = window.devicePixelRatio || 1;
-      const viewport = page.getViewport({ scale: (width / baseViewport.width) * pixelRatio });
+      const viewport = page.getViewport({ scale: cssScale * pixelRatio, rotation: pageRotation });
       const canvas = canvasRef.current;
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${viewport.height / pixelRatio}px`;
+      canvas.style.width = `${baseViewport.width * cssScale}px`;
+      canvas.style.height = `${baseViewport.height * cssScale}px`;
       renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport });
       renderTask.promise.catch(() => null);
     });
@@ -45,13 +51,13 @@ function PdfPageCanvas({ pdf, pageNumber, width, lazy = false }) {
       isCancelled = true;
       renderTask?.cancel();
     };
-  }, [pdf, pageNumber, width, isVisible]);
+  }, [pdf, pageNumber, width, boxWidth, boxHeight, zoom, rotation, isVisible]);
 
   return (
     <div
       ref={wrapperRef}
       className="doc-viewer-canvas-wrap"
-      style={{ width, minHeight: isVisible ? undefined : width * PAGE_ASPECT_RATIO }}
+      style={boxWidth ? undefined : { width, minHeight: isVisible ? undefined : width * PAGE_ASPECT_RATIO }}
     >
       <canvas ref={canvasRef} className="doc-viewer-canvas" />
     </div>

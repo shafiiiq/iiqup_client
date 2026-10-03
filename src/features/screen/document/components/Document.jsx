@@ -13,6 +13,8 @@ import DocumentTile from './fragments/DocumentTile';
 import DocumentFolderTile from './fragments/DocumentFolderTile';
 import DocumentContextMenu from './fragments/DocumentContextMenu';
 import DocumentDatesDialog from './fragments/DocumentDatesDialog';
+import DocumentShortcutsDialog from './fragments/DocumentShortcutsDialog';
+import { formatShortcut } from '../helper/documentShortcut.helper';
 import {
   DOCUMENT_VIEWS,
   DOCUMENT_TOOLBAR_ICONS,
@@ -40,6 +42,13 @@ function Document() {
 
   const {
     toolbarActions,
+    shortcuts,
+    isShortcutsOpen,
+    handleOpenShortcuts,
+    handleCloseShortcuts,
+    handleChangeShortcut,
+    handleResetShortcut,
+    handleResetAllShortcuts,
     sourceData,
     documents,
     folders,
@@ -69,6 +78,9 @@ function Document() {
     renewTarget,
     isSubmittingDialog,
     viewerTarget,
+    viewerHasPrev,
+    viewerHasNext,
+    handleViewerNavigate,
     selectedFolderIds,
     cutFolderIds,
     handleCloseToast,
@@ -251,7 +263,7 @@ function Document() {
               <div className="doc-details-toolbar">
                 <Button
                   {...TOOLBAR_BUTTON_PROPS}
-                  componentIconLeft={selectionMode ? 'CancelAllIcon' : 'SelectMultipleIcon'}
+                  componentIconCenter={selectionMode ? 'CancelAllIcon' : 'SelectMultipleIcon'}
                   componentIconSize="40"
                   colorScheme="yellow-700"
                   iconColor="primary-200"
@@ -265,8 +277,8 @@ function Document() {
                 )}
                 <Button
                   {...TOOLBAR_BUTTON_PROPS}
-                  title="New Folder"
-                  componentIconLeft={DOCUMENT_TOOLBAR_ICONS.newFolder}
+                  title={`New Folder (${formatShortcut(shortcuts.newFolder)})`}
+                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.newFolder}
                   componentIconSize="40"
                   colorScheme="yellow-700"
                   iconColor="primary-200"
@@ -279,7 +291,7 @@ function Document() {
                   <Button
                     key={toolbarAction.key}
                     {...TOOLBAR_BUTTON_PROPS}
-                    title={toolbarAction.label}
+                    title={`${toolbarAction.label} (${formatShortcut(shortcuts[toolbarAction.key])})`}
                     componentIconLeft={DOCUMENT_TOOLBAR_ICONS[toolbarAction.key]}
                     componentIconSize="40"
                     colorScheme="yellow-700"
@@ -290,6 +302,17 @@ function Document() {
                     onClick={toolbarAction.onSelect}
                   />
                 ))}
+                <Button
+                  {...TOOLBAR_BUTTON_PROPS}
+                  title="Keyboard Shortcuts"
+                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.hint}
+                  componentIconSize="40"
+                  colorScheme="yellow-700"
+                  iconColor="primary-200"
+                  width="fit-content"
+                  padding="0"
+                  onClick={handleOpenShortcuts}
+                />
               </div>
 
               <div
@@ -355,6 +378,16 @@ function Document() {
 
       {marqueeRect && <div className="doc-details-marquee" style={marqueeRect} />}
 
+      {isShortcutsOpen && (
+        <DocumentShortcutsDialog
+          shortcuts={shortcuts}
+          onChange={handleChangeShortcut}
+          onReset={handleResetShortcut}
+          onResetAll={handleResetAllShortcuts}
+          onClose={handleCloseShortcuts}
+        />
+      )}
+
       {contextMenu && contextMenuItems.length > 0 && (
         <DocumentContextMenu
           x={contextMenu.x}
@@ -394,10 +427,13 @@ function Document() {
 
       {viewerTarget && (
         <DocumentViewer
-          key={`${viewerTarget.mode}-${viewerTarget.documents.map((documentItem) => documentItem._id).join('-')}`}
+          key={viewerTarget.mode}
           mode={viewerTarget.mode}
           documents={viewerTarget.documents}
           isBusy={isSubmittingDialog}
+          hasPrevFile={viewerHasPrev}
+          hasNextFile={viewerHasNext}
+          onNavigate={handleViewerNavigate}
           onClose={handleCloseViewer}
           onSave={handleSaveViewerPages}
           onSplitSelected={handleMergePages}
@@ -409,8 +445,8 @@ function Document() {
       <Modal
         isOpen={!!deleteTarget}
         type="error"
-        title="Delete Document"
-        message={`Are you sure you want to delete "${deleteTarget?.displayName || ''}"? This action cannot be undone.`}
+        title="Delete"
+        message={`Are you sure you want to delete "${deleteTarget?.label || ''}"?${deleteTarget?.folderIds?.length ? ' Folders are deleted with everything inside them.' : ''} This action cannot be undone.`}
         buttonText="Delete"
         secondaryButtonText="Cancel"
         onButtonClick={handleConfirmDelete}

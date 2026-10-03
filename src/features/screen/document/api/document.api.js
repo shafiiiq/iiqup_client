@@ -119,3 +119,6 @@ export const mergeDocumentPages = async ({ sourceType, sourceId, pages }) =>
     await apiRequest('/documents/merge-pages', 'POST', { sourceType, sourceId, pages }),
     'Failed to merge documents'
   );
+
+export const deleteFolder = async (folderId) =>
+  readResponseData(await apiRequest(`/documents/folders/${folderId}`, 'DELETE'), 'Failed to delete folder');

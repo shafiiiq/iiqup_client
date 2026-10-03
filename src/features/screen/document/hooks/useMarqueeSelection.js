@@ -6,6 +6,8 @@ const ITEM_SELECTOR = '[data-document-id],[data-folder-id]';
 export const useMarqueeSelection = ({ isEnabled, containerRef, onSelectItems }) => {
   const [marqueeRect, setMarqueeRect] = useState(null);
   const dragStartPointRef = useRef(null);
+  const didDragRef = useRef(false);
+  const suppressClickRef = useRef(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -27,6 +29,7 @@ export const useMarqueeSelection = ({ isEnabled, containerRef, onSelectItems }) 
       const height = Math.abs(event.clientY - dragStartPoint.y);
       if (width < MINIMUM_DRAG_DISTANCE_PIXELS && height < MINIMUM_DRAG_DISTANCE_PIXELS) return;
 
+      didDragRef.current = true;
       setMarqueeRect({ left, top, width, height });
 
       const intersectingElements = Array.from(container.querySelectorAll(ITEM_SELECTOR)).filter((element) => {
@@ -46,15 +49,28 @@ export const useMarqueeSelection = ({ isEnabled, containerRef, onSelectItems }) 
     };
 
     const handleMouseUp = () => {
+      if (didDragRef.current) {
+        didDragRef.current = false;
+        suppressClickRef.current = true;
+        setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+      }
       dragStartPointRef.current = null;
       setMarqueeRect(null);
     };
 
+    const handleClick = (event) => {
+      if (suppressClickRef.current) event.stopPropagation();
+    };
+
+    container.addEventListener('click', handleClick);
     container.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
+      container.removeEventListener('click', handleClick);
       container.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);

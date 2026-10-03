@@ -11,6 +11,7 @@ export const usePdfPages = (documents, enabled) => {
     if (!enabled) return undefined;
     let isCancelled = false;
     const loadedPdfs = [];
+    setState((previous) => ({ ...previous, isLoading: true, error: '' }));
 
     (async () => {
       try {

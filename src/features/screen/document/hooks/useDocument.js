@@ -12,6 +12,7 @@ import {
   updateDocumentDates,
   renameDocument,
   deleteDocument,
+  deleteFolder,
   mergeDocumentPages,
   editDocumentPages,
   moveFolder,
@@ -43,6 +44,9 @@ import {
   isFolderInsideAny,
 } from '../helper/document.helper';
 import { useMarqueeSelection } from './useMarqueeSelection';
+import { useDocumentShortcuts } from './useDocumentShortcuts';
+import { eventToShortcut } from '../helper/documentShortcut.helper';
+import { NATIVE_PASTE_SHORTCUT } from '../constants/documentShortcut.constant';
 
 export const useDocument = ({ sourceType, sourceId } = {}) => {
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -74,6 +78,9 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const [clipboard, setClipboard] = useState(null);
 
   const explorerRef = useRef(null);
+  const shortcutContextRef = useRef(null);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const { shortcuts, setShortcut, resetShortcut, resetAllShortcuts } = useDocumentShortcuts();
 
   const showToast = useCallback((message, type = 'success') => setToast({ isOpen: true, message, type }), []);
   const handleCloseToast = () => setToast((previous) => ({ ...previous, isOpen: false }));
@@ -301,35 +308,27 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (viewerTarget) return;
+      const context = shortcutContextRef.current;
+      if (!context || context.isBlocked) return;
       if (event.key === 'Escape') {
-        setContextMenu(null);
-        setSelectedDocumentIds([]);
-        setSelectedFolderIds([]);
+        context.clearSelection();
         return;
       }
       const targetTagName = event.target?.tagName;
       if (targetTagName === 'INPUT' || targetTagName === 'TEXTAREA') return;
-      if (event.key === 'F2') {
-        if (selectedDocumentIds.length === 1 && selectedFolderIds.length === 0) {
-          event.preventDefault();
-          setRenamingItem({ kind: 'document', id: selectedDocumentIds[0] });
-        } else if (selectedFolderIds.length === 1 && selectedDocumentIds.length === 0) {
-          event.preventDefault();
-          setRenamingItem({ kind: 'folder', id: selectedFolderIds[0] });
-        }
-        return;
-      }
-      if (!(event.ctrlKey || event.metaKey)) return;
-      const pressedKey = event.key.toLowerCase();
-      if (pressedKey !== 'c' && pressedKey !== 'x') return;
-      if (stageClipboard(pressedKey === 'x' ? 'cut' : 'copy', selectedDocumentIds, selectedFolderIds)) {
-        event.preventDefault();
-      }
+      const pressedShortcut = eventToShortcut(event);
+      if (!pressedShortcut) return;
+      if (targetTagName === 'BUTTON' && pressedShortcut === 'Enter') return;
+      const actionKey = Object.keys(context.shortcuts).find((key) => context.shortcuts[key] === pressedShortcut);
+      const action = actionKey ? context.actions[actionKey] : null;
+      if (!action || action.isDisabled) return;
+      if (actionKey === 'paste' && pressedShortcut === NATIVE_PASTE_SHORTCUT) return;
+      event.preventDefault();
+      action.onSelect();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [stageClipboard, selectedDocumentIds, selectedFolderIds, viewerTarget]);
+  }, []);
 
   const handleMarqueeSelect = useCallback(({ documentIds, folderIds }) => {
     setSelectedDocumentIds(documentIds);
@@ -337,7 +336,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   }, []);
 
   const marqueeRect = useMarqueeSelection({
-    isEnabled: selectionMode,
+    isEnabled: Boolean(sourceType && sourceId),
     containerRef: explorerRef,
     onSelectItems: handleMarqueeSelect,
   });
@@ -512,6 +511,16 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
 
   const handleView = (documentItem) => setViewerTarget({ mode: 'view', documents: [documentItem] });
 
+  const viewerIndex =
+    viewerTarget?.mode === 'view'
+      ? visibleDocuments.findIndex((documentItem) => documentItem._id === viewerTarget.documents[0]._id)
+      : -1;
+
+  const handleViewerNavigate = (direction) => {
+    const nextDocument = visibleDocuments[viewerIndex + direction];
+    if (viewerIndex >= 0 && nextDocument) setViewerTarget({ mode: 'view', documents: [nextDocument] });
+  };
+
   const handleFolderClick = (folderItem, event) => {
     const isMultiSelectGesture = event.metaKey || event.ctrlKey;
     if (!selectionMode && !isMultiSelectGesture) {
@@ -585,20 +594,35 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     }
   };
 
-  const handleDeleteClick = (documentItem) => setDeleteTarget(documentItem);
+  const requestDelete = (documentIds, folderIds) => {
+    const total = documentIds.length + folderIds.length;
+    if (total === 0) return;
+    const singleDocument = documents.find((candidate) => candidate._id === documentIds[0]);
+    const singleFolder = folders.find((candidate) => candidate._id === folderIds[0]);
+    let label = `${total} items`;
+    if (total === 1) label = singleDocument ? buildDocumentFileLabel(singleDocument) : singleFolder?.name || 'this item';
+    setDeleteTarget({ documentIds, folderIds, label });
+  };
+
+  const handleDeleteClick = (documentItem) => requestDelete([documentItem._id], []);
   const handleCancelDelete = () => setDeleteTarget(null);
 
   const handleConfirmDelete = async () => {
-    const targetDocument = deleteTarget;
+    const target = deleteTarget;
     setDeleteTarget(null);
+    if (!target) return;
     try {
-      await deleteDocument(targetDocument._id);
-      setSelectedDocumentIds((previous) => previous.filter((documentId) => documentId !== targetDocument._id));
-      showToast('Document deleted', 'success');
-      await loadDocuments({ silent: true });
+      await Promise.all([
+        ...target.documentIds.map((documentId) => deleteDocument(documentId)),
+        ...target.folderIds.map((folderId) => deleteFolder(folderId)),
+      ]);
+      setSelectedDocumentIds([]);
+      setSelectedFolderIds([]);
+      showToast(`${target.documentIds.length + target.folderIds.length} item(s) deleted`, 'success');
     } catch (error) {
       showToast(`Error: ${error.message}`, 'error');
     }
+    await loadDocuments({ silent: true });
   };
 
   const handleCancelDatesDialog = () => setDatesTarget(null);
@@ -759,6 +783,12 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
           onSelect: () => pasteClipboardInto(folderItem._id),
         });
       }
+      folderMenuItems.push({
+        key: 'delete',
+        label: 'Delete',
+        isDanger: true,
+        onSelect: () => requestDelete(selectedDocumentIds, selectedFolderIds),
+      });
       return folderMenuItems;
     }
 
@@ -776,6 +806,12 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
         },
         { key: 'cut', label: 'Cut', onSelect: () => stageClipboard('cut', selectedDocumentIds, selectedFolderIds) },
         { key: 'copy', label: 'Copy', onSelect: () => stageClipboard('copy', selectedDocumentIds, selectedFolderIds) },
+        {
+          key: 'delete',
+          label: `Delete ${selectedDocumentIds.length + selectedFolderIds.length} Items`,
+          isDanger: true,
+          onSelect: () => requestDelete(selectedDocumentIds, selectedFolderIds),
+        },
       ];
     }
 
@@ -878,28 +914,62 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
       toolbarActionList.push({ key: 'paste', label: 'Paste', onSelect: () => pasteClipboardInto(currentFolderId) });
     }
 
-    if (isSingleSelection) {
+    if (selectedDocuments.length > 0 || selectedFolderIds.length > 0) {
       toolbarActionList.push({
         key: 'delete',
         label: 'Delete',
         isDanger: true,
-        onSelect: () => handleDeleteClick(singleDocument),
+        onSelect: () =>
+          requestDelete(
+            selectedDocuments.map((documentItem) => documentItem._id),
+            selectedFolderIds
+          ),
       });
     }
 
     return toolbarActionList;
   };
 
+  const toolbarActions = buildToolbarActions();
+
+  const shortcutActions = Object.fromEntries(
+    toolbarActions.map((toolbarAction) => [toolbarAction.key, toolbarAction])
+  );
+  shortcutActions.newFolder = { onSelect: handleNewFolderClick, isDisabled: activeView !== DOCUMENT_VIEWS.ALL };
+
+  shortcutContextRef.current = {
+    shortcuts,
+    actions: shortcutActions,
+    isBlocked: Boolean(
+      viewerTarget || isShortcutsOpen || datesTarget || renewTarget || deleteTarget || showProgressModal
+    ),
+    clearSelection: () => {
+      setContextMenu(null);
+      setSelectedDocumentIds([]);
+      setSelectedFolderIds([]);
+    },
+  };
+
   return {
-    toolbarActions: buildToolbarActions(),
+    toolbarActions,
+    shortcuts,
+    isShortcutsOpen,
+    handleOpenShortcuts: () => setIsShortcutsOpen(true),
+    handleCloseShortcuts: () => setIsShortcutsOpen(false),
+    handleChangeShortcut: setShortcut,
+    handleResetShortcut: resetShortcut,
+    handleResetAllShortcuts: resetAllShortcuts,
     sourceData,
     documents,
     folders,
     folderItemCounts,
-      cutDocumentIds: clipboard?.mode === 'cut' ? clipboard.documentIds : [],
+    cutDocumentIds: clipboard?.mode === 'cut' ? clipboard.documentIds : [],
     cutFolderIds: clipboard?.mode === 'cut' ? clipboard.folderIds : [],
     selectedFolderIds,
     viewerTarget,
+    viewerHasPrev: viewerIndex > 0,
+    viewerHasNext: viewerIndex >= 0 && viewerIndex < visibleDocuments.length - 1,
+    handleViewerNavigate,
     activeView,
     visibleDocuments,
     viewTabItems,
