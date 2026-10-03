@@ -71,7 +71,7 @@ function ItemCardSkeleton() {
     );
 }
 
-function Breadcrumb({ activePath, onNavigate }) {
+function Breadcrumb({ activePath, onNavigate, trailingSegments }) {
     return (
         <div className="shared pickers folder breadcrumb">
             {activePath.map((node, index) => (
@@ -79,7 +79,17 @@ function Breadcrumb({ activePath, onNavigate }) {
                     <button type="button" className="shared pickers folder breadcrumb-item" onClick={() => onNavigate(index)}>
                         {node.label}
                     </button>
-                    {index < activePath.length - 1 && (
+                    {(index < activePath.length - 1 || trailingSegments.length > 0) && (
+                        <span className="shared pickers folder breadcrumb-separator">{'>'}</span>
+                    )}
+                </span>
+            ))}
+            {trailingSegments.map((segment, index) => (
+                <span key={segment.key} className="shared pickers folder breadcrumb-segment">
+                    <button type="button" className="shared pickers folder breadcrumb-item" onClick={segment.onSelect}>
+                        {segment.label}
+                    </button>
+                    {index < trailingSegments.length - 1 && (
                         <span className="shared pickers folder breadcrumb-separator">{'>'}</span>
                     )}
                 </span>
@@ -88,8 +98,17 @@ function Breadcrumb({ activePath, onNavigate }) {
     );
 }
 
-function FolderPicker({ root }) {
-    const [pathKeys, setPathKeys] = useState([root.key]);
+function FolderPicker({
+    root,
+    pathKeys: controlledPathKeys,
+    onPathKeysChange,
+    trailingSegments = [],
+    isBodyHidden = false,
+    onBreadcrumbNavigate,
+}) {
+    const [internalPathKeys, setInternalPathKeys] = useState([root.key]);
+    const pathKeys = controlledPathKeys || internalPathKeys;
+    const setPathKeys = onPathKeysChange || setInternalPathKeys;
     const { searchTerm } = useHeaderSearch();
     const sentinelRef = useRef(null);
 
@@ -119,7 +138,10 @@ function FolderPicker({ root }) {
     }, [hasMore, isLoadingMore, onLoadMore, activeNode, activeCollection]);
 
     const openFolder = (node) => setPathKeys((prev) => [...prev, node.key]);
-    const navigateToIndex = (index) => setPathKeys((prev) => prev.slice(0, index + 1));
+    const navigateToIndex = (index) => {
+        setPathKeys((prev) => prev.slice(0, index + 1));
+        if (onBreadcrumbNavigate) onBreadcrumbNavigate();
+    };
 
     const renderBody = () => {
         if (activeCollection) {
@@ -185,8 +207,8 @@ function FolderPicker({ root }) {
 
     return (
         <div className="shared pickers folder container">
-            <Breadcrumb activePath={activePath} onNavigate={navigateToIndex} />
-            {renderBody()}
+            <Breadcrumb activePath={activePath} onNavigate={navigateToIndex} trailingSegments={trailingSegments} />
+            {!isBodyHidden && renderBody()}
         </div>
     );
 }

@@ -2,14 +2,14 @@ import React, { useRef } from 'react';
 
 const CellInputField = ({ label, value = '', onChange, cellCount = 6, error }) => {
   const cellRefs = useRef([]);
-  const paddedValue = value.padEnd(cellCount, '');
+  const paddedValue = value.padEnd(cellCount, ' ');
 
   const focusCell = (index) => cellRefs.current[index]?.focus();
 
   const handleChange = (index, raw) => {
     const nextChar = raw.slice(-1).toUpperCase();
     if (nextChar && !/^[A-Z0-9]$/.test(nextChar)) return;
-    const next = paddedValue.substring(0, index) + nextChar + paddedValue.substring(index + 1);
+    const next = paddedValue.substring(0, index) + (nextChar || ' ') + paddedValue.substring(index + 1);
     onChange(next.trimEnd());
     if (nextChar && index < cellCount - 1) focusCell(index + 1);
   };
@@ -17,7 +17,7 @@ const CellInputField = ({ label, value = '', onChange, cellCount = 6, error }) =
   const handleKeyDown = (index, event) => {
     if (event.key === 'Backspace') {
       event.preventDefault();
-      const next = paddedValue.substring(0, index) + '' + paddedValue.substring(index + 1);
+      const next = paddedValue.substring(0, index) + ' ' + paddedValue.substring(index + 1);
       onChange(next.trimEnd());
       if (index > 0) focusCell(index - 1);
     } else if (event.key === 'ArrowLeft' && index > 0) {
@@ -47,7 +47,7 @@ const CellInputField = ({ label, value = '', onChange, cellCount = 6, error }) =
             ref={(el) => (cellRefs.current[index] = el)}
             type="text"
             className="shared widget modal cell-input"
-            value={paddedValue[index] || ''}
+            value={paddedValue[index] === ' ' ? '' : paddedValue[index] || ''}
             onChange={(event) => handleChange(index, event.target.value)}
             onKeyDown={(event) => handleKeyDown(index, event)}
             onPaste={index === 0 ? handlePaste : undefined}

@@ -2,7 +2,7 @@ import FolderPicker from '@/shared/components/pickers/folder/FolderPicker';
 import { useEquipmentPickerNode } from '@/shared/components/pickers/equipment/equipmentPicker.tree';
 import { useUserPickerNode } from '@/shared/components/pickers/user/userPicker.tree';
 
-function usePickerRoot(types, onSelect) {
+export function usePickerRoot(types, onSelect) {
     const nodesByType = {
         equipment: useEquipmentPickerNode((item, meta) => onSelect('equipment', item, meta)),
         user: useUserPickerNode((item, meta) => onSelect('user', item, meta)),

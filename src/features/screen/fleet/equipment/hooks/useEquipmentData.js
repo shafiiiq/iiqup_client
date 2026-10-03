@@ -120,6 +120,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
   const [fullscreenEquipment, setFullscreenEquipment] = useState(null);
   const [fullscreenClickOrigin, setFullscreenClickOrigin] = useState({ x: 0, y: 0 });
+  const [fullscreenMode, setFullscreenMode] = useState('view');
 
   const hydrateEquipmentListWithImages = useCallback(async (rawEquipmentList) => {
     if (!rawEquipmentList.length) return [];
@@ -249,6 +250,7 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
     setFullscreenClickOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
     setFullscreenEquipment(equipment);
     setFullscreenImage(equipment.equipmentImage[imageIndex]);
+    setFullscreenMode('view');
     setFullscreenImageIndex(imageIndex);
   }, []);
 
@@ -256,7 +258,26 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
     setFullscreenImage(null);
     setFullscreenEquipment(null);
     setFullscreenImageIndex(0);
+    setFullscreenMode('view');
   }, []);
+
+  const openAddImageViewer = useCallback((event, equipment) => {
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setFullscreenClickOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    setFullscreenEquipment(equipment);
+    setFullscreenImage(equipment.equipmentImage?.[0] || null);
+    setFullscreenImageIndex(0);
+    setFullscreenMode('add');
+  }, []);
+
+  const refreshEquipmentImages = useCallback(async (regNo) => {
+    const [hydrated] = await hydrateEquipmentListWithImages([{ regNo }]);
+    const equipmentImage = hydrated?.equipmentImage || [];
+    setEquipmentList(prev => prev.map(eq => (eq.regNo === regNo ? { ...eq, equipmentImage } : eq)));
+    setFullscreenEquipment(prev => (prev && prev.regNo === regNo ? { ...prev, equipmentImage } : prev));
+    return equipmentImage;
+  }, [hydrateEquipmentListWithImages]);
 
   const setCardImageIndex = useCallback((regNo, index) => {
     setActiveCardImageIndexByRegNo(prev => ({ ...prev, [regNo]: index }));
@@ -371,6 +392,9 @@ export const useEquipmentData = ({ getMediaUrlWithCache }) => {
     fullscreenImageIndex, setFullscreenImageIndex,
     fullscreenEquipment, setFullscreenEquipment,
     fullscreenClickOrigin,
+    fullscreenMode, setFullscreenMode,
+    openAddImageViewer,
+    refreshEquipmentImages,
     openFullscreenImage,
     closeFullscreenImage,
 

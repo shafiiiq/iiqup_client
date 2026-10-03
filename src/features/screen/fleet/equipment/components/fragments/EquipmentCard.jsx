@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Button from '@/shared/components/widgets/button/Button';
 import MediaCard from '@/shared/components/widgets/card/MediaCard';
 import { EQUIPMENT_CARD_LOOK } from '../../constants/equipment.card.look.constant';
-import { BUTTON_PROPS, EQUIPMENT_IMAGE_SLIDESHOW_INTERVAL_MS } from '../../constants/equipment.constant';
+import { BUTTON_PROPS } from '../../constants/equipment.constant';
+
+const MAX_STACKED_BEHIND = 4;
+const getImageUrl = (img) => img?.s3Url?.trim() || img?.url?.trim();
 
 function MobDateHover({ item, onAddShift }) {
   const [hovered, setHovered] = useState(false);
@@ -54,6 +57,7 @@ function EquipmentCard({
   onMarkAsSold,
   onSetIdleLocation,
   onOpenRemarks,
+  onAddImage,
   draggable = false,
   onDragStart,
   onDragEnd,
@@ -61,64 +65,71 @@ function EquipmentCard({
   const isSold = item.status === 'sold';
   const hasImages = item.equipmentImage?.length > 0;
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  useEffect(() => {
-    if (!item.equipmentImage || item.equipmentImage.length <= 1) return undefined;
-    const timer = setInterval(() => {
-      setCurrentImageIndex(prev => (prev + 1) % item.equipmentImage.length);
-    }, EQUIPMENT_IMAGE_SLIDESHOW_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [item.equipmentImage]);
-
   const renderImageSlider = () => {
     if (!hasImages) {
-      return <div className="fleet equipment no-image-placeholder">
-        <span className="material-symbols-rounded">landscape_2</span>
-      </div>;
+      return (
+        <div className="fleet equipment image-stack" style={{ '--stack-count': 0 }}>
+          <div className="fleet equipment no-image-placeholder">
+            <span className="material-symbols-rounded">landscape_2</span>
+          </div>
+          <button
+            type="button"
+            className="fleet equipment image-add-more"
+            onClick={(e) => { e.stopPropagation(); onAddImage?.(e, item); }}
+          >
+            + Add Image
+          </button>
+        </div>
+      );
     }
 
+    const frontUrl = getImageUrl(item.equipmentImage[0]);
+    const stackedImages = item.equipmentImage.slice(1, MAX_STACKED_BEHIND + 1);
+    const hiddenCount = item.equipmentImage.length - 1 - stackedImages.length;
+
     return (
-      <>
-        <div className="fleet equipment slider-images">
-          {item.equipmentImage?.map((img, index) => {
-            const imageUrl = img?.s3Url?.trim() || img?.url?.trim();
+      <div className="fleet equipment image-stack" style={{ '--stack-count': stackedImages.length }}>
+        {stackedImages.map((img, index) => {
+          const url = getImageUrl(img);
+          return url ? (
+            <img
+              key={index}
+              src={url}
+              className="fleet equipment stack-image behind"
+              style={{ '--stack-index': index + 1, zIndex: MAX_STACKED_BEHIND - index }}
+              loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          ) : null;
+        })}
 
-            return imageUrl ? (
-              <img
-                key={index}
-                src={imageUrl}
-                className={`fleet equipment slider-image ${index === currentImageIndex ? 'active' : ''
-                  }`}
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-                onClick={(e) =>
-                  !isSelectMode && onImageClick(e, item, index)
-                }
-              />
-            ) : (
-              // image crash icon needed here 
-              <div key={index} className="fleet equipment no-image-placeholder">
-                <span className="material-symbols-rounded">landscape_2_off</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {item.equipmentImage.length > 1 && (
-          <div className="fleet equipment slider-dots">
-            {item.equipmentImage.map((_, index) => (
-              <div
-                key={index}
-                className={`fleet equipment slider-dot ${index === currentImageIndex ? 'active' : ''}`}
-                onClick={() => setCurrentImageIndex(index)}
-              />
-            ))}
+        {frontUrl ? (
+          <img
+            src={frontUrl}
+            className="fleet equipment stack-image front"
+            style={{ zIndex: MAX_STACKED_BEHIND + 1 }}
+            loading="lazy"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            onClick={(e) => !isSelectMode && onImageClick(e, item, 0)}
+          />
+        ) : (
+          <div className="fleet equipment no-image-placeholder">
+            <span className="material-symbols-rounded">landscape_2_off</span>
           </div>
         )}
-      </>
+
+        {hiddenCount > 0 && (
+          <span className="fleet equipment image-more-label">{hiddenCount}+ more</span>
+        )}
+
+        <button
+          type="button"
+          className="fleet equipment image-add-more"
+          onClick={(e) => { e.stopPropagation(); onAddImage?.(e, item); }}
+        >
+          + Add Image
+        </button>
+      </div>
     );
   };
 

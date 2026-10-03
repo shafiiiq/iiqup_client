@@ -1,6 +1,6 @@
 import React from 'react';
 import ModalBase from '../../ModalBase';
-import TextInputField from '../../fragments/TextInputField';
+import CellInputField from '../../fragments/CellInputField';
 import { DEFAULT_MODAL_MODE } from '../../modalModes';
 import './ActivationModal.css';
 
@@ -12,8 +12,7 @@ const ActivationModal = ({
   message,
   inputValue,
   onInputChange,
-  inputPlaceholder,
-  inputMaxLength,
+  cellCount = 20,
   inputError,
   deviceInfo,
   buttonText,
@@ -33,20 +32,18 @@ const ActivationModal = ({
     deviceInfo={deviceInfo}
     buttonText={buttonText}
     onButtonClick={onButtonClick}
-    buttonDisabled={Boolean(inputError)}
     secondaryButtonText={secondaryButtonText}
     onSecondaryClick={onSecondaryClick}
     submitOnEnter
-    onSubmit={inputError ? null : onButtonClick}
+    onSubmit={onButtonClick}
     modalWidth={modalWidth}
     modalHeight={modalHeight}
   >
-    <TextInputField
+    <CellInputField
       label={message}
       value={inputValue}
       onChange={onInputChange}
-      placeholder={inputPlaceholder}
-      maxLength={inputMaxLength}
+      cellCount={cellCount}
       error={inputError}
     />
   </ModalBase>

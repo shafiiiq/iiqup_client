@@ -67,6 +67,8 @@ const usePurchaseOrderReport = () => {
     const [showAttachmentModal, setShowAttachmentModal] = useState(false);
     const [showLoadingModal, setShowLoadingModal] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
+    const [alertModal, setAlertModal] = useState(null);
+    const showAlert = (title, message, type = 'warning', reason = '') => setAlertModal({ title, message, type, reason });
 
     useEffect(() => {
         if (!purchaseorderCounter) {
@@ -341,7 +343,7 @@ const usePurchaseOrderReport = () => {
 
     const handleSignButtonClick = async () => {
         if (!deviceInfo) {
-            alert('Device info not ready. Please wait and try again.');
+            showAlert('Please Wait', 'Your device details are still loading. Please wait a few seconds and try again.');
             return;
         }
 
@@ -358,14 +360,14 @@ const usePurchaseOrderReport = () => {
             setShowSignConfirmModal(true);
         } catch (err) {
             console.error('[PurchaseOrderReport] handleSignButtonClick error:', err);
-            alert(`Could not verify device trust: ${err.message}`);
+            showAlert('Device Check Failed', 'We could not verify this device. Please check your internet connection and try again.', 'error');
         }
     };
 
     const handleConfirmSign = async (override = false) => {
-        if (!deviceInfo) return;
+        if (!deviceInfo) { showAlert('Please Wait', 'Your device details are still loading. Please wait a few seconds and try again.'); return; }
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!user._id) { alert('User session not found. Please log in again.'); return; }
+        if (!user._id) { showAlert('Session Expired', 'Your login session was not found. Please log in again to continue.', 'unauthorized', 'Your login session has expired or is missing.'); return; }
 
         setIsSigningDoc(true);
         setShowSignConfirmModal(false);
@@ -419,7 +421,7 @@ const usePurchaseOrderReport = () => {
 
         } catch (err) {
             console.error('[PurchaseOrderReport] handleConfirmSign error:', err);
-            alert(`Signing failed: ${err.message}`);
+            showAlert('Signing Failed', err.message || 'The document could not be signed. Please try again.', 'error');
         } finally {
             setIsSigningDoc(false);
         }
@@ -431,7 +433,7 @@ const usePurchaseOrderReport = () => {
         if (!status.isActivated) { setShowActivationModal(true); return; }
         if (!status.isTrusted) { setShowNotTrustedModal(true); return; }
 
-        await loadAllSignatures();
+        await loadAllSignatures(deviceInfo, signatureFlags);
     };
 
     const handleActivation = async () => {
@@ -472,7 +474,7 @@ const usePurchaseOrderReport = () => {
     };
 
     const guardImagesLoaded = () => {
-        if (!imagesLoaded) { alert('Please wait for all images to load before generating PDF'); return false; }
+        if (!imagesLoaded) { showAlert('Please Wait', 'The page is still loading images. Please wait a moment and try again.'); return false; }
         return true;
     };
 
@@ -516,7 +518,7 @@ const usePurchaseOrderReport = () => {
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error('[PurchaseOrderReport] handleDownloadPdf error:', err);
-            alert('Error generating PDF. Please try again.');
+            showAlert('Download Failed', 'The PDF could not be generated. Please try again in a moment.', 'error');
         } finally {
             setShowLoadingModal(false);
         }
@@ -538,7 +540,7 @@ const usePurchaseOrderReport = () => {
             setShowUploadSuccessModal(true);
         } catch (err) {
             console.error('[PurchaseOrderReport] sendToApprove error:', err);
-            alert(`Upload failed: ${err.message}`);
+            showAlert('Could Not Send For Approval', err.message || 'The document could not be sent for approval. Please try again.', 'error');
         }
     };
 
@@ -552,7 +554,7 @@ const usePurchaseOrderReport = () => {
 
     const handleSendEmail = async (extraFiles = []) => {
         const validEmails = emailFormValues.emails.filter(e => e?.includes('@'));
-        if (!validEmails.length) { alert('Please enter at least one valid email'); return; }
+        if (!validEmails.length) { showAlert('Email Required', 'Please enter at least one valid email address to continue.'); return; }
 
         setIsSendingEmail(true);
         setShowAttachmentModal(false);
@@ -575,11 +577,11 @@ const usePurchaseOrderReport = () => {
                 setEmailFormValues({ emails: [''] });
                 setSignResult('email_sent');
             } else {
-                alert('Failed to send email. Please try again.');
+                showAlert('Email Not Sent', 'The Purchase Order could not be sent to the supplier. Please try again.', 'error');
             }
         } catch (err) {
             console.error('[PurchaseOrderReport] handleSendEmail error:', err);
-            alert('Error sending email.');
+            showAlert('Email Not Sent', 'Something went wrong while sending the email. Please check your connection and try again.', 'error');
         } finally {
             setIsSendingEmail(false);
         }
@@ -590,7 +592,7 @@ const usePurchaseOrderReport = () => {
 
     const handleEmailButtonClick = () => {
         const validEmails = emailFormValues.emails.filter(e => e?.includes('@'));
-        if (!validEmails.length) { alert('Please enter at least one valid email'); return; }
+        if (!validEmails.length) { showAlert('Email Required', 'Please enter at least one valid email address to continue.'); return; }
         setShowEmailModal(false);
         setShowAttachmentModal(true);
     };
@@ -645,6 +647,8 @@ const usePurchaseOrderReport = () => {
         setShowAttachmentModal,
         showLoadingModal,
         loadingMessage,
+        alertModal,
+        setAlertModal,
         fetchPurchaseOrderData,
         handleSignButtonClick,
         handleConfirmSign,

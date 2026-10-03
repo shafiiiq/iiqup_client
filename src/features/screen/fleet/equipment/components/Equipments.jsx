@@ -284,6 +284,7 @@ function Equipments() {
                                 onMarkAsSold={actions.handleMarkAsSoldClick}
                                 onSetIdleLocation={actions.handleSetIdleLocationClick}
                                 onOpenRemarks={actions.handleOpenRemarksModal}
+                                onAddImage={equipment.openAddImageViewer}
                                 draggable
                                 onDragStart={(e) => handleEquipmentDragStart(e, item)}
                               />
@@ -369,6 +370,12 @@ function Equipments() {
         onSetImage={equipment.setFullscreenImage}
         onSetImageIndex={equipment.setFullscreenImageIndex}
         onSetEquipment={equipment.setFullscreenEquipment}
+        mode={equipment.fullscreenMode}
+        onSetMode={equipment.setFullscreenMode}
+        onRefreshImages={equipment.refreshEquipmentImages}
+        hasMore={equipment.hasMoreEquipmentPages}
+        isLoadingMore={equipment.isLoadingMoreEquipment}
+        onLoadMore={() => equipment.fetchEquipmentList(equipment.currentPage + 1, true)}
       />
 
       <EquipmentModals

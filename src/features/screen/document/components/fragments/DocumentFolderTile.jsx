@@ -1,0 +1,70 @@
+import { useState } from 'react';
+import { renderComponentIcon } from '@/shared/components/icons/icon.render';
+import { DRAGGED_DOCUMENT_TYPE } from '../../constants/document.constant';
+import InlineRenameInput from './InlineRenameInput';
+
+function DocumentFolderTile({
+  label,
+  folder,
+  itemCount,
+  isRenaming,
+  isSelected,
+  isCut,
+  onClick,
+  onDragStart,
+  onCommitRename,
+  onCancelRename,
+  onOpen,
+  onContextMenu,
+  onDropDocuments,
+}) {
+  const [isDropTarget, setIsDropTarget] = useState(false);
+
+  const handleDragOver = (event) => {
+    if (!Array.from(event.dataTransfer.types).includes(DRAGGED_DOCUMENT_TYPE)) return;
+    event.preventDefault();
+    setIsDropTarget(true);
+  };
+
+  const handleDrop = (event) => {
+    const payload = event.dataTransfer.getData(DRAGGED_DOCUMENT_TYPE);
+    setIsDropTarget(false);
+    if (!payload) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onDropDocuments(payload);
+  };
+
+  return (
+    <div
+      className={`doc-details-tile doc-details-folder-tile ${isSelected ? 'selected' : ''} ${isCut ? 'cut' : ''} ${isDropTarget ? 'drop-target' : ''}`}
+      data-folder-id={folder?._id}
+      draggable={!!folder && !isRenaming}
+      onDragStart={folder ? (event) => onDragStart(event, folder) : undefined}
+      onClick={folder ? (event) => onClick(folder, event) : undefined}
+      onDoubleClick={onOpen}
+      onContextMenu={onContextMenu ? (event) => onContextMenu(event, folder) : undefined}
+      onDragOver={handleDragOver}
+      onDragLeave={() => setIsDropTarget(false)}
+      onDrop={handleDrop}
+    >
+      <div className="doc-details-tile-preview doc-details-folder-preview">
+        {renderComponentIcon('FolderIcon', 90, 'var(--color-primary-200)')}
+      </div>
+      {isRenaming ? (
+        <InlineRenameInput initialValue={label} suffix="" onCommit={onCommitRename} onCancel={onCancelRename} />
+      ) : (
+        <div className="doc-details-tile-name" title={label}>
+          {label}
+        </div>
+      )}
+      {typeof itemCount === 'number' && (
+        <div className="doc-details-tile-count">
+          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default DocumentFolderTile;

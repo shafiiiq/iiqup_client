@@ -15,8 +15,9 @@ import './Tabs.css';
 function TabNode({ node, depth, activePath, onSelect, parentPath, collapsed, openKeys, onToggle }) {
   const path = [...parentPath, node.key];
   const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-  const isOpen = openKeys.includes(node.key);
-  const isActive = hasChildren ? isOpen : activePath[depth] === node.key;
+  const isOpen = Boolean(node.isForcedOpen) || openKeys.includes(node.key);
+  const isActive =
+    node.isActive !== undefined ? node.isActive : hasChildren ? isOpen : activePath[depth] === node.key;
   const showChildren = hasChildren && isOpen && !collapsed;
   const Icon = node.icon;
   const hasIcon = Boolean(node.iconName || Icon);
@@ -24,6 +25,7 @@ function TabNode({ node, depth, activePath, onSelect, parentPath, collapsed, ope
   const handleClick = () => {
     if (hasChildren) {
       onToggle(node.key);
+      if (node.onActivate) node.onActivate(path, node);
       if (node.selectOnClick) {
         const defaultChild =
           node.children.find((c) => c.key === node.selectOnClick) || node.children[0];
@@ -32,6 +34,20 @@ function TabNode({ node, depth, activePath, onSelect, parentPath, collapsed, ope
     } else {
       onSelect(path, node);
     }
+  };
+
+  const handleDragOver = (event) => {
+    if (!node.dropMimeType || !Array.from(event.dataTransfer.types).includes(node.dropMimeType)) return;
+    event.preventDefault();
+  };
+
+  const handleDrop = (event) => {
+    if (!node.dropMimeType) return;
+    const payload = event.dataTransfer.getData(node.dropMimeType);
+    if (!payload) return;
+    event.preventDefault();
+    event.stopPropagation();
+    node.onDropPayload(payload);
   };
 
   return (
@@ -45,6 +61,8 @@ function TabNode({ node, depth, activePath, onSelect, parentPath, collapsed, ope
           } ${collapsed ? 'collapsed' : ''} ${depth > 0 ? 'sub-item' : ''} ${node.warn ? 'warn' : ''}`}
         style={{ '--tabs-depth': depth }}
         onClick={handleClick}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         {hasIcon && (
           <span className="shared component widget tabs item-icon">
@@ -196,6 +214,27 @@ function FiltersSection({ filters, collapsed, filtersOpen, onToggleFilters, filt
   );
 }
 
+const normalizeSearchTerm = (value) => value.trim().toLowerCase();
+
+const filterNodesByLabel = (nodes, term) =>
+  nodes.reduce((accumulator, node) => {
+    if (node.label.toLowerCase().includes(term)) {
+      accumulator.push(node);
+      return accumulator;
+    }
+    const matchingChildren = Array.isArray(node.children) ? filterNodesByLabel(node.children, term) : [];
+    if (matchingChildren.length > 0) {
+      accumulator.push({ ...node, children: matchingChildren, isSearchAncestor: true });
+    }
+    return accumulator;
+  }, []);
+
+const collectSearchAncestorKeys = (nodes) =>
+  nodes.reduce((accumulator, node) => {
+    if (node.isSearchAncestor) accumulator.push(node.key, ...collectSearchAncestorKeys(node.children));
+    return accumulator;
+  }, []);
+
 function Tabs({
   items = [],
   activePath = [],
@@ -222,6 +261,8 @@ function Tabs({
   filtersOpen: filtersOpenProp,
   defaultFiltersOpen = false,
   openAllByDefault = false,
+  filterOnSearch = false,
+  mergeOpenKeys = false,
   onToggleFilters,
   filterToggleLabel = 'Filters',
 }) {
@@ -229,6 +270,7 @@ function Tabs({
   const isControlled = collapsedProp !== undefined;
   const collapsed = isControlled ? collapsedProp : internalCollapsed;
 
+  const [searchTerm, setSearchTerm] = useState('');
   const [internalFiltersOpen, setInternalFiltersOpen] = useState(defaultFiltersOpen);
   const isFiltersControlled = filtersOpenProp !== undefined;
   const filtersOpen = isFiltersControlled ? filtersOpenProp : internalFiltersOpen;
@@ -247,15 +289,23 @@ function Tabs({
 
   useEffect(() => {
     if (openAllByDefault) return;
+    if (mergeOpenKeys) {
+      setOpenKeys((prev) => Array.from(new Set([...prev, ...activePath])));
+      return;
+    }
     const ancestors = activePath.slice(0, -1);
     setOpenKeys(Array.from(new Set(ancestors)));
-  }, [activePath.join('>'), openAllByDefault]);
+  }, [activePath.join('>'), openAllByDefault, mergeOpenKeys]);
 
   const toggleOpenKey = (key) => {
     setOpenKeys((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
+
+  const normalizedSearchTerm = filterOnSearch ? normalizeSearchTerm(searchTerm) : '';
+  const visibleItems = normalizedSearchTerm ? filterNodesByLabel(items, normalizedSearchTerm) : items;
+  const visibleOpenKeys = normalizedSearchTerm ? collectSearchAncestorKeys(visibleItems) : openKeys;
 
   const toggle = () => {
     const next = !collapsed;
@@ -302,8 +352,10 @@ function Tabs({
                   type="text"
                   placeholder={searchPlaceholder}
                   className="shared component widget tabs search-input"
-                  onFocus={onSearch}
-                  readOnly
+                  value={filterOnSearch ? searchTerm : undefined}
+                  onChange={filterOnSearch ? (event) => setSearchTerm(event.target.value) : undefined}
+                  onFocus={filterOnSearch ? undefined : onSearch}
+                  readOnly={!filterOnSearch}
                 />
                 {searchShortcut && (
                   <span className="shared component widget tabs search-shortcut">{searchShortcut}</span>
@@ -319,7 +371,7 @@ function Tabs({
               {title}
             </span>
           )}
-          {items.map((node) => (
+          {visibleItems.map((node) => (
             <TabNode
               key={node.key}
               node={node}
@@ -328,7 +380,7 @@ function Tabs({
               onSelect={onSelect}
               parentPath={[]}
               collapsed={collapsed}
-              openKeys={openKeys}
+              openKeys={visibleOpenKeys}
               onToggle={toggleOpenKey}
             />
           ))}

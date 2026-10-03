@@ -312,6 +312,8 @@ function PurchaseOrderReport() {
     setShowAttachmentModal,
     showLoadingModal,
     loadingMessage,
+    alertModal,
+    setAlertModal,
     fetchPurchaseOrderData,
     handleSignButtonClick,
     handleConfirmSign,
@@ -445,7 +447,7 @@ function PurchaseOrderReport() {
         title="Confirm Signature"
         message="You are about to sign this PurchaseOrder document. This action cannot be undone."
         buttonText="Confirm & Sign"
-        onButtonClick={handleConfirmSign}
+        onButtonClick={() => handleConfirmSign(false)}
         secondaryButtonText="Cancel"
         onSecondaryClick={() => setShowSignConfirmModal(false)}
       />
@@ -457,6 +459,7 @@ function PurchaseOrderReport() {
         title="Not Authorised"
         message="Your account is not registered as an authorised signatory for PurchaseOrder documents."
         unauthorizedReason="Your user ID does not match any of the four authorised signatories."
+        contactEmail={null}
         buttonText="Close"
         onButtonClick={() => setShowUnauthorisedModal(false)}
       />
@@ -564,6 +567,17 @@ function PurchaseOrderReport() {
         onButtonClick={() => setSignResult(null)}
         autoClose
         autoCloseDelay={3000}
+      />
+      <Modal
+        isOpen={Boolean(alertModal)}
+        onClose={() => setAlertModal(null)}
+        type={alertModal?.type || 'warning'}
+        title={alertModal?.title || ''}
+        message={alertModal?.message || ''}
+        unauthorizedReason={alertModal?.reason || ''}
+        contactEmail={null}
+        buttonText="OK"
+        onButtonClick={() => setAlertModal(null)}
       />
     </div>
   );

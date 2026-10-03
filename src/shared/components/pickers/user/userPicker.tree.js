@@ -73,6 +73,7 @@ export function useUserPickerNode(onSelect) {
         () =>
             USER_SECTIONS.map((section) => ({
                 type: 'collection',
+                sourceType: section.key,
                 key: `user-section-${section.key}`,
                 label: section.label,
                 icon: section.icon,

@@ -50,6 +50,7 @@ function useEquipmentDataset() {
 function buildEquipmentCollection(items, onSelect, dataset) {
     return {
         type: 'collection',
+        sourceType: 'equipment',
         items,
         isLoading: false,
         isLoadingMore: dataset.isLoadingMore,

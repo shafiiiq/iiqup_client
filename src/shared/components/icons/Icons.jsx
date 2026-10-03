@@ -1686,3 +1686,143 @@ export const IconlyOfficeWorker = ({ size = 24, color = "#7e2828" }) => {
     </svg>
   );
 };
+
+export const CopyIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 512 512"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h512v512H0z"
+        fill="none"
+      />
+
+      <path
+        d="M408 480H184a72 72 0 0 1-72-72V184a72 72 0 0 1 72-72h224a72 72 0 0 1 72 72v224a72 72 0 0 1-72 72"
+        fill={color}
+      />
+
+      <path
+        d="M160 80h235.88A72.12 72.12 0 0 0 328 32H104a72 72 0 0 0-72 72v224a72.12 72.12 0 0 0 48 67.88V160a80 80 0 0 1 80-80"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const PasteIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 640 640"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h640v640H0z"
+        fill="none"
+      />
+
+      <path
+        d="M128 64c-35.3 0-64 28.7-64 64v320c0 35.3 28.7 64 64 64h112V288c0-61.9 50.1-112 112-112h64v-48c0-35.3-28.7-64-64-64zm184 112H168c-13.3 0-24-10.7-24-24s10.7-24 24-24h144c13.3 0 24 10.7 24 24s-10.7 24-24 24m40 48c-35.3 0-64 28.7-64 64v224c0 35.3 28.7 64 64 64h160c35.3 0 64-28.7 64-64V346.5c0-17-6.7-33.3-18.7-45.3l-58.5-58.5c-12-12-28.3-18.7-45.3-18.7z"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const ReviewDocumentIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h20v20H0z"
+        fill="none"
+      />
+
+      <path
+        d="M4 4a2 2 0 0 1 2-2h3.586a1.5 1.5 0 0 1 1.06.44l3.915 3.914A1.5 1.5 0 0 1 15 7.414V14a2 2 0 0 1-2 2h-2.207q.137-.484.185-1H13a1 1 0 0 0 1-1V8h-3.5A1.5 1.5 0 0 1 9 6.5V3H6a1 1 0 0 0-1 1v5.022a5.5 5.5 0 0 0-1 .185zm6-.793V6.5a.5.5 0 0 0 .5.5h3.293zM10.4 17a5.5 5.5 0 0 1-.657 1h3.318A3.94 3.94 0 0 0 17 14.06V9a1 1 0 0 0-1-1v6a3 3 0 0 1-3 3zM1 14.5a4.5 4.5 0 1 0 9 0a4.5 4.5 0 0 0-9 0m6.5-3a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h.468a2 2 0 0 0-.933-.25a2 2 0 0 0-1.45.586a.5.5 0 0 1-.706-.707A3 3 0 0 1 7 12.152V12a.5.5 0 0 1 .5-.5m-.876 5.532A3 3 0 0 1 4 16.848V17a.5.5 0 0 1-1 0v-1.5a.5.5 0 0 1 .5-.5H5a.5.5 0 0 1 0 1h-.468a2 2 0 0 0 .933.25a2 2 0 0 0 1.45-.586a.5.5 0 0 1 .706.707a3 3 0 0 1-.997.66"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const RenameIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+
+      <path
+        d="m15 16l-4 4h10v-4zm-2.94-8.81L3 16.25V20h3.75l9.06-9.06zm6.65.85c.39-.39.39-1.04 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83l3.75 3.75z"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const SplitIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h20v20H0z"
+        fill="none"
+      />
+
+      <path
+        d="M11.5 2a.5.5 0 0 1 0 1h-1v14h1a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1h1V3h-1a.5.5 0 0 1 0-1zm-3 14H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h3.5zM15 4a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-3.5V4z"
+        fill={color}
+      />
+    </svg>
+  );
+};
