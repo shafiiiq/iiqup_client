@@ -18,7 +18,19 @@ export const DOCUMENT_SHORTCUT_ACTIONS = [
   { key: 'cut', label: 'Cut' },
   { key: 'copy', label: 'Copy' },
   { key: 'paste', label: 'Paste' },
-  { key: 'delete', label: 'Delete' },
+  { key: 'compress', label: 'Compress to Zip' },
+  { key: 'extract', label: 'Extract Zip' },
+  { key: 'delete', label: 'Move to Trash' },
+  { key: 'deletePermanently', label: 'Delete Permanently' },
+  { key: 'editPdf', label: 'Edit PDF' },
+  { key: 'pdfToWord', label: 'PDF to Word' },
+  { key: 'wordToPdf', label: 'Word to PDF' },
+  { key: 'imagesToPdf', label: 'Images to PDF' },
+  { key: 'pdfToImages', label: 'PDF to JPG' },
+  { key: 'exportCopy', label: 'Copy to Computer' },
+  { key: 'exportMove', label: 'Move to Computer' },
+  { key: 'undo', label: 'Undo' },
+  { key: 'redo', label: 'Redo' },
 ];
 
 export const DEFAULT_DOCUMENT_SHORTCUTS = {
@@ -33,7 +45,20 @@ export const DEFAULT_DOCUMENT_SHORTCUTS = {
   cut: `${MOD}+KeyX`,
   copy: `${MOD}+KeyC`,
   paste: `${MOD}+KeyV`,
+  compress: 'alt+KeyZ',
+  extract: 'alt+KeyE',
   delete: IS_MAC ? 'meta+Backspace' : 'Delete',
+  deletePermanently: IS_MAC ? 'alt+meta+Backspace' : 'ctrl+alt+Backspace',
+  editPdf: 'alt+KeyU',
+  pdfToWord: 'alt+KeyP',
+  wordToPdf: 'alt+KeyW',
+  imagesToPdf: 'alt+KeyJ',
+  pdfToImages: 'alt+KeyK',
+  exportCopy: 'alt+KeyY',
+  exportMove: 'alt+KeyX',
+  undo: `${MOD}+KeyZ`,
+  redo: `${MOD}+KeyY`,
+  redoAlternate: IS_MAC ? 'shift+meta+KeyZ' : 'ctrl+shift+KeyZ',
 };
 
 export const VIEWER_SHORTCUTS = [

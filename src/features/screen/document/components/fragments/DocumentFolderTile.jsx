@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { renderComponentIcon } from '@/shared/components/icons/icon.render';
 import { DRAGGED_DOCUMENT_TYPE } from '../../constants/document.constant';
 import InlineRenameInput from './InlineRenameInput';
 
-function DocumentFolderTile({
+const DocumentFolderTile = memo(function DocumentFolderTile({
   label,
   folder,
+  targetFolderId = null,
+  dropArea,
+  sizeLabel,
   itemCount,
   isRenaming,
   isSelected,
@@ -21,28 +24,29 @@ function DocumentFolderTile({
   const [isDropTarget, setIsDropTarget] = useState(false);
 
   const handleDragOver = (event) => {
-    if (!Array.from(event.dataTransfer.types).includes(DRAGGED_DOCUMENT_TYPE)) return;
+    if (!onDropDocuments || !Array.from(event.dataTransfer.types).includes(DRAGGED_DOCUMENT_TYPE)) return;
     event.preventDefault();
     setIsDropTarget(true);
   };
 
   const handleDrop = (event) => {
+    if (!onDropDocuments) return;
     const payload = event.dataTransfer.getData(DRAGGED_DOCUMENT_TYPE);
     setIsDropTarget(false);
     if (!payload) return;
     event.preventDefault();
     event.stopPropagation();
-    onDropDocuments(payload);
+    onDropDocuments(payload, targetFolderId, dropArea);
   };
 
   return (
     <div
       className={`doc-details-tile doc-details-folder-tile ${isSelected ? 'selected' : ''} ${isCut ? 'cut' : ''} ${isDropTarget ? 'drop-target' : ''}`}
       data-folder-id={folder?._id}
-      draggable={!!folder && !isRenaming}
+      draggable={Boolean(folder) && !isRenaming}
       onDragStart={folder ? (event) => onDragStart(event, folder) : undefined}
       onClick={folder ? (event) => onClick(folder, event) : undefined}
-      onDoubleClick={onOpen}
+      onDoubleClick={() => onOpen(targetFolderId)}
       onContextMenu={onContextMenu ? (event) => onContextMenu(event, folder) : undefined}
       onDragOver={handleDragOver}
       onDragLeave={() => setIsDropTarget(false)}
@@ -63,8 +67,9 @@ function DocumentFolderTile({
           {itemCount} {itemCount === 1 ? 'item' : 'items'}
         </div>
       )}
+      {sizeLabel && <div className="doc-details-tile-count">{sizeLabel}</div>}
     </div>
   );
-}
+});
 
 export default DocumentFolderTile;

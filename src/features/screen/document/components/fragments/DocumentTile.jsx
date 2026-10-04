@@ -1,48 +1,15 @@
-import { renderComponentIcon } from '@/shared/components/icons/icon.render';
+import { memo } from 'react';
 import {
-  getFileIcon,
   getFileExtension,
-  isImageDocument,
-  isPdfDocument,
   formatDisplayDate,
+  formatBytes,
   buildDocumentFileLabel,
   stripDocumentExtension,
 } from '../../helper/document.helper';
+import DocumentPreview from './DocumentPreview';
 import InlineRenameInput from './InlineRenameInput';
 
-function DocumentPreview({ documentItem }) {
-  if (isImageDocument(documentItem)) {
-    return (
-      <img
-        className="doc-details-preview-image"
-        src={documentItem.fileUrl}
-        alt={documentItem.displayName}
-        loading="lazy"
-        draggable={false}
-      />
-    );
-  }
-
-  if (isPdfDocument(documentItem)) {
-    return (
-      <iframe
-        className="doc-details-preview-pdf"
-        src={`${documentItem.fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-        title={documentItem.displayName}
-        loading="lazy"
-        tabIndex={-1}
-      />
-    );
-  }
-
-  return (
-    <div className="doc-details-preview-icon">
-      {renderComponentIcon(getFileIcon(documentItem.originalFileName, documentItem.mimeType), 90, 'currentColor')}
-    </div>
-  );
-}
-
-function DocumentTile({
+const DocumentTile = memo(function DocumentTile({
   documentItem,
   isSelected,
   isCut,
@@ -82,6 +49,7 @@ function DocumentTile({
           {buildDocumentFileLabel(documentItem)}
         </div>
       )}
+      <div className="doc-details-tile-date">{formatBytes(documentItem.fileSize)}</div>
       {documentItem.issueDate && (
         <div className="doc-details-tile-date">Issued: {formatDisplayDate(documentItem.issueDate)}</div>
       )}
@@ -90,6 +58,6 @@ function DocumentTile({
       )}
     </div>
   );
-}
+});
 
 export default DocumentTile;

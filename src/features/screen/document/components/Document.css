@@ -748,6 +748,207 @@
   outline: 2px dashed var(--color-primary);
 }
 
+.doc-details-preview-lazy {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-details-preview-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.doc-details-preview-image {
+  pointer-events: none;
+}
+
+.doc-details-tile-path {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.8;
+  text-align: center;
+}
+
+.doc-details-trash-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--gradient-glass-200);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+.doc-viewer-media {
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  border-radius: 16px;
+  background: black;
+}
+
+.doc-viewer-audio {
+  margin: auto;
+  width: min(560px, 100%);
+}
+
+.doc-viewer-unsupported {
+  flex-direction: column;
+  gap: 18px;
+}
+
+.doc-viewer-text {
+  width: 100%;
+  margin: auto;
+  align-self: stretch;
+  padding: 24px;
+  overflow: auto;
+  border-radius: 16px;
+  background: white;
+  color: #111;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.doc-viewer-office {
+  width: 100%;
+  align-self: stretch;
+  padding: 24px;
+  overflow: auto;
+  border-radius: 16px;
+  background: white;
+  color: #111;
+}
+
+.doc-viewer-office img {
+  max-width: 100%;
+}
+
+.doc-viewer-sheet-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.doc-viewer-sheet-tabs button {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #f4f4f4;
+  color: #111;
+  cursor: pointer;
+}
+
+.doc-viewer-sheet-tabs button.active {
+  background: #111;
+  color: white;
+}
+
+.doc-viewer-sheet-scroll {
+  overflow: auto;
+}
+
+.doc-viewer-sheet {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.doc-viewer-sheet td {
+  padding: 4px 10px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.doc-details-container {
+  padding-bottom: 96px;
+}
+
+.doc-storage-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 320px;
+  padding: 10px 24px;
+  background: var(--gradient-glass-200);
+  border-radius: var(--radius-4xl);
+  corner-shape: squircle;
+  color: var(--text-color);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.doc-storage-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.doc-storage-values {
+  font-size: 13px;
+}
+
+.doc-storage-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.doc-storage-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.doc-viewer-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 16px;
+  background: white;
+}
+
+.doc-viewer-docx {
+  width: 100%;
+  align-self: stretch;
+  overflow: auto;
+  border-radius: 16px;
+  background: #e5e5e5;
+}
+
+.doc-viewer-text-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  align-self: stretch;
+  overflow: auto;
+}
+
+.doc-viewer-unsupported-actions {
+  display: flex;
+  gap: 12px;
+}
+
 @media (max-width: 768px) {
   .doc-viewer-body {
     flex-direction: column;

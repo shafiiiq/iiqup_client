@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import Button from '@/shared/components/widgets/button/Button';
-import { ACCEPTED_FILE_EXTENSIONS, DIALOG_BUTTON_PROPS } from '../../constants/document.constant';
-
-const ACCEPTED_FILE_INPUT_VALUE = ACCEPTED_FILE_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+import { DIALOG_BUTTON_PROPS } from '../../constants/document.constant';
 
 function DocumentDatesDialog({
   title,
@@ -26,11 +24,7 @@ function DocumentDatesDialog({
         {showFileInput && (
           <label className="doc-details-dialog-field">
             <span>New File</span>
-            <input
-              type="file"
-              accept={ACCEPTED_FILE_INPUT_VALUE}
-              onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-            />
+            <input type="file" onChange={(event) => setSelectedFile(event.target.files?.[0] || null)} />
           </label>
         )}
 

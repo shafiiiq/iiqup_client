@@ -37,6 +37,7 @@ const FolderCard = memo(function FolderCard({ node, onOpen }) {
         <button type="button" className="shared pickers folder folder-card" onClick={() => onOpen(node)}>
             <FolderIcon iconName={node.icon} />
             <span className="shared pickers folder folder-card-label">{node.label}</span>
+            {node.footer && <span className="shared pickers folder card-footer">{node.footer}</span>}
         </button>
     );
 });
@@ -49,6 +50,9 @@ const ItemCard = memo(function ItemCard({ item, collection }) {
             <span className="shared pickers folder item-card-primary">{primary}</span>
             {secondary && <span className="shared pickers folder item-card-separator">-</span>}
             {secondary && <span className="shared pickers folder item-card-secondary">{secondary}</span>}
+            {collection.getItemFooter && (
+                <span className="shared pickers folder card-footer">{collection.getItemFooter(item)}</span>
+            )}
         </button>
     );
 });

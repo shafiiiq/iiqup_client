@@ -45,7 +45,7 @@ function PdfPageCanvas({ pdf, pageNumber, width, box, zoom = 1, rotation = 0, la
       canvas.style.height = `${baseViewport.height * cssScale}px`;
       renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport });
       renderTask.promise.catch(() => null);
-    });
+    }).catch(() => null);
 
     return () => {
       isCancelled = true;

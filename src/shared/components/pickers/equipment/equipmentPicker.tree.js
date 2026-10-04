@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '@/features/core/network/api/api.request';
 import { appendPaginationToUrl } from '@/shared/pagination/pagination.util';
 import { useSearch as useEquipmentSearch } from '@/shared/search/useSearch';
@@ -15,7 +15,7 @@ function useEquipmentDataset() {
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    const fetchPage = async (targetPage, append) => {
+    const fetchPage = useCallback(async (targetPage, append) => {
         append ? setIsLoadingMore(true) : setIsLoading(true);
         try {
             const url = appendPaginationToUrl('/equipments', { page: targetPage, limit: EQUIPMENT_PAGE_SIZE });
@@ -31,17 +31,16 @@ function useEquipmentDataset() {
             setIsLoading(false);
             setIsLoadingMore(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchPage(1, false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [fetchPage]);
 
-    const loadMore = () => {
+    const loadMore = useCallback(() => {
         if (!hasMore || isLoadingMore || isLoading) return;
         fetchPage(page + 1, true);
-    };
+    }, [hasMore, isLoadingMore, isLoading, page, fetchPage]);
 
     return { equipments, isLoading, isLoadingMore, hasMore, loadMore };
 }

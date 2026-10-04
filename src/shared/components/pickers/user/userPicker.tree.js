@@ -49,7 +49,10 @@ export function useUserPickerNode(onSelect) {
     const operatorSearch = useUserSearch({ source: SEARCH_SOURCES.OPERATORS });
     const { searchTerm } = useHeaderSearch();
 
-    const searchBySection = { staff: staffSearch, mechanic: mechanicSearch, operator: operatorSearch };
+    const searchBySection = useMemo(
+        () => ({ staff: staffSearch, mechanic: mechanicSearch, operator: operatorSearch }),
+        [staffSearch, mechanicSearch, operatorSearch]
+    );
 
     useEffect(() => {
         const term = searchTerm.trim();

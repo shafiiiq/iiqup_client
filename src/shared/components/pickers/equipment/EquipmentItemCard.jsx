@@ -15,6 +15,9 @@ function EquipmentItemCardBase({ item, collection }) {
             <div className="shared pickers equipment item-card-body">
                 <span className="shared pickers equipment item-card-regno">{item.regNo}</span>
                 <span className="shared pickers equipment item-card-machine">{item.machine}</span>
+                {collection.getItemFooter && (
+                    <span className="shared pickers folder card-footer">{collection.getItemFooter(item)}</span>
+                )}
             </div>
             {item.subCategory && (
                 <span className="shared pickers equipment item-card-badge">{item.subCategory}</span>

@@ -1,5 +1,4 @@
 import { DOCUMENT_VIEWS, DOCUMENT_VIEW_TABS, DRAGGED_DOCUMENT_TYPE } from '../constants/document.constant';
-import { countFolderItems } from './document.helper';
 
 export const PICKER_ROOT_KEY = 'root';
 
@@ -11,15 +10,18 @@ export const buildViewNodeKey = (sourceId, viewKey) => `source:${sourceId}:view:
 
 export const buildFolderNodeKey = (sourceId, folderId) => `source:${sourceId}:folder:${folderId}`;
 
-const buildDocumentFolderNodes = ({ sourceType, sourceId, selection, parentFolderId, onActivate }) =>
+const buildDocumentFolderNodes = ({ sourceType, sourceId, selection, area, parentFolderId, onActivate }) =>
   selection.folders
-    .filter((folderItem) => (folderItem.parentFolderId || null) === parentFolderId)
+    .filter(
+      (folderItem) =>
+        (folderItem.parentFolderId || null) === parentFolderId && (parentFolderId || (folderItem.area || 'all') === area)
+    )
     .map((folderItem) => ({
       key: buildFolderNodeKey(sourceId, folderItem._id),
       label: folderItem.name,
       iconName: FOLDER_ICON_NAME,
-      badge: countFolderItems(selection.documents, selection.folders, folderItem._id),
-      isActive: selection.activeView === DOCUMENT_VIEWS.ALL && selection.currentFolderId === folderItem._id,
+      badge: selection.folderItemCounts[folderItem._id] ?? 0,
+      isActive: selection.currentFolderId === folderItem._id,
       onActivate,
       dropMimeType: DRAGGED_DOCUMENT_TYPE,
       onDropPayload: (payload) => selection.onDropDocuments(payload, folderItem._id),
@@ -28,12 +30,14 @@ const buildDocumentFolderNodes = ({ sourceType, sourceId, selection, parentFolde
         sourceType,
         sourceId,
         folderId: folderItem._id,
+        area: folderItem.area || 'all',
         sourceNodeKey: buildSourceNodeKey(sourceId),
       },
       children: buildDocumentFolderNodes({
         sourceType,
         sourceId,
         selection,
+        area,
         parentFolderId: folderItem._id,
         onActivate,
       }),
@@ -50,12 +54,10 @@ const buildViewNodes = ({ sourceType, sourceId, selection, onActivate }) =>
       iconName: viewTab.iconName,
       badge: selectedTab ? selectedTab.badge : undefined,
       isForcedOpen: Boolean(selection) && isAllView,
-      isActive: selection
-        ? selection.activeView === viewTab.key && (!isAllView || selection.currentFolderId === null)
-        : undefined,
+      isActive: selection ? selection.activeView === viewTab.key && selection.currentFolderId === null : undefined,
       onActivate,
-      dropMimeType: selection && isAllView ? DRAGGED_DOCUMENT_TYPE : undefined,
-      onDropPayload: selection && isAllView ? (payload) => selection.onDropDocuments(payload, null) : undefined,
+      dropMimeType: selection ? DRAGGED_DOCUMENT_TYPE : undefined,
+      onDropPayload: selection ? (payload) => selection.onDropDocuments(payload, null, viewTab.key) : undefined,
       payload: {
         kind: 'view',
         sourceType,
@@ -63,37 +65,47 @@ const buildViewNodes = ({ sourceType, sourceId, selection, onActivate }) =>
         viewKey: viewTab.key,
         sourceNodeKey: buildSourceNodeKey(sourceId),
       },
-      children:
-        selection && isAllView
-          ? buildDocumentFolderNodes({ sourceType, sourceId, selection, parentFolderId: null, onActivate })
-          : [],
+      children: selection
+        ? buildDocumentFolderNodes({ sourceType, sourceId, selection, area: viewTab.key, parentFolderId: null, onActivate })
+        : [],
     };
   });
 
 const buildSourceNode = ({ collection, item, selection, onActivate }) => {
   const sourceId = item._id || item.id;
+  const sourceType = collection.sourceType;
   const primaryText = collection.getItemPrimaryText(item);
   const secondaryText = collection.getItemSecondaryText ? collection.getItemSecondaryText(item) : null;
   const isSelectedSource = Boolean(selection) && selection.sourceId === sourceId;
+  const activeSelection = isSelectedSource ? selection : null;
 
   return {
     key: buildSourceNodeKey(sourceId),
     label: secondaryText ? `${primaryText} - ${secondaryText}` : String(primaryText),
     iconName: FOLDER_ICON_NAME,
     isForcedOpen: isSelectedSource,
+    isActive: activeSelection
+      ? activeSelection.activeView === DOCUMENT_VIEWS.SOURCE && activeSelection.currentFolderId === null
+      : undefined,
     onActivate,
-    payload: {
-      kind: 'source',
-      sourceType: collection.sourceType,
-      sourceId,
-      sourceNodeKey: buildSourceNodeKey(sourceId),
-    },
-    children: buildViewNodes({
-      sourceType: collection.sourceType,
-      sourceId,
-      selection: isSelectedSource ? selection : null,
-      onActivate,
-    }),
+    dropMimeType: activeSelection ? DRAGGED_DOCUMENT_TYPE : undefined,
+    onDropPayload: activeSelection
+      ? (payload) => activeSelection.onDropDocuments(payload, null, DOCUMENT_VIEWS.SOURCE)
+      : undefined,
+    payload: { kind: 'source', sourceType, sourceId, sourceNodeKey: buildSourceNodeKey(sourceId) },
+    children: [
+      ...buildViewNodes({ sourceType, sourceId, selection: activeSelection, onActivate }),
+      ...(activeSelection
+        ? buildDocumentFolderNodes({
+            sourceType,
+            sourceId,
+            selection: activeSelection,
+            area: DOCUMENT_VIEWS.SOURCE,
+            parentFolderId: null,
+            onActivate,
+          })
+        : []),
+    ],
   };
 };
 
@@ -109,17 +121,13 @@ const buildSidebarNode = ({ node, selection, onActivate }) => {
   if (node.type === 'collection') {
     return {
       ...baseNode,
-      children: (node.items || []).map((item) =>
-        buildSourceNode({ collection: node, item, selection, onActivate })
-      ),
+      children: (node.items || []).map((item) => buildSourceNode({ collection: node, item, selection, onActivate })),
     };
   }
 
   return {
     ...baseNode,
-    children: (node.children || []).map((childNode) =>
-      buildSidebarNode({ node: childNode, selection, onActivate })
-    ),
+    children: (node.children || []).map((childNode) => buildSidebarNode({ node: childNode, selection, onActivate })),
   };
 };
 

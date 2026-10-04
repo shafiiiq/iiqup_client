@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Button from '@/shared/components/widgets/button/Button';
 import { usePdfPages } from '../../hooks/usePdfPages';
-import { isPdfDocument, isImageDocument, buildDocumentFileLabel } from '../../helper/document.helper';
+import { isPdfDocument, buildDocumentFileLabel } from '../../helper/document.helper';
+import DocumentFilePreview from './DocumentFilePreview';
 import { DIALOG_BUTTON_PROPS } from '../../constants/document.constant';
 import PdfPageCanvas from './PdfPageCanvas';
 
@@ -33,6 +34,7 @@ function DocumentViewer({
   hasPrevFile,
   hasNextFile,
   onNavigate,
+  onDownload,
   onClose,
   onSave,
   onSplitSelected,
@@ -439,11 +441,7 @@ function DocumentViewer({
             <div className="doc-viewer-stage">
               {renderFileNav()}
               <div className="doc-viewer-main">
-                {isImageDocument(primary) ? (
-                  <img className="doc-viewer-image" src={primary.fileUrl} alt={primary.displayName} />
-                ) : (
-                  <div className="doc-viewer-message">Preview is not available for this file type</div>
-                )}
+                <DocumentFilePreview key={primary._id} documentItem={primary} onDownload={() => onDownload(primary)} />
               </div>
             </div>
           </div>

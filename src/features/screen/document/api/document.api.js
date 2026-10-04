@@ -9,18 +9,26 @@ const readResponseData = async (response, fallbackMessage) => {
 export const fetchDocumentsBySource = async ({ sourceType, sourceId }) =>
   readResponseData(await apiRequest(`/documents/source/${sourceType}/${sourceId}`, 'GET'), 'Failed to fetch documents');
 
-export const registerUploadedDocuments = async ({ sourceType, sourceId, sessionIds, folderId }) =>
+export const registerUploadedDocuments = async ({ sourceType, sourceId, sessionIds, folderId, area, directoryBySessionId, emptyDirectories }) =>
   readResponseData(
-    await apiRequest('/documents/register-uploads', 'POST', { sourceType, sourceId, sessionIds, folderId }),
+    await apiRequest('/documents/register-uploads', 'POST', {
+      sourceType,
+      sourceId,
+      sessionIds,
+      folderId,
+      area,
+      directoryBySessionId,
+      emptyDirectories,
+    }),
     'Failed to save uploaded documents'
   );
 
 export const fetchFoldersBySource = async ({ sourceType, sourceId }) =>
   readResponseData(await apiRequest(`/documents/folders/${sourceType}/${sourceId}`, 'GET'), 'Failed to fetch folders');
 
-export const createFolder = async ({ sourceType, sourceId, parentFolderId, name }) =>
+export const createFolder = async ({ sourceType, sourceId, parentFolderId, area, name }) =>
   readResponseData(
-    await apiRequest('/documents/folders', 'POST', { sourceType, sourceId, parentFolderId, name: name.trim() }),
+    await apiRequest('/documents/folders', 'POST', { sourceType, sourceId, parentFolderId, area, name: name.trim() }),
     'Failed to create folder'
   );
 
@@ -30,15 +38,15 @@ export const renameFolder = async ({ folderId, name }) =>
     'Failed to rename folder'
   );
 
-export const moveDocument = async ({ documentId, folderId }) =>
+export const moveDocument = async ({ documentId, folderId, area }) =>
   readResponseData(
-    await apiRequest(`/documents/${documentId}/move`, 'PUT', { folderId }),
+    await apiRequest(`/documents/${documentId}/move`, 'PUT', { folderId, area }),
     'Failed to move document'
   );
 
-export const copyDocument = async ({ documentId, folderId }) =>
+export const copyDocument = async ({ documentId, folderId, area }) =>
   readResponseData(
-    await apiRequest(`/documents/${documentId}/copy`, 'POST', { folderId }),
+    await apiRequest(`/documents/${documentId}/copy`, 'POST', { folderId, area }),
     'Failed to copy document'
   );
 
@@ -60,8 +68,11 @@ export const renameDocument = async ({ documentId, newFileName }) =>
     'Failed to rename document'
   );
 
-export const deleteDocument = async (documentId) =>
-  readResponseData(await apiRequest(`/documents/${documentId}`, 'DELETE'), 'Failed to delete document');
+export const setDocumentRenewalStatus = async ({ documentId, renewalStatus }) =>
+  readResponseData(
+    await apiRequest(`/documents/${documentId}/renewal-status`, 'PUT', { renewalStatus }),
+    'Failed to update renewal status'
+  );
 
 export const mergeDocuments = async ({ sourceType, sourceId, documentIds }) =>
   readResponseData(
@@ -75,8 +86,47 @@ export const splitDocument = async ({ documentId, splitType, pages }) =>
     'Failed to split document'
   );
 
-export const getSignedUrl = async (filePath) => {
-  const response = await apiRequest('/s3/pre-signed-url', 'POST', { key: filePath, isLong: false });
+export const trashItems = async ({ documentIds, folderIds }) =>
+  readResponseData(
+    await apiRequest('/documents/trash', 'POST', { documentIds, folderIds }),
+    'Failed to move to Trash'
+  );
+
+export const deleteItemsPermanently = async ({ documentIds, folderIds }) =>
+  readResponseData(
+    await apiRequest('/documents/delete-permanently', 'POST', { documentIds, folderIds }),
+    'Failed to delete permanently'
+  );
+
+export const fetchTrashSources = async () =>
+  readResponseData(await apiRequest('/documents/trash/sources', 'GET'), 'Failed to load Trash');
+
+export const fetchTrashItems = async ({ sourceType, sourceId }) =>
+  readResponseData(await apiRequest(`/documents/trash/${sourceType}/${sourceId}`, 'GET'), 'Failed to load Trash');
+
+export const restoreTrashItems = async ({ documentIds, folderIds }) =>
+  readResponseData(
+    await apiRequest('/documents/trash/restore', 'POST', { documentIds, folderIds }),
+    'Failed to restore items'
+  );
+
+export const emptyTrash = async ({ sourceType, sourceId } = {}) =>
+  readResponseData(
+    await apiRequest('/documents/trash/empty', 'POST', { sourceType, sourceId }),
+    'Failed to empty Trash'
+  );
+
+export const compressItems = async ({ sourceType, sourceId, documentIds, folderIds, folderId, area }) =>
+  readResponseData(
+    await apiRequest('/documents/compress', 'POST', { sourceType, sourceId, documentIds, folderIds, folderId, area }),
+    'Failed to compress'
+  );
+
+export const extractDocument = async ({ documentId }) =>
+  readResponseData(await apiRequest(`/documents/${documentId}/extract`, 'POST', {}), 'Failed to extract');
+
+export const getSignedUrl = async (filePath, downloadFileName) => {
+  const response = await apiRequest('/s3/pre-signed-url', 'POST', { key: filePath, isLong: false, downloadFileName });
   if (!response.ok) throw new Error('Failed to generate signed URL');
   const body = await response.json();
   return body.dataUrl;
@@ -96,15 +146,15 @@ export const fetchSourceEntity = async ({ type, id }) => {
   return body.data || body;
 };
 
-export const moveFolder = async ({ folderId, parentFolderId }) =>
+export const moveFolder = async ({ folderId, parentFolderId, area }) =>
   readResponseData(
-    await apiRequest(`/documents/folders/${folderId}/move`, 'PUT', { parentFolderId }),
+    await apiRequest(`/documents/folders/${folderId}/move`, 'PUT', { parentFolderId, area }),
     'Failed to move folder'
   );
 
-export const copyFolder = async ({ folderId, parentFolderId }) =>
+export const copyFolder = async ({ folderId, parentFolderId, area }) =>
   readResponseData(
-    await apiRequest(`/documents/folders/${folderId}/copy`, 'POST', { parentFolderId }),
+    await apiRequest(`/documents/folders/${folderId}/copy`, 'POST', { parentFolderId, area }),
     'Failed to copy folder'
   );
 
@@ -120,5 +170,19 @@ export const mergeDocumentPages = async ({ sourceType, sourceId, pages }) =>
     'Failed to merge documents'
   );
 
-export const deleteFolder = async (folderId) =>
-  readResponseData(await apiRequest(`/documents/folders/${folderId}`, 'DELETE'), 'Failed to delete folder');
+export const fetchStorageSummary = async () =>
+  readResponseData(await apiRequest('/documents/storage', 'GET'), 'Failed to load storage');
+
+export const convertDocuments = async ({ sourceType, sourceId, conversion, documentIds }) =>
+  readResponseData(
+    await apiRequest('/documents/convert', 'POST', { sourceType, sourceId, conversion, documentIds }),
+    'Failed to convert'
+  );
+
+export const getPreviewPdfUrl = async (documentId) => {
+  const data = await readResponseData(
+    await apiRequest(`/documents/${documentId}/preview-pdf`, 'GET'),
+    'Failed to prepare the preview'
+  );
+  return data.url;
+};

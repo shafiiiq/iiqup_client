@@ -3,7 +3,7 @@ export const DOCUMENT_UPLOAD_FEATURE = 'documents';
 export const DRAGGED_DOCUMENT_TYPE = 'application/x-document-id';
 
 export const DOCUMENT_TOOLBAR_ICONS = {
-  newFolder: 'IconlyPlus',
+  newFolder: 'NewFolderIcon',
   hint: 'KeyBoardIcon',
   view: "IconlyShow",
   download: 'IconlyDownload',
@@ -16,8 +16,26 @@ export const DOCUMENT_TOOLBAR_ICONS = {
   copy: "CopyIcon",
   paste: "PasteIcon",
   delete: "IconlyDelete",
+  deletePermanently: "TrashIcon",
+  compress: "CompressIcon",
+  extract: "ZipIcon",
+  restore: "RestoreTrashIcon",
+  emptyTrash: "EmptyTrashIcon",
+  trash: "TrashIcon",
+  undo: 'UndoIcon',
+  redo: 'RedoIcon',
+  editPdf: 'EditFileIcon',
+  pdfToWord: 'ToWordIcon',
+  wordToPdf: 'ToPdfIcon',
+  imagesToPdf: 'ImageToPdfIcon',
+  pdfToImages: 'PdfToImageIcon',
+  exportCopy: 'CopyToComputerIcon',
+  exportMove: 'MoveToComputerIcon',
+  uploadFiles: 'FileUploadIcon',
+  uploadFolder: 'FolderUploadIcon',
 };
 
+export const TRASH_NODE_KEY = 'trash';
 export const buildDocumentKeyPrefix = (sourceType, sourceId) => `documents/${sourceType}/${sourceId}`;
 
 export const RENEWAL_STATUS = {
@@ -27,6 +45,7 @@ export const RENEWAL_STATUS = {
 };
 
 export const DOCUMENT_VIEWS = {
+  SOURCE: 'source',
   ALL: 'all',
   RENEWED: 'renewed',
   EXPIRED: 'expired',
@@ -40,7 +59,28 @@ export const DOCUMENT_VIEW_TABS = [
 
 export const IMAGE_FILE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 
-export const ACCEPTED_FILE_EXTENSIONS = ['pdf', 'doc', 'docx', ...IMAGE_FILE_EXTENSIONS];
+export const VIDEO_FILE_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v', 'ogv'];
+
+export const AUDIO_FILE_EXTENSIONS = ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'];
+
+export const TEXT_FILE_EXTENSIONS = [
+  'txt', 'md', 'json', 'xml', 'yaml', 'yml', 'log', 'ini', 'html', 'htm', 'css', 'scss', 'js', 'jsx', 'ts', 'tsx', 'mjs',
+  'py', 'java', 'c', 'h', 'cpp', 'cs', 'go', 'rs', 'php', 'rb', 'sh', 'sql', 'toml', 'env', 'conf', 'tex', 'vue', 'svg',
+];
+
+export const OFFICE_CONVERT_EXTENSIONS = ['doc', 'odt', 'rtf', 'ppt', 'pptx', 'odp'];
+
+export const SPREADSHEET_FILE_EXTENSIONS = ['xlsx', 'xls', 'xlsm', 'csv', 'ods'];
+
+export const WORD_FILE_EXTENSIONS = ['docx'];
+
+export const ARCHIVE_FILE_EXTENSIONS = ['zip'];
+
+export const TEXT_PREVIEW_INITIAL_BYTES = 2 * 1024 * 1024;
+
+export const SPREADSHEET_PREVIEW_MAXIMUM_ROWS = 500;
+
+export const SPREADSHEET_PREVIEW_MAXIMUM_COLUMNS = 50;
 
 export const DOCUMENT_URL_REFRESH_INTERVAL_MILLISECONDS = 50 * 60 * 1000;
 
@@ -64,6 +104,7 @@ export const DIALOG_BUTTON_PROPS = {
 };
 
 export const EMPTY_STATE_MESSAGES = {
+  [DOCUMENT_VIEWS.SOURCE]: 'Drag files or folders here, or use New Folder. Open All Documents, Renewed or Expired above.',
   [DOCUMENT_VIEWS.ALL]: 'Drag and drop files here, or copy files and paste them here to upload.',
   [DOCUMENT_VIEWS.RENEWED]: 'No renewed documents yet. Right click a document and choose Renew Document.',
   [DOCUMENT_VIEWS.EXPIRED]: 'No expired documents yet. Documents move here when they are renewed.',

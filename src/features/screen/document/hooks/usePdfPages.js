@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+import pdfjsLib, { safeDestroy } from '../helper/pdfClient';
 
 export const usePdfPages = (documents, enabled) => {
   const [state, setState] = useState({ pages: [], pdfs: {}, isLoading: true, error: '' });
@@ -10,17 +7,34 @@ export const usePdfPages = (documents, enabled) => {
   useEffect(() => {
     if (!enabled) return undefined;
     let isCancelled = false;
+    const abortController = new AbortController();
     const loadedPdfs = [];
-    setState((previous) => ({ ...previous, isLoading: true, error: '' }));
+    const loadingTasks = new Set();
+    setState({ pages: [], pdfs: {}, isLoading: true, error: '' });
 
     (async () => {
       try {
         const pdfs = {};
         const pages = [];
         for (const documentItem of documents) {
-          const fileResponse = await fetch(documentItem.fileUrl, { cache: 'no-store', mode: 'cors' });
+          const fileResponse = await fetch(documentItem.fileUrl, {
+            cache: 'no-store',
+            mode: 'cors',
+            signal: abortController.signal,
+          });
           if (!fileResponse.ok) throw new Error('Failed to fetch file');
-          const pdf = await pdfjsLib.getDocument({ data: await fileResponse.arrayBuffer() }).promise;
+          const loadingTask = pdfjsLib.getDocument({ data: await fileResponse.arrayBuffer() });
+          loadingTasks.add(loadingTask);
+          let pdf;
+          try {
+            pdf = await loadingTask.promise;
+          } finally {
+            loadingTasks.delete(loadingTask);
+          }
+          if (isCancelled) {
+            safeDestroy(pdf);
+            return;
+          }
           loadedPdfs.push(pdf);
           pdfs[documentItem._id] = pdf;
           for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
@@ -33,14 +47,18 @@ export const usePdfPages = (documents, enabled) => {
           }
         }
         if (!isCancelled) setState({ pages, pdfs, isLoading: false, error: '' });
-      } catch {
-        if (!isCancelled) setState({ pages: [], pdfs: {}, isLoading: false, error: 'Failed to load PDF' });
+      } catch (error) {
+        if (!isCancelled && error.name !== 'AbortError') {
+          setState({ pages: [], pdfs: {}, isLoading: false, error: 'Failed to load PDF' });
+        }
       }
     })();
 
     return () => {
       isCancelled = true;
-      loadedPdfs.forEach((pdf) => pdf.destroy());
+      abortController.abort();
+      loadedPdfs.forEach((pdf) => safeDestroy(pdf));
+      loadingTasks.forEach((loadingTask) => safeDestroy(loadingTask));
     };
   }, [documents, enabled]);
 
