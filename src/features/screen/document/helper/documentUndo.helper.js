@@ -27,10 +27,24 @@ export const buildMoveOperation = ({ label, documentMoves, folderMoves }) => {
   const applyMoves = (targetKey) =>
     runBulkActionsOrThrow([
       ...documentMoves.map(
-        (move) => () => moveDocument({ documentId: move.id, folderId: move[targetKey].folderId, area: move[targetKey].area })
+        (move) => () =>
+          moveDocument({
+            documentId: move.id,
+            folderId: move[targetKey].folderId,
+            area: move[targetKey].area,
+            targetSourceType: move[targetKey].sourceType,
+            targetSourceId: move[targetKey].sourceId,
+          })
       ),
       ...folderMoves.map(
-        (move) => () => moveFolder({ folderId: move.id, parentFolderId: move[targetKey].folderId, area: move[targetKey].area })
+        (move) => () =>
+          moveFolder({
+            folderId: move.id,
+            parentFolderId: move[targetKey].folderId,
+            area: move[targetKey].area,
+            targetSourceType: move[targetKey].sourceType,
+            targetSourceId: move[targetKey].sourceId,
+          })
       ),
     ]);
   return { label, undo: () => applyMoves('from'), redo: () => applyMoves('to') };

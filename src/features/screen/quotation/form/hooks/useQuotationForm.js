@@ -76,7 +76,93 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const [manualTotal, setManualTotal] = useState(null);
   const [amendmentNumber, setAmendmentNumber] = useState(0);
 
+  const historyPast = useRef([]);
+  const historyFuture = useRef([]);
+  const historyPresent = useRef(null);
+  const suppressHistoryRef = useRef(true);
+  const historyDebounceRef = useRef(null);
+  const [historyTick, setHistoryTick] = useState(0);
+
   const autoCalculateTotal = getAutoCalculateTotal(columns);
+
+  const captureFormSnapshot = () => ({
+    quotationData,
+    columns,
+    paymentTerms,
+    termKeys,
+    customFields,
+    showTotalRow,
+    manualTotal,
+    showDiscountInTotal,
+    termTemplate,
+    ceoMode,
+  });
+
+  const applyFormSnapshot = (snap) => {
+    suppressHistoryRef.current = true;
+    setQuotationData(snap.quotationData);
+    setColumns(snap.columns);
+    setPaymentTerms(snap.paymentTerms);
+    setTermKeys(snap.termKeys);
+    setCustomFields(snap.customFields);
+    setShowTotalRow(snap.showTotalRow);
+    setManualTotal(snap.manualTotal);
+    setShowDiscountInTotal(snap.showDiscountInTotal);
+    setTermTemplate(snap.termTemplate);
+    setCeoMode(snap.ceoMode);
+  };
+
+  useEffect(() => {
+    if (suppressHistoryRef.current) {
+      suppressHistoryRef.current = false;
+      historyPresent.current = captureFormSnapshot();
+      return;
+    }
+    clearTimeout(historyDebounceRef.current);
+    historyDebounceRef.current = setTimeout(() => {
+      if (historyPresent.current) historyPast.current.push(historyPresent.current);
+      historyPresent.current = captureFormSnapshot();
+      historyFuture.current = [];
+      setHistoryTick((t) => t + 1);
+    }, 400);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quotationData, columns, paymentTerms, termKeys, customFields, showTotalRow, manualTotal, showDiscountInTotal, termTemplate, ceoMode]);
+
+  const undo = () => {
+    clearTimeout(historyDebounceRef.current);
+    if (!historyPast.current.length) return;
+    const prev = historyPast.current.pop();
+    historyFuture.current.push(historyPresent.current);
+    applyFormSnapshot(prev);
+    historyPresent.current = prev;
+    setHistoryTick((t) => t + 1);
+  };
+
+  const redo = () => {
+    clearTimeout(historyDebounceRef.current);
+    if (!historyFuture.current.length) return;
+    const next = historyFuture.current.pop();
+    historyPast.current.push(historyPresent.current);
+    applyFormSnapshot(next);
+    historyPresent.current = next;
+    setHistoryTick((t) => t + 1);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isMeta = e.ctrlKey || e.metaKey;
+      if (!isMeta) return;
+      const key = e.key.toLowerCase();
+      if (key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((key === 'z' && e.shiftKey) || key === 'y') { e.preventDefault(); redo(); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const canUndo = historyPast.current.length > 0;
+  const canRedo = historyFuture.current.length > 0;
 
   useEffect(() => {
     const periods = derivePeriodsFromColumns(columns);
@@ -154,6 +240,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
 
       const loadedColumns = ho.columns?.length ? ho.columns : DEFAULT_COLUMNS;
 
+      suppressHistoryRef.current = true;
       setQuotationCounter(ho.quotationCounter || 1);
       setColumns(loadedColumns);
       setQuotationData({
@@ -227,6 +314,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
           : (ho.customFields?.length ? ho.customFields : [])
       );
 
+      suppressHistoryRef.current = true;
       const amendedSignatoryTitle = latest?.amendedSignatures?.authorizedSignatoryTitle || ho.signatures?.authorizedSignatoryTitle;
       if (amendedSignatoryTitle === 'MANAGING DIRECTOR') setCeoMode('MANAGING DIRECTOR');
 
@@ -300,14 +388,20 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     setColumns((prev) => prev.map((c) => (c.id === colId && c.type !== 'calculated' ? { ...c, label } : c)));
   };
 
-  const addColumn = () => {
+  const addColumn = (afterColId) => {
     const newId = `col_${Date.now()}`;
     const newCol = { id: newId, label: 'New Column', type: 'text', deletable: true };
 
     setColumns((prev) => {
-      const calcIndex = prev.findIndex((c) => c.type === 'calculated');
       const updated = [...prev];
-      updated.splice(calcIndex === -1 ? updated.length : calcIndex, 0, newCol);
+      let insertIndex;
+      if (afterColId) {
+        insertIndex = updated.findIndex((c) => c.id === afterColId) + 1;
+      } else {
+        const calcIndex = updated.findIndex((c) => c.type === 'calculated');
+        insertIndex = calcIndex === -1 ? updated.length : calcIndex;
+      }
+      updated.splice(insertIndex, 0, newCol);
       return updated;
     });
 
@@ -315,6 +409,16 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
       ...prev,
       items: prev.items.map((item) => ({ ...item, [newId]: '' })),
     }));
+  };
+
+  const moveColumn = (fromIndex, toIndex) => {
+    setColumns((prev) => {
+      if (toIndex < 0 || toIndex >= prev.length) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
   };
 
   const removeColumn = (colId) => {
@@ -351,11 +455,23 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     }));
   };
 
-  const addItemRow = () => {
-    setQuotationData((prev) => ({
-      ...prev,
-      items: [...prev.items, buildDefaultItem(columns, prev.items.length + 1)],
-    }));
+  const addItemRow = (afterIndex) => {
+    setQuotationData((prev) => {
+      const items = [...prev.items];
+      const insertAt = typeof afterIndex === 'number' ? afterIndex + 1 : items.length;
+      items.splice(insertAt, 0, buildDefaultItem(columns, 0));
+      return { ...prev, items: items.map((item, i) => ({ ...item, id: i + 1 })) };
+    });
+  };
+
+  const moveItem = (fromIndex, toIndex) => {
+    setQuotationData((prev) => {
+      if (toIndex < 0 || toIndex >= prev.items.length) return prev;
+      const items = [...prev.items];
+      const [moved] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, moved);
+      return { ...prev, items: items.map((item, i) => ({ ...item, id: i + 1 })) };
+    });
   };
 
   const removeItem = (index) => {
@@ -706,6 +822,10 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     showDiscountInTotal,
 
     autoCalculateTotal,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     subtotal,
     totalAmount,
     finalTotal,
@@ -718,7 +838,9 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     addColumn,
     addTotalColumn,
     removeColumn,
+    moveColumn,
     addItemRow,
+    moveItem,
     removeItem,
     handleItemChange,
     handleItemImageChange,

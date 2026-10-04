@@ -19,11 +19,13 @@ import DocumentDatesDialog from './fragments/DocumentDatesDialog';
 import DocumentShortcutsDialog from './fragments/DocumentShortcutsDialog';
 import DocumentStorageBar from './fragments/DocumentStorageBar';
 import DocumentTrash from './fragments/DocumentTrash';
+import DocumentWindowTabs from './fragments/DocumentWindowTabs';
 import { formatShortcut } from '../helper/documentShortcut.helper';
 import {
   DOCUMENT_VIEWS,
   DOCUMENT_VIEW_TABS,
   DOCUMENT_TOOLBAR_ICONS,
+  DRAGGED_DOCUMENT_TYPE,
   EMPTY_STATE_MESSAGES,
   TOOLBAR_BUTTON_PROPS,
   TRASH_NODE_KEY,
@@ -55,6 +57,37 @@ const TRASH_NODE = {
   children: [],
 };
 
+const ROOT_NAVIGATION = {
+  source: null,
+  pickerPathKeys: [PICKER_ROOT_KEY],
+  view: DOCUMENT_VIEWS.SOURCE,
+  folderId: null,
+};
+
+const resolveScope = (source, pathKeys) => source || (pathKeys.length === 1 ? ROOT_SCOPE : null);
+
+const scopeKeyOf = (scopeItem) => (scopeItem ? `${scopeItem.type}:${scopeItem.id}` : '');
+
+const navigationFromSidebarNode = (path, node) => {
+  const { payload } = node;
+  if (payload.kind === 'folder') {
+    return { source: null, pickerPathKeys: path, view: DOCUMENT_VIEWS.SOURCE, folderId: null };
+  }
+  const source = { type: payload.sourceType, id: payload.sourceId };
+  const pickerPathKeys = path.slice(0, path.indexOf(payload.sourceNodeKey));
+  if (payload.kind === 'source') return { source, pickerPathKeys, view: DOCUMENT_VIEWS.SOURCE, folderId: null };
+  if (payload.kind === 'documentFolder') {
+    return { source, pickerPathKeys, view: payload.area, folderId: payload.folderId };
+  }
+  return { source, pickerPathKeys, view: payload.viewKey, folderId: null };
+};
+
+const attachContextMenu = (node, handler) => ({
+  ...node,
+  onContextMenu: handler,
+  children: node.children ? node.children.map((child) => attachContextMenu(child, handler)) : node.children,
+});
+
 const ICON_BUTTON_PROPS = {
   ...TOOLBAR_BUTTON_PROPS,
   componentIconSize: '40',
@@ -70,6 +103,11 @@ function Document() {
     routeType && routeId ? { type: routeType, id: routeId } : null
   );
   const [pickerPathKeys, setPickerPathKeys] = useState([PICKER_ROOT_KEY]);
+  const [windows, setWindows] = useState(() => [{ id: 'window-1', nav: null, label: 'Root' }]);
+  const [activeWindowId, setActiveWindowId] = useState('window-1');
+  const [sidebarMenu, setSidebarMenu] = useState(null);
+  const windowCounterRef = useRef(1);
+  const closedWindowsRef = useRef([]);
   const fileInputRef = useRef(null);
   const folderInputRef = useRef(null);
 
@@ -98,6 +136,8 @@ function Document() {
     folderItemCounts,
     cutDocumentIds,
     cutFolderIds,
+    newItemIdSet,
+    containsNewIdSet,
     selectedFolderIds,
     activeView,
     visibleDocuments,
@@ -156,6 +196,7 @@ function Document() {
     handleExplorerClick,
     handleExplorerContextMenu,
     handleFolderContextMenu,
+    queueNavigation,
   } = useDocument({ sourceType: scope?.type, sourceId: scope?.id });
 
   const isTrashActive = !selectedSource && pickerPathKeys.length === 2 && pickerPathKeys[1] === TRASH_NODE_KEY;
@@ -185,74 +226,294 @@ function Document() {
     [documentRoot, storage.bySource, storage.trashBytes]
   );
 
-  const selectSource = ({ sourceType, sourceId, folderPathKeys, viewKey }) => {
-    setSelectedSource({ type: sourceType, id: sourceId });
-    setPickerPathKeys(folderPathKeys);
-    handleViewChange(viewKey);
+  const applyNavigation = (navigation) => {
+    const targetScope = resolveScope(navigation.source, navigation.pickerPathKeys);
+    const isSameScope = scopeKeyOf(targetScope) === scopeKeyOf(scope);
+    setSelectedSource(navigation.source);
+    setPickerPathKeys(navigation.pickerPathKeys);
+    if (isSameScope) {
+      handleViewChange(navigation.view);
+      handleOpenFolder(navigation.folderId);
+    } else {
+      queueNavigation(targetScope ? { view: navigation.view, folderId: navigation.folderId } : null);
+    }
   };
 
+  const captureNavigation = () => ({
+    source: selectedSource,
+    pickerPathKeys,
+    view: activeView,
+    folderId: currentFolderId,
+  });
+
   const handleSidebarNode = useStableCallback((path, node) => {
-    const { payload } = node;
+    applyNavigation(navigationFromSidebarNode(path, node));
+  });
 
-    if (payload.kind === 'folder') {
-      setPickerPathKeys(path);
-      setSelectedSource(null);
-      if (path.length === 1) handleOpenFolder(null);
+  const openWindow = (navigation, label, afterWindowId = activeWindowId) => {
+    windowCounterRef.current += 1;
+    const newWindow = { id: `window-${windowCounterRef.current}`, nav: navigation, label };
+    const savedNavigation = captureNavigation();
+    const savedLabel = directoryLabel;
+    setWindows((previous) => {
+      const saved = previous.map((windowItem) =>
+        windowItem.id === activeWindowId ? { ...windowItem, nav: savedNavigation, label: savedLabel } : windowItem
+      );
+      const insertIndex = saved.findIndex((windowItem) => windowItem.id === afterWindowId);
+      return [...saved.slice(0, insertIndex + 1), newWindow, ...saved.slice(insertIndex + 1)];
+    });
+    setActiveWindowId(newWindow.id);
+    applyNavigation(navigation);
+  };
+
+  const handleSelectWindow = useStableCallback((windowId) => {
+    if (windowId === activeWindowId) return;
+    const targetWindow = windows.find((windowItem) => windowItem.id === windowId);
+    if (!targetWindow?.nav) return;
+    const savedNavigation = captureNavigation();
+    const savedLabel = directoryLabel;
+    setWindows((previous) =>
+      previous.map((windowItem) =>
+        windowItem.id === activeWindowId ? { ...windowItem, nav: savedNavigation, label: savedLabel } : windowItem
+      )
+    );
+    setActiveWindowId(windowId);
+    applyNavigation(targetWindow.nav);
+  });
+
+  const handleNewWindow = useStableCallback(() => openWindow(ROOT_NAVIGATION, 'Root'));
+
+  const handleDuplicateWindow = useStableCallback((windowId) => {
+    if (windowId === activeWindowId) {
+      openWindow(captureNavigation(), directoryLabel, windowId);
       return;
     }
+    const sourceWindow = windows.find((windowItem) => windowItem.id === windowId);
+    if (sourceWindow?.nav) openWindow({ ...sourceWindow.nav }, sourceWindow.label, windowId);
+  });
 
-    const folderPathKeys = path.slice(0, path.indexOf(payload.sourceNodeKey));
+  const closeWindows = (windowIds, direction) => {
+    const idSet = new Set(windowIds);
+    const closing = windows
+      .map((windowItem, index) => ({ windowItem, index }))
+      .filter(({ windowItem }) => idSet.has(windowItem.id))
+      .map(({ windowItem, index }) =>
+        windowItem.id === activeWindowId
+          ? { windowItem: { ...windowItem, nav: captureNavigation(), label: directoryLabel }, index }
+          : { windowItem, index }
+      );
+    if (closing.length === 0 || closing.length >= windows.length) return;
+    closedWindowsRef.current.push({ direction, items: closing });
+    const remainingWindows = windows.filter((windowItem) => !idSet.has(windowItem.id));
+    setWindows(remainingWindows);
+    if (!idSet.has(activeWindowId)) return;
+    const nextWindow = remainingWindows[Math.min(closing[0].index, remainingWindows.length - 1)];
+    setActiveWindowId(nextWindow.id);
+    if (nextWindow.nav) applyNavigation(nextWindow.nav);
+  };
 
-    if (payload.kind === 'source') {
-      if (selectedSource && selectedSource.id === payload.sourceId) {
-        handleViewChange(DOCUMENT_VIEWS.SOURCE);
-        return;
-      }
-      selectSource({
-        sourceType: payload.sourceType,
-        sourceId: payload.sourceId,
-        folderPathKeys,
-        viewKey: DOCUMENT_VIEWS.SOURCE,
-      });
-      return;
-    }
+  const handleCloseWindow = useStableCallback((windowId) => closeWindows([windowId], 'current'));
 
-    if (payload.kind === 'documentFolder') {
-      setSelectedSource({ type: payload.sourceType, id: payload.sourceId });
-      setPickerPathKeys(folderPathKeys);
-      handleViewChange(payload.area);
-      handleOpenFolder(payload.folderId);
-      return;
-    }
+  const handleCloseCurrentWindow = useStableCallback(() => closeWindows([activeWindowId], 'current'));
 
-    selectSource({
-      sourceType: payload.sourceType,
-      sourceId: payload.sourceId,
-      folderPathKeys,
-      viewKey: payload.viewKey,
+  const handleMoveWindow = useStableCallback((windowId, targetIndex) => {
+    setWindows((previous) => {
+      const fromIndex = previous.findIndex((windowItem) => windowItem.id === windowId);
+      const toIndex = Math.max(0, Math.min(targetIndex, previous.length - 1));
+      if (fromIndex < 0 || fromIndex === toIndex) return previous;
+      const next = [...previous];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
     });
   });
+
+  const handleShiftActiveWindow = useStableCallback((offset) => {
+    const activeIndex = windows.findIndex((windowItem) => windowItem.id === activeWindowId);
+    handleMoveWindow(activeWindowId, activeIndex + offset);
+  });
+
+  const handleCloseRightWindows = useStableCallback(() => {
+    const activeIndex = windows.findIndex((windowItem) => windowItem.id === activeWindowId);
+    closeWindows(windows.slice(activeIndex + 1).map((windowItem) => windowItem.id), 'right');
+  });
+
+  const handleCloseLeftWindows = useStableCallback(() => {
+    const activeIndex = windows.findIndex((windowItem) => windowItem.id === activeWindowId);
+    closeWindows(windows.slice(0, activeIndex).map((windowItem) => windowItem.id), 'left');
+  });
+
+  const handleReopenWindows = useStableCallback((direction) => {
+    const stack = closedWindowsRef.current;
+    let entryIndex = -1;
+    if (!direction) entryIndex = stack.length - 1;
+    else {
+      for (let index = stack.length - 1; index >= 0; index -= 1) {
+        if (stack[index].direction === direction) {
+          entryIndex = index;
+          break;
+        }
+      }
+    }
+    if (entryIndex < 0) return;
+    const [entry] = stack.splice(entryIndex, 1);
+    const savedNavigation = captureNavigation();
+    const savedLabel = directoryLabel;
+    setWindows((previous) => {
+      const next = previous.map((windowItem) =>
+        windowItem.id === activeWindowId ? { ...windowItem, nav: savedNavigation, label: savedLabel } : windowItem
+      );
+      entry.items.forEach(({ windowItem, index }) => next.splice(Math.min(index, next.length), 0, windowItem));
+      return next;
+    });
+    if (entry.direction !== 'current') return;
+    const restoredWindow = entry.items[0].windowItem;
+    setActiveWindowId(restoredWindow.id);
+    if (restoredWindow.nav) applyNavigation(restoredWindow.nav);
+  });
+
+  const isShortcutBlockedRef = useRef(false);
+  isShortcutBlockedRef.current = Boolean(
+    viewerTarget || isShortcutsOpen || datesTarget || renewTarget || deleteTarget || showProgressModal
+  );
+
+  useEffect(() => {
+    const ARM_MILLISECONDS = 1200;
+    const LONE_KEY_DELAY_MILLISECONDS = 450;
+    let armedAction = null;
+    let armedAt = 0;
+    let isHeld = false;
+    let isComboUsed = false;
+    let pendingTimer = 0;
+    let plainHeld = null;
+    const clearPending = () => {
+      clearTimeout(pendingTimer);
+      pendingTimer = 0;
+    };
+    const hasShortcutModifiers = (event) => event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey;
+    const handleKeyDown = (event) => {
+      const targetTagName = event.target?.tagName;
+      if (targetTagName === 'INPUT' || targetTagName === 'TEXTAREA') return;
+      if (event.code === 'KeyW' || event.code === 'KeyR') {
+        if (!event.altKey && !event.shiftKey && !event.metaKey && !event.ctrlKey) {
+          if (!isShortcutBlockedRef.current) plainHeld = event.code === 'KeyW' ? 'close' : 'reopen';
+          return;
+        }
+        if (!hasShortcutModifiers(event)) return;
+        event.preventDefault();
+        if (event.repeat) return;
+        clearPending();
+        armedAction = event.code === 'KeyW' ? 'close' : 'reopen';
+        armedAt = Date.now();
+        isHeld = true;
+        isComboUsed = false;
+        return;
+      }
+      if (event.code !== 'ArrowRight' && event.code !== 'ArrowLeft') return;
+      if (plainHeld && !event.altKey && !event.shiftKey && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        if (event.repeat) return;
+        const plainDirection = event.code === 'ArrowRight' ? 'right' : 'left';
+        if (plainHeld === 'close') {
+          if (plainDirection === 'right') handleCloseRightWindows();
+          else handleCloseLeftWindows();
+        } else {
+          handleReopenWindows(plainDirection);
+        }
+        return;
+      }
+      const isArmed = armedAction && (isHeld || Date.now() - armedAt < ARM_MILLISECONDS);
+      if (isArmed) {
+        event.preventDefault();
+        if (event.repeat) return;
+        clearPending();
+        isComboUsed = true;
+        armedAt = Date.now();
+        const direction = event.code === 'ArrowRight' ? 'right' : 'left';
+        if (armedAction === 'close') {
+          if (direction === 'right') handleCloseRightWindows();
+          else handleCloseLeftWindows();
+        } else {
+          handleReopenWindows(direction);
+        }
+        return;
+      }
+      if (!hasShortcutModifiers(event)) return;
+      event.preventDefault();
+      handleShiftActiveWindow(event.code === 'ArrowRight' ? 1 : -1);
+    };
+    const handleKeyUp = (event) => {
+      if (event.code !== 'KeyW' && event.code !== 'KeyR') return;
+      plainHeld = null;
+      isHeld = false;
+      if (!armedAction || isComboUsed) return;
+      const action = armedAction;
+      clearPending();
+      pendingTimer = setTimeout(() => {
+        pendingTimer = 0;
+        armedAction = null;
+        if (action === 'close') handleCloseCurrentWindow();
+        else handleReopenWindows(null);
+      }, LONE_KEY_DELAY_MILLISECONDS);
+    };
+    const handleBlur = () => {
+      clearPending();
+      armedAction = null;
+      isHeld = false;
+      plainHeld = null;
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('keyup', handleKeyUp, true);
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      clearPending();
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('keyup', handleKeyUp, true);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [handleCloseCurrentWindow, handleCloseRightWindows, handleCloseLeftWindows, handleReopenWindows, handleShiftActiveWindow]);
+
+  const handleSidebarContextMenu = useStableCallback((event, path, node) => {
+    setSidebarMenu({
+      x: event.clientX,
+      y: event.clientY,
+      navigation: navigationFromSidebarNode(path, node),
+      label: node.label,
+    });
+  });
+
+  const handleCloseSidebarMenu = useStableCallback(() => setSidebarMenu(null));
+
+  const sidebarMenuItems = sidebarMenu
+    ? [
+      {
+        key: 'duplicate',
+        label: 'Duplicate',
+        onSelect: () => openWindow(sidebarMenu.navigation, sidebarMenu.label),
+      },
+    ]
+    : [];
 
   const selectedSourceId = selectedSource?.id;
 
   const sidebarItems = useMemo(
     () => [
-      buildSidebarRoot({
+      attachContextMenu(buildSidebarRoot({
         root: documentRoot,
         selection: selectedSourceId
           ? {
-              sourceId: selectedSourceId,
-              documents,
-              folders,
-              folderItemCounts,
-              viewTabItems,
-              activeView,
-              currentFolderId,
-              onDropDocuments: handleDropDocuments,
-            }
+            sourceId: selectedSourceId,
+            documents,
+            folders,
+            folderItemCounts,
+            viewTabItems,
+            activeView,
+            currentFolderId,
+            onDropDocuments: handleDropDocuments,
+          }
           : null,
         onActivate: handleSidebarNode,
-      }),
+      }), handleSidebarContextMenu),
     ],
     [
       documentRoot,
@@ -265,6 +526,7 @@ function Document() {
       currentFolderId,
       handleDropDocuments,
       handleSidebarNode,
+      handleSidebarContextMenu,
     ]
   );
 
@@ -407,6 +669,18 @@ function Document() {
         </div>
 
         <div className="doc-details-layout-content">
+          <DocumentWindowTabs
+            windows={windows.map((windowItem) =>
+              windowItem.id === activeWindowId ? { ...windowItem, label: directoryLabel } : windowItem
+            )}
+            activeWindowId={activeWindowId}
+            onSelect={handleSelectWindow}
+            onNew={handleNewWindow}
+            onClose={handleCloseWindow}
+            onDuplicate={handleDuplicateWindow}
+            onMove={handleMoveWindow}
+          />
+
           <FolderPicker
             root={decoratedPicker.root}
             pathKeys={pickerPathKeys}
@@ -487,6 +761,15 @@ function Document() {
                 className={`doc-details-explorer ${selectionMode ? 'selecting' : ''}`}
                 onClick={handleExplorerClick}
                 onContextMenu={handleExplorerContextMenu}
+                onDragOver={(event) => {
+                  if (Array.from(event.dataTransfer.types).includes(DRAGGED_DOCUMENT_TYPE)) event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  const payload = event.dataTransfer.getData(DRAGGED_DOCUMENT_TYPE);
+                  if (!payload) return;
+                  event.preventDefault();
+                  handleDropDocuments(payload, currentFolderId, activeView);
+                }}
               >
                 {isLoading ? (
                   <Loader />
@@ -501,6 +784,7 @@ function Document() {
                           label={viewTab.label}
                           dropArea={viewTab.key}
                           itemCount={viewCounts[viewTab.key] ?? 0}
+                          isNew={containsNewIdSet.has(`view:${viewTab.key}`)}
                           sizeLabel={formatBytes(viewSizes[viewTab.key])}
                           onOpen={() => handleViewChange(viewTab.key)}
                           onDropDocuments={handleDropDocuments}
@@ -527,6 +811,7 @@ function Document() {
                         itemCount={folderItemCounts[folderItem._id] ?? 0}
                         sizeLabel={formatBytes(folderSizes[folderItem._id] || 0)}
                         isSelected={selectedFolderIds.includes(folderItem._id)}
+                        isNew={newItemIdSet.has(folderItem._id) || containsNewIdSet.has(folderItem._id)}
                         isCut={cutFolderIds.includes(folderItem._id)}
                         isRenaming={renamingItem?.kind === 'folder' && renamingItem.id === folderItem._id}
                         onClick={handleFolderClick}
@@ -543,6 +828,7 @@ function Document() {
                         key={documentItem._id}
                         documentItem={documentItem}
                         isSelected={selectedDocumentIds.includes(documentItem._id)}
+                        isNew={newItemIdSet.has(documentItem._id)}
                         isCut={cutDocumentIds.includes(documentItem._id)}
                         isRenaming={renamingItem?.kind === 'document' && renamingItem.id === documentItem._id}
                         onCommitRename={handleCommitInlineRename}
@@ -581,6 +867,15 @@ function Document() {
           y={contextMenu.y}
           items={contextMenuItems}
           onClose={handleCloseContextMenu}
+        />
+      )}
+
+      {sidebarMenu && (
+        <DocumentContextMenu
+          x={sidebarMenu.x}
+          y={sidebarMenu.y}
+          items={sidebarMenuItems}
+          onClose={handleCloseSidebarMenu}
         />
       )}
 

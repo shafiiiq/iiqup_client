@@ -54,6 +54,7 @@ import {
   isFolderInsideAny,
   runBulkActions,
   areSameIdLists,
+  getItemArea,
 } from '../helper/document.helper';
 import { useMarqueeSelection } from './useMarqueeSelection';
 import { useDocumentShortcuts } from './useDocumentShortcuts';
@@ -96,6 +97,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const [selectedFolderIds, setSelectedFolderIds] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [clipboard, setClipboard] = useState(null);
+  const [newItemIds, setNewItemIds] = useState([]);
 
   const [renamingItem, setRenamingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -111,6 +113,12 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const loadRequestIdRef = useRef(0);
   const lastLoadedAtRef = useRef(0);
   const isUploadingRef = useRef(false);
+  const knownSignaturesRef = useRef(null);
+  const justHighlightedRef = useRef(false);
+  const pendingNavigationRef = useRef(null);
+  const queueNavigation = useCallback((navigation) => {
+    pendingNavigationRef.current = navigation;
+  }, []);
 
   const { shortcuts, setShortcut, resetShortcut, resetAllShortcuts } = useDocumentShortcuts();
 
@@ -133,6 +141,24 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
         ]);
         if (requestId !== loadRequestIdRef.current) return;
         lastLoadedAtRef.current = Date.now();
+        const signatures = new Map([
+          ...documentData.map((item) => [item._id, `${item.folderId || ''}|${getItemArea(item)}`]),
+          ...folderData.map((item) => [item._id, `${item.parentFolderId || ''}|${getItemArea(item)}`]),
+        ]);
+        const previousSignatures = knownSignaturesRef.current;
+        if (previousSignatures) {
+          const changedIds = [...signatures]
+            .filter(([id, signature]) => previousSignatures.get(id) !== signature)
+            .map(([id]) => id);
+          if (changedIds.length > 0) {
+            setNewItemIds((previous) => [...new Set([...previous, ...changedIds])]);
+            justHighlightedRef.current = true;
+            setTimeout(() => {
+              justHighlightedRef.current = false;
+            }, 400);
+          }
+        }
+        knownSignaturesRef.current = signatures;
         setDocuments(documentData);
         setFolders(folderData);
       } catch (error) {
@@ -145,11 +171,15 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   );
 
   useEffect(() => {
+    const pendingNavigation = pendingNavigationRef.current;
+    pendingNavigationRef.current = null;
+    knownSignaturesRef.current = null;
+    setNewItemIds([]);
     setSourceData(null);
     setDocuments([]);
     setFolders([]);
-    setCurrentFolderId(null);
-    setClipboard(null);
+    setCurrentFolderId(pendingNavigation ? pendingNavigation.folderId : null);
+    if (pendingNavigation) setActiveView(pendingNavigation.view);
     setSelectionMode(false);
     setSelectedDocumentIds([]);
     setSelectedFolderIds([]);
@@ -249,7 +279,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
       return;
     }
     const uploadableItems = items.filter((item) => isUploadableFile(item.file));
-    if (uploadableItems.length === 0) {
+    if (uploadableItems.length === 0 && emptyDirectories.length === 0) {
       showToast('Empty files cannot be uploaded', 'error');
       return;
     }
@@ -337,57 +367,72 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     if (items.length > 0) uploadFiles(items, []);
   };
 
+  const locateDocument = (documentId) => {
+    const documentItem = documents.find((candidate) => candidate._id === documentId);
+    return {
+      sourceType: documentItem?.sourceType || sourceType,
+      sourceId: documentItem?.sourceId || sourceId,
+      folderId: documentItem?.folderId || null,
+      area: documentItem?.area || 'all',
+    };
+  };
+
+  const locateFolder = (folderId) => {
+    const folderItem = folders.find((candidate) => candidate._id === folderId);
+    return {
+      sourceType: folderItem?.sourceType || sourceType,
+      sourceId: folderItem?.sourceId || sourceId,
+      folderId: folderItem?.parentFolderId || null,
+      area: folderItem?.area || 'all',
+    };
+  };
+
   const stageClipboard = (mode, documentIds, folderIds = []) => {
     const totalCount = documentIds.length + folderIds.length;
     if (totalCount === 0) return false;
-    setClipboard({ mode, documentIds, folderIds });
+    setClipboard({
+      mode,
+      documentIds,
+      folderIds,
+      documentLocations: documentIds.map(locateDocument),
+      folderLocations: folderIds.map(locateFolder),
+    });
     Promise.resolve(navigator.clipboard?.writeText('')).catch(() => null);
     showToast(`${totalCount} item(s) ${mode === 'cut' ? 'cut' : 'copied'}`, 'info');
     return true;
   };
 
-  const locateDocument = (documentId) => {
-    const documentItem = documents.find((candidate) => candidate._id === documentId);
-    return { folderId: documentItem?.folderId || null, area: documentItem?.area || 'all' };
-  };
-
-  const locateFolder = (folderId) => {
-    const folderItem = folders.find((candidate) => candidate._id === folderId);
-    return { folderId: folderItem?.parentFolderId || null, area: folderItem?.area || 'all' };
-  };
-
   const pasteClipboardInto = async (targetFolderId) => {
     if (!clipboard) return;
-    const { mode, documentIds, folderIds } = clipboard;
+    const { mode, documentIds, folderIds, documentLocations, folderLocations } = clipboard;
     if (folderIds.length > 0 && isFolderInsideAny(folders, targetFolderId, folderIds)) {
       showToast('A folder cannot be pasted into itself', 'error');
       return;
     }
     const totalCount = documentIds.length + folderIds.length;
     const targetArea = activeView;
-    const previousDocumentLocations = documentIds.map(locateDocument);
-    const previousFolderLocations = folderIds.map(locateFolder);
+    const target = { targetSourceType: sourceType, targetSourceId: sourceId };
     const { succeededCount, firstErrorMessage, outcomes } = await runBulkActions([
       ...documentIds.map((documentId) => () =>
         mode === 'cut'
-          ? moveDocument({ documentId, folderId: targetFolderId, area: targetArea })
-          : copyDocument({ documentId, folderId: targetFolderId, area: targetArea })
+          ? moveDocument({ documentId, folderId: targetFolderId, area: targetArea, ...target })
+          : copyDocument({ documentId, folderId: targetFolderId, area: targetArea, ...target })
       ),
       ...folderIds.map((folderId) => () =>
         mode === 'cut'
-          ? moveFolder({ folderId, parentFolderId: targetFolderId, area: targetArea })
-          : copyFolder({ folderId, parentFolderId: targetFolderId, area: targetArea })
+          ? moveFolder({ folderId, parentFolderId: targetFolderId, area: targetArea, ...target })
+          : copyFolder({ folderId, parentFolderId: targetFolderId, area: targetArea, ...target })
       ),
     ]);
     const documentOutcomes = outcomes.slice(0, documentIds.length);
     const folderOutcomes = outcomes.slice(documentIds.length);
-    const destination = { folderId: targetFolderId, area: targetArea };
+    const destination = { sourceType, sourceId, folderId: targetFolderId, area: targetArea };
     if (mode === 'cut') {
       const documentMoves = documentIds
-        .map((id, index) => ({ id, from: previousDocumentLocations[index], to: destination }))
+        .map((id, index) => ({ id, from: documentLocations[index], to: destination }))
         .filter((_, index) => documentOutcomes[index].isSuccess);
       const folderMoves = folderIds
-        .map((id, index) => ({ id, from: previousFolderLocations[index], to: destination }))
+        .map((id, index) => ({ id, from: folderLocations[index], to: destination }))
         .filter((_, index) => folderOutcomes[index].isSuccess);
       if (documentMoves.length + folderMoves.length > 0) {
         recordOperation(
@@ -574,6 +619,51 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
 
   const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
 
+  useEffect(() => {
+    const clearHighlights = () => {
+      if (justHighlightedRef.current) return;
+      setNewItemIds((previous) => (previous.length > 0 ? [] : previous));
+    };
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') clearHighlights();
+    };
+    document.addEventListener('mousedown', clearHighlights);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', clearHighlights);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const dismissHighlight = useCallback(
+    (itemId) => setNewItemIds((previous) => (previous.includes(itemId) ? previous.filter((id) => id !== itemId) : previous)),
+    []
+  );
+
+  const newItemIdSet = useMemo(() => new Set(newItemIds), [newItemIds]);
+
+  const containsNewIdSet = useMemo(() => {
+    const parentById = new Map(folders.map((folderItem) => [folderItem._id, folderItem.parentFolderId || null]));
+    const ids = new Set();
+    const markAncestors = (startId, area) => {
+      ids.add(`view:${area}`);
+      let cursorId = startId;
+      let guard = 0;
+      while (cursorId && guard < 1000) {
+        ids.add(cursorId);
+        cursorId = parentById.get(cursorId) || null;
+        guard += 1;
+      }
+    };
+    documents.forEach((documentItem) => {
+      if (newItemIdSet.has(documentItem._id)) markAncestors(documentItem.folderId, getItemArea(documentItem));
+    });
+    folders.forEach((folderItem) => {
+      if (newItemIdSet.has(folderItem._id)) markAncestors(folderItem.parentFolderId, getItemArea(folderItem));
+    });
+    return ids;
+  }, [documents, folders, newItemIdSet]);
+
   const handleNewFolderClick = async () => {
     if (!hasSource) return;
     try {
@@ -602,11 +692,12 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const handleMoveItems = async (documentIds, folderIds, folderId, area) => {
     const previousDocumentLocations = documentIds.map(locateDocument);
     const previousFolderLocations = folderIds.map(locateFolder);
+    const target = { targetSourceType: sourceType, targetSourceId: sourceId };
     const { succeededCount, firstErrorMessage, outcomes } = await runBulkActions([
-      ...documentIds.map((documentId) => () => moveDocument({ documentId, folderId, area })),
-      ...folderIds.map((id) => () => moveFolder({ folderId: id, parentFolderId: folderId, area })),
+      ...documentIds.map((documentId) => () => moveDocument({ documentId, folderId, area, ...target })),
+      ...folderIds.map((id) => () => moveFolder({ folderId: id, parentFolderId: folderId, area, ...target })),
     ]);
-    const destination = { folderId, area };
+    const destination = { sourceType, sourceId, folderId, area };
     const documentMoves = documentIds
       .map((id, index) => ({ id, from: previousDocumentLocations[index], to: destination }))
       .filter((_, index) => outcomes[index].isSuccess);
@@ -688,6 +779,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   };
 
   const handleTileClick = (documentItem, event) => {
+    dismissHighlight(documentItem._id);
     const isMultiSelectGesture = event.metaKey || event.ctrlKey;
     if (!selectionMode && !isMultiSelectGesture) {
       setSelectedDocumentIds([documentItem._id]);
@@ -703,6 +795,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   };
 
   const handleFolderClick = (folderItem, event) => {
+    dismissHighlight(folderItem._id);
     const isMultiSelectGesture = event.metaKey || event.ctrlKey;
     if (!selectionMode && !isMultiSelectGesture) {
       setSelectedFolderIds([folderItem._id]);
@@ -1416,6 +1509,9 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const stableHandleCancelInlineRename = useStableCallback(handleCancelInlineRename);
 
   return {
+    queueNavigation,
+    newItemIdSet,
+    containsNewIdSet,
     progressTitle,
     folderSizes,
     viewSizes,

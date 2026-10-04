@@ -194,6 +194,12 @@ function DocumentViewer({
 
     if (!isPdfFlow) return;
 
+    if (event.altKey && !event.ctrlKey && !event.metaKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault();
+      goTo(activeIndex + (event.key === 'ArrowUp' ? -1 : 1));
+      return;
+    }
+
     if (event.altKey && (event.ctrlKey || event.metaKey)) {
       if (event.code === 'Equal' || event.code === 'NumpadAdd') {
         event.preventDefault();

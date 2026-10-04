@@ -16,6 +16,7 @@ body.dark-theme {
   --bg-sidebar: #1e1e1d;
   --bg-tab: #242423;
   --bg-menu: #242423;
+  --bg-file-tile-active: rgb(37, 37, 35);
   --bg-menu-item: #363633;
   --bg-tab-item: #363633;
   --bg-tab-item-active: #4a4a45;

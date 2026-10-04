@@ -63,6 +63,7 @@ export const DEFAULT_DOCUMENT_SHORTCUTS = {
 
 export const VIEWER_SHORTCUTS = [
   { label: 'Previous / next file', keys: '← / →' },
+  { label: 'Previous / next page', keys: IS_MAC ? '⌥ ↑ / ↓' : 'Alt + ↑ / ↓' },
   { label: 'Reorder page (Shift = 5 pages)', keys: '↑ / ↓' },
   { label: 'Move page to start / end', keys: 'Home / End' },
   { label: 'Zoom in / out', keys: IS_MAC ? '⌥ ⌘ + / -' : 'Ctrl + Alt + / -' },
@@ -70,4 +71,14 @@ export const VIEWER_SHORTCUTS = [
   { label: 'Remove page', keys: 'Delete' },
   { label: 'Select multiple pages', keys: IS_MAC ? '⌘ + Click' : 'Ctrl + Click' },
   { label: 'Close viewer', keys: 'Esc' },
+];
+
+export const WINDOW_SHORTCUTS = [
+  { label: 'Close current tab', keys: IS_MAC ? '⌥ ⇧ W' : 'Alt + Shift + W' },
+  { label: 'Bring back last closed tabs', keys: IS_MAC ? '⌥ ⇧ R' : 'Alt + Shift + R' },
+  { label: 'Close tabs on the right (hold W, press →)', keys: 'W + →' },
+  { label: 'Close tabs on the left (hold W, press ←)', keys: 'W + ←' },
+  { label: 'Bring back tabs closed on the right (hold R, press →)', keys: 'R + →' },
+  { label: 'Bring back tabs closed on the left (hold R, press ←)', keys: 'R + ←' },
+  { label: 'Move current tab left / right', keys: IS_MAC ? '⌥ ⇧ ← / →' : 'Alt + Shift + ← / →' },
 ];

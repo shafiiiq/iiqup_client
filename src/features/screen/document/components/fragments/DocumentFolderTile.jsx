@@ -13,6 +13,7 @@ const DocumentFolderTile = memo(function DocumentFolderTile({
   isRenaming,
   isSelected,
   isCut,
+  isNew,
   onClick,
   onDragStart,
   onCommitRename,
@@ -41,7 +42,7 @@ const DocumentFolderTile = memo(function DocumentFolderTile({
 
   return (
     <div
-      className={`doc-details-tile doc-details-folder-tile ${isSelected ? 'selected' : ''} ${isCut ? 'cut' : ''} ${isDropTarget ? 'drop-target' : ''}`}
+      className={`doc-details-tile doc-details-folder-tile ${isSelected ? 'selected' : ''} ${isCut ? 'cut' : ''} ${isDropTarget ? 'drop-target' : ''} ${isNew ? 'is-new' : ''}`}
       data-folder-id={folder?._id}
       draggable={Boolean(folder) && !isRenaming}
       onDragStart={folder ? (event) => onDragStart(event, folder) : undefined}

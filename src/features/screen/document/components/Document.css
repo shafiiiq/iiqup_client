@@ -120,14 +120,15 @@
   align-items: center;
   gap: 6px;
   padding: 10px;
-  border: 3px solid transparent;
+  border-radius: var(--radius-xl);
+  border: 1px solid transparent;
   cursor: default;
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .doc-details-tile.selected {
   border-color: var(--color-primary);
-  background: var(--gradient-primary-300);
+  background: var(--bg-file-tile-active);
 }
 
 .doc-details-tile-preview {
@@ -308,6 +309,14 @@
 
 .doc-details-tile.cut {
   opacity: 0.5;
+}
+
+.doc-details-tile {
+  position: relative;
+}
+
+.doc-details-tile.is-new {
+  background: var(--bg-menu);
 }
 
 .doc-details-tile.drop-target {
@@ -716,7 +725,7 @@
 }
 
 .doc-shortcuts-row.fixed {
-  grid-template-columns: 1fr 170px;
+  grid-template-columns: 1fr 230px;
 }
 
 .doc-shortcuts-icon {
@@ -947,6 +956,102 @@
 .doc-viewer-unsupported-actions {
   display: flex;
   gap: 12px;
+}
+
+.doc-window-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px;
+  background: var(--gradient-glass-200);
+  border-radius: var(--radius-6xl);
+  corner-shape: squircle;
+}
+
+.doc-window-tab-list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.doc-window-tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+.doc-window-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1 0 140px;
+  min-width: 140px;
+  padding: 8px 14px;
+  border-radius: var(--radius-4xl);
+  corner-shape: squircle;
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--bg-tab);
+}
+
+.doc-window-tab:hover:not(.active) {
+  background: var(--bg-tab);
+}
+
+.doc-window-tab.active {
+  background: var(--bg-tab-item-active);
+}
+
+.doc-window-tab.drag-over {
+  border-color: var(--color-primary);
+  background: var(--bg-menu-item);
+}
+
+.doc-window-tab-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-window-tab-close {
+  border: none;
+  padding: 0 2px;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.doc-window-tab-close:hover {
+  opacity: 1;
+}
+
+.doc-window-tab-add {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.doc-window-tab-add:hover {
+  background: var(--bg-menu-item);
 }
 
 @media (max-width: 768px) {

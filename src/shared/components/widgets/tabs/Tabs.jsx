@@ -63,6 +63,15 @@ function TabNode({ node, depth, activePath, onSelect, parentPath, collapsed, ope
         onClick={handleClick}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onContextMenu={
+          node.onContextMenu
+            ? (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                node.onContextMenu(event, path, node);
+              }
+            : undefined
+        }
       >
         {hasIcon && (
           <span className="shared component widget tabs item-icon">

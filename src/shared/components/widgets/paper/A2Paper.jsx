@@ -60,34 +60,47 @@ export const useA2PageBudget = () => {
 export const useA2BlockPagination = (blocks, budget, firstPageOffset = 0) => {
   const measureRef = useRef(null);
   const [pages, setPages] = useState(() => (blocks.length ? [blocks] : [[]]));
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     if (!budget || !measureRef.current || !blocks.length) {
       setPages(blocks.length ? [blocks] : [[]]);
-      return;
+      return undefined;
     }
 
-    const nodes = Array.from(measureRef.current.children);
-    const result = [];
-    let current = [];
-    let currentHeight = 0;
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (!measureRef.current) return;
+      const nodes = Array.from(measureRef.current.children);
+      const result = [];
+      let current = [];
+      let currentHeight = 0;
 
-    blocks.forEach((block, index) => {
-      const height = nodes[index]?.getBoundingClientRect().height || 0;
-      const pageBudget = result.length === 0 ? Math.max(0, budget - firstPageOffset) : budget;
+      blocks.forEach((block, index) => {
+        const height = nodes[index]?.getBoundingClientRect().height || 0;
+        const pageBudget = result.length === 0 ? Math.max(0, budget - firstPageOffset) : budget;
 
-      if (current.length && currentHeight + height > pageBudget) {
-        result.push(current);
-        current = [];
-        currentHeight = 0;
-      }
+        if (current.length && currentHeight + height > pageBudget) {
+          result.push(current);
+          current = [];
+          currentHeight = 0;
+        }
 
-      current.push(block);
-      currentHeight += height;
-    });
+        current.push(block);
+        currentHeight += height;
+      });
 
-    if (current.length) result.push(current);
-    setPages(result.length ? result : [[]]);
+      if (current.length) result.push(current);
+      setPages((prev) => {
+        const next = result.length ? result : [[]];
+        const sameShape =
+          prev.length === next.length &&
+          prev.every((page, i) => page.length === next[i].length && page.every((b, j) => b.key === next[i][j].key));
+        return sameShape ? prev : next;
+      });
+    }, 300);
+
+    return () => clearTimeout(debounceRef.current);
   }, [blocks, budget, firstPageOffset]);
 
   return { measureRef, pages };

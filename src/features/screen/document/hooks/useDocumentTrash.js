@@ -24,7 +24,7 @@ const normalizeTrashItems = ({ documents, folders }) => [
     trashedFromPath: folderItem.trashedFromPath,
     deletedAt: folderItem.deletedAt,
     itemCount: folderItem.itemCount,
-    size: folderItem.bytes,    itemCount: folderItem.itemCount,
+    size: folderItem.bytes,
   })),
   ...documents.map((documentItem) => ({
     key: `${DOCUMENT_KEY_PREFIX}${documentItem._id}`,

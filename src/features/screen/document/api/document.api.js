@@ -38,15 +38,15 @@ export const renameFolder = async ({ folderId, name }) =>
     'Failed to rename folder'
   );
 
-export const moveDocument = async ({ documentId, folderId, area }) =>
+export const moveDocument = async ({ documentId, folderId, area, targetSourceType, targetSourceId }) =>
   readResponseData(
-    await apiRequest(`/documents/${documentId}/move`, 'PUT', { folderId, area }),
+    await apiRequest(`/documents/${documentId}/move`, 'PUT', { folderId, area, targetSourceType, targetSourceId }),
     'Failed to move document'
   );
 
-export const copyDocument = async ({ documentId, folderId, area }) =>
+export const copyDocument = async ({ documentId, folderId, area, targetSourceType, targetSourceId }) =>
   readResponseData(
-    await apiRequest(`/documents/${documentId}/copy`, 'POST', { folderId, area }),
+    await apiRequest(`/documents/${documentId}/copy`, 'POST', { folderId, area, targetSourceType, targetSourceId }),
     'Failed to copy document'
   );
 
@@ -146,15 +146,15 @@ export const fetchSourceEntity = async ({ type, id }) => {
   return body.data || body;
 };
 
-export const moveFolder = async ({ folderId, parentFolderId, area }) =>
+export const moveFolder = async ({ folderId, parentFolderId, area, targetSourceType, targetSourceId }) =>
   readResponseData(
-    await apiRequest(`/documents/folders/${folderId}/move`, 'PUT', { parentFolderId, area }),
+    await apiRequest(`/documents/folders/${folderId}/move`, 'PUT', { parentFolderId, area, targetSourceType, targetSourceId }),
     'Failed to move folder'
   );
 
-export const copyFolder = async ({ folderId, parentFolderId, area }) =>
+export const copyFolder = async ({ folderId, parentFolderId, area, targetSourceType, targetSourceId }) =>
   readResponseData(
-    await apiRequest(`/documents/folders/${folderId}/copy`, 'POST', { parentFolderId, area }),
+    await apiRequest(`/documents/folders/${folderId}/copy`, 'POST', { parentFolderId, area, targetSourceType, targetSourceId }),
     'Failed to copy folder'
   );
 

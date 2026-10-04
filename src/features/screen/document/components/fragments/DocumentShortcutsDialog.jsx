@@ -6,6 +6,7 @@ import {
   DEFAULT_DOCUMENT_SHORTCUTS,
   DOCUMENT_SHORTCUT_ACTIONS,
   VIEWER_SHORTCUTS,
+  WINDOW_SHORTCUTS,
 } from '../../constants/documentShortcut.constant';
 import { eventToShortcut, formatShortcut } from '../../helper/documentShortcut.helper';
 
@@ -94,6 +95,16 @@ function DocumentShortcutsDialog({ shortcuts, onChange, onReset, onResetAll, onC
               </div>
             );
           })}
+        </div>
+
+        <h4 className="doc-shortcuts-section-title">Tabs (fixed)</h4>
+        <div className="doc-shortcuts-list">
+          {WINDOW_SHORTCUTS.map((item) => (
+            <div className="doc-shortcuts-row fixed" key={item.label}>
+              <span className="doc-shortcuts-label">{item.label}</span>
+              <span className="doc-shortcuts-keys">{item.keys}</span>
+            </div>
+          ))}
         </div>
 
         <h4 className="doc-shortcuts-section-title">Viewer (fixed)</h4>

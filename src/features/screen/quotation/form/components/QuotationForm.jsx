@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 
 import Controls from '@/shared/components/widgets/controls/Controls';
+import { StableInput, StableTextarea } from '@/shared/components/widgets/input/StableField';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 
 import { useQuotationForm } from '../hooks/useQuotationForm';
@@ -23,19 +24,19 @@ function ClosingSection({
   return (
     <>
       <div className="features screen quotation form terms-extra">
-        <textarea
+        <StableTextarea
           className="features screen quotation form notice-text-input"
           value={noticeText}
           onChange={handleNoticeTextChange}
           rows={2}
         />
-        <textarea
+        <StableTextarea
           className="features screen quotation form price-statement-input"
           value={priceStatementText}
           onChange={handlePriceStatementTextChange}
           rows={2}
         />
-        <textarea
+        <StableTextarea
           className="features screen quotation form contact-text-input"
           value={contactText}
           onChange={handleContactTextChange}
@@ -92,10 +93,16 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
     updateColumnLabel,
     removeColumn,
     addColumn,
+    moveColumn,
     addTotalColumn,
     addItemRow,
+    moveItem,
     removeItem,
     handleItemChange,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     removeItemImage,
     handleDescriptionPaste,
     handleDescriptionDrop,
@@ -125,11 +132,25 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
   const termNumbers = buildTermNumbers(paymentTerms);
 
   const buildItemRow = (item, absoluteIndex) => (
-    <tr key={item.id}>
+    <tr
+      key={item.id}
+      draggable
+      onDragStart={() => setDragRowIndex(absoluteIndex)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        if (dragRowIndex === null || dragRowIndex === absoluteIndex) return;
+        moveItem(dragRowIndex, absoluteIndex);
+        setDragRowIndex(null);
+      }}
+      onDragEnd={() => setDragRowIndex(null)}
+    >
       <td
         className="features screen quotation form sn-cell"
         onMouseEnter={() => handleRowMouseEnter(absoluteIndex)}
         onMouseLeave={handleRowMouseLeave}
+        title="Drag to reorder"
+        style={{ cursor: 'grab' }}
       >
         {item.id}
         {showAddButton === absoluteIndex && (
@@ -142,7 +163,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
               {
                 ...SHARED_BTN,
                 text: '+',
-                onClick: addItemRow,
+                onClick: () => addItemRow(absoluteIndex),
                 colorScheme: 'success-700',
                 width: '20px',
                 height: '20px',
@@ -180,7 +201,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
               onDragOver={handleDescriptionDragOver}
             >
               <span className="features screen quotation form dropdown-container">
-                <input
+                <StableInput
                   type="text"
                   className="features screen quotation form table-input description-input"
                   value={item[col.id] ?? ''}
@@ -229,7 +250,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
           ) : col.type === 'calculated' ? (
             <span className="features screen quotation form calculated-total">{formatCurrency(item[col.id])}</span>
           ) : (
-            <input
+            <StableInput
               type={col.type === 'number' ? 'number' : 'text'}
               className={`features screen quotation form table-input ${col.type === 'number' ? 'features screen quotation form number-input' : 'features screen quotation form description-input'}`}
               value={item[col.id] ?? ''}
@@ -324,6 +345,8 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
   const [selectedTermIndex, setSelectedTermIndex] = useState(null);
   const [dragTermIndex, setDragTermIndex] = useState(null);
+  const [dragRowIndex, setDragRowIndex] = useState(null);
+  const [dragColumnIndex, setDragColumnIndex] = useState(null);
 
   const handleTermKeyDown = (e, absoluteIndex) => {
     if (e.key === 'ArrowUp') {
@@ -360,7 +383,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
         title="Drag to reorder, or click then use ↑/↓ to reorder"
       >
         {!heading && <span className="features screen quotation form term-bullet">{number}.</span>}
-        <input
+        <StableInput
           type="text"
           className={`features screen quotation form payment-term-input${heading ? ' term-heading-input' : ''}`}
           value={getTermText(term)}
@@ -450,19 +473,42 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
       <thead>
         <tr>
           <th className="features screen quotation form sn-header">SN</th>
-          {columns.map((col) => (
-            <th key={col.id}>
+          {columns.map((col, colIndex) => (
+            <th
+              key={col.id}
+              draggable={col.type !== 'calculated'}
+              onDragStart={() => setDragColumnIndex(colIndex)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragColumnIndex === null || dragColumnIndex === colIndex) return;
+                moveColumn(dragColumnIndex, colIndex);
+                setDragColumnIndex(null);
+              }}
+              onDragEnd={() => setDragColumnIndex(null)}
+              title={col.type !== 'calculated' ? 'Drag to reorder' : undefined}
+              style={col.type !== 'calculated' ? { cursor: 'grab' } : undefined}
+            >
               <div className="features screen quotation form column-header-cell">
                 {col.type === 'calculated' ? (
                   <span className="features screen quotation form fixed-column-label">{col.label}</span>
                 ) : (
-                  <input
+                  <StableInput
                     type="text"
                     className="features screen quotation form column-header-input"
                     style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
                     value={col.label}
                     onChange={(e) => updateColumnLabel(col.id, e.target.value)}
                   />
+                )}
+                {col.type !== 'calculated' && (
+                  <button
+                    className="features screen quotation form remove-column-btn"
+                    onClick={() => addColumn(col.id)}
+                    title="Insert column after"
+                  >
+                    +
+                  </button>
                 )}
                 <button
                   className="features screen quotation form remove-column-btn"
@@ -563,7 +609,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
                 <div className="features screen quotation form detail-item">
                   TO :
                   <span className="features screen quotation form dropdown-container" ref={quotationForm.companyRef}>
-                    <input
+                    <StableInput
                       type="text"
                       className="features screen quotation form editable-input company-input"
                       value={quotationData.vendor}
@@ -588,7 +634,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
                 <div className="features screen quotation form detail-item">
                   ATTN :
                   <span className="features screen quotation form dropdown-container" ref={quotationForm.attnRef}>
-                    <input
+                    <StableInput
                       type="text"
                       className="features screen quotation form editable-input attention-input"
                       value={quotationData.attention}
@@ -612,7 +658,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
                 <div className="features screen quotation form detail-item">
                   DESIGNATION :
-                  <input
+                  <StableInput
                     type="text"
                     className="features screen quotation form editable-input designation-input"
                     value={quotationData.designation}
@@ -628,7 +674,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
                 <div className="features screen quotation form detail-item">
                   LOCATION :
-                  <input
+                  <StableInput
                     type="text"
                     className="features screen quotation form editable-input designation-input"
                     value={quotationData.location}
@@ -639,7 +685,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
                 {customFields.map((field) => (
                   <div className="features screen quotation form detail-item custom-field-item" key={field.id}>
-                    <input
+                    <StableInput
                       type="text"
                       className="features screen quotation form editable-input custom-field-label-input"
                       value={field.label}
@@ -647,7 +693,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
                       placeholder="Field name"
                     />
                     :
-                    <input
+                    <StableInput
                       type="text"
                       className="features screen quotation form editable-input custom-field-value-input"
                       value={field.value}
@@ -705,7 +751,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
       <div className="features screen quotation form details-divider" />
 
       <div className="features screen quotation form request-text">
-        <textarea
+        <StableTextarea
           className="features screen quotation form request-text-input"
           value={quotationData.requestText}
           onChange={quotationForm.handleRequestTextChange}
@@ -763,7 +809,24 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
         justify="center"
         margin='0 0 20px 0'
         className="features screen quotation form save-controls"
-        items={[{
+        items={[
+          {
+            text: '↺ Undo',
+            onClick: undo,
+            colorScheme: canUndo ? 'primary-700' : 'primary-900',
+            type: canUndo ? 'submit' : 'disabled',
+            width: 'fit-content',
+            ...SHARED_BTN,
+          },
+          {
+            text: '↻ Redo',
+            onClick: redo,
+            colorScheme: canRedo ? 'primary-700' : 'primary-900',
+            type: canRedo ? 'submit' : 'disabled',
+            width: 'fit-content',
+            ...SHARED_BTN,
+          },
+          {
           text: quotationForm.isLoading
             ? (quotationForm.isAmendmentMode ? 'Processing Amendment...' : quotationForm.isEditMode ? 'Updating...' : 'Saving...')
             : (quotationForm.isAmendmentMode ? 'Save Amendment & Send for Approval' : quotationForm.isEditMode ? 'Update' : 'Save'),
@@ -772,16 +835,21 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
           width: 'fit-content',
           type: quotationForm.isLoading ? 'disabled' : 'submit',
           cursor: 'allowed',
+          colorScheme: quotationForm.isLoading ? 'success-1000' : 'success-800',
+          width: 'fit-content',
+          type: quotationForm.isLoading ? 'disabled' : 'submit',
+          cursor: 'allowed',
           ...SHARED_BTN,
-        }]}
+          },
+        ]}
       />
 
       <A2PaginationEngine blocks={blocks} firstPageHeader={headerNode}>
         {(pages) => pages.map((pageBlocks, pageIndex) => (
           <A2Paper key={pageIndex} ref={pageIndex === 0 ? firstPageRef : undefined}>
             {pageIndex === 0 ? headerNode : <div className="features screen quotation form continuation-divider" />}
-            {groupBlocksBySection(pageBlocks).map((group, i) => (
-              <div key={i}>{renderGroup(group)}</div>
+            {groupBlocksBySection(pageBlocks).map((group) => (
+              <div key={`${group.section}-${group.blocks[0]?.key}`}>{renderGroup(group)}</div>
             ))}
           </A2Paper>
         ))}
