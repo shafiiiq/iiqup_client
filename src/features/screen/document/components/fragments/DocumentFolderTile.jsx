@@ -7,6 +7,7 @@ const DocumentFolderTile = memo(function DocumentFolderTile({
   label,
   folder,
   targetFolderId = null,
+  iconName = 'FolderIcon',
   dropArea,
   sizeLabel,
   itemCount,
@@ -54,7 +55,7 @@ const DocumentFolderTile = memo(function DocumentFolderTile({
       onDrop={handleDrop}
     >
       <div className="doc-details-tile-preview doc-details-folder-preview">
-        {renderComponentIcon('FolderIcon', 90, 'var(--color-primary-200)')}
+        {renderComponentIcon(iconName, 90, 'var(--color-primary-200)')}
       </div>
       {isRenaming ? (
         <InlineRenameInput initialValue={label} suffix="" onCommit={onCommitRename} onCancel={onCancelRename} />

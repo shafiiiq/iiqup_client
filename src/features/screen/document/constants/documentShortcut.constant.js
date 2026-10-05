@@ -82,3 +82,12 @@ export const WINDOW_SHORTCUTS = [
   { label: 'Bring back tabs closed on the left (hold R, press ←)', keys: 'R + ←' },
   { label: 'Move current tab left / right', keys: IS_MAC ? '⌥ ⇧ ← / →' : 'Alt + Shift + ← / →' },
 ];
+
+export const WINDOW_MENU_SHORTCUTS = {
+  closeWindow: IS_MAC ? '⌥ ⇧ W' : 'Alt + Shift + W',
+  closeRightWindows: 'W + →',
+  closeLeftWindows: 'W + ←',
+  reopenWindow: IS_MAC ? '⌥ ⇧ R' : 'Alt + Shift + R',
+  reopenRightWindows: 'R + →',
+  reopenLeftWindows: 'R + ←',
+};

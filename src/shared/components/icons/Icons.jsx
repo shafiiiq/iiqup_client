@@ -2448,3 +2448,268 @@ export const EditFileIcon = ({
     </svg>
   );
 };
+
+export const NewWindowIcon = ({
+ size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 16 16"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h16v16H0z"
+        fill="none"
+      />
+      <g fill={color}>
+        <path d="M2.5 5a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1M4 5a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1m2-.5a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0" />
+        <path d="M0 4a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v4a.5.5 0 0 1-1 0V7H1v5a1 1 0 0 0 1 1h5.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-2zm1 2h13V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1z" />
+        <path d="M16 12.5a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0m-3.5-2a.5.5 0 0 0-.5.5v1h-1a.5.5 0 0 0 0 1h1v1a.5.5 0 0 0 1 0v-1h1a.5.5 0 0 0 0-1h-1v-1a.5.5 0 0 0-.5-.5" />
+      </g>
+    </svg>
+  );
+};
+
+export const DuplicateWindowIcon = ({
+ size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h20v20H0z"
+        fill="none"
+      />
+      <path
+        d="M4.5 2A2.5 2.5 0 0 0 2 4.5v8A2.5 2.5 0 0 0 4.5 15h8a2.5 2.5 0 0 0 2.5-2.5v-8A2.5 2.5 0 0 0 12.5 2zM3 12.5V6h11v6.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 12.5M3 5v-.5A1.5 1.5 0 0 1 4.5 3h8A1.5 1.5 0 0 1 14 4.5V5zm4.5 13a2.5 2.5 0 0 1-2.45-2h1.035A1.5 1.5 0 0 0 7.5 17H14a3 3 0 0 0 3-3V7.5a1.5 1.5 0 0 0-1-1.415V5.05a2.5 2.5 0 0 1 2 2.45V14a4 4 0 0 1-4 4z"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const CloseWindowIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <g
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeWidth="1.5"
+      >
+        <path d="M15 21H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10" />
+        <path
+          strokeLinejoin="round"
+          d="M2 7h20M5 5.01l.01-.011M8 5.01l.01-.011M11 5.01l.01-.011M18 22.243l2.121-2.122m0 0L22.243 18m-2.122 2.121L18 18m2.121 2.121l2.122 2.122"
+        />
+      </g>
+    </svg>
+  );
+};
+
+export const CloseLeftWindowsIcon = ({
+size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <g
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      >
+        <path
+          fill={color}
+          fillOpacity=".4"
+          d="M15 2L18 2C20.2091 2 22 3.7909 22 6L22 18C22 20.2091 20.2091 22 18 22L15 22C14.4477 22 14 21.5523 14 21L14 3C14 2.4477 14.4477 2 15 2Z"
+          stroke="none"
+        />
+        <path d="M6 3C4.34315 3 3 4.34315 3 6M3 18C3 19.6569 4.34315 21 6 21M10 3H11M10 21H11M3 10.5V13.5" />
+        <path d="M11 9L8 12L11 15" />
+      </g>
+    </svg>
+  );
+};
+
+export const CloseRightWindowsIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <g
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      >
+        <path
+          fill={color}
+          fillOpacity=".4"
+          d="M6 2L9 2C9.5523 2 10 2.4477 10 3L10 21C10 21.5523 9.5523 22 9 22L6 22C3.7909 22 2 20.2091 2 18L2 6C2 3.7909 3.7909 2 6 2Z"
+          stroke="none"
+        />
+        <path d="M18 3C19.6569 3 21 4.34315 21 6M21 18C21 19.6569 19.6569 21 18 21M13 3H14M13 21H14M21 10.5V13.5" />
+        <path d="M13 9L16 12L13 15" />
+      </g>
+    </svg>
+  );
+};
+
+export const RedoClosedRightWindowsIcon = ({
+   size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <g
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      >
+        <path
+          fill={color}
+          fillOpacity=".4"
+          d="M6 2H18C20.20914 2 22 3.79086 22 6V18C22 20.20914 20.20914 22 18 22H6C3.79086 22 2 20.20914 2 18V6C2 3.79086 3.79086 2 6 2ZM6 3C4.34315 3 3 4.34315 3 6V18C3 19.65685 4.34315 21 6 21H9V3Z"
+          stroke="none"
+        />
+        <path d="M9 3H6C4.34315 3 3 4.34315 3 6V18C3 19.6569 4.34315 21 6 21H9V3ZM18 3C19.6569 3 21 4.34315 21 6M21 18C21 19.6569 19.6569 21 18 21M13 3H14M13 21H14M21 10.5V13.5" />
+        <path d="M16 9L13 12L16 15" />
+      </g>
+    </svg>
+  );
+};
+
+export const RedoClosedLeftWindowsIcon = ({
+   size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <g
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      >
+        <path
+          fill={color}
+          fillOpacity=".4"
+          d="M6 2H18C20.20914 2 22 3.79086 22 6V18C22 20.20914 20.20914 22 18 22H6C3.79086 22 2 20.20914 2 18V6C2 3.79086 3.79086 2 6 2ZM15 3V21H18C19.65685 21 21 19.65685 21 18V6C21 4.34315 19.65685 3 18 3Z"
+          stroke="none"
+        />
+        <path d="M15 3H18C19.6569 3 21 4.34315 21 6V18C21 19.6569 19.6569 21 18 21H15V3ZM6 3C4.34315 3 3 4.34315 3 6M3 18C3 19.6569 4.34315 21 6 21M10 3H11M10 21H11M3 10.5V13.5" />
+        <path d="M8 9L11 12L8 15" />
+      </g>
+    </svg>
+  );
+};
+
+export const RedoWindowIcon = ({
+  size = 24,
+  color = "#7e2828",
+  ...props
+}) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      {...props}
+    >
+      <path
+        d="M0 0h24v24H0z"
+        fill="none"
+      />
+      <path
+        fill={color}
+        d="M4 6.714v3.402q0 .212-.144.356t-.357.144t-.356-.144T3 10.116V5.808q0-.343.232-.576T3.808 5h4.308q.212 0 .356.144t.144.357t-.144.356T8.116 6H4.689l5.19 5.171q.158.148.165.345q.006.198-.16.363q-.165.165-.356.165q-.192 0-.357-.165zM4.615 19q-.69 0-1.153-.462T3 17.384V13.5q0-.213.144-.356T3.501 13t.356.144T4 13.5v3.885q0 .269.173.442t.443.173h6.653q.213 0 .356.144t.144.357t-.144.356t-.356.143zm15.528-6.374Q20 12.481 20 12.269V6.616q0-.27-.173-.443T19.385 6H11.5q-.213 0-.356-.144T11 5.499t.144-.356T11.5 5h7.885q.69 0 1.152.463T21 6.616v5.653q0 .213-.144.357t-.357.143t-.356-.143M14.962 19q-.344 0-.576-.232t-.232-.576v-2.23q0-.344.232-.576t.576-.232h5.23q.344 0 .576.232t.232.575v2.231q0 .343-.232.576t-.576.232z"
+      />
+    </svg>
+  );
+};

@@ -256,3 +256,21 @@ export const collectDroppedItems = (dataTransfer) => {
     return { files, directories };
   })();
 };
+
+export const toLayerId = (nodeKey) =>
+  nodeKey === 'root'
+    ? 'root'
+    : encodeURIComponent(nodeKey).replace(
+        /[^a-zA-Z0-9_-]/g,
+        (character) => `~${character.charCodeAt(0).toString(16).padStart(2, '0')}`
+      );
+
+export const fromLayerId = (layerId) => {
+  try {
+    return decodeURIComponent(
+      layerId.replace(/~([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    );
+  } catch {
+    return layerId;
+  }
+};

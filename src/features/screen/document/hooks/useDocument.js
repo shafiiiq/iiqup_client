@@ -21,6 +21,7 @@ import {
   copyFolder,
   splitDocument,
   convertDocuments,
+  annotateDocument,
   getSignedUrl,
 } from '../api/document.api';
 import { uploadFile } from '@/features/core/sync/upload/upload.service';
@@ -104,6 +105,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const [datesTarget, setDatesTarget] = useState(null);
   const [renewTarget, setRenewTarget] = useState(null);
   const [viewerTarget, setViewerTarget] = useState(null);
+  const [editorTarget, setEditorTarget] = useState(null);
   const [isSubmittingDialog, setIsSubmittingDialog] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
@@ -184,6 +186,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     setSelectedDocumentIds([]);
     setSelectedFolderIds([]);
     setViewerTarget(null);
+    setEditorTarget(null);
     setContextMenu(null);
     setRenamingItem(null);
     if (!sourceType || !sourceId) return undefined;
@@ -1166,6 +1169,28 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     }
   };
 
+  const handleEditPdf = (documentItem) => setEditorTarget(documentItem);
+  const handleCloseEditor = () => setEditorTarget(null);
+
+  const handleSaveAnnotations = async ({ pages, images, asCopy }) => {
+    setIsSubmittingDialog(true);
+    try {
+      const result = await annotateDocument({ documentId: editorTarget._id, pages, images, asCopy });
+      if (asCopy) {
+        recordOperation(
+          buildUndoByTrashOperation({ label: 'Edit PDF copy', documentIds: [result._id], folderIds: [] })
+        );
+      }
+      setEditorTarget(null);
+      showToast(asCopy ? 'Edited copy saved' : 'PDF updated', 'success');
+      await loadDocuments({ silent: true });
+    } catch (error) {
+      showToast(`Error: ${error.message}`, 'error');
+    } finally {
+      setIsSubmittingDialog(false);
+    }
+  };
+
   const handleSplitClick = (documentItem) => setViewerTarget({ mode: 'split', documents: [documentItem] });
   const handleCloseViewer = () => setViewerTarget(null);
 
@@ -1319,7 +1344,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     ];
     if (isPdfDocument(documentItem)) {
       menuItems.push(
-        { key: 'editPdf', label: 'Edit PDF', onSelect: () => handleView(documentItem) },
+        { key: 'editPdf', label: 'Edit PDF', onSelect: () => handleEditPdf(documentItem) },
         { key: 'pdfToWord', label: 'PDF to Word', onSelect: () => handleConvert('pdfToWord', [documentItem._id], 'PDF to Word') },
         { key: 'pdfToImages', label: 'PDF to JPG', onSelect: () => handlePdfToImages(documentItem) }
       );
@@ -1389,7 +1414,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
       }
       if (isPdfDocument(singleDocument)) {
         toolbarActionList.push(
-          { key: 'editPdf', label: 'Edit PDF', onSelect: () => handleView(singleDocument) },
+          { key: 'editPdf', label: 'Edit PDF', onSelect: () => handleEditPdf(singleDocument) },
           { key: 'pdfToWord', label: 'PDF to Word', onSelect: () => handleConvert('pdfToWord', [singleDocument._id], 'PDF to Word') },
           { key: 'pdfToImages', label: 'PDF to JPG', onSelect: () => handlePdfToImages(singleDocument) }
         );
@@ -1489,7 +1514,7 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     shortcuts,
     actions: shortcutActions,
     isBlocked: Boolean(
-      viewerTarget || isShortcutsOpen || datesTarget || renewTarget || deleteTarget || showProgressModal
+      viewerTarget || editorTarget || isShortcutsOpen || datesTarget || renewTarget || deleteTarget || showProgressModal
     ),
     clearSelection: () => {
       setContextMenu(null);
@@ -1509,6 +1534,9 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
   const stableHandleCancelInlineRename = useStableCallback(handleCancelInlineRename);
 
   return {
+    editorTarget,
+    handleCloseEditor,
+    handleSaveAnnotations,
     queueNavigation,
     newItemIdSet,
     containsNewIdSet,

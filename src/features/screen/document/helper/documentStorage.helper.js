@@ -1,5 +1,5 @@
 import { TRASH_NODE_KEY } from '../constants/document.constant';
-import { formatBytes } from './document.helper';
+import { formatBytes, toLayerId } from './document.helper';
 
 const sourceKeyOf = (collection, item) => `${collection.sourceType}:${item._id || item.id}`;
 
@@ -8,8 +8,10 @@ const measureNode = (node, bySource, trashBytes, bytesByKey) => {
     bytesByKey[node.key] = trashBytes;
     return { node: { ...node, footer: formatBytes(trashBytes) }, bytes: trashBytes };
   }
+  const ownBytes = bySource[`root:${toLayerId(node.key)}`] || 0;
   if (node.items) {
-    const bytes = node.items.reduce((total, item) => total + (bySource[sourceKeyOf(node, item)] || 0), 0);
+    const bytes =
+      ownBytes + node.items.reduce((total, item) => total + (bySource[sourceKeyOf(node, item)] || 0), 0);
     bytesByKey[node.key] = bytes;
     return {
       node: {
@@ -21,7 +23,7 @@ const measureNode = (node, bySource, trashBytes, bytesByKey) => {
     };
   }
   const results = (node.children || []).map((child) => measureNode(child, bySource, trashBytes, bytesByKey));
-  const bytes = results.reduce((total, result) => total + result.bytes, 0);
+  const bytes = ownBytes + results.reduce((total, result) => total + result.bytes, 0);
   bytesByKey[node.key] = bytes;
   return { node: { ...node, children: results.map((result) => result.node), footer: formatBytes(bytes) }, bytes };
 };
@@ -40,4 +42,14 @@ export const resolvePathLabel = (root, pathKeys) => {
     current = next;
   }
   return current.label;
+};
+
+export const resolvePathNode = (root, pathKeys) => {
+  let current = root;
+  for (let index = 1; index < pathKeys.length; index += 1) {
+    const next = (current.children || []).find((child) => child.key === pathKeys[index]);
+    if (!next) break;
+    current = next;
+  }
+  return current;
 };

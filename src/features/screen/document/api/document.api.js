@@ -186,3 +186,12 @@ export const getPreviewPdfUrl = async (documentId) => {
   );
   return data.url;
 };
+
+export const searchDocumentItems = async ({ query }) =>
+  readResponseData(await apiRequest(`/documents/search?q=${encodeURIComponent(query)}`, 'GET'), 'Search failed');
+
+export const annotateDocument = async ({ documentId, pages, images, asCopy }) =>
+  readResponseData(
+    await apiRequest(`/documents/${documentId}/annotate`, 'POST', { pages, images, asCopy }),
+    'Failed to save the edited PDF'
+  );

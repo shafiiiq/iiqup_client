@@ -4,16 +4,19 @@ import { useDocument } from '../hooks/useDocument';
 import { useDocumentTrash } from '../hooks/useDocumentTrash';
 import { useDocumentStorage } from '../hooks/useDocumentStorage';
 import { useStableCallback } from '../hooks/useStableCallback';
+import { searchDocumentItems } from '../api/document.api';
 import Modal from '@/shared/components/widgets/modal/Modal';
-import Button from '@/shared/components/widgets/button/Button';
+import DocumentMenuBar from './fragments/DocumentMenuBar';
 import Loader from '@/shared/components/widgets/loader/spinner/Spinner';
 import Toast from '@/shared/components/widgets/toast/Toast';
 import FolderPicker from '@/shared/components/pickers/folder/FolderPicker';
 import { usePickerRoot } from '@/shared/components/pickers/Picker';
 import DocumentViewer from './fragments/DocumentViewer';
+import PdfEditor from './fragments/PdfEditor';
 import DocumentSidebar from './fragments/DocumentSidebar';
 import DocumentTile from './fragments/DocumentTile';
 import DocumentFolderTile from './fragments/DocumentFolderTile';
+import DocumentSearchResults from './fragments/DocumentSearchResults';
 import DocumentContextMenu from './fragments/DocumentContextMenu';
 import DocumentDatesDialog from './fragments/DocumentDatesDialog';
 import DocumentShortcutsDialog from './fragments/DocumentShortcutsDialog';
@@ -21,17 +24,18 @@ import DocumentStorageBar from './fragments/DocumentStorageBar';
 import DocumentTrash from './fragments/DocumentTrash';
 import DocumentWindowTabs from './fragments/DocumentWindowTabs';
 import { formatShortcut } from '../helper/documentShortcut.helper';
+import { WINDOW_MENU_SHORTCUTS } from '../constants/documentShortcut.constant';
 import {
   DOCUMENT_VIEWS,
   DOCUMENT_VIEW_TABS,
   DOCUMENT_TOOLBAR_ICONS,
   DRAGGED_DOCUMENT_TYPE,
   EMPTY_STATE_MESSAGES,
-  TOOLBAR_BUTTON_PROPS,
   TRASH_NODE_KEY,
+  DOCUMENT_MENU_CATEGORIES,
 } from '../constants/document.constant';
-import { toDateInputValue, formatBytes } from '../helper/document.helper';
-import { decoratePickerTree, resolvePathLabel } from '../helper/documentStorage.helper';
+import { toDateInputValue, formatBytes, toLayerId, fromLayerId } from '../helper/document.helper';
+import { decoratePickerTree, resolvePathLabel, resolvePathNode } from '../helper/documentStorage.helper';
 import {
   PICKER_ROOT_KEY,
   buildSidebarRoot,
@@ -44,7 +48,9 @@ import './Document.css';
 
 const PICKER_TYPES = ['equipment', 'user'];
 
-const ROOT_SCOPE = { type: 'root', id: 'root' };
+const SEARCH_DEBOUNCE_MILLISECONDS = 350;
+
+const EMPTY_SEARCH_STATE = { documents: [], folders: [], isLoading: false };
 
 const TRASH_NODE = {
   type: 'folder',
@@ -64,7 +70,10 @@ const ROOT_NAVIGATION = {
   folderId: null,
 };
 
-const resolveScope = (source, pathKeys) => source || (pathKeys.length === 1 ? ROOT_SCOPE : null);
+const isTrashPathKeys = (pathKeys) => pathKeys.length === 2 && pathKeys[1] === TRASH_NODE_KEY;
+
+const resolveScope = (source, pathKeys) =>
+  source || (isTrashPathKeys(pathKeys) ? null : { type: 'root', id: toLayerId(pathKeys[pathKeys.length - 1]) });
 
 const scopeKeyOf = (scopeItem) => (scopeItem ? `${scopeItem.type}:${scopeItem.id}` : '');
 
@@ -88,15 +97,6 @@ const attachContextMenu = (node, handler) => ({
   children: node.children ? node.children.map((child) => attachContextMenu(child, handler)) : node.children,
 });
 
-const ICON_BUTTON_PROPS = {
-  ...TOOLBAR_BUTTON_PROPS,
-  componentIconSize: '40',
-  colorScheme: 'yellow-700',
-  iconColor: 'primary-200',
-  width: 'fit-content',
-  padding: '0',
-};
-
 function Document() {
   const { type: routeType, id: routeId } = useParams();
   const [selectedSource, setSelectedSource] = useState(() =>
@@ -106,16 +106,24 @@ function Document() {
   const [windows, setWindows] = useState(() => [{ id: 'window-1', nav: null, label: 'Root' }]);
   const [activeWindowId, setActiveWindowId] = useState('window-1');
   const [sidebarMenu, setSidebarMenu] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchState, setSearchState] = useState(EMPTY_SEARCH_STATE);
   const windowCounterRef = useRef(1);
   const closedWindowsRef = useRef([]);
   const fileInputRef = useRef(null);
   const folderInputRef = useRef(null);
+  const sentinelRef = useRef(null);
 
-  const isRootActive = !selectedSource && pickerPathKeys.length === 1;
-  const scope = selectedSource || (isRootActive ? ROOT_SCOPE : null);
+  const isTrashActive = !selectedSource && isTrashPathKeys(pickerPathKeys);
+  const isLayerActive = !selectedSource && !isTrashActive;
+  const scope = resolveScope(selectedSource, pickerPathKeys);
   const isRootScope = scope?.type === 'root';
+  const isSearching = searchTerm.trim().length > 0;
 
   const {
+    editorTarget,
+    handleCloseEditor,
+    handleSaveAnnotations,
     progressTitle,
     folderSizes,
     viewSizes,
@@ -198,8 +206,6 @@ function Document() {
     handleFolderContextMenu,
     queueNavigation,
   } = useDocument({ sourceType: scope?.type, sourceId: scope?.id });
-
-  const isTrashActive = !selectedSource && pickerPathKeys.length === 2 && pickerPathKeys[1] === TRASH_NODE_KEY;
 
   const trash = useDocumentTrash({ isActive: isTrashActive, shortcuts, showToast, undoManager });
 
@@ -374,7 +380,7 @@ function Document() {
 
   const isShortcutBlockedRef = useRef(false);
   isShortcutBlockedRef.current = Boolean(
-    viewerTarget || isShortcutsOpen || datesTarget || renewTarget || deleteTarget || showProgressModal
+    viewerTarget || editorTarget || isShortcutsOpen || datesTarget || renewTarget || deleteTarget || showProgressModal
   );
 
   useEffect(() => {
@@ -392,11 +398,12 @@ function Document() {
     };
     const hasShortcutModifiers = (event) => event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey;
     const handleKeyDown = (event) => {
+      if (isShortcutBlockedRef.current) return;
       const targetTagName = event.target?.tagName;
       if (targetTagName === 'INPUT' || targetTagName === 'TEXTAREA') return;
       if (event.code === 'KeyW' || event.code === 'KeyR') {
         if (!event.altKey && !event.shiftKey && !event.metaKey && !event.ctrlKey) {
-          if (!isShortcutBlockedRef.current) plainHeld = event.code === 'KeyW' ? 'close' : 'reopen';
+          plainHeld = event.code === 'KeyW' ? 'close' : 'reopen';
           return;
         }
         if (!hasShortcutModifiers(event)) return;
@@ -486,34 +493,37 @@ function Document() {
 
   const sidebarMenuItems = sidebarMenu
     ? [
-      {
-        key: 'duplicate',
-        label: 'Duplicate',
-        onSelect: () => openWindow(sidebarMenu.navigation, sidebarMenu.label),
-      },
-    ]
+        {
+          key: 'duplicate',
+          label: 'Duplicate',
+          onSelect: () => openWindow(sidebarMenu.navigation, sidebarMenu.label),
+        },
+      ]
     : [];
 
   const selectedSourceId = selectedSource?.id;
 
   const sidebarItems = useMemo(
     () => [
-      attachContextMenu(buildSidebarRoot({
-        root: documentRoot,
-        selection: selectedSourceId
-          ? {
-            sourceId: selectedSourceId,
-            documents,
-            folders,
-            folderItemCounts,
-            viewTabItems,
-            activeView,
-            currentFolderId,
-            onDropDocuments: handleDropDocuments,
-          }
-          : null,
-        onActivate: handleSidebarNode,
-      }), handleSidebarContextMenu),
+      attachContextMenu(
+        buildSidebarRoot({
+          root: documentRoot,
+          selection: selectedSourceId
+            ? {
+                sourceId: selectedSourceId,
+                documents,
+                folders,
+                folderItemCounts,
+                viewTabItems,
+                activeView,
+                currentFolderId,
+                onDropDocuments: handleDropDocuments,
+              }
+            : null,
+          onActivate: handleSidebarNode,
+        }),
+        handleSidebarContextMenu
+      ),
     ],
     [
       documentRoot,
@@ -561,14 +571,14 @@ function Document() {
         ...folderSegments,
       ];
     }
-    if (isRootActive) return folderSegments;
+    if (isLayerActive) return folderSegments;
     if (isTrashActive && trash.activeSource) {
       return [{ key: 'trash-source', label: trash.activeSource.label, onSelect: trash.handleResetSource }];
     }
     return [];
   }, [
     selectedSource,
-    isRootActive,
+    isLayerActive,
     sourceLabel,
     activeView,
     activeViewTab,
@@ -586,12 +596,126 @@ function Document() {
     handleOpenFolder(null);
   });
 
+  const layerNode = isLayerActive ? resolvePathNode(decoratedPicker.root, pickerPathKeys) : null;
+
+  const openPickerNode = (nodeKey) =>
+    applyNavigation({
+      source: null,
+      pickerPathKeys: [...pickerPathKeys, nodeKey],
+      view: DOCUMENT_VIEWS.SOURCE,
+      folderId: null,
+    });
+
+  const pickerTiles = (() => {
+    if (!layerNode) return [];
+    if (layerNode.items) {
+      const itemIcon = layerNode.sourceType === 'equipment' ? 'CraneIcon' : layerNode.icon;
+      return layerNode.items.map((item) => {
+        const primaryText = layerNode.getItemPrimaryText(item);
+        const secondaryText = layerNode.getItemSecondaryText ? layerNode.getItemSecondaryText(item) : null;
+        return {
+          key: `item:${layerNode.getItemKey(item)}`,
+          label: secondaryText ? `${primaryText} - ${secondaryText}` : String(primaryText),
+          iconName: itemIcon,
+          sizeLabel: layerNode.getItemFooter ? layerNode.getItemFooter(item) : undefined,
+          open: () => layerNode.onSelectItem(item),
+        };
+      });
+    }
+    return (layerNode.children || []).map((child) => ({
+      key: child.key,
+      label: child.label,
+      iconName: child.icon,
+      sizeLabel: child.footer,
+      open: () => openPickerNode(child.key),
+    }));
+  })();
+
+  const layerHasMore = Boolean(layerNode?.hasMore);
+  const layerIsLoadingMore = Boolean(layerNode?.isLoadingMore);
+  const layerLoadMore = layerNode?.onLoadMore;
+  const isPickerLoading = Boolean(layerNode?.isLoading) && pickerTiles.length === 0;
+
+  useEffect(() => {
+    if (!layerHasMore || layerIsLoadingMore || !layerLoadMore) return undefined;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) layerLoadMore();
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [layerHasMore, layerIsLoadingMore, layerLoadMore, pickerTiles.length, isLoading, isSearching]);
+
+  useEffect(() => {
+    const term = searchTerm.trim();
+    if (!term) {
+      setSearchState(EMPTY_SEARCH_STATE);
+      return undefined;
+    }
+    let isCancelled = false;
+    setSearchState((previous) => ({ ...previous, isLoading: true }));
+    const timerId = setTimeout(async () => {
+      try {
+        const data = await searchDocumentItems({ query: term });
+        if (!isCancelled) setSearchState({ documents: data.documents, folders: data.folders, isLoading: false });
+      } catch (error) {
+        if (isCancelled) return;
+        setSearchState(EMPTY_SEARCH_STATE);
+        showToast(`Error: ${error.message}`, 'error');
+      }
+    }, SEARCH_DEBOUNCE_MILLISECONDS);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timerId);
+    };
+  }, [searchTerm, showToast]);
+
+  const navigateToLocation = ({ sourceType, sourceId, area, folderId }) => {
+    if (sourceType === 'root') {
+      const path = findKeyPath(sidebarItems, fromLayerId(sourceId));
+      applyNavigation({
+        source: null,
+        pickerPathKeys: path || [PICKER_ROOT_KEY],
+        view: DOCUMENT_VIEWS.SOURCE,
+        folderId: folderId || null,
+      });
+    } else {
+      const fullPath = findKeyPath(sidebarItems, buildSourceNodeKey(sourceId));
+      applyNavigation({
+        source: { type: sourceType, id: sourceId },
+        pickerPathKeys: fullPath ? fullPath.slice(0, -1) : [PICKER_ROOT_KEY],
+        view: area || DOCUMENT_VIEWS.ALL,
+        folderId: folderId || null,
+      });
+    }
+    setSearchTerm('');
+  };
+
+  const handleOpenSearchFolder = (folder) =>
+    navigateToLocation({ sourceType: folder.sourceType, sourceId: folder.sourceId, area: folder.area, folderId: folder._id });
+
+  const handleShowSearchDocument = (documentItem) =>
+    navigateToLocation({
+      sourceType: documentItem.sourceType,
+      sourceId: documentItem.sourceId,
+      area: documentItem.area,
+      folderId: documentItem.folderId,
+    });
+
   const parentFolderId = folderTrail.length > 1 ? folderTrail[folderTrail.length - 2]._id : null;
   const showViewTiles = Boolean(scope) && !isRootScope && activeView === DOCUMENT_VIEWS.SOURCE && !currentFolderId;
   const showParentTile = Boolean(currentFolderId) || (!isRootScope && activeView !== DOCUMENT_VIEWS.SOURCE);
   const viewCounts = Object.fromEntries(viewTabItems.map((tab) => [tab.key, tab.badge]));
   const isExplorerEmpty =
-    visibleDocuments.length === 0 && visibleFolders.length === 0 && !currentFolderId && !showViewTiles;
+    pickerTiles.length === 0 &&
+    visibleDocuments.length === 0 &&
+    visibleFolders.length === 0 &&
+    !currentFolderId &&
+    !showViewTiles;
 
   const usedBytes = (() => {
     if (scope && currentFolderId) return folderSizes[currentFolderId] || 0;
@@ -616,6 +740,67 @@ function Document() {
     if (isTrashActive) return trash.activeSource ? trash.activeSource.label : 'Trash';
     return resolvePathLabel(documentRoot, pickerPathKeys) || 'Root';
   })();
+
+  const toolbarActionByKey = Object.fromEntries(toolbarActions.map((toolbarAction) => [toolbarAction.key, toolbarAction]));
+  const activeWindowIndex = windows.findIndex((windowItem) => windowItem.id === activeWindowId);
+  const hasClosedWindows = (direction) =>
+    closedWindowsRef.current.some((entry) => !direction || entry.direction === direction);
+
+  const menuActions = {
+    undo: {
+      label: `Undo${undoManager.undoLabel ? ` ${undoManager.undoLabel}` : ''}`,
+      isDisabled: !undoManager.canUndo,
+      onSelect: undoManager.undo,
+    },
+    redo: {
+      label: `Redo${undoManager.redoLabel ? ` ${undoManager.redoLabel}` : ''}`,
+      isDisabled: !undoManager.canRedo,
+      onSelect: undoManager.redo,
+    },
+    selectMultiple: {
+      label: selectionMode ? 'Cancel Selection' : 'Select Multiple',
+      onSelect: handleToggleSelectionMode,
+    },
+    uploadFiles: { onSelect: () => fileInputRef.current?.click() },
+    uploadFolder: { onSelect: () => folderInputRef.current?.click() },
+    newFolder: { onSelect: handleNewFolderClick },
+    hint: { onSelect: handleOpenShortcuts },
+    newWindow: { onSelect: handleNewWindow },
+    duplicateWindow: { onSelect: () => handleDuplicateWindow(activeWindowId) },
+    closeWindow: { isDisabled: windows.length <= 1, onSelect: handleCloseCurrentWindow },
+    closeRightWindows: {
+      isDisabled: activeWindowIndex >= windows.length - 1,
+      onSelect: handleCloseRightWindows,
+    },
+    closeLeftWindows: { isDisabled: activeWindowIndex <= 0, onSelect: handleCloseLeftWindows },
+    reopenWindow: { isDisabled: !hasClosedWindows(), onSelect: () => handleReopenWindows(null) },
+    reopenRightWindows: {
+      isDisabled: !hasClosedWindows('right'),
+      onSelect: () => handleReopenWindows('right'),
+    },
+    reopenLeftWindows: {
+      isDisabled: !hasClosedWindows('left'),
+      onSelect: () => handleReopenWindows('left'),
+    },
+  };
+
+  const menuCategories = DOCUMENT_MENU_CATEGORIES.map((category) => ({
+    key: category.key,
+    label: category.label,
+    items: category.items.map((item) => {
+      const action = menuActions[item.key] || toolbarActionByKey[item.key];
+      const isWindowItem = category.key === 'window';
+      return {
+        key: item.key,
+        label: menuActions[item.key]?.label || item.label,
+        icon: DOCUMENT_TOOLBAR_ICONS[item.key],
+        isDanger: item.isDanger,
+        isDisabled: !action || Boolean(action.isDisabled) || (!isWindowItem && !scope && item.key !== 'hint'),
+        onSelect: action?.onSelect,
+        shortcut: shortcuts[item.key] ? formatShortcut(shortcuts[item.key]) : WINDOW_MENU_SHORTCUTS[item.key] || '',
+      };
+    }),
+  }));
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -681,168 +866,158 @@ function Document() {
             onMove={handleMoveWindow}
           />
 
+          <div className="doc-details-toolbar">
+            <DocumentMenuBar categories={menuCategories} />
+            {(selectionMode || selectedDocumentIds.length + selectedFolderIds.length > 1) && (
+              <span className="doc-details-toolbar-count">
+                {selectedDocumentIds.length + selectedFolderIds.length} selected
+              </span>
+            )}
+            <div className="doc-search">
+              <input
+                type="text"
+                placeholder="Search files and folders"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                onKeyDown={(event) => {
+                  event.stopPropagation();
+                  if (event.key === 'Escape') setSearchTerm('');
+                }}
+              />
+              {searchTerm && (
+                <button type="button" className="doc-search-clear" aria-label="Clear search" onClick={() => setSearchTerm('')}>
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+
           <FolderPicker
             root={decoratedPicker.root}
             pathKeys={pickerPathKeys}
             onPathKeysChange={setPickerPathKeys}
             trailingSegments={trailingSegments}
-            isBodyHidden={Boolean(selectedSource) || isTrashActive}
+            isBodyHidden
             onBreadcrumbNavigate={handleBreadcrumbNavigate}
           />
 
-          {isTrashActive && <DocumentTrash trash={trash} shortcuts={shortcuts} undoManager={undoManager} />}
+          {isSearching && (
+            <DocumentSearchResults
+              query={searchTerm.trim()}
+              state={searchState}
+              onViewDocument={handleView}
+              onShowDocument={handleShowSearchDocument}
+              onOpenFolder={handleOpenSearchFolder}
+            />
+          )}
+
+          {!isSearching && isTrashActive && (
+            <DocumentTrash trash={trash} shortcuts={shortcuts} undoManager={undoManager} />
+          )}
 
           {scope && (
-            <>
-              <div className="doc-details-toolbar">
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  title={`Undo${undoManager.undoLabel ? ` ${undoManager.undoLabel}` : ''} (${formatShortcut(shortcuts.undo)})`}
-                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.undo}
-                  type={undoManager.canUndo ? 'button' : 'disabled'}
-                  onClick={undoManager.undo}
-                />
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  title={`Redo${undoManager.redoLabel ? ` ${undoManager.redoLabel}` : ''} (${formatShortcut(shortcuts.redo)})`}
-                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.redo}
-                  type={undoManager.canRedo ? 'button' : 'disabled'}
-                  onClick={undoManager.redo}
-                />
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  componentIconCenter={selectionMode ? 'CancelAllIcon' : 'SelectMultipleIcon'}
-                  textColor="white-100"
-                  onClick={handleToggleSelectionMode}
-                />
-                {(selectionMode || selectedDocumentIds.length + selectedFolderIds.length > 1) && (
-                  <span className="doc-details-toolbar-count">
-                    {selectedDocumentIds.length + selectedFolderIds.length} selected
-                  </span>
-                )}
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  title="Upload Files"
-                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.uploadFiles}
-                  onClick={() => fileInputRef.current?.click()}
-                />
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  title="Upload Folder"
-                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.uploadFolder}
-                  onClick={() => folderInputRef.current?.click()}
-                />
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  title={`New Folder (${formatShortcut(shortcuts.newFolder)})`}
-                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.newFolder}
-                  onClick={handleNewFolderClick}
-                />
-                {toolbarActions.map((toolbarAction) => (
-                  <Button
-                    key={toolbarAction.key}
-                    {...ICON_BUTTON_PROPS}
-                    title={`${toolbarAction.label} (${formatShortcut(shortcuts[toolbarAction.key])})`}
-                    componentIconLeft={DOCUMENT_TOOLBAR_ICONS[toolbarAction.key]}
-                    type={toolbarAction.isDisabled ? 'disabled' : 'button'}
-                    onClick={toolbarAction.onSelect}
-                  />
-                ))}
-                <Button
-                  {...ICON_BUTTON_PROPS}
-                  title="Keyboard Shortcuts"
-                  componentIconCenter={DOCUMENT_TOOLBAR_ICONS.hint}
-                  onClick={handleOpenShortcuts}
-                />
-              </div>
-
-              <div
-                ref={explorerRef}
-                className={`doc-details-explorer ${selectionMode ? 'selecting' : ''}`}
-                onClick={handleExplorerClick}
-                onContextMenu={handleExplorerContextMenu}
-                onDragOver={(event) => {
-                  if (Array.from(event.dataTransfer.types).includes(DRAGGED_DOCUMENT_TYPE)) event.preventDefault();
-                }}
-                onDrop={(event) => {
-                  const payload = event.dataTransfer.getData(DRAGGED_DOCUMENT_TYPE);
-                  if (!payload) return;
-                  event.preventDefault();
-                  handleDropDocuments(payload, currentFolderId, activeView);
-                }}
-              >
-                {isLoading ? (
-                  <Loader />
-                ) : isExplorerEmpty ? (
-                  <div className="doc-details-empty-state">{EMPTY_STATE_MESSAGES[activeView]}</div>
-                ) : (
-                  <div className="doc-details-grid">
-                    {showViewTiles &&
-                      DOCUMENT_VIEW_TABS.map((viewTab) => (
-                        <DocumentFolderTile
-                          key={`view-${viewTab.key}`}
-                          label={viewTab.label}
-                          dropArea={viewTab.key}
-                          itemCount={viewCounts[viewTab.key] ?? 0}
-                          isNew={containsNewIdSet.has(`view:${viewTab.key}`)}
-                          sizeLabel={formatBytes(viewSizes[viewTab.key])}
-                          onOpen={() => handleViewChange(viewTab.key)}
-                          onDropDocuments={handleDropDocuments}
-                        />
-                      ))}
-                    {showParentTile && (
+            <div
+              ref={explorerRef}
+              hidden={isSearching}
+              className={`doc-details-explorer ${selectionMode ? 'selecting' : ''}`}
+              onClick={handleExplorerClick}
+              onContextMenu={handleExplorerContextMenu}
+              onDragOver={(event) => {
+                if (Array.from(event.dataTransfer.types).includes(DRAGGED_DOCUMENT_TYPE)) event.preventDefault();
+              }}
+              onDrop={(event) => {
+                const payload = event.dataTransfer.getData(DRAGGED_DOCUMENT_TYPE);
+                if (!payload) return;
+                event.preventDefault();
+                handleDropDocuments(payload, currentFolderId, activeView);
+              }}
+            >
+              {isPickerLoading || (isLoading && pickerTiles.length === 0) ? (
+                <Loader />
+              ) : isExplorerEmpty ? (
+                <div className="doc-details-empty-state">
+                  {isRootScope
+                    ? 'Drag and drop files or folders here, or use the File menu to upload or create a folder.'
+                    : EMPTY_STATE_MESSAGES[activeView]}
+                </div>
+              ) : (
+                <div className="doc-details-grid">
+                  {pickerTiles.map((tile) => (
+                    <DocumentFolderTile
+                      key={tile.key}
+                      label={tile.label}
+                      iconName={tile.iconName}
+                      targetFolderId={tile.key}
+                      sizeLabel={tile.sizeLabel}
+                      onOpen={tile.open}
+                    />
+                  ))}
+                  {showViewTiles &&
+                    DOCUMENT_VIEW_TABS.map((viewTab) => (
                       <DocumentFolderTile
-                        key="parent-folder"
-                        label=".."
-                        targetFolderId={parentFolderId}
-                        dropArea={currentFolderId ? activeView : DOCUMENT_VIEWS.SOURCE}
-                        onOpen={() =>
-                          currentFolderId ? handleOpenFolder(parentFolderId) : handleViewChange(DOCUMENT_VIEWS.SOURCE)
-                        }
-                        onDropDocuments={handleDropDocuments}
-                      />
-                    )}
-                    {visibleFolders.map((folderItem) => (
-                      <DocumentFolderTile
-                        key={folderItem._id}
-                        label={folderItem.name}
-                        folder={folderItem}
-                        targetFolderId={folderItem._id}
-                        itemCount={folderItemCounts[folderItem._id] ?? 0}
-                        sizeLabel={formatBytes(folderSizes[folderItem._id] || 0)}
-                        isSelected={selectedFolderIds.includes(folderItem._id)}
-                        isNew={newItemIdSet.has(folderItem._id) || containsNewIdSet.has(folderItem._id)}
-                        isCut={cutFolderIds.includes(folderItem._id)}
-                        isRenaming={renamingItem?.kind === 'folder' && renamingItem.id === folderItem._id}
-                        onClick={handleFolderClick}
-                        onDragStart={handleFolderDragStart}
-                        onOpen={handleOpenFolder}
-                        onContextMenu={handleFolderContextMenu}
-                        onCommitRename={handleCommitInlineRename}
-                        onCancelRename={handleCancelInlineRename}
+                        key={`view-${viewTab.key}`}
+                        label={viewTab.label}
+                        dropArea={viewTab.key}
+                        itemCount={viewCounts[viewTab.key] ?? 0}
+                        isNew={containsNewIdSet.has(`view:${viewTab.key}`)}
+                        sizeLabel={formatBytes(viewSizes[viewTab.key])}
+                        onOpen={() => handleViewChange(viewTab.key)}
                         onDropDocuments={handleDropDocuments}
                       />
                     ))}
-                    {visibleDocuments.map((documentItem) => (
-                      <DocumentTile
-                        key={documentItem._id}
-                        documentItem={documentItem}
-                        isSelected={selectedDocumentIds.includes(documentItem._id)}
-                        isNew={newItemIdSet.has(documentItem._id)}
-                        isCut={cutDocumentIds.includes(documentItem._id)}
-                        isRenaming={renamingItem?.kind === 'document' && renamingItem.id === documentItem._id}
-                        onCommitRename={handleCommitInlineRename}
-                        onCancelRename={handleCancelInlineRename}
-                        onDragStart={handleDocumentDragStart}
-                        onClick={handleTileClick}
-                        onDoubleClick={handleView}
-                        onContextMenu={handleTileContextMenu}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
+                  {showParentTile && (
+                    <DocumentFolderTile
+                      key="parent-folder"
+                      label=".."
+                      targetFolderId={parentFolderId}
+                      dropArea={currentFolderId ? activeView : DOCUMENT_VIEWS.SOURCE}
+                      onOpen={() =>
+                        currentFolderId ? handleOpenFolder(parentFolderId) : handleViewChange(DOCUMENT_VIEWS.SOURCE)
+                      }
+                      onDropDocuments={handleDropDocuments}
+                    />
+                  )}
+                  {visibleFolders.map((folderItem) => (
+                    <DocumentFolderTile
+                      key={folderItem._id}
+                      label={folderItem.name}
+                      folder={folderItem}
+                      targetFolderId={folderItem._id}
+                      itemCount={folderItemCounts[folderItem._id] ?? 0}
+                      sizeLabel={formatBytes(folderSizes[folderItem._id] || 0)}
+                      isSelected={selectedFolderIds.includes(folderItem._id)}
+                      isNew={newItemIdSet.has(folderItem._id) || containsNewIdSet.has(folderItem._id)}
+                      isCut={cutFolderIds.includes(folderItem._id)}
+                      isRenaming={renamingItem?.kind === 'folder' && renamingItem.id === folderItem._id}
+                      onClick={handleFolderClick}
+                      onDragStart={handleFolderDragStart}
+                      onOpen={handleOpenFolder}
+                      onContextMenu={handleFolderContextMenu}
+                      onCommitRename={handleCommitInlineRename}
+                      onCancelRename={handleCancelInlineRename}
+                      onDropDocuments={handleDropDocuments}
+                    />
+                  ))}
+                  {visibleDocuments.map((documentItem) => (
+                    <DocumentTile
+                      key={documentItem._id}
+                      documentItem={documentItem}
+                      isSelected={selectedDocumentIds.includes(documentItem._id)}
+                      isNew={newItemIdSet.has(documentItem._id)}
+                      isCut={cutDocumentIds.includes(documentItem._id)}
+                      isRenaming={renamingItem?.kind === 'document' && renamingItem.id === documentItem._id}
+                      onCommitRename={handleCommitInlineRename}
+                      onCancelRename={handleCancelInlineRename}
+                      onDragStart={handleDocumentDragStart}
+                      onClick={handleTileClick}
+                      onDoubleClick={handleView}
+                      onContextMenu={handleTileContextMenu}
+                    />
+                  ))}
+                  {layerHasMore && !layerIsLoadingMore && <div ref={sentinelRef} className="doc-details-sentinel" />}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -922,6 +1097,16 @@ function Document() {
           onSplitSelected={handleMergePages}
           onSplitAll={handleSplitAllPages}
           onConfirmMerge={handleConfirmMergePages}
+        />
+      )}
+
+      {editorTarget && (
+        <PdfEditor
+          key={editorTarget._id}
+          documentItem={editorTarget}
+          isBusy={isSubmittingDialog}
+          onSave={handleSaveAnnotations}
+          onClose={handleCloseEditor}
         />
       )}
 

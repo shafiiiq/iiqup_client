@@ -15,8 +15,8 @@ export const DOCUMENT_TOOLBAR_ICONS = {
   cut: "ScissorsIcon",
   copy: "CopyIcon",
   paste: "PasteIcon",
-  delete: "IconlyDelete",
-  deletePermanently: "TrashIcon",
+  delete: "TrashIcon",
+  deletePermanently: "IconlyDelete",
   compress: "CompressIcon",
   extract: "ZipIcon",
   restore: "RestoreTrashIcon",
@@ -33,7 +33,95 @@ export const DOCUMENT_TOOLBAR_ICONS = {
   exportMove: 'MoveToComputerIcon',
   uploadFiles: 'FileUploadIcon',
   uploadFolder: 'FolderUploadIcon',
+  selectMultiple: 'SelectMultipleIcon',
+  newWindow: 'NewWindowIcon',
+  duplicateWindow: 'DuplicateWindowIcon',
+  closeWindow: 'CloseWindowIcon',
+  closeRightWindows: 'CloseRightWindowsIcon',
+  closeLeftWindows: 'CloseLeftWindowsIcon',
+  reopenWindow: 'RedoWindowIcon',
+  reopenRightWindows: 'RedoClosedRightWindowsIcon',
+  reopenLeftWindows: 'RedoClosedLeftWindowsIcon',
 };
+
+export const DOCUMENT_MENU_CATEGORIES = [
+  {
+    key: 'file',
+    label: 'File',
+    items: [
+      { key: 'newFolder', label: 'New Folder' },
+      { key: 'uploadFiles', label: 'Upload Files' },
+      { key: 'uploadFolder', label: 'Upload Folder' },
+      { key: 'download', label: 'Download' },
+      { key: 'exportCopy', label: 'Copy to Computer' },
+      { key: 'exportMove', label: 'Move to Computer' },
+    ],
+  },
+  {
+    key: 'edit',
+    label: 'Edit',
+    items: [
+      { key: 'undo', label: 'Undo' },
+      { key: 'redo', label: 'Redo' },
+      { key: 'cut', label: 'Cut' },
+      { key: 'copy', label: 'Copy' },
+      { key: 'paste', label: 'Paste' },
+      { key: 'rename', label: 'Rename' },
+    ],
+  },
+  {
+    key: 'view',
+    label: 'View',
+    items: [
+      { key: 'view', label: 'View' },
+      { key: 'selectMultiple', label: 'Select Multiple' },
+    ],
+  },
+  {
+    key: 'manage',
+    label: 'Manage',
+    items: [
+      { key: 'dates', label: 'Issue & Expiry Dates' },
+      { key: 'renew', label: 'Renew Document' },
+      { key: 'compress', label: 'Compress to Zip' },
+      { key: 'extract', label: 'Extract Zip' },
+      { key: 'delete', label: 'Move to Trash', isDanger: true },
+      { key: 'deletePermanently', label: 'Delete Permanently', isDanger: true },
+    ],
+  },
+  {
+    key: 'tools',
+    label: 'Tools',
+    items: [
+      { key: 'editPdf', label: 'Edit PDF' },
+      { key: 'split', label: 'Split' },
+      { key: 'merge', label: 'Merge' },
+      { key: 'pdfToWord', label: 'PDF to Word' },
+      { key: 'wordToPdf', label: 'Word to PDF' },
+      { key: 'imagesToPdf', label: 'Images to PDF' },
+      { key: 'pdfToImages', label: 'PDF to JPG' },
+    ],
+  },
+  {
+    key: 'window',
+    label: 'Window',
+    items: [
+      { key: 'newWindow', label: 'New Window' },
+      { key: 'duplicateWindow', label: 'Duplicate Window' },
+      { key: 'closeWindow', label: 'Close Window' },
+      { key: 'closeRightWindows', label: 'Close Windows on the Right' },
+      { key: 'closeLeftWindows', label: 'Close Windows on the Left' },
+      { key: 'reopenWindow', label: 'Bring Back Closed Window' },
+      { key: 'reopenRightWindows', label: 'Bring Back Windows Closed on the Right' },
+      { key: 'reopenLeftWindows', label: 'Bring Back Windows Closed on the Left' },
+    ],
+  },
+  {
+    key: 'help',
+    label: 'Help',
+    items: [{ key: 'hint', label: 'Keyboard Shortcuts' }],
+  },
+];
 
 export const TRASH_NODE_KEY = 'trash';
 export const buildDocumentKeyPrefix = (sourceType, sourceId) => `documents/${sourceType}/${sourceId}`;
