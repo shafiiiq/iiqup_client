@@ -89,8 +89,10 @@ function ClosingSection({ data, signatureFlags, signatureStates }) {
             <div className="features screen quotation report signature-space" />
           )}
 
-          <div className="features screen quotation report signatory-name">{data.signatures?.authorizedSignatory}</div>
-          <span>({data.signatures?.authorizedSignatoryTitle})</span>
+          <div className="features screen quotation report signatory-block">
+            <div className="features screen quotation report signatory-name">{data.signatures?.authorizedSignatory}</div>
+            <div className="features screen quotation report signatory-title">{data.signatures?.authorizedSignatoryTitle}</div>
+          </div>
         </div>
 
         <div className="features screen quotation report closing-right-box">

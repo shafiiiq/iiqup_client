@@ -205,15 +205,23 @@
 }
 
 .features.screen.quotation.report.thank-you-text {
-  margin-bottom: 60px;
+  margin-bottom: 20px;
 }
 
 .features.screen.quotation.report.signature-space {
   height: 60px;
 }
 
+.features.screen.quotation.report.signatory-block {
+  display: inline-block;
+}
+
 .features.screen.quotation.report.signatory-name {
   font-weight: bold;
+}
+
+.features.screen.quotation.report.signatory-title {
+  text-align: center;
 }
 
 .features.screen.quotation.report.closing-right-box {
