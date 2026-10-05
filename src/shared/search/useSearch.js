@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { apiRequest } from '@/features/core/network/api/api.request';
 import { buildSearchUrl, extractSearchResult } from './search.util';
 import { SEARCH_DEBOUNCE_MS } from './search.constant';
@@ -86,17 +86,20 @@ export const useSearch = ({ source, field, limit = 20 }) => {
     };
   }, []);
 
-  return {
-    query,
-    results,
-    page,
-    totalPages,
-    totalCount,
-    hasMore,
-    loading,
-    error,
-    search,
-    loadMore,
-    clear,
-  };
+  return useMemo(
+    () => ({
+      query,
+      results,
+      page,
+      totalPages,
+      totalCount,
+      hasMore,
+      loading,
+      error,
+      search,
+      loadMore,
+      clear,
+    }),
+    [query, results, page, totalPages, totalCount, hasMore, loading, error, search, loadMore, clear]
+  );
 };

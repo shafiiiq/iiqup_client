@@ -271,6 +271,8 @@ function Tabs({
   defaultFiltersOpen = false,
   openAllByDefault = false,
   filterOnSearch = false,
+  onSearchChange,
+  externalFilter = false,
   mergeOpenKeys = false,
   onToggleFilters,
   filterToggleLabel = 'Filters',
@@ -313,8 +315,12 @@ function Tabs({
   };
 
   const normalizedSearchTerm = filterOnSearch ? normalizeSearchTerm(searchTerm) : '';
-  const visibleItems = normalizedSearchTerm ? filterNodesByLabel(items, normalizedSearchTerm) : items;
-  const visibleOpenKeys = normalizedSearchTerm ? collectSearchAncestorKeys(visibleItems) : openKeys;
+  const visibleItems =
+    normalizedSearchTerm && !externalFilter ? filterNodesByLabel(items, normalizedSearchTerm) : items;
+  let visibleOpenKeys = openKeys;
+  if (normalizedSearchTerm) {
+    visibleOpenKeys = externalFilter ? collectAllGroupKeys(items) : collectSearchAncestorKeys(visibleItems);
+  }
 
   const toggle = () => {
     const next = !collapsed;
@@ -362,7 +368,14 @@ function Tabs({
                   placeholder={searchPlaceholder}
                   className="shared component widget tabs search-input"
                   value={filterOnSearch ? searchTerm : undefined}
-                  onChange={filterOnSearch ? (event) => setSearchTerm(event.target.value) : undefined}
+                  onChange={
+                    filterOnSearch
+                      ? (event) => {
+                          setSearchTerm(event.target.value);
+                          onSearchChange?.(event.target.value);
+                        }
+                      : undefined
+                  }
                   onFocus={filterOnSearch ? undefined : onSearch}
                   readOnly={!filterOnSearch}
                 />

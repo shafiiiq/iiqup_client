@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import Tabs from '@/shared/components/widgets/tabs/Tabs';
 
-const DocumentSidebar = memo(function DocumentSidebar({ items, activePath, onSelect }) {
+const DocumentSidebar = memo(function DocumentSidebar({ items, activePath, onSelect, onSearchChange }) {
   return (
     <Tabs
       maxHeight="1090px"
@@ -11,6 +11,8 @@ const DocumentSidebar = memo(function DocumentSidebar({ items, activePath, onSel
       onSelect={onSelect}
       showSearch
       filterOnSearch
+      externalFilter
+      onSearchChange={onSearchChange}
       mergeOpenKeys
       searchShortcut={null}
       searchPlaceholder="Search"

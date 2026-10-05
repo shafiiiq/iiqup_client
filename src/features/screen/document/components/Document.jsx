@@ -5,6 +5,9 @@ import { useDocumentTrash } from '../hooks/useDocumentTrash';
 import { useDocumentStorage } from '../hooks/useDocumentStorage';
 import { useStableCallback } from '../hooks/useStableCallback';
 import { searchDocumentItems } from '../api/document.api';
+import { useSearch as useHeaderSearch } from '@/shared/context/SearchContext';
+import { useSearch as useApiSearch } from '@/shared/search/useSearch';
+import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 import Modal from '@/shared/components/widgets/modal/Modal';
 import DocumentMenuBar from './fragments/DocumentMenuBar';
 import Loader from '@/shared/components/widgets/loader/spinner/Spinner';
@@ -97,8 +100,21 @@ const attachContextMenu = (node, handler) => ({
   children: node.children ? node.children.map((child) => attachContextMenu(child, handler)) : node.children,
 });
 
+const findSearchCollectionOnPath = (root, pathKeys) => {
+  let current = root;
+  let found = root.search || null;
+  for (let index = 1; index < pathKeys.length; index += 1) {
+    const next = (current.children || []).find((child) => child.key === pathKeys[index]);
+    if (!next) break;
+    current = next;
+    if (current.search) found = current.search;
+  }
+  return found;
+};
+
 function Document() {
   const { type: routeType, id: routeId } = useParams();
+  const { searchTerm: headerSearchTerm } = useHeaderSearch();
   const [selectedSource, setSelectedSource] = useState(() =>
     routeType && routeId ? { type: routeType, id: routeId } : null
   );
@@ -107,6 +123,7 @@ function Document() {
   const [activeWindowId, setActiveWindowId] = useState('window-1');
   const [sidebarMenu, setSidebarMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sidebarSearchTerm, setSidebarSearchTerm] = useState('');
   const [searchState, setSearchState] = useState(EMPTY_SEARCH_STATE);
   const windowCounterRef = useRef(1);
   const closedWindowsRef = useRef([]);
@@ -503,11 +520,71 @@ function Document() {
 
   const selectedSourceId = selectedSource?.id;
 
+  const sidebarEquipmentSearch = useApiSearch({ source: SEARCH_SOURCES.EQUIPMENT, limit: 50 });
+  const sidebarStaffSearch = useApiSearch({ source: SEARCH_SOURCES.USERS, limit: 50 });
+  const sidebarMechanicSearch = useApiSearch({ source: SEARCH_SOURCES.MECHANICS, limit: 50 });
+  const sidebarOperatorSearch = useApiSearch({ source: SEARCH_SOURCES.OPERATORS, limit: 50 });
+
+  useEffect(() => {
+    const term = sidebarSearchTerm.trim();
+    [sidebarEquipmentSearch, sidebarStaffSearch, sidebarMechanicSearch, sidebarOperatorSearch].forEach((search) =>
+      term ? search.search(term) : search.clear()
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sidebarSearchTerm]);
+
+  const sidebarRoot = useMemo(() => {
+    if (!sidebarSearchTerm.trim()) return documentRoot;
+    const buildResultNode = (key, label, icon, sourceType, search) => ({
+      type: 'collection',
+      sourceType,
+      key,
+      label,
+      icon,
+      items: search.results,
+      getItemKey: (item) => item._id || item.id || item.qatarId,
+      getItemPrimaryText: (item) => (sourceType === 'equipment' ? item.regNo : item.name),
+      getItemSecondaryText: (item) => (sourceType === 'equipment' ? item.machine : null),
+    });
+    return {
+      ...documentRoot,
+      children: [
+        {
+          type: 'folder',
+          key: 'equipments',
+          label: 'Equipments',
+          icon: 'CraneIcon',
+          children: [
+            buildResultNode('search-equipment', 'Results', 'CraneIcon', 'equipment', sidebarEquipmentSearch),
+          ],
+        },
+        {
+          type: 'folder',
+          key: 'users',
+          label: 'Users',
+          icon: 'IconlyFace',
+          children: [
+            buildResultNode('user-section-staff', 'Office', 'IconlyOfficeWorker', 'staff', sidebarStaffSearch),
+            buildResultNode('user-section-mechanic', 'Mechanics', 'WrenchIcon', 'mechanic', sidebarMechanicSearch),
+            buildResultNode('user-section-operator', 'Operators', 'JacketIcon', 'operator', sidebarOperatorSearch),
+          ],
+        },
+      ],
+    };
+  }, [
+    sidebarSearchTerm,
+    documentRoot,
+    sidebarEquipmentSearch,
+    sidebarStaffSearch,
+    sidebarMechanicSearch,
+    sidebarOperatorSearch,
+  ]);
+
   const sidebarItems = useMemo(
     () => [
       attachContextMenu(
         buildSidebarRoot({
-          root: documentRoot,
+          root: sidebarRoot,
           selection: selectedSourceId
             ? {
                 sourceId: selectedSourceId,
@@ -526,7 +603,7 @@ function Document() {
       ),
     ],
     [
-      documentRoot,
+      sidebarRoot,
       selectedSourceId,
       documents,
       folders,
@@ -598,6 +675,11 @@ function Document() {
 
   const layerNode = isLayerActive ? resolvePathNode(decoratedPicker.root, pickerPathKeys) : null;
 
+  const isHeaderSearching = isLayerActive && headerSearchTerm.trim().length > 0;
+  const headerSearchCollection = isHeaderSearching
+    ? findSearchCollectionOnPath(decoratedPicker.root, pickerPathKeys)
+    : null;
+
   const openPickerNode = (nodeKey) =>
     applyNavigation({
       source: null,
@@ -608,17 +690,20 @@ function Document() {
 
   const pickerTiles = (() => {
     if (!layerNode) return [];
-    if (layerNode.items) {
-      const itemIcon = layerNode.sourceType === 'equipment' ? 'CraneIcon' : layerNode.icon;
-      return layerNode.items.map((item) => {
-        const primaryText = layerNode.getItemPrimaryText(item);
-        const secondaryText = layerNode.getItemSecondaryText ? layerNode.getItemSecondaryText(item) : null;
+    const itemSource = headerSearchCollection || (layerNode.items ? layerNode : null);
+    if (itemSource) {
+      return itemSource.items.map((item) => {
+        let itemIcon = layerNode.icon;
+        if (item.__nodeKey === 'equipments' || layerNode.sourceType === 'equipment') itemIcon = 'CraneIcon';
+        else if (item.__nodeKey === 'users') itemIcon = 'IconlyFace';
+        const primaryText = itemSource.getItemPrimaryText(item);
+        const secondaryText = itemSource.getItemSecondaryText ? itemSource.getItemSecondaryText(item) : null;
         return {
-          key: `item:${layerNode.getItemKey(item)}`,
+          key: `item:${itemSource.getItemKey(item)}`,
           label: secondaryText ? `${primaryText} - ${secondaryText}` : String(primaryText),
           iconName: itemIcon,
-          sizeLabel: layerNode.getItemFooter ? layerNode.getItemFooter(item) : undefined,
-          open: () => layerNode.onSelectItem(item),
+          sizeLabel: itemSource.getItemFooter ? itemSource.getItemFooter(item) : undefined,
+          open: () => itemSource.onSelectItem(item),
         };
       });
     }
@@ -631,10 +716,11 @@ function Document() {
     }));
   })();
 
-  const layerHasMore = Boolean(layerNode?.hasMore);
-  const layerIsLoadingMore = Boolean(layerNode?.isLoadingMore);
-  const layerLoadMore = layerNode?.onLoadMore;
-  const isPickerLoading = Boolean(layerNode?.isLoading) && pickerTiles.length === 0;
+  const activeItemCollection = headerSearchCollection || layerNode;
+  const layerHasMore = Boolean(activeItemCollection?.hasMore);
+  const layerIsLoadingMore = Boolean(activeItemCollection?.isLoadingMore);
+  const layerLoadMore = activeItemCollection?.onLoadMore;
+  const isPickerLoading = Boolean(activeItemCollection?.isLoading) && pickerTiles.length === 0;
 
   useEffect(() => {
     if (!layerHasMore || layerIsLoadingMore || !layerLoadMore) return undefined;
@@ -850,7 +936,12 @@ function Document() {
 
       <div className="doc-details-layout">
         <div className="doc-details-layout-sidebar">
-          <DocumentSidebar items={sidebarItems} activePath={sidebarActivePath} onSelect={handleSidebarNode} />
+          <DocumentSidebar
+            items={sidebarItems}
+            activePath={sidebarActivePath}
+            onSelect={handleSidebarNode}
+            onSearchChange={setSidebarSearchTerm}
+          />
         </div>
 
         <div className="doc-details-layout-content">
@@ -936,9 +1027,11 @@ function Document() {
                 <Loader />
               ) : isExplorerEmpty ? (
                 <div className="doc-details-empty-state">
-                  {isRootScope
-                    ? 'Drag and drop files or folders here, or use the File menu to upload or create a folder.'
-                    : EMPTY_STATE_MESSAGES[activeView]}
+                  {isHeaderSearching
+                    ? 'No results found.'
+                    : isRootScope
+                      ? 'Drag and drop files or folders here, or use the File menu to upload or create a folder.'
+                      : EMPTY_STATE_MESSAGES[activeView]}
                 </div>
               ) : (
                 <div className="doc-details-grid">
