@@ -474,6 +474,9 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     });
   };
 
+  const moveItemUp = (index) => moveItem(index, index - 1);
+  const moveItemDown = (index) => moveItem(index, index + 1);
+
   const removeItem = (index) => {
     if (quotationData.items.length <= 1) return;
     const updated = quotationData.items
@@ -841,6 +844,8 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     moveColumn,
     addItemRow,
     moveItem,
+    moveItemUp,
+    moveItemDown,
     removeItem,
     handleItemChange,
     handleItemImageChange,

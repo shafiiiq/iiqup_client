@@ -96,7 +96,8 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
     moveColumn,
     addTotalColumn,
     addItemRow,
-    moveItem,
+    moveItemUp,
+    moveItemDown,
     removeItem,
     handleItemChange,
     undo,
@@ -131,26 +132,34 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
   const termNumbers = buildTermNumbers(paymentTerms);
 
+  const handleRowKeyDown = (e, absoluteIndex) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (absoluteIndex === 0) return;
+      moveItemUp(absoluteIndex);
+      setSelectedRowIndex(absoluteIndex - 1);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (absoluteIndex === quotationData.items.length - 1) return;
+      moveItemDown(absoluteIndex);
+      setSelectedRowIndex(absoluteIndex + 1);
+    }
+  };
+
   const buildItemRow = (item, absoluteIndex) => (
     <tr
       key={item.id}
-      draggable
-      onDragStart={() => setDragRowIndex(absoluteIndex)}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => {
-        e.preventDefault();
-        if (dragRowIndex === null || dragRowIndex === absoluteIndex) return;
-        moveItem(dragRowIndex, absoluteIndex);
-        setDragRowIndex(null);
-      }}
-      onDragEnd={() => setDragRowIndex(null)}
+      className={selectedRowIndex === absoluteIndex ? 'features screen quotation form row-selected' : undefined}
     >
       <td
         className="features screen quotation form sn-cell"
         onMouseEnter={() => handleRowMouseEnter(absoluteIndex)}
         onMouseLeave={handleRowMouseLeave}
-        title="Drag to reorder"
-        style={{ cursor: 'grab' }}
+        onClick={() => setSelectedRowIndex(absoluteIndex)}
+        tabIndex={0}
+        onKeyDown={(e) => handleRowKeyDown(e, absoluteIndex)}
+        title="Click, then use ↑/↓ to reorder"
+        style={{ cursor: 'pointer' }}
       >
         {item.id}
         {showAddButton === absoluteIndex && (
@@ -345,7 +354,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
   const [selectedTermIndex, setSelectedTermIndex] = useState(null);
   const [dragTermIndex, setDragTermIndex] = useState(null);
-  const [dragRowIndex, setDragRowIndex] = useState(null);
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [dragColumnIndex, setDragColumnIndex] = useState(null);
 
   const handleTermKeyDown = (e, absoluteIndex) => {
