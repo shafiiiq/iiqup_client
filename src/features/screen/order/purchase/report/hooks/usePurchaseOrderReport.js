@@ -360,7 +360,7 @@ const usePurchaseOrderReport = () => {
             setShowSignConfirmModal(true);
         } catch (err) {
             console.error('[PurchaseOrderReport] handleSignButtonClick error:', err);
-            showAlert('Device Check Failed', 'We could not verify this device. Please check your internet connection and try again.', 'error');
+            showAlert('Device Check Failed', 'We could not verify this device. Please activate your signature and try again.', 'error');
         }
     };
 
