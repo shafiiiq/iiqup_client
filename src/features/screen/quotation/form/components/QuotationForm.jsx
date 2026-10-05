@@ -132,17 +132,21 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
 
   const termNumbers = buildTermNumbers(paymentTerms);
 
+  const snCellRefs = useRef({});
+
   const handleRowKeyDown = (e, absoluteIndex) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (absoluteIndex === 0) return;
       moveItemUp(absoluteIndex);
       setSelectedRowIndex(absoluteIndex - 1);
+      requestAnimationFrame(() => snCellRefs.current[absoluteIndex - 1]?.focus());
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (absoluteIndex === quotationData.items.length - 1) return;
       moveItemDown(absoluteIndex);
       setSelectedRowIndex(absoluteIndex + 1);
+      requestAnimationFrame(() => snCellRefs.current[absoluteIndex + 1]?.focus());
     }
   };
 
@@ -152,6 +156,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
       className={selectedRowIndex === absoluteIndex ? 'features screen quotation form row-selected' : undefined}
     >
       <td
+        ref={(el) => { if (el) snCellRefs.current[absoluteIndex] = el; }}
         className="features screen quotation form sn-cell"
         onMouseEnter={() => handleRowMouseEnter(absoluteIndex)}
         onMouseLeave={handleRowMouseLeave}

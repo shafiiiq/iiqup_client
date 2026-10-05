@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 
 import Logo      from '@/assets/images/al-ansari-color.png';
 import Address   from '@/assets/images/al-ansari-full-address.png';
@@ -59,43 +59,69 @@ export const useA2PageBudget = () => {
 
 export const useA2BlockPagination = (blocks, budget, firstPageOffset = 0) => {
   const measureRef = useRef(null);
-  const [pages, setPages] = useState(() => (blocks.length ? [blocks] : [[]]));
+  const [pageSizes, setPageSizes] = useState(null);
   const debounceRef = useRef(null);
+  const hasPaginatedRef = useRef(false);
 
   useEffect(() => {
     if (!budget || !measureRef.current || !blocks.length) {
-      setPages(blocks.length ? [blocks] : [[]]);
+      setPageSizes(null);
       return undefined;
     }
 
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
+    const runPagination = () => {
       if (!measureRef.current) return;
       const nodes = Array.from(measureRef.current.children);
-      const result = [];
-      let current = [];
+      const sizes = [];
+      let count = 0;
       let currentHeight = 0;
 
       blocks.forEach((block, index) => {
         const height = nodes[index]?.getBoundingClientRect().height || 0;
-        const pageBudget = result.length === 0 ? Math.max(0, budget - firstPageOffset) : budget;
+        const pageBudget = sizes.length === 0 ? Math.max(0, budget - firstPageOffset) : budget;
 
-        if (current.length && currentHeight + height > pageBudget) {
-          result.push(current);
-          current = [];
+        if (count && currentHeight + height > pageBudget) {
+          sizes.push(count);
+          count = 0;
           currentHeight = 0;
         }
 
-        current.push(block);
+        count += 1;
         currentHeight += height;
       });
 
-      if (current.length) result.push(current);
-      setPages(result.length ? result : [[]]);
-    }, 300);
+      if (count) sizes.push(count);
+      setPageSizes(sizes);
+      hasPaginatedRef.current = true;
+    };
+
+    clearTimeout(debounceRef.current);
+    if (!hasPaginatedRef.current) {
+      runPagination();
+    } else {
+      debounceRef.current = setTimeout(runPagination, 150);
+    }
 
     return () => clearTimeout(debounceRef.current);
   }, [blocks, budget, firstPageOffset]);
+
+  const pages = useMemo(() => {
+    if (!blocks.length) return [[]];
+    if (!pageSizes || !pageSizes.length) return [blocks];
+
+    const result = [];
+    let offset = 0;
+    for (const size of pageSizes) {
+      if (offset >= blocks.length) break;
+      result.push(blocks.slice(offset, offset + size));
+      offset += size;
+    }
+    if (offset < blocks.length) {
+      if (result.length) result[result.length - 1] = result[result.length - 1].concat(blocks.slice(offset));
+      else result.push(blocks.slice(offset));
+    }
+    return result.length ? result : [blocks];
+  }, [blocks, pageSizes]);
 
   return { measureRef, pages };
 };
