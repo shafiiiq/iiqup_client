@@ -91,13 +91,7 @@ export const useA2BlockPagination = (blocks, budget, firstPageOffset = 0) => {
       });
 
       if (current.length) result.push(current);
-      setPages((prev) => {
-        const next = result.length ? result : [[]];
-        const sameShape =
-          prev.length === next.length &&
-          prev.every((page, i) => page.length === next[i].length && page.every((b, j) => b.key === next[i][j].key));
-        return sameShape ? prev : next;
-      });
+      setPages(result.length ? result : [[]]);
     }, 300);
 
     return () => clearTimeout(debounceRef.current);
