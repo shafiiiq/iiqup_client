@@ -11,17 +11,10 @@
 }
 
 .features.screen.hire.order.report.signature-cell img {
-  width: 20rem !important;
-  margin-left: -2rem !important;
+  width: 13rem !important;
+  left: 0 !important;
   bottom: 0 !important;
   position: absolute;
-}
-
-.features.screen.hire.order.report.signature-image {
-  bottom: -4rem !important;
-  margin-left: -2rem !important;
-  position: absolute;
-  width: 15rem !important;
 }
 
 .features.screen.hire.order.report.company-seal {

@@ -10,18 +10,12 @@
   font-size: 20px;
 }
 
+
 .purchase.order.report.signature.cell img {
-  width: 20rem !important;
-  margin-left: -2rem !important;
+  width: 13rem !important;
+  left: 0 !important;
   bottom: 0 !important;
   position: absolute;
-}
-
-.purchase.order.report.signature.image {
-  bottom: -4rem !important;
-  margin-left: -2rem !important;
-  position: absolute;
-  width: 15rem !important;
 }
 
 .purchase.order.report.company.seal {
@@ -98,7 +92,7 @@
   text-align: left !important;
 }
 
-.purchase.order.report.service-provider{
+.purchase.order.report.service-provider {
   padding-left: 10px !important;
   font-size: 18px !important;
 }
