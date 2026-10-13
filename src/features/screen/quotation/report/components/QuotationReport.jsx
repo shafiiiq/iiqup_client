@@ -10,7 +10,7 @@ import './QuotationReport.css';
 
 const buildItemRow = (item, absoluteIndex, columns) => (
   <tr key={item._id || item.id || absoluteIndex}>
-    <td>{absoluteIndex + 1}</td>
+    <td className="features screen quotation report sn-cell">{absoluteIndex + 1}</td>
     {columns.map((col) => (
       <td
         key={col.id}
@@ -177,7 +177,7 @@ function ReportData({ data, signatureFlags, signatureStates }) {
         <table key="items" className="features screen quotation report items-table">
           <thead>
             <tr>
-              <th>SN</th>
+              <th className="features screen quotation report sn-cell">SN</th>
               {columns.map((col) => (
                 <th key={col.id}>
                   {splitHeaderLabel(col.label).map((line, i, arr) => (

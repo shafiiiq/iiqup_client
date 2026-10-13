@@ -69,6 +69,12 @@
   color: black;
 }
 
+.features.screen.quotation.report.sn-cell {
+  width: 40px;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
 .features.screen.quotation.report.items-table th,
 .features.screen.quotation.report.items-table td {
   border: 1px solid #000;
@@ -244,7 +250,8 @@
 
 .features.screen.quotation.report.confirmation-field-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 230px;
   margin-top: 20px;
 }
 
@@ -290,7 +297,8 @@
 
 .features.screen.quotation.report.signature-image-wrap {
   position: relative;
-  height: 75px;;
+  height: 75px;
+  ;
 }
 
 .features.screen.quotation.report.signature-image {
