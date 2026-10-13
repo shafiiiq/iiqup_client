@@ -15,7 +15,7 @@ export const verifyDeviceTrust = async (signType, deviceInfo) => {
 
 export const getSignatureKey = async (signType, info, authRole) => {
   const payload = { deviceInfo: info };
-  if (signType === 'authorized' && authRole === 'MANAGING_DIRECTOR') {
+  if (signType === 'authorized' && (authRole === 'MANAGING DIRECTOR' || authRole === 'MANAGING_DIRECTOR')) {
     payload.authRole = 'MANAGING_DIRECTOR';
   }
 
