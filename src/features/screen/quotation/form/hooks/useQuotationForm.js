@@ -39,7 +39,7 @@ import {
   TERM_TEMPLATES,
 } from '../constants/quotation.form.constant';
 
-export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendment }) => {
+export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendment, duplicate }) => {
   const navigate = useNavigate();
   const { quotationRef, complaintId } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -51,6 +51,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const isAmendmentEditMode = !!(amendment && amendmentUpdate && quotationRef);
   const isAmendmentMode = !!(amendment && quotationRef);
   const isEditAmendmentMode = !!(editAmendment && quotationRef);
+  const isDuplicateMode = !!(duplicate && quotationRef);
 
   const [quotationData, setQuotationData] = useState(DEFAULT_QUOTATION_DATA);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
@@ -75,6 +76,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const [showTotalRow, setShowTotalRow] = useState(true);
   const [manualTotal, setManualTotal] = useState(null);
   const [amendmentNumber, setAmendmentNumber] = useState(0);
+  const [showImport, setShowImport] = useState(false);
 
   const historyPast = useRef([]);
   const historyFuture = useRef([]);
@@ -196,14 +198,17 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   }, [quotationCounter, saveStatus, quotationData.quotationRef, isAmendmentMode, isEditMode, setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
-    if (isAmendmentMode && quotationRef) fetchHireOrderForAmendmentEdit();
+    if (isDuplicateMode) {
+      fetchLatestHireOrderNumber();
+      loadSourceQuotation(quotationRef, true);
+    } else if (isAmendmentMode && quotationRef) fetchHireOrderForAmendmentEdit();
     else if ((isEditMode || isAmendmentMode) && quotationRef) fetchHireOrderForEdit();
     else fetchLatestHireOrderNumber();
 
     fetchCompanies();
     fetchItemDescriptionsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotationRef, isEditMode, isAmendmentMode]);
+  }, [quotationRef, isEditMode, isAmendmentMode, isDuplicateMode]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -334,6 +339,69 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const applySourceQuotation = (ho, silent) => {
+    const latest = ho.amendments?.length ? ho.amendments[ho.amendments.length - 1] : null;
+    const loadedColumns = latest?.amendedColumns?.length ? latest.amendedColumns : (ho.columns?.length ? ho.columns : DEFAULT_COLUMNS);
+    const items = latest?.amendedItems?.length ? latest.amendedItems : (ho.items?.length ? ho.items : [buildDefaultItem(loadedColumns)]);
+    const rawTerms = latest?.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : (ho.termsAndConditions || []);
+    const terms = filterEditableTerms(rawTerms);
+    const company = latest?.amendedCompany?.vendor ? latest.amendedCompany : ho.company;
+    const signatoryTitle = latest?.amendedSignatures?.authorizedSignatoryTitle || ho.signatures?.authorizedSignatoryTitle;
+    const manual = latest ? latest.amendedManualTotal : ho.manualTotal;
+
+    if (silent) suppressHistoryRef.current = true;
+
+    setColumns(loadedColumns);
+    setQuotationData((prev) => ({
+      ...prev,
+      vendor: company?.vendor || '',
+      attention: company?.attention || '',
+      designation: company?.designation || '',
+      location: (latest ? latest.amendedLocation : null) ?? ho.location ?? '',
+      requestText: latest?.amendedRequestText || ho.requestText || '',
+      items: items.map((item, i) => ({ ...item, id: i + 1 })),
+      discount: latest ? (latest.amendedDiscount || 0) : (ho.discount || 0),
+      noticeText: latest?.amendedNoticeText || ho.noticeText || DEFAULT_NOTICE_TEXT,
+      priceStatementText: latest?.amendedPriceStatementText || ho.priceStatementText || DEFAULT_PRICE_STATEMENT_TEXT,
+      contactText: latest?.amendedContactText || ho.contactText || DEFAULT_CONTACT_TEXT,
+    }));
+    setCustomFields(
+      latest?.amendedCustomFields?.length ? latest.amendedCustomFields : (ho.customFields || [])
+    );
+    setCeoMode(signatoryTitle === 'MANAGING DIRECTOR' ? 'MANAGING DIRECTOR' : 'CEO');
+    if (terms.length) {
+      setPaymentTerms(terms);
+      setTermKeys(terms.map(() => generateTermKey()));
+    }
+    setShowDiscountInTotal(latest ? latest.amendedTotalAmount !== undefined : ho.totalDiscountAmount !== undefined);
+    setShowTotalRow((latest ? latest.amendedShowTotalRow : null) ?? ho.showTotalRow ?? true);
+    setManualTotal(manual != null ? String(manual) : null);
+  };
+
+  const loadSourceQuotation = async (ref, silent) => {
+    setIsLoading(true);
+    try {
+      const data = await getQuotationByRef(ref);
+      if (!data.success || !data.data) {
+        setSaveStatus('Error loading quotation data');
+        return;
+      }
+      applySourceQuotation(data.data, silent);
+    } catch (error) {
+      console.error('[Quotation] loadSourceQuotation error:', error);
+      setSaveStatus('Error loading quotation data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openImport = () => setShowImport(true);
+  const closeImport = () => setShowImport(false);
+  const importQuotation = async (ref) => {
+    setShowImport(false);
+    await loadSourceQuotation(ref, false);
   };
 
   const fetchCompanies = async () => {
@@ -801,6 +869,11 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
 
     isEditMode,
     isAmendmentMode,
+    isDuplicateMode,
+    showImport,
+    openImport,
+    closeImport,
+    importQuotation,
 
     quotationData,
     columns,

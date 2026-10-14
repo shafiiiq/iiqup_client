@@ -2,7 +2,6 @@ import { apiRequest } from "@/features/core/network/api/api.request";
 
 export const AuthUtils = {
     saveUserSession: (user, tokens, rememberMe = false) => {
-        console.log("yeahhhh calinggggg")
         const userSession = {
             userId: user._id,
             email: user.email,
@@ -86,7 +85,6 @@ export const AuthUtils = {
 
 export const LoginLogic = {
     handleLoginSuccess: (userData, tokens, rememberMe, navigate, setUserLoggedIn) => {
-        console.log("Login successful, saving session...");
         AuthUtils.saveUserSession(userData, tokens, rememberMe);
         setUserLoggedIn(true);
         navigate('/');
@@ -136,8 +134,6 @@ export const LoginLogic = {
 
             const data = await response.json();
 
-            console.log("OTP Verification Response:", data);
-
             if (!response.ok || !data.success) {
                 throw new Error(data.message || 'Invalid OTP');
             }
@@ -145,7 +141,6 @@ export const LoginLogic = {
             if (data.authorized) {
                 const finalUserData = data.data.user || userData;
                 const tokens = { accessToken: data.data.accessToken, refreshToken: data.data.refreshToken };
-                console.log("Final User Data:", finalUserData);
                 AuthUtils.saveUserSession(finalUserData, tokens, rememberMe);
                 setUserLoggedIn(true);
                 navigate('/');

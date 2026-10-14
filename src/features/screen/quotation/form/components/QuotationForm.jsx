@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 
 import Controls from '@/shared/components/widgets/controls/Controls';
 import { StableInput, StableTextarea } from '@/shared/components/widgets/input/StableField';
+import QuotationImportOverlay from './QuotationImportOverlay';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 
 import { useQuotationForm } from '../hooks/useQuotationForm';
@@ -68,9 +69,9 @@ function ClosingSection({
   );
 }
 
-function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
+function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplicate }) {
   const firstPageRef = useRef();
-  const quotationForm = useQuotationForm({ edit, amendment, amendmentUpdate, editAmendment });
+  const quotationForm = useQuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplicate });
 
   const {
     quotationData,
@@ -824,8 +825,15 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
         margin='0 0 20px 0'
         className="features screen quotation form save-controls"
         items={[
+          ...(!quotationForm.isEditMode && !quotationForm.isAmendmentMode ? [{
+            text: 'Import Quotation',
+            onClick: quotationForm.openImport,
+            colorScheme: 'warning-800',
+            width: 'fit-content',
+            ...SHARED_BTN,
+          }] : []),
           {
-            text: '↺ Undo',
+            text: 'Undo',
             onClick: undo,
             colorScheme: canUndo ? 'primary-700' : 'primary-900',
             type: canUndo ? 'submit' : 'disabled',
@@ -833,7 +841,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
             ...SHARED_BTN,
           },
           {
-            text: '↻ Redo',
+            text: 'Redo',
             onClick: redo,
             colorScheme: canRedo ? 'primary-700' : 'primary-900',
             type: canRedo ? 'submit' : 'disabled',
@@ -905,6 +913,9 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment }) {
             />
           </div>
         </div>
+      )}
+      {quotationForm.showImport && (
+        <QuotationImportOverlay onClose={quotationForm.closeImport} onSelect={quotationForm.importQuotation} />
       )}
       {quotationForm.saveStatus && <div className="features screen quotation form save-status">{quotationForm.saveStatus}</div>}
     </div>

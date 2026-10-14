@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSearch } from '@/shared/context/SearchContext';
 import { fetchQuotations, deleteQuotation } from '../api/quotation.list.api';
 import { STATS_TAB } from '../constants/quotation.list.constant';
+import { PAGE_SIZE, resolveHasMore } from '../helper/quotation.list.pagination.helper';
 import { apiRequest } from '@/features/core/network/api/api.request';
 import { buildSearchUrl, extractSearchResult } from '@/shared/search/search.util';
 import { SEARCH_SOURCES } from '@/shared/search/search.constant';
@@ -16,6 +17,9 @@ const useQuotationList = () => {
   const [quotations, setQuotations] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState({ message: '', isError: false });
@@ -66,13 +70,38 @@ const useQuotationList = () => {
   const loadQuotations = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchQuotations();
-      setQuotations(Array.isArray(data?.data) ? data.data : []);
+      const data = await fetchQuotations(1, PAGE_SIZE);
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      setQuotations(rows);
+      setPage(1);
+      setHasMore(resolveHasMore(data, rows.length));
     } catch (error) {
       console.error('[QuotationList] loadQuotations:', error);
       setQuotations([]);
+      setHasMore(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadMore = async () => {
+    if (isLoading || isLoadingMore || !hasMore || searchTerm) return;
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const data = await fetchQuotations(nextPage, PAGE_SIZE);
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      setQuotations((prev) => {
+        const seen = new Set(prev.map((q) => q._id));
+        return [...prev, ...rows.filter((q) => !seen.has(q._id))];
+      });
+      setPage(nextPage);
+      setHasMore(resolveHasMore(data, rows.length));
+    } catch (error) {
+      console.error('[QuotationList] loadMore:', error);
+      setHasMore(false);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -84,6 +113,12 @@ const useQuotationList = () => {
   const handleRowClick = (ref) => navigate(`/quotation/report/${encodeURIComponent(ref)}`);
   const handleViewQuotation = (e, q) => { e.stopPropagation(); navigate(`/quotation/report/${encodeURIComponent(q.quotationRef)}`); };
   const handleAddQuotation = () => navigate('/quotation/form');
+  const handleDuplicate = (e, q) => { e.stopPropagation(); navigate(`/quotation/form/duplicate/${encodeURIComponent(q.quotationRef)}`); };
+  const handleEdit = (e, q) => {
+    e.stopPropagation();
+    const ref = encodeURIComponent(q.quotationRef);
+    navigate(q.amendments?.length ? `/quotation/form/amendment/edit/${ref}` : `/quotation/form/edit/${ref}`);
+  };
   const handleAmendment = (e, q) => { e.stopPropagation(); navigate(`/quotation/form/amendment/${encodeURIComponent(q.quotationRef)}`); };
 
   const handleDeleteClick = (e, q) => { e.stopPropagation(); setSelectedQuotation(q); setShowDeleteModal(true); };
@@ -113,6 +148,9 @@ const useQuotationList = () => {
     searchTerm,
     filteredData,
     isLoading,
+    hasMore,
+    isLoadingMore,
+    loadMore,
     showDeleteModal,
     selectedQuotation,
     deleteStatus,
@@ -122,6 +160,8 @@ const useQuotationList = () => {
     handleViewQuotation,
     handleAddQuotation,
     handleAmendment,
+    handleDuplicate,
+    handleEdit,
     handleDeleteClick,
     confirmDelete,
     cancelDelete,

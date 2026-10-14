@@ -106,6 +106,7 @@ export const PROTECTED_ROUTES = [
 
   { path: '/quotation/form', element: <QuotationForm /> },
   { path: '/quotation/form/edit/:quotationRef', element: <QuotationForm  edit/> },
+  { path: '/quotation/form/duplicate/:quotationRef', element: <QuotationForm duplicate /> },
   { path: '/quotation/form/amendment/:quotationRef', element: <QuotationForm  amendmentUpdate amendment /> },
   { path: '/quotation/form/amendment/edit/:quotationRef', element: <QuotationForm  amendmentUpdate amendment editAmendment /> },
   { path: '/quotation/list', element: <QuotationList /> },

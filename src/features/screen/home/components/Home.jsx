@@ -157,7 +157,6 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
-    console.log('Contact form submitted:', contactForm);
     setContactStatus('submitted');
     setContactForm(INITIAL_CONTACT_FORM);
   };

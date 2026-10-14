@@ -111,7 +111,7 @@ function ClosingSection({ data, signatureFlags, signatureStates }) {
   );
 }
 
-function ReportData({ data, signatureFlags, signatureStates }) {
+export function ReportData({ data, signatureFlags, signatureStates }) {
   const columns = data.columns;
   const total = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
   const termNumbers = buildTermNumbers(data.termsAndConditions);

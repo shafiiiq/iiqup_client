@@ -9,7 +9,7 @@ export const DOCUMENT_TOOLBAR_ICONS = {
   download: 'IconlyDownload',
   dates: "IconlyCalendar",
   rename: "RenameIcon",
-  renew: "ReviewDocumentIcon",
+  renew: "RenewDocumentIcon",
   split: "SplitIcon",
   merge: "MergeIcon",
   cut: "ScissorsIcon",

@@ -8,6 +8,7 @@ import useQuotationList from '../hooks/useQuotationList';
 import { QUOTATION_TAB_ITEMS, SHARED_BTN } from '../constants/quotation.list.constant';
 import { buildQuotationTableColumns } from '../helper/quotation.list.column.helper';
 import QuotationStats from './fragments/QuotationStats';
+import LoadMoreSentinel from './fragments/LoadMoreSentinel';
 import './QuotationList.css';
 
 function QuotationList() {
@@ -15,6 +16,9 @@ function QuotationList() {
     searchTerm,
     filteredData,
     isLoading,
+    hasMore,
+    isLoadingMore,
+    loadMore,
     showDeleteModal,
     selectedQuotation,
     deleteStatus,
@@ -24,6 +28,8 @@ function QuotationList() {
     handleViewQuotation,
     handleAddQuotation,
     handleAmendment,
+    handleDuplicate,
+    handleEdit,
     handleDeleteClick,
     confirmDelete,
     cancelDelete,
@@ -35,7 +41,7 @@ function QuotationList() {
     handleTabSelect
   } = useQuotationList();
 
-  const columns = buildQuotationTableColumns({ handleViewQuotation, handleDeleteClick, handleAmendment, toggleExpandRow });
+  const columns = buildQuotationTableColumns({ handleViewQuotation, handleDeleteClick, handleAmendment, handleDuplicate, handleEdit, toggleExpandRow });
 
   return (
     <div className="features screen quotation list">
@@ -73,17 +79,24 @@ function QuotationList() {
               {isLoading ? (
                 <TableSkeleton columns={columns.length} rows={20} />
               ) : (
-                <Table
-                  tableRef={tableRef}
-                  columns={columns}
-                  data={filteredData || []}
-                  emptyMessage="No Quotation data available"
-                  rowKey={(q) => q._id}
-                  getRowProps={(q) => ({ 'data-quotationref': q.quotationRef })}
-                  onRowClick={(q) => handleRowClick(q.quotationRef)}
-                  onExpandControlsReady={registerExpandControls}
-                  getExpandedRows={(q) => (q.items || []).slice(1)}
-                />
+                <>
+                  <Table
+                    tableRef={tableRef}
+                    columns={columns}
+                    data={filteredData || []}
+                    emptyMessage="No Quotation data available"
+                    rowKey={(q) => q._id}
+                    getRowProps={(q) => ({ 'data-quotationref': q.quotationRef })}
+                    onRowClick={(q) => handleRowClick(q.quotationRef)}
+                    onExpandControlsReady={registerExpandControls}
+                    getExpandedRows={(q) => (q.items || []).slice(1)}
+                  />
+                  <LoadMoreSentinel
+                    onVisible={loadMore}
+                    disabled={isLoading || isLoadingMore || !hasMore || !!searchTerm}
+                    loading={isLoadingMore}
+                  />
+                </>
               )}
             </>
           )}

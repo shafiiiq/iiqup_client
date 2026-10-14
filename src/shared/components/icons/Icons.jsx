@@ -1741,7 +1741,7 @@ export const PasteIcon = ({
   );
 };
 
-export const ReviewDocumentIcon = ({
+export const RenewDocumentIcon = ({
   size = 24,
   color = "#7e2828",
   ...props

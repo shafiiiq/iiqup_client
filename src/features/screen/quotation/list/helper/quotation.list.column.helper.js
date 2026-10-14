@@ -1,7 +1,7 @@
 import Button from '@/shared/components/widgets/button/Button';
 import { SHARED_BTN, STATUS_LABELS, SIGNATURE_STATUS_LABELS } from '../constants/quotation.list.constant';
 
-export const buildQuotationTableColumns = ({ handleViewQuotation, handleDeleteClick, handleAmendment, toggleExpandRow }) => [
+export const buildQuotationTableColumns = ({ handleViewQuotation, handleDeleteClick, handleAmendment, handleDuplicate, handleEdit, toggleExpandRow }) => [
   { key: 'expand', header: '', expand: true },
   { key: 'quotationRef', header: 'Quotation Ref', render: (q) => q.quotationRef },
   { key: 'date', header: 'Date', render: (q) => q.date },
@@ -92,23 +92,39 @@ export const buildQuotationTableColumns = ({ handleViewQuotation, handleDeleteCl
     ),
   },
   {
-    key: 'delete',
-    header: 'Delete',
+    key: 'edit',
+    header: 'Edit',
     actions: true,
     headerCenter: true,
     dataCenter: true,
     render: (q) => (
-      <>
-        <Button
-          {...SHARED_BTN}
-          componentIconCenter="IconlyDelete"
-          componentIconSize={30}
-          onClick={(e) => handleDeleteClick(e, q)}
-          colorScheme="yellow-800"
-          iconColor="error-500"
-          padding='0'
-        />
-      </>
+      <Button
+        {...SHARED_BTN}
+        componentIconCenter="IconlyEdit"
+        componentIconSize={30}
+        onClick={(e) => handleEdit(e, q)}
+        colorScheme="yellow-800"
+        iconColor="warning-400"
+        padding='0'
+      />
+    ),
+  },
+  {
+    key: 'duplicate',
+    header: 'Duplicate',
+    actions: true,
+    headerCenter: true,
+    dataCenter: true,
+    render: (q) => (
+      <Button
+        {...SHARED_BTN}
+        componentIconCenter="CopyIcon"
+        componentIconSize={30}
+        onClick={(e) => handleDuplicate(e, q)}
+        colorScheme="yellow-800"
+        iconColor="primary-300"
+        padding='0'
+      />
     ),
   },
   {
@@ -127,8 +143,28 @@ export const buildQuotationTableColumns = ({ handleViewQuotation, handleDeleteCl
           colorScheme="yellow-800"
           iconColor="warning-300"
           padding='0'
-        />
+          />
       </>
     ),
   },
+  {
+    key: 'delete',
+    header: 'Delete',
+    actions: true,
+    headerCenter: true,
+    dataCenter: true,
+    render: (q) => (
+      <>
+        <Button
+          {...SHARED_BTN}
+          componentIconCenter="IconlyDelete"
+          componentIconSize={30}
+          onClick={(e) => handleDeleteClick(e, q)}
+          colorScheme="yellow-800"
+          iconColor="error-500"
+          padding='0'
+        />
+      </>
+    ),
+  }
 ];
