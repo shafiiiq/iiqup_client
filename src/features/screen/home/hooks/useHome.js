@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LoginLogic } from '@/features/screen/oauth/login/helper/login.helper';
+import { useLogout } from '@/features/screen/authn/hooks/useLogout';
 import { getProfileInitial } from '../helper/home.helper';
 
 export const useHome = ({ currentUser, setUserLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const { logout } = useLogout({ setUserLoggedIn });
   const [activeLink, setActiveLink] = useState('/');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -37,7 +38,7 @@ export const useHome = ({ currentUser, setUserLoggedIn }) => {
 
   const handleLogout = () => {
     if (!window.confirm('Are you sure you want to logout?')) return;
-    LoginLogic.handleLogout(navigate, setUserLoggedIn);
+    logout();
   };
 
   const profileInitial = getProfileInitial(currentUser?.name);

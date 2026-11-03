@@ -1,9 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-import Login from '@/features/screen/oauth/login/components/Login';
+import Authn from '@/features/screen/authn/components/Authn';
 import SplashScreen from '@/shared/components/app/splash/SplashScreen';
 import NotFound from '@/shared/components/app/lost/NotFound';
-import NotificationPage from '@/features/screen/notification/components/Notification';
+import Notification from '@/features/screen/notification/components/Notification';
+import NotificationArrivalAlert from '@/shared/components/app/notification/NotificationArrivalAlert';
+import NotificationPermissionBanner from '@/shared/components/app/notification/NotificationPermissionBanner';
+import { AUTHN_ROUTES } from '@/features/screen/authn/constants/authn.routes';
 
 import { SearchProvider } from '@/shared/context/SearchContext';
 import { HeaderTitleProvider } from '@/shared/context/TitleContext';
@@ -19,7 +22,7 @@ import { HeaderWrapper, SpacerWrapper, NavigatorWrapper, wrapProtected } from '@
 import './theme/App.theme.css';
 
 function App() {
-  const { isPdfRender, liveNotification, userLoggedIn, setUserLoggedIn, loading, showSplash, splashComplete } = useApp();
+  const { isPdfRender, userLoggedIn, setUserLoggedIn, loading, showSplash, splashComplete } = useApp();
 
   return (
     <AuthContext.Provider value={{ userLoggedIn, setUserLoggedIn }}>
@@ -56,14 +59,15 @@ function App() {
                         ))}
 
                         <Route
-                          path="/login"
-                          element={userLoggedIn ? <Navigate to="/" replace /> : <Login setUserLoggedIn={setUserLoggedIn} />}
+                          path={AUTHN_ROUTES.AUTHN}
+                          element={
+                            userLoggedIn
+                              ? <Navigate to={AUTHN_ROUTES.HOME} replace />
+                              : <Authn setUserLoggedIn={setUserLoggedIn} />
+                          }
                         />
 
-                        <Route
-                          path="/notification"
-                          element={wrapProtected(<NotificationPage liveNotification={liveNotification} />)}
-                        />
+                        <Route path="/notification" element={wrapProtected(<Notification />)} />
 
                         {PROTECTED_ROUTES.map(({ path, element }) => (
                           <Route key={path} path={path} element={wrapProtected(element)} />
@@ -74,6 +78,9 @@ function App() {
                       </Routes>
 
                       <SpacerWrapper />
+
+                      {userLoggedIn && !isPdfRender && <NotificationArrivalAlert />}
+                      {userLoggedIn && !isPdfRender && <NotificationPermissionBanner />}
                     </>
                   )}
                 </NavTreeProvider>

@@ -19,11 +19,11 @@ import {
   NAV_GROUPS,
 } from '../constants/home.constant';
 
-import Excavator from '@assets/images/fleet/driller.jpg';
-import Excavators from '@assets/images/fleet/driller.jpg';
+import Excavator from '@assets/images/fleet/excavator.jpg';
+import Excavators from '@assets/images/fleet/excavators.jpg';
 import Dozer from '@assets/images/fleet/dozer.jpg';
 import DumpTruck from '@assets/images/fleet/dump-truck.jpg';
-import Crane from '@assets/images/fleet/driller.jpg';
+import Crane from '@assets/images/fleet/crane.jpg';
 import Driller from '@assets/images/fleet/driller.jpg';
 
 import './Home.css';
@@ -421,7 +421,7 @@ function Home({ user_logged_in, currentUser, setUserLoggedIn }) {
 
           <section className="features screen home services">
             <h2 className="features screen home section-title">Our Services</h2>
-            <p className="features screen home services-intro">
+            <p className="features screen home services-onboard">
               Since 2004, we have been committed to supplying heavy equipment and providing
               certified operators on a rental basis in Qatar. We cater to a wide range of project
               needs across various sectors, including Government projects, Oil &amp; Gas, and

@@ -1,0 +1,25 @@
+.shared.signature.slot.button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: transparent;
+  border: 1px dashed #7e2828;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.shared.signature.slot.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shared.signature.slot.marker {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 20px;
+}

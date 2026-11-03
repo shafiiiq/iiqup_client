@@ -36,9 +36,9 @@ export const buildRecordTableColumns = ({ expandedRemarks, onToggleRemark, onRow
     render: (item) => item.mechanics || '-',
   },
   {
-    key: 'operatorName',
+    key: 'operator',
     header: 'Operator Name',
-    render: (item) => item.operatorName || '-',
+    render: (item) => item.operator || '-',
   },
   {
     key: 'remarks',
@@ -81,7 +81,7 @@ export const buildRecordTableColumns = ({ expandedRemarks, onToggleRemark, onRow
           colorScheme="yellow-700"
           iconColor="info-300"
           padding='0'
-          onClick={() => onRowClick(formatDate(item.date), item.serviceType, item._id)}
+          onClick={() => onRowClick(item._id)}
           variant="gradient"
           font="sm"
           squircle="4xl"

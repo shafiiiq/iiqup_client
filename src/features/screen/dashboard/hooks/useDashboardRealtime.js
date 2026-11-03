@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import WebSocketService from '@/features/core/network/websocket/websocket';
+import WebSocketService from '@/features/core/network/socket/socket.service';
 
 export const useDashboardRealtime = (onUpdate) => {
   useEffect(() => {

@@ -6,6 +6,16 @@ export const PERIOD_OPTIONS = [
     { value: 'yearly', label: 'Last Year' },
 ];
 
+export const PERIOD_DATE_FILTER_MODE = {
+    daily: 'today',
+    yesterday: 'yesterday',
+    weekly: 'last7days',
+    monthly: 'last30days',
+    yearly: 'last365days',
+    months: 'lastXmonths',
+    custom: 'custom',
+};
+
 export const MONTH_RANGE_OPTIONS = [
     { value: '1', label: '1 Month' },
     { value: '2', label: '2 Months' },

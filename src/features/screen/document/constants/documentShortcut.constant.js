@@ -9,6 +9,8 @@ export const NATIVE_PASTE_SHORTCUT = `${MOD}+KeyV`;
 export const DOCUMENT_SHORTCUT_ACTIONS = [
   { key: 'newFolder', label: 'New Folder' },
   { key: 'view', label: 'View' },
+  { key: 'viewOlder', label: 'View Older Version' },
+  { key: 'viewNewer', label: 'View Newer Version' },
   { key: 'download', label: 'Download' },
   { key: 'dates', label: 'Issue & Expiry Dates' },
   { key: 'rename', label: 'Rename' },
@@ -36,6 +38,8 @@ export const DOCUMENT_SHORTCUT_ACTIONS = [
 export const DEFAULT_DOCUMENT_SHORTCUTS = {
   newFolder: 'alt+KeyN',
   view: 'Enter',
+  viewOlder: 'alt+KeyO',
+  viewNewer: 'alt+KeyL',
   download: 'alt+KeyD',
   dates: 'alt+KeyI',
   rename: 'F2',

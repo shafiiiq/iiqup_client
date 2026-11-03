@@ -1,25 +1,19 @@
 import { apiRequest } from '@/features/core/network/api/api.request';
+import { buildMaintenanceFilterParams } from '../../list/helper/maintenance.list.query.helper';
+import { PERIOD_DATE_FILTER_MODE } from '../constants/maintenance.record.constant';
 
-export const fetchServiceSummaryData = async ({ period, startDate = null, endDate = null, months = null }) => {
-  let url;
-  if (startDate && endDate) {
-    const formatForAPI = (date) => {
-      const [year, month, day] = date.split('-');
-      return `${day}-${month}-${year}`;
-    };
-    url = `/maintenance/report/summary/date-range/${formatForAPI(startDate)}/${formatForAPI(endDate)}`;
-  } else if (months) {
-    url = `/maintenance/report/summary/last-months/${months}`;
-  } else {
-    url = `/maintenance/report/summary/${period}`;
-  }
+export const fetchMaintenanceSummary = async ({ period, startDate, endDate, months }) => {
+  const params = buildMaintenanceFilterParams({
+    dateRangeFilter: {
+      dateFilterMode: PERIOD_DATE_FILTER_MODE[period],
+      lastMonthsCount: months ? Number(months) : undefined,
+      customStartDate: startDate,
+      customEndDate: endDate,
+    },
+  });
 
-  const response = await apiRequest(url, 'GET');
-  const data = await response.json();
-  return data;
-};
-
-export const deleteServiceReport = async (reportId) => {
-  const response = await apiRequest(`/maintenance/report/deletewith/${reportId}`, 'DELETE');
-  return response;
+  const response = await apiRequest(`/maintenance/documents?${params.toString()}`, 'GET');
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.message || 'Failed to load maintenance summary');
+  return result.data || [];
 };

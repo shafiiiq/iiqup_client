@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearch } from '@/shared/context/SearchContext';
-import { fetchServiceSummaryData, deleteServiceReport } from '../api/maintenance.record.api';
+import { fetchMaintenanceSummary } from '../api/maintenance.record.api';
+import { deleteMaintenance } from '../../report/api/maintenance.api';
 import { useHeaderTitle } from '@/shared/context/TitleContext';
 import { useNavigate } from 'react-router-dom';
 import ExcelJS from 'exceljs';
@@ -27,13 +28,7 @@ export const useMaintenanceRecord = () => {
     const fetchServiceData = useCallback(async (period, startDate = null, endDate = null, months = null) => {
         setIsLoading(true);
         try {
-            const data = await fetchServiceSummaryData({ period, startDate, endDate, months });
-
-            if (data && data.data && data.data.all) {
-                setServiceData(data.data.all);
-            } else {
-                setServiceData([]);
-            }
+            setServiceData(await fetchMaintenanceSummary({ period, startDate, endDate, months }));
         } catch (error) {
             console.error('Error fetching service data:', error);
             setServiceData([]);
@@ -119,26 +114,14 @@ export const useMaintenanceRecord = () => {
     const handleCloseDeleteModal = () => setShowDeleteModal(false);
 
     const confirmDeleteReport = async () => {
-        const response = await deleteServiceReport(deleteReport._id);
-        if (response.ok) {
+        const result = await deleteMaintenance(deleteReport._id);
+        if (result.ok) {
             setShowDeleteModal(false);
             fetchServiceData(selectedPeriod);
         }
     };
 
-    const handleRowClick = (date, serviceType, id) => {
-        navigate(`/service-document/${id}`, {
-            state: {
-                date,
-                serviceType,
-                historyId: id,
-                docType: serviceType === 'major'   ? 'maintenance-doc'
-                       : serviceType === 'tyre'    ? 'tyre-doc'
-                       : serviceType === 'battery' ? 'battery-doc'
-                       : 'service-doc',
-            },
-        });
-    };
+    const handleRowClick = (id) => navigate(`/maintenance/report/${id}`);
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -236,13 +219,13 @@ export const useMaintenanceRecord = () => {
                     index + 1,
                     formatDate(service.date),
                     service.regNo,
-                    service.machine,
+                    service.equipment,
                     getServiceTypeDisplay(service.serviceType),
                     service.serviceHrs || '-',
                     service.nextServiceHrs || '-',
                     service.location || '-',
                     service.mechanics || '-',
-                    service.operatorName || '-',
+                    service.operator || '-',
                     service.remarks || '-'
                 ];
 

@@ -26,6 +26,8 @@ import DocumentShortcutsDialog from './fragments/DocumentShortcutsDialog';
 import DocumentStorageBar from './fragments/DocumentStorageBar';
 import DocumentTrash from './fragments/DocumentTrash';
 import DocumentWindowTabs from './fragments/DocumentWindowTabs';
+import DocumentExpiryTracking from './fragments/DocumentExpiryTracking';
+import { useDocumentExpiry } from '../hooks/useDocumentExpiry';
 import { formatShortcut } from '../helper/documentShortcut.helper';
 import { WINDOW_MENU_SHORTCUTS } from '../constants/documentShortcut.constant';
 import {
@@ -35,6 +37,7 @@ import {
   DRAGGED_DOCUMENT_TYPE,
   EMPTY_STATE_MESSAGES,
   TRASH_NODE_KEY,
+  EXPIRY_NODE_KEY,
   DOCUMENT_MENU_CATEGORIES,
 } from '../constants/document.constant';
 import { toDateInputValue, formatBytes, toLayerId, fromLayerId } from '../helper/document.helper';
@@ -66,6 +69,19 @@ const TRASH_NODE = {
   children: [],
 };
 
+const EXPIRY_NODE = {
+  type: 'folder',
+  key: EXPIRY_NODE_KEY,
+  label: 'Expiry Tracking',
+  icon: DOCUMENT_TOOLBAR_ICONS.dates,
+  isLoading: false,
+  hasMore: false,
+  isLoadingMore: false,
+  children: [],
+};
+
+const EXPIRY_BREADCRUMB_PATH_KEYS = [PICKER_ROOT_KEY, EXPIRY_NODE_KEY];
+
 const ROOT_NAVIGATION = {
   source: null,
   pickerPathKeys: [PICKER_ROOT_KEY],
@@ -75,8 +91,13 @@ const ROOT_NAVIGATION = {
 
 const isTrashPathKeys = (pathKeys) => pathKeys.length === 2 && pathKeys[1] === TRASH_NODE_KEY;
 
+const isExpiryPathKeys = (pathKeys) => pathKeys.length === 2 && pathKeys[1] === EXPIRY_NODE_KEY;
+
 const resolveScope = (source, pathKeys) =>
-  source || (isTrashPathKeys(pathKeys) ? null : { type: 'root', id: toLayerId(pathKeys[pathKeys.length - 1]) });
+  source ||
+  (isTrashPathKeys(pathKeys) || isExpiryPathKeys(pathKeys)
+    ? null
+    : { type: 'root', id: toLayerId(pathKeys[pathKeys.length - 1]) });
 
 const scopeKeyOf = (scopeItem) => (scopeItem ? `${scopeItem.type}:${scopeItem.id}` : '');
 
@@ -122,6 +143,8 @@ function Document() {
   const [windows, setWindows] = useState(() => [{ id: 'window-1', nav: null, label: 'Root' }]);
   const [activeWindowId, setActiveWindowId] = useState('window-1');
   const [sidebarMenu, setSidebarMenu] = useState(null);
+  const [isFromExpiry, setIsFromExpiry] = useState(false);
+  const [lastOpenedExpiryDocumentId, setLastOpenedExpiryDocumentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sidebarSearchTerm, setSidebarSearchTerm] = useState('');
   const [searchState, setSearchState] = useState(EMPTY_SEARCH_STATE);
@@ -132,7 +155,8 @@ function Document() {
   const sentinelRef = useRef(null);
 
   const isTrashActive = !selectedSource && isTrashPathKeys(pickerPathKeys);
-  const isLayerActive = !selectedSource && !isTrashActive;
+  const isExpiryActive = !selectedSource && isExpiryPathKeys(pickerPathKeys);
+  const isLayerActive = !selectedSource && !isTrashActive && !isExpiryActive;
   const scope = resolveScope(selectedSource, pickerPathKeys);
   const isRootScope = scope?.type === 'root';
   const isSearching = searchTerm.trim().length > 0;
@@ -226,6 +250,8 @@ function Document() {
 
   const trash = useDocumentTrash({ isActive: isTrashActive, shortcuts, showToast, undoManager });
 
+  const expiry = useDocumentExpiry({ isActive: isExpiryActive, showToast });
+
   const storage = useDocumentStorage({ documents, trashItems: trash.items, trashSources: trash.sources });
 
   const handlePickerSelect = useStableCallback((type, item, meta) => {
@@ -240,7 +266,7 @@ function Document() {
   const pickerRoot = usePickerRoot(PICKER_TYPES, handlePickerSelect);
 
   const documentRoot = useMemo(
-    () => ({ ...pickerRoot, children: [...pickerRoot.children, TRASH_NODE] }),
+    () => ({ ...pickerRoot, children: [...pickerRoot.children, EXPIRY_NODE, TRASH_NODE] }),
     [pickerRoot]
   );
 
@@ -252,6 +278,8 @@ function Document() {
   const applyNavigation = (navigation) => {
     const targetScope = resolveScope(navigation.source, navigation.pickerPathKeys);
     const isSameScope = scopeKeyOf(targetScope) === scopeKeyOf(scope);
+    setIsFromExpiry(false);
+    if (!isExpiryPathKeys(navigation.pickerPathKeys)) setLastOpenedExpiryDocumentId(null);
     setSelectedSource(navigation.source);
     setPickerPathKeys(navigation.pickerPathKeys);
     if (isSameScope) {
@@ -566,7 +594,7 @@ function Document() {
           children: [
             buildResultNode('user-section-staff', 'Office', 'IconlyOfficeWorker', 'staff', sidebarStaffSearch),
             buildResultNode('user-section-mechanic', 'Mechanics', 'WrenchIcon', 'mechanic', sidebarMechanicSearch),
-            buildResultNode('user-section-operator', 'Operators', 'JacketIcon', 'operator', sidebarOperatorSearch),
+            buildResultNode('user-section-operator', 'Operators', 'IconlyJacket', 'operator', sidebarOperatorSearch),
           ],
         },
       ],
@@ -671,6 +699,40 @@ function Document() {
     setSelectedSource(null);
     trash.handleResetSource();
     handleOpenFolder(null);
+  });
+
+  const isExpiryOriginVisible = isFromExpiry && !isExpiryActive;
+
+  const breadcrumbPathKeys = isExpiryOriginVisible ? EXPIRY_BREADCRUMB_PATH_KEYS : pickerPathKeys;
+
+  const pickerPathSegments = pickerPathKeys.slice(1).map((nodeKey, index) => ({
+    key: `picker-path-${nodeKey}`,
+    label: resolvePathLabel(decoratedPicker.root, pickerPathKeys.slice(0, index + 2)),
+    onSelect: () =>
+      applyNavigation({
+        source: null,
+        pickerPathKeys: pickerPathKeys.slice(0, index + 2),
+        view: DOCUMENT_VIEWS.SOURCE,
+        folderId: null,
+      }),
+  }));
+
+  const breadcrumbTrailingSegments = isExpiryOriginVisible
+    ? [...pickerPathSegments, ...trailingSegments]
+    : trailingSegments;
+
+  const handleBreadcrumbPathKeysChange = useStableCallback((update) => {
+    if (!isExpiryOriginVisible) {
+      setPickerPathKeys(update);
+      return;
+    }
+    const nextPathKeys = typeof update === 'function' ? update(EXPIRY_BREADCRUMB_PATH_KEYS) : update;
+    applyNavigation({
+      source: null,
+      pickerPathKeys: nextPathKeys,
+      view: DOCUMENT_VIEWS.SOURCE,
+      folderId: null,
+    });
   });
 
   const layerNode = isLayerActive ? resolvePathNode(decoratedPicker.root, pickerPathKeys) : null;
@@ -792,6 +854,24 @@ function Document() {
       folderId: documentItem.folderId,
     });
 
+  const handleOpenExpiryDocument = (documentItem) => {
+    handleShowSearchDocument(documentItem);
+    setIsFromExpiry(true);
+    setLastOpenedExpiryDocumentId(documentItem._id);
+  };
+
+  const focusedDocumentId = isFromExpiry && !isExpiryActive ? lastOpenedExpiryDocumentId : null;
+
+  useEffect(() => {
+    if (!focusedDocumentId || isLoading) return undefined;
+    const timerId = setTimeout(() => {
+      explorerRef.current
+        ?.querySelector(`[data-document-id="${focusedDocumentId}"]`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 150);
+    return () => clearTimeout(timerId);
+  }, [focusedDocumentId, isLoading, visibleDocuments, explorerRef]);
+
   const parentFolderId = folderTrail.length > 1 ? folderTrail[folderTrail.length - 2]._id : null;
   const showViewTiles = Boolean(scope) && !isRootScope && activeView === DOCUMENT_VIEWS.SOURCE && !currentFolderId;
   const showParentTile = Boolean(currentFolderId) || (!isRootScope && activeView !== DOCUMENT_VIEWS.SOURCE);
@@ -823,6 +903,7 @@ function Document() {
   const directoryLabel = (() => {
     if (currentFolderId && folderTrail.length > 0) return folderTrail[folderTrail.length - 1].name;
     if (selectedSource) return activeViewTab ? activeViewTab.label : sourceLabel;
+    if (isExpiryActive) return EXPIRY_NODE.label;
     if (isTrashActive) return trash.activeSource ? trash.activeSource.label : 'Trash';
     return resolvePathLabel(documentRoot, pickerPathKeys) || 'Root';
   })();
@@ -985,9 +1066,9 @@ function Document() {
 
           <FolderPicker
             root={decoratedPicker.root}
-            pathKeys={pickerPathKeys}
-            onPathKeysChange={setPickerPathKeys}
-            trailingSegments={trailingSegments}
+            pathKeys={breadcrumbPathKeys}
+            onPathKeysChange={handleBreadcrumbPathKeysChange}
+            trailingSegments={breadcrumbTrailingSegments}
             isBodyHidden
             onBreadcrumbNavigate={handleBreadcrumbNavigate}
           />
@@ -1004,6 +1085,14 @@ function Document() {
 
           {!isSearching && isTrashActive && (
             <DocumentTrash trash={trash} shortcuts={shortcuts} undoManager={undoManager} />
+          )}
+
+          {!isSearching && isExpiryActive && (
+            <DocumentExpiryTracking
+              expiry={expiry}
+              highlightedDocumentId={lastOpenedExpiryDocumentId}
+              onOpenLocation={handleOpenExpiryDocument}
+            />
           )}
 
           {scope && (
@@ -1097,6 +1186,7 @@ function Document() {
                       documentItem={documentItem}
                       isSelected={selectedDocumentIds.includes(documentItem._id)}
                       isNew={newItemIdSet.has(documentItem._id)}
+                      isFocused={documentItem._id === focusedDocumentId}
                       isCut={cutDocumentIds.includes(documentItem._id)}
                       isRenaming={renamingItem?.kind === 'document' && renamingItem.id === documentItem._id}
                       onCommitRename={handleCommitInlineRename}

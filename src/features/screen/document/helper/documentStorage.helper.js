@@ -1,4 +1,4 @@
-import { TRASH_NODE_KEY } from '../constants/document.constant';
+import { TRASH_NODE_KEY, EXPIRY_NODE_KEY } from '../constants/document.constant';
 import { formatBytes, toLayerId } from './document.helper';
 
 const sourceKeyOf = (collection, item) => `${collection.sourceType}:${item._id || item.id}`;
@@ -7,6 +7,10 @@ const measureNode = (node, bySource, trashBytes, bytesByKey) => {
   if (node.key === TRASH_NODE_KEY) {
     bytesByKey[node.key] = trashBytes;
     return { node: { ...node, footer: formatBytes(trashBytes) }, bytes: trashBytes };
+  }
+  if (node.key === EXPIRY_NODE_KEY) {
+    bytesByKey[node.key] = 0;
+    return { node, bytes: 0 };
   }
   const ownBytes = bySource[`root:${toLayerId(node.key)}`] || 0;
   if (node.items) {

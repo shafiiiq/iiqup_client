@@ -7,7 +7,7 @@ import { SEARCH_SOURCES } from '@/shared/search/search.constant';
 const USER_SECTIONS = [
     { key: 'staff', label: 'Office', icon: 'IconlyOfficeWorker', endpoint: '/users/staff', extract: (data) => data.data || [] },
     { key: 'mechanic', label: 'Mechanics', icon: 'WrenchIcon', endpoint: '/users/mechanics', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.MECHANICS },
-    { key: 'operator', label: 'Operators', icon: 'JacketIcon', endpoint: '/users/operators', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.OPERATORS },
+    { key: 'operator', label: 'Operators', icon: 'IconlyJacket', endpoint: '/users/operators', extract: (data) => data.data || [], searchSource: SEARCH_SOURCES.OPERATORS },
 ];
 
 function useUserSections() {

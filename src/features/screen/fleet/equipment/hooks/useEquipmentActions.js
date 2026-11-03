@@ -119,7 +119,7 @@ export const useEquipmentActions = ({ fetchEquipments, fetchSitesForDropdown, op
     setSelectedEquipment(prev => (prev.includes(regNo) ? prev.filter(r => r !== regNo) : [...prev, regNo]));
   };
 
-  const handleRowClick = (regNo) => navigate(`/maintenance/history/${regNo}`);
+  const handleRowClick = (regNo) => navigate(`/maintenance/list/${regNo}`);
   const handleQuickServices = () => navigate('/maintenance/record');
 
   const handleAdd = () => { triggerVibration(); setShowAddModal(true); };

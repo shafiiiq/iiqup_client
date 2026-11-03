@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { LoginLogic } from '@/features/screen/oauth/login/helper/login.helper';
+import { useLogout } from '@/features/screen/authn/hooks/useLogout';
+import { useTotalNotificationCount } from '@/features/core/messaging/notification/count/total.count.store';
+import { formatNotificationCount } from '@/features/core/messaging/notification/count/notification.count.format';
+import { NOTIFICATION_ROUTE_PATH } from '@/features/core/messaging/notification/constant/notification.constant';
 import { useSearch } from '@/shared/context/SearchContext';
 import { useHeaderTitle } from '@/shared/context/TitleContext';
 import { useHeaderVibration } from '@/shared/context/VibrationContext';
@@ -19,7 +22,7 @@ const NAV_ITEMS = [
   { path: '/', label: 'Home', componentIcon: 'IconlyHome' },
   { path: '/equipments', label: 'Equipments', componentIcon: 'CraneIcon' },
   { path: '/stock/parts', label: 'Spare Parts', componentIcon: 'IconlyBuy' },
-  { path: '/stock/toolkits', label: 'Safety Items', componentIcon: 'JacketIcon' },
+  { path: '/stock/toolkits', label: 'Safety Items', componentIcon: 'IconlyJacket' },
   { path: '/mechanics', label: 'Mechanics', componentIcon: 'IconlyFace' },
   { path: '/operators', label: 'Operators', componentIcon: 'Iconly3user' },
   { path: '/order/purchase/list', label: 'Purchase Orders', componentIcon: 'IconlyBag2' },
@@ -48,6 +51,8 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
   const { headerTitle, headerSubtitle } = useHeaderTitle();
   const { shouldVibrate, resetVibration } = useHeaderVibration();
   const { alert } = useAlert();
+  const { logout } = useLogout({ setUserLoggedIn });
+  const totalNotificationCount = useTotalNotificationCount();
 
   const searchInputRef = useRef(null);
   const navRef = useRef(null);
@@ -141,7 +146,7 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
 
   const handleLogout = () => {
     if (!window.confirm('Are you sure you want to logout?')) return;
-    LoginLogic.handleLogout(navigate, setUserLoggedIn);
+    logout();
   };
 
   const getProfileInitial = () => currentUser?.name?.charAt(0).toUpperCase() ?? 'W';
@@ -228,6 +233,9 @@ const Header = ({ user_logged_in, currentUser, setUserLoggedIn }) => {
                       {renderComponentIcon(item.componentIcon, 40, 'currentColor')}
                     </span>
                     <span className="shared-widget-header-nav-text">{item.label}</span>
+                    {item.path === NOTIFICATION_ROUTE_PATH && totalNotificationCount > 0 && (
+                      <span className="shared-widget-header-nav-badge">{formatNotificationCount(totalNotificationCount)}</span>
+                    )}
                   </Link>
                 </li>
               ))}

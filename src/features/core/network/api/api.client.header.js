@@ -1,0 +1,1 @@
+export const SESSION_TOKEN_HEADER_NAME = 'X-Session-Token';

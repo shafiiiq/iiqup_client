@@ -1,63 +1,49 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  fetchNotificationStats,
-  fetchUserSpecificTabsMeta,
-  fetchModelCategoriesMeta,
-} from '../api/notification.api';
-import { formatCategoryLabel } from '../helper/notification.helper';
-import { REFRESH_INTERVAL } from '../constants/notification.constants';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useActivityCounts } from '@/features/core/messaging/notification/count/activity.count.store';
+import { useUnreadCount } from '@/features/core/messaging/notification/count/unread.count.store';
+import { notificationFeed } from '@/features/core/messaging/notification/feed/notification.feed';
+import { ALL_NOTIFICATION_TAB, DEFAULT_NOTIFICATION_TABS } from '../constants/notification.tabs';
+import { fetchNotificationTabs } from '../services/notification.list.service';
 
-const EMPTY_STATS = { total: 0, unread: 0, forYouUnread: 0 };
+const TAB_RELOAD_DEBOUNCE_MS = 400;
 
 export const useNotificationTabs = () => {
-  const [stats, setStats] = useState(EMPTY_STATS);
-  const [userTabs, setUserTabs] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const unreadCount = useUnreadCount();
+  const activityCounts = useActivityCounts();
+  const [tabs, setTabs] = useState(DEFAULT_NOTIFICATION_TABS);
+  const [selectedTabId, setSelectedTabId] = useState(ALL_NOTIFICATION_TAB.id);
+  const reloadTimerRef = useRef(null);
 
-  const refreshStats = useCallback(async () => {
-    const response = await fetchNotificationStats();
-    setStats(response.data || EMPTY_STATS);
+  const reloadTabs = useCallback(async () => {
+    try {
+      setTabs(await fetchNotificationTabs());
+    } catch (error) {
+      console.error('fetchNotificationTabs:', error);
+    }
   }, []);
 
-  const refreshMeta = useCallback(async () => {
-    const [statsResponse, userTabsResponse, categoriesResponse] = await Promise.all([
-      fetchNotificationStats(),
-      fetchUserSpecificTabsMeta(),
-      fetchModelCategoriesMeta(),
-    ]);
-    setStats(statsResponse.data || EMPTY_STATS);
-    setUserTabs(userTabsResponse.data || []);
-    setCategories(categoriesResponse.data || []);
-  }, []);
+  const scheduleReload = useCallback(() => {
+    if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    reloadTimerRef.current = setTimeout(reloadTabs, TAB_RELOAD_DEBOUNCE_MS);
+  }, [reloadTabs]);
 
   useEffect(() => {
-    refreshMeta();
-    const interval = setInterval(refreshMeta, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, [refreshMeta]);
+    reloadTabs();
+    return () => {
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    };
+  }, [reloadTabs]);
 
-  const tabItems = [
-    { key: 'all', label: 'All', iconName: 'notifications', badge: stats.total || undefined },
-    { key: 'unread', label: 'Unread', iconName: 'mark_email_unread', badge: stats.unread || undefined },
-    { key: 'foryou', label: 'For You', iconName: 'person_pin', badge: stats.forYouUnread || undefined },
-    { key: 'high', label: 'High Priority', iconName: 'priority_high' },
-    ...(userTabs.length
-      ? [{
-          key: 'user_specific',
-          label: 'My Items',
-          iconName: 'folder_special',
-          children: userTabs.map((tab) => ({ key: tab.id, label: tab.label })),
-        }]
-      : []),
-    ...(categories.length
-      ? [{
-          key: 'category',
-          label: 'Categories',
-          iconName: 'category',
-          children: categories.map((category) => ({ key: category, label: formatCategoryLabel(category) })),
-        }]
-      : []),
-  ];
+  useEffect(() => notificationFeed.subscribe(scheduleReload), [scheduleReload]);
 
-  return { stats, tabItems, refreshStats, refreshMeta };
+  useEffect(() => {
+    scheduleReload();
+  }, [unreadCount, activityCounts.mentions, activityCounts.replies, scheduleReload]);
+
+  const selectedTab = useMemo(
+    () => tabs.find((tab) => tab.id === selectedTabId) ?? ALL_NOTIFICATION_TAB,
+    [tabs, selectedTabId]
+  );
+
+  return { tabs, selectedTab, selectTab: setSelectedTabId, reloadTabs };
 };

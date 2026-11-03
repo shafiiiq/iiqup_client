@@ -95,7 +95,7 @@ export const NAV_GROUPS = [
     label: 'Stocks',
     items: [
       { label: 'Spare Parts', path: '/stock/parts', componentIcon: 'IconlyBuy' },
-      { label: 'Safety Items', path: '/stock/toolkits', componentIcon: 'JacketIcon' },
+      { label: 'Safety Items', path: '/stock/toolkits', componentIcon: 'IconlyJacket' },
     ],
   },
   {

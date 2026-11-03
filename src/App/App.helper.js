@@ -1,17 +1,10 @@
-import { Navigate } from 'react-router-dom';
-
 import Header from '@/shared/components/app/header/Header';
 import Spacer from '@/shared/components/widgets/spacer/Spacer';
 import NavigationButtons from '@/shared/components/widgets/navigator/Navigator';
-import { AuthUtils } from '@/features/screen/oauth/login/helper/login.helper';
+import ProtectedRoute from '@/features/screen/authn/components/ProtectedRoute';
+import { readCurrentUser } from '@/features/screen/authn/services/authn.current.user.service';
 
 import { useIsHeaderVisible, useIsSpacerVisible, useIsNavigatorVisible } from '@/App/useApp';
-
-export function ProtectedRoute({ children }) {
-  const { isValid } = AuthUtils.checkUserSession();
-  if (!isValid) return <Navigate to="/login" replace />;
-  return children;
-}
 
 export function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
   const isHeaderVisible = useIsHeaderVisible(userLoggedIn);
@@ -20,7 +13,7 @@ export function HeaderWrapper({ userLoggedIn, setUserLoggedIn }) {
   return (
     <Header
       user_logged_in={userLoggedIn}
-      currentUser={AuthUtils.getCurrentUser()}
+      currentUser={readCurrentUser()}
       setUserLoggedIn={setUserLoggedIn}
     />
   );

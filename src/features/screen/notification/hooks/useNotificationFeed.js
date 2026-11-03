@@ -1,107 +1,123 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { usePagination } from '@/shared/pagination/usePagination';
-import { useVirtualGrid } from '@/shared/scrolling/useVirtualGrid';
-import { useInfiniteFetch } from '@/shared/scrolling/useInfiniteFetch';
-import {
-  fetchAllNotifications,
-  fetchUnreadNotifications,
-  fetchForYouNotifications,
-  fetchHighPriorityNotifications,
-  fetchUserSpecificNotifications,
-  fetchCategoryNotifications,
-} from '../api/notification.api';
-import { normalizeNotification, buildNotificationRows } from '../helper/notification.helper';
-import {
-  ITEMS_PER_PAGE,
-  NOTIFICATION_COLUMN_COUNT,
-  NOTIFICATION_ROW_GAP,
-  NOTIFICATION_ROW_ESTIMATE_HEIGHT,
-} from '../constants/notification.constants';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { notificationFeed } from '@/features/core/messaging/notification/feed/notification.feed';
+import { fetchNotificationPage } from '../services/notification.list.service';
+import { mergeNotificationPages, sortNotificationsByLastActivity } from '../utils/notification.list.merge';
 
-const excludeAttendanceSourced = (list) => list.filter((notification) => notification.sourceId !== 'attendance');
+const HEAD_REFRESH_DEBOUNCE_MS = 300;
 
-const emptyNotificationPage = async () => ({
-  data: [],
-  pagination: { currentPage: 1, totalPages: 1, totalCount: 0, hasMore: false },
-});
+export const useNotificationFeed = ({ selectedTab }) => {
+  const [items, setItems] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-const resolveFetcher = (activeTab) => {
-  switch (activeTab.key) {
-    case 'unread':
-      return (pagination) => fetchUnreadNotifications(pagination).then((r) => ({ ...r, data: excludeAttendanceSourced(r.data) }));
-    case 'foryou':
-      return fetchForYouNotifications;
-    case 'high':
-      return fetchHighPriorityNotifications;
-    case 'user_specific':
-      return (pagination) => fetchUserSpecificNotifications(activeTab.sourceId, pagination);
-    case 'category':
-      return activeTab.category
-        ? (pagination) => fetchCategoryNotifications(activeTab.category, pagination)
-        : emptyNotificationPage;
-    default:
-      return (pagination) => fetchAllNotifications(pagination).then((r) => ({ ...r, data: excludeAttendanceSourced(r.data) }));
-  }
-};
+  const tabRef = useRef(selectedTab);
+  const cursorRef = useRef(null);
+  const hasMoreRef = useRef(false);
+  const generationRef = useRef(0);
+  const isLoadingMoreRef = useRef(false);
+  tabRef.current = selectedTab;
+  cursorRef.current = nextCursor;
+  hasMoreRef.current = hasMore;
 
-export const useNotificationFeed = (activeTab, uniqueCode, readOverrides) => {
-  const fetchFn = useMemo(
-    () => resolveFetcher(activeTab),
-    [activeTab.key, activeTab.sourceId, activeTab.category]
-  );
-
-  const pagination = usePagination(fetchFn, { page: 1, limit: ITEMS_PER_PAGE });
-  const [liveItems, setLiveItems] = useState([]);
-
-  useEffect(() => {
-    pagination.reset();
-    setLiveItems([]);
-    pagination.fetchPage(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab.key, activeTab.sourceId, activeTab.category]);
-
-  const prependLive = useCallback((raw) => {
-    setLiveItems((prev) => [{ ...raw, animate: true }, ...prev]);
-    setTimeout(() => {
-      setLiveItems((prev) => prev.map((n) => (n._id === raw._id ? { ...n, animate: false } : n)));
-    }, 600);
+  const loadFirstPage = useCallback(async (isManualRefresh) => {
+    generationRef.current += 1;
+    const generation = generationRef.current;
+    if (isManualRefresh) setIsRefreshing(true);
+    else setIsInitialLoading(true);
+    try {
+      const page = await fetchNotificationPage({ tab: tabRef.current, before: null });
+      if (generation !== generationRef.current) return;
+      setItems(page.items);
+      setNextCursor(page.nextCursor);
+      setHasMore(page.hasMore);
+    } catch (error) {
+      console.error('loadFirstPage:', error);
+    } finally {
+      if (generation === generationRef.current) {
+        setIsInitialLoading(false);
+        setIsRefreshing(false);
+      }
+    }
   }, []);
 
-  const knownIds = useMemo(() => new Set(pagination.data.map((n) => n._id)), [pagination.data]);
-  const mergedRaw = useMemo(
-    () => [...liveItems.filter((n) => !knownIds.has(n._id)), ...pagination.data],
-    [liveItems, knownIds, pagination.data]
-  );
+  useEffect(() => {
+    setItems([]);
+    setNextCursor(null);
+    setHasMore(false);
+    loadFirstPage(false);
+  }, [selectedTab.id, loadFirstPage]);
 
-  const items = useMemo(
-    () => mergedRaw.map((n) => normalizeNotification(n, uniqueCode, readOverrides)),
-    [mergedRaw, uniqueCode, readOverrides]
-  );
+  const loadMore = useCallback(async () => {
+    if (isLoadingMoreRef.current || !hasMoreRef.current || !cursorRef.current) return;
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+    const generation = generationRef.current;
+    try {
+      const page = await fetchNotificationPage({ tab: tabRef.current, before: cursorRef.current });
+      if (generation !== generationRef.current) return;
+      setItems((previousItems) => mergeNotificationPages(previousItems, page.items));
+      setNextCursor(page.nextCursor);
+      setHasMore(page.hasMore);
+    } catch (error) {
+      console.error('loadMore:', error);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, []);
 
-  const rows = useMemo(() => buildNotificationRows(items), [items]);
+  const refreshHead = useCallback(async () => {
+    const generation = generationRef.current;
+    try {
+      const page = await fetchNotificationPage({ tab: tabRef.current, before: null });
+      if (generation !== generationRef.current) return;
+      setItems((previousItems) => mergeNotificationPages(previousItems, page.items));
+    } catch (error) {
+      console.error('refreshHead:', error);
+    }
+  }, []);
 
-  const virtualGrid = useVirtualGrid({
-    items: rows,
-    columnCount: NOTIFICATION_COLUMN_COUNT,
-    estimateRowHeight: NOTIFICATION_ROW_ESTIMATE_HEIGHT,
-    gap: NOTIFICATION_ROW_GAP,
-  });
+  useEffect(() => {
+    let timerId = null;
+    const unsubscribe = notificationFeed.subscribe(() => {
+      if (timerId) clearTimeout(timerId);
+      timerId = setTimeout(refreshHead, HEAD_REFRESH_DEBOUNCE_MS);
+    });
+    return () => {
+      unsubscribe();
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [refreshHead]);
 
-  useInfiniteFetch({
-    virtualRows: virtualGrid.virtualRows,
-    rowCount: virtualGrid.rowCount,
-    hasMore: pagination.hasMore,
-    isLoading: pagination.loading,
-    onLoadMore: pagination.loadMore,
-  });
+  const updateItem = useCallback((notificationId, patch) => {
+    setItems((previousItems) =>
+      sortNotificationsByLastActivity(
+        previousItems.map((item) => {
+          if (item._id !== notificationId) return item;
+          return typeof patch === 'function' ? patch(item) : { ...item, ...patch };
+        })
+      )
+    );
+  }, []);
+
+  const markAllLoadedAsRead = useCallback(() => {
+    setItems((previousItems) => previousItems.map((item) => (item.isRead ? item : { ...item, isRead: true })));
+  }, []);
+
+  const refresh = useCallback(() => loadFirstPage(true), [loadFirstPage]);
 
   return {
     items,
-    totalCount: pagination.totalCount,
-    loading: pagination.loading,
-    hasMore: pagination.hasMore,
-    refresh: () => pagination.fetchPage(1, false),
-    prependLive,
-    virtualGrid,
+    hasMore,
+    isInitialLoading,
+    isRefreshing,
+    isLoadingMore,
+    loadMore,
+    refresh,
+    updateItem,
+    markAllLoadedAsRead,
   };
 };

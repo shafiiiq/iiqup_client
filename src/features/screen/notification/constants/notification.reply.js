@@ -1,0 +1,9 @@
+export const REPLY_FOCUS_DELAY_MS = 120;
+
+export const REPLY_REVEAL_DELAY_MS = 450;
+
+export const REPLY_INPUT_LINE_HEIGHT = 18;
+
+export const REPLY_INPUT_VERTICAL_PADDING = 9;
+
+export const REPLY_INPUT_EXPAND_LINE_COUNT = 3;

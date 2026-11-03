@@ -1,0 +1,74 @@
+.rich-field {
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-height: 1.5em;
+  cursor: text;
+}
+
+.rich-field:empty::before {
+  content: attr(data-placeholder);
+  color: #999;
+  font-style: italic;
+  pointer-events: none;
+}
+
+.rich-menu {
+  position: fixed;
+  z-index: 5000;
+  width: 220px;
+  padding: 8px;
+  background: #fff;
+  color: #111;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.rich-menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.rich-menu-label {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.rich-menu-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f7f7f7;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.rich-menu-btn:hover {
+  background: #e8f0fe;
+}
+
+.rich-menu-swatch {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #bbb;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rich-menu-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}

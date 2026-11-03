@@ -1,0 +1,1 @@
+export const removeTrailingTrigger = (text, pattern) => text.replace(pattern, '$1');

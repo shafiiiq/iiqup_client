@@ -6,9 +6,9 @@ import {
   renameDocument,
   renameFolder,
   updateDocumentDates,
-  setDocumentRenewalStatus,
+  revertRenewal,
+  reapplyRenewal,
 } from '../api/document.api';
-import { RENEWAL_STATUS } from '../constants/document.constant';
 import { runBulkActionsOrThrow } from './document.helper';
 
 export const buildUndoByTrashOperation = ({ label, documentIds, folderIds }) => ({
@@ -66,14 +66,8 @@ export const buildDatesOperation = ({ documentId, label, previousDates, nextDate
   redo: () => updateDocumentDates({ documentId, ...nextDates }),
 });
 
-export const buildRenewOperation = ({ label, renewedDocumentId, previousDocumentId, previousStatus }) => ({
+export const buildRenewOperation = ({ label, renewedDocumentId }) => ({
   label,
-  undo: async () => {
-    await trashItems({ documentIds: [renewedDocumentId], folderIds: [] });
-    await setDocumentRenewalStatus({ documentId: previousDocumentId, renewalStatus: previousStatus });
-  },
-  redo: async () => {
-    await restoreTrashItems({ documentIds: [renewedDocumentId], folderIds: [] });
-    await setDocumentRenewalStatus({ documentId: previousDocumentId, renewalStatus: RENEWAL_STATUS.EXPIRED });
-  },
+  undo: () => revertRenewal({ documentId: renewedDocumentId }),
+  redo: () => reapplyRenewal({ documentId: renewedDocumentId }),
 });

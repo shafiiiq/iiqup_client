@@ -25,7 +25,7 @@ export const calculateRowHeight = (text) => {
 export const groupServiceRecordsByEquipment = (items) => {
     const groups = {};
     items.forEach((item) => {
-        const key = `${item.machine || 'Equipment'} — ${item.regNo || 'Unknown'}`;
+        const key = `${item.equipment || 'Equipment'} — ${item.regNo || 'Unknown'}`;
         (groups[key] = groups[key] || []).push(item);
     });
     return groups;

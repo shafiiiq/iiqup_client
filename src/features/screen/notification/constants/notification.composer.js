@@ -1,0 +1,15 @@
+export const DISTRIBUTION_TRIGGER_PATTERN = /(^|\s)\/\/([^\s/]*)$/;
+export const CATEGORY_TRIGGER_PATTERN = /(^|\s)\/([^\s/]*)$/;
+export const CATEGORY_COMPLETION_PATTERN = /(^|\s)\/([^\s/]+)\s/;
+export const FEATURE_TRIGGER_PATTERN = /(?:^|\s)#([^\s#]*)$/;
+export const TRAILING_MENTION_PATTERN = /(?:^|\s)@([^\s@]+)$/;
+export const MENTION_SEARCH_DELAY_MS = 250;
+export const CATEGORY_SEARCH_DELAY_MS = 200;
+export const MEDIA_FIELD_TYPES = ['image', 'video', 'audio'];
+export const MESSAGE_RECORDING_KEY = 'message';
+export const MEDIA_FIELD_ICONS = { image: 'IconlyImage', video: 'IconlyVideo', audio: 'IconlyVoice2' };
+export const COMPOSER_LINE_HEIGHT = 20;
+export const COMPOSER_INPUT_VERTICAL_PADDING = 18;
+export const COMPOSER_EXPAND_LINE_COUNT = 5;
+export const ACTION_LONG_PRESS_DELAY_MS = 400;
+export const ATTACHMENT_THUMBNAIL_SIZE = 64;

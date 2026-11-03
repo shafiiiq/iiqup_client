@@ -1,0 +1,1 @@
+export const isPdfRenderMode = () => new URLSearchParams(window.location.search).get('pdf') === '1';

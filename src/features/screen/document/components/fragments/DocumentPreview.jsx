@@ -3,6 +3,7 @@ import { renderComponentIcon } from '@/shared/components/icons/icon.render';
 import { getFileIcon, getPreviewKind } from '../../helper/document.helper';
 import { useLazyVisible } from '../../hooks/useLazyVisible';
 import PdfThumbnail from './PdfThumbnail';
+import DocumentVideoThumbnail from './DocumentVideoThumbnail';
 
 const DocumentPreview = memo(function DocumentPreview({ documentItem }) {
   const previewKind = getPreviewKind(documentItem);
@@ -34,16 +35,7 @@ const DocumentPreview = memo(function DocumentPreview({ documentItem }) {
       />
     );
   } else if (isVisible && previewKind === 'video') {
-    content = (
-      <video
-        className="doc-details-preview-image"
-        src={`${documentItem.fileUrl}#t=0.5`}
-        preload="metadata"
-        muted
-        playsInline
-        tabIndex={-1}
-      />
-    );
+    content = <DocumentVideoThumbnail documentItem={documentItem} />;
   }
 
   return (

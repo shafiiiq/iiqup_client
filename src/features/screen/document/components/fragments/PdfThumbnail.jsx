@@ -41,6 +41,7 @@ function PdfThumbnail({ url, cacheKey, fallback }) {
       if (isCancelled) return;
       try {
         loadingTask = pdfjsLib.getDocument({ url: urlRef.current, disableAutoFetch: true });
+        loadingTask.promise.catch(() => null);
         const pdf = await loadingTask.promise;
         const page = await pdf.getPage(1);
         if (isCancelled) return;
@@ -49,7 +50,9 @@ function PdfThumbnail({ url, cacheKey, fallback }) {
         const canvas = canvasRef.current;
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        const renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport });
+        renderTask.promise.catch(() => null);
+        await renderTask.promise;
       } catch {
         if (!isCancelled) setHasFailed(true);
       } finally {

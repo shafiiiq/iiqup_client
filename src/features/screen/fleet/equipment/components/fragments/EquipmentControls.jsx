@@ -36,7 +36,7 @@ function EquipmentControls({
               text: `View History (${selectedEquipment.length})`,
               onClick: () =>
                 navigate(
-                  `/maintenance/history/${selectedEquipment.join(',')}`,
+                  `/maintenance/list/${selectedEquipment.join(',')}`,
                 ),
               colorScheme: 'info-800',
               textColor: 'white-200',

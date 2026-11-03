@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useHeaderTitle }        from '@/shared/context/TitleContext';
-import { fetchEquipmentByRegNo } from '../../../history/api/maintenance.history.api';
-import { saveBatchServiceHistory } from '../api/maintenance.record.form.api';
+import { fetchEquipmentByRegNo, createMaintenance } from '../../../form/api/maintenance.form.api';
 import { useAlert }              from '@/shared/context/AlertContext';
 import { useHeaderVibration }    from '@/shared/context/VibrationContext';
 
@@ -115,7 +114,7 @@ export function useMaintenanceRecordForm() {
       const payload = buildBatchPayload(groupCards);
 
       try {
-        const { response, result } = await saveBatchServiceHistory(payload);
+        const { response, result } = await createMaintenance(payload);
 
         if (response.ok && result.ok) {
           nextCards = markCardsStatus(nextCards, ids, 'success');

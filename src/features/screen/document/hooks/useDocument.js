@@ -56,6 +56,8 @@ import {
   runBulkActions,
   areSameIdLists,
   getItemArea,
+  findOlderDocument,
+  findNewerDocument,
 } from '../helper/document.helper';
 import { useMarqueeSelection } from './useMarqueeSelection';
 import { useDocumentShortcuts } from './useDocumentShortcuts';
@@ -815,6 +817,35 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
 
   const handleView = (documentItem) => setViewerTarget({ mode: 'view', documents: [documentItem] });
 
+  const revealHistoryDocument = (targetDocument) => {
+    handleViewChange(getItemArea(targetDocument));
+    handleOpenFolder(targetDocument.folderId);
+    setSelectedDocumentIds([targetDocument._id]);
+    setTimeout(() => {
+      explorerRef.current
+        ?.querySelector(`[data-document-id="${targetDocument._id}"]`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 150);
+  };
+
+  const handleViewOlderVersion = (documentItem) => {
+    const olderDocument = findOlderDocument(documents, documentItem);
+    if (!olderDocument) {
+      showToast('Older version not found', 'info');
+      return;
+    }
+    revealHistoryDocument(olderDocument);
+  };
+
+  const handleViewNewerVersion = (documentItem) => {
+    const newerDocument = findNewerDocument(documents, documentItem);
+    if (!newerDocument) {
+      showToast('Newer version not found', 'info');
+      return;
+    }
+    revealHistoryDocument(newerDocument);
+  };
+
   const viewerIndex =
     viewerTarget?.mode === 'view'
       ? visibleDocuments.findIndex((documentItem) => documentItem._id === viewerTarget.documents[0]._id)
@@ -1153,8 +1184,6 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
         buildRenewOperation({
           label: `Renew "${targetDocument.displayName}"`,
           renewedDocumentId: renewedDocument._id,
-          previousDocumentId: targetDocument._id,
-          previousStatus: targetDocument.renewalStatus,
         })
       );
       showToast('Document renewed', 'success');
@@ -1362,6 +1391,20 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
     if (isArchiveDocument(documentItem)) {
       menuItems.push({ key: 'extract', label: 'Extract Zip', onSelect: () => handleExtract(documentItem) });
     }
+    if (findOlderDocument(documents, documentItem)) {
+      menuItems.push({
+        key: 'viewOlder',
+        label: 'View Older Version',
+        onSelect: () => handleViewOlderVersion(documentItem),
+      });
+    }
+    if (findNewerDocument(documents, documentItem)) {
+      menuItems.push({
+        key: 'viewNewer',
+        label: 'View Newer Version',
+        onSelect: () => handleViewNewerVersion(documentItem),
+      });
+    }
     if (documentItem.renewalStatus !== RENEWAL_STATUS.EXPIRED) {
       menuItems.push({ key: 'renew', label: 'Renew Document', onSelect: () => setRenewTarget(documentItem) });
     }
@@ -1401,6 +1444,20 @@ export const useDocument = ({ sourceType, sourceId } = {}) => {
         { key: 'download', label: 'Download', onSelect: () => handleDownload(singleDocument) },
         { key: 'rename', label: 'Rename', onSelect: () => handleRenameClick(singleDocument) }
       );
+      if (findOlderDocument(documents, singleDocument)) {
+        toolbarActionList.push({
+          key: 'viewOlder',
+          label: 'View Older Version',
+          onSelect: () => handleViewOlderVersion(singleDocument),
+        });
+      }
+      if (findNewerDocument(documents, singleDocument)) {
+        toolbarActionList.push({
+          key: 'viewNewer',
+          label: 'View Newer Version',
+          onSelect: () => handleViewNewerVersion(singleDocument),
+        });
+      }
       if (singleDocument.renewalStatus !== RENEWAL_STATUS.EXPIRED) {
         toolbarActionList.push({ key: 'renew', label: 'Renew Document', onSelect: () => setRenewTarget(singleDocument) });
       }

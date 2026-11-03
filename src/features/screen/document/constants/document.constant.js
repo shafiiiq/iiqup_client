@@ -42,6 +42,8 @@ export const DOCUMENT_TOOLBAR_ICONS = {
   reopenWindow: 'RedoWindowIcon',
   reopenRightWindows: 'RedoClosedRightWindowsIcon',
   reopenLeftWindows: 'RedoClosedLeftWindowsIcon',
+  viewOlder: 'UndoIcon',
+  viewNewer: 'RedoIcon',
 };
 
 export const DOCUMENT_MENU_CATEGORIES = [
@@ -74,6 +76,8 @@ export const DOCUMENT_MENU_CATEGORIES = [
     label: 'View',
     items: [
       { key: 'view', label: 'View' },
+      { key: 'viewOlder', label: 'View Older Version' },
+      { key: 'viewNewer', label: 'View Newer Version' },
       { key: 'selectMultiple', label: 'Select Multiple' },
     ],
   },
@@ -124,6 +128,15 @@ export const DOCUMENT_MENU_CATEGORIES = [
 ];
 
 export const TRASH_NODE_KEY = 'trash';
+export const EXPIRY_NODE_KEY = 'expiry-tracking';
+
+export const EXPIRY_BUCKETS = [
+  { key: 'expired', label: 'Expired', maximumDays: 0, isHiddenWhenEmpty: true },
+  { key: 'soon', label: 'Expiring Soon (within 7 days)', maximumDays: 7 },
+  { key: 'oneMonth', label: 'Expiring in 1 Month', maximumDays: 30 },
+  { key: 'twoMonths', label: 'Expiring in 2 Months', maximumDays: 60 },
+  { key: 'threeMonths', label: 'Expiring in 3 Months', maximumDays: 90 },
+];
 export const buildDocumentKeyPrefix = (sourceType, sourceId) => `documents/${sourceType}/${sourceId}`;
 
 export const RENEWAL_STATUS = {

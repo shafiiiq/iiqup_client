@@ -1,0 +1,70 @@
+.shared-widget-notification-permission-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(720px, calc(100vw - 32px));
+  padding: 16px 20px;
+  box-sizing: border-box;
+  background: var(--bg-sidebar);
+  color: var(--text-color);
+  border: 1px solid var(--color-primary-700);
+  border-radius: var(--radius-4xl);
+  corner-shape: squircle;
+  box-shadow: var(--shadow-xl);
+}
+
+.shared-widget-notification-permission-icon {
+  display: inline-flex;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.shared-widget-notification-permission-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shared-widget-notification-permission-text strong {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.shared-widget-notification-permission-text span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.shared-widget-notification-permission-action {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-xl);
+  corner-shape: squircle;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.shared-widget-notification-permission-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shared-widget-notification-permission-dismiss {
+  display: inline-flex;
+  padding: 6px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}

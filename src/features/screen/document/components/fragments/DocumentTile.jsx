@@ -14,6 +14,7 @@ const DocumentTile = memo(function DocumentTile({
   isSelected,
   isCut,
   isNew,
+  isFocused,
   isRenaming,
   onCommitRename,
   onCancelRename,
@@ -26,7 +27,7 @@ const DocumentTile = memo(function DocumentTile({
 
   return (
     <div
-      className={`doc-details-tile ${isSelected ? 'selected' : ''} ${isCut ? 'cut' : ''} ${isNew ? 'is-new' : ''}`}
+      className={`doc-details-tile ${isSelected ? 'selected' : ''} ${isCut ? 'cut' : ''} ${isNew ? 'is-new' : ''} ${isFocused ? 'is-focused' : ''}`}
       data-document-id={documentItem._id}
       draggable={!isRenaming}
       onDragStart={(event) => onDragStart(event, documentItem)}

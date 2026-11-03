@@ -1,0 +1,6 @@
+export const SOCKET_RECONNECT_DELAY_MS = 3000;
+export const SOCKET_RECONNECT_ATTEMPTS = 10;
+export const SOCKET_TIMEOUT_MS = 20000;
+export const MANUAL_RECONNECT_BASE_DELAY_MS = 2000;
+export const MANUAL_RECONNECT_MAX_ATTEMPTS = 10;
+export const MANUAL_RECONNECTABLE_REASONS = ['io server disconnect'];

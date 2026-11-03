@@ -16,40 +16,13 @@ export const HISTORICAL_NAV_TREE = [
     children: [
       { key: 'mobilizations', label: 'Mobilizations', dataKey: 'mobilized' },
       { key: 'demobilization', label: 'Demobilization', dataKey: 'demobilized' },
-      { key: 'status-changes', label: 'Status Changes', dataKey: 'statusChanged' },
-    ],
-  },
-  {
-    key: 'replacements',
-    label: 'Replacements',
-    children: [
-      { key: 'operator-replacements', label: 'Operator Replacements', dataKey: 'operatorReplacement' },
-      { key: 'equipment-replacements', label: 'Equipment Replacements', dataKey: 'equipmentReplacement' },
-      { key: 'site-replacements', label: 'Site Replacements', dataKey: 'siteReplacement' },
-    ],
-  },
-  {
-    key: 'fleet',
-    label: 'Fleet',
-    children: [
-      { key: 'equipments', label: 'Equipments', dataKey: 'equipment' },
-      { key: 'complaints', label: 'Complaints', dataKey: 'complaints' },
-    ],
-  },
-  {
-    key: 'stock-management',
-    label: 'Stock Management',
-    children: [
-      { key: 'stocks', label: 'Stocks', dataKey: 'stocks' },
-      { key: 'toolkits', label: 'Toolkits', dataKey: 'toolkit' },
     ],
   },
   {
     key: 'documentations',
     label: 'Documentations',
     children: [
-      { key: 'documents', label: 'Documents', dataKey: 'document' },
-      { key: 'lpo', label: 'Lpo', dataKey: 'lpo' },
+      { key: 'purchaseorder', label: 'Purchase Order', dataKey: 'purchaseorder' },
       { key: 'backcharges', label: 'Backcharges', dataKey: 'backcharge' },
     ],
   },

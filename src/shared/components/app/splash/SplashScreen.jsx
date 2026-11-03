@@ -2,7 +2,7 @@
 // SplashScreen.jsx — App entry animation screen
 // Shown once per session (guarded by sessionStorage).
 // Renders a Spline 3D scene with a comet-trail SVG loader and brand copy.
-// Auto-redirects to /login after the scene loads or on WebGL/Spline failure.
+// Auto-redirects to /authn after the scene loads or on WebGL/Spline failure.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
@@ -74,7 +74,7 @@ function SplashScreen() {
     setSupportsWebGL(hasWebGL);
 
     if (!hasWebGL) {
-      const timer = setTimeout(() => navigate('/login', { replace: true }), NO_WEBGL_REDIRECT_DELAY);
+      const timer = setTimeout(() => navigate('/authn', { replace: true }), NO_WEBGL_REDIRECT_DELAY);
       return () => clearTimeout(timer);
     }
   }, [navigate]);
@@ -83,7 +83,7 @@ function SplashScreen() {
   // rather than leaving the user on a broken screen.
   useEffect(() => {
     if (!splineError) return;
-    const timer = setTimeout(() => navigate('/login', { replace: true }), SPLINE_ERROR_REDIRECT_DELAY);
+    const timer = setTimeout(() => navigate('/authn', { replace: true }), SPLINE_ERROR_REDIRECT_DELAY);
     return () => clearTimeout(timer);
   }, [splineError, navigate]);
 

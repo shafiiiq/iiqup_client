@@ -1,9 +1,9 @@
-import Intro from '@/features/screen/oauth/intro/components/Intro';
+import Onboard from '@/features/screen/onboard/components/Onboard';
 import Home from '@/features/screen/home/components/Home';
-import Mechanics from '@/features/screen/mechanic/components/Mechanic';
+import Mechanics from '@/features/screen/fleet/mechanic/components/Mechanic';
 import Operators from '@/features/screen/fleet/operator/components/Operator';
 import Toolkits from '@/features/screen/stock/toolkit/components/Toolkits';
-import Complaints from '@/features/screen/complaint/components/Complaint';
+import Complaints from '@/features/screen/fleet/complaint/components/Complaint';
 import SpareParts from '@/features/screen/stock/part/components/SpareParts';
 import Documents from '@/features/screen/document/components/Document';
 import Dashboard from '@/features/screen/dashboard/components/Dashboard';
@@ -13,26 +13,26 @@ import Graphs from '@/features/screen/dashboard/components/Graphs';
 import Downloads from '@/shared/components/app/downloads/Downloads';
 import Equipments from '@/features/screen/fleet/equipment/components/Equipments';
 import Operations from '@/features/screen/fleet/operation/components/Operations';
-import MaintenanceHistory from '@/features/screen/fleet/maintenance/history/components/MaintenanceHistory';
-import MaintenanceEntryForm from '@/features/screen/fleet/maintenance/entry/components/MaintenanceEntryForm';
+import MaintenanceList from '@/features/screen/fleet/maintenance/list/components/MaintenanceList';
+import MaintenanceForm from '@/features/screen/fleet/maintenance/form/components/MaintenanceForm';
 import MaintenanceReport from '@/features/screen/fleet/maintenance/report/components/MaintenanceReport';
 import MaintenanceRecord from '@/features/screen/fleet/maintenance/record/components/MaintenanceRecord';
 import MaintenanceRecordForm from '@/features/screen/fleet/maintenance/record/form/components/MaintenanceRecordForm';
-import PurchaseOrderList from '@/features/screen/order/purchase/list/components/PurchaseOrderList';
-import PurchaseOrderReport from '@/features/screen/order/purchase/report/components/PurchaseOrderReport';
-import PurchaseOrderForm from '@/features/screen/order/purchase/form/components/PurchaseOrderForm';
-import QuotationList from '@/features/screen/quotation/list/components/QuotationList';
-import QuotationReport from '@/features/screen/quotation/report/components/QuotationReport';
-import QuotationForm from '@/features/screen/quotation/form/components/QuotationForm';
-import HireOrderList from '@/features/screen/order/hire/list/components/HireOrderList';
-import HireOrderForm from '@/features/screen/order/hire/form/components/HireOrderForm';
-import HireOrderReport from '@/features/screen/order/hire/report/components/HireOrderReport';
-import BackchargeForm from '@/features/screen/backcharge/form/components/BackchargeForm';
-import BackchargeList from '@/features/screen/backcharge/list/components/BackchargeList';
-import BackchargeReport from '@/features/screen/backcharge/report/components/BackchargeReport';
+import PurchaseOrderList from '@/features/screen/commercials/purchase/list/components/PurchaseOrderList';
+import PurchaseOrderReport from '@/features/screen/commercials/purchase/report/components/PurchaseOrderReport';
+import PurchaseOrderForm from '@/features/screen/commercials/purchase/form/components/PurchaseOrderForm';
+import QuotationList from '@/features/screen/commercials/quotation/list/components/QuotationList';
+import QuotationReport from '@/features/screen/commercials/quotation/report/components/QuotationReport';
+import QuotationForm from '@/features/screen/commercials/quotation/form/components/QuotationForm';
+import HireOrderList from '@/features/screen/commercials/hire/list/components/HireOrderList';
+import HireOrderForm from '@/features/screen/commercials/hire/form/components/HireOrderForm';
+import HireOrderReport from '@/features/screen/commercials/hire/report/components/HireOrderReport';
+import BackchargeForm from '@/features/screen/commercials/backcharge/form/components/BackchargeForm';
+import BackchargeList from '@/features/screen/commercials/backcharge/list/components/BackchargeList';
+import BackchargeReport from '@/features/screen/commercials/backcharge/report/components/BackchargeReport';
 
 export const PUBLIC_ROUTES = [
-  { path: '/intro', element: <Intro /> },
+  { path: '/onboard', element: <Onboard /> },
   { path: '/batch-service-form/:regNo?', element: <MaintenanceRecordForm /> },
 ];
 
@@ -65,18 +65,15 @@ export const PROTECTED_ROUTES = [
 
   { path: '/fleet/operations', element: <Operations /> },
 
-  { path: '/maintenance/history', element: <MaintenanceHistory /> },
-  { path: '/maintenance/history/:regNos', element: <MaintenanceHistory /> },
+  { path: '/maintenance/list', element: <MaintenanceList /> },
+  { path: '/maintenance/list/:regNos', element: <MaintenanceList /> },
 
-  // Merged Service Type + History + Report form (single page, tab-switched).
-  { path: '/maintenance/entry/report/:serviceType/:historyId', element: <MaintenanceEntryForm /> },
-  { path: '/maintenance/entry/report/update/:serviceType/:reportId', element: <MaintenanceEntryForm /> },
-  { path: '/maintenance/entry/:regNo/:complaintId?', element: <MaintenanceEntryForm /> },
+  { path: '/maintenance/form/new', element: <MaintenanceForm /> },
+  { path: '/maintenance/form/new/:regNo/:complaintId?', element: <MaintenanceForm /> },
+  { path: '/maintenance/form/edit/:maintenanceId', element: <MaintenanceForm /> },
 
-  { path: '/all/:serviceType/:regNo', element: <MaintenanceReport /> },
-  { path: '/all/:serviceType/:regNo/range/:startDate/:endDate', element: <MaintenanceReport /> },
-  { path: '/all/:serviceType/:regNo/months/:monthsCount', element: <MaintenanceReport /> },
-  { path: '/service-document/:historyId', element: <MaintenanceReport /> },
+  { path: '/maintenance/report/batch', element: <MaintenanceReport /> },
+  { path: '/maintenance/report/:maintenanceId', element: <MaintenanceReport /> },
 
   { path: '/maintenance/record', element: <MaintenanceRecord /> },
 
@@ -112,6 +109,7 @@ export const PROTECTED_ROUTES = [
   { path: '/quotation/list', element: <QuotationList /> },
   { path: '/quotation/report/:quotationRef', element: <QuotationReport /> },
   { path: '/quotation/report/:quotationRef/amendment/:amendment', element: <QuotationReport /> },
+  { path: '/quotation/report/:quotationRef/parts/:parts', element: <QuotationReport /> },
 
   { path: '/backcharge/form', element: <BackchargeForm /> },
 

@@ -9,6 +9,7 @@ import {
 } from '../../constants/document.constant';
 import { getFileIcon, getPreviewKind } from '../../helper/document.helper';
 import { getPreviewPdfUrl } from '../../api/document.api';
+import DocumentVideoPreview from './DocumentVideoPreview';
 
 const useRemoteBuffer = (url) => {
   const [state, setState] = useState({ buffer: null, isLoading: true, error: '' });
@@ -213,7 +214,7 @@ function DocumentFilePreview({ documentItem, onDownload }) {
     return <img className="doc-viewer-image" src={documentItem.fileUrl} alt={documentItem.displayName} />;
   }
   if (previewKind === 'video') {
-    return <video className="doc-viewer-media" src={documentItem.fileUrl} controls preload="metadata" />;
+    return <DocumentVideoPreview documentItem={documentItem} />;
   }
   if (previewKind === 'audio') {
     return <audio className="doc-viewer-audio" src={documentItem.fileUrl} controls preload="metadata" />;

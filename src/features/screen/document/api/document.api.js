@@ -170,6 +170,21 @@ export const mergeDocumentPages = async ({ sourceType, sourceId, pages }) =>
     'Failed to merge documents'
   );
 
+export const fetchExpiryTracking = async () =>
+  readResponseData(await apiRequest('/documents/expiry-tracking', 'GET'), 'Failed to load expiry tracking');
+
+export const revertRenewal = async ({ documentId }) =>
+  readResponseData(
+    await apiRequest(`/documents/${documentId}/revert-renewal`, 'POST', {}),
+    'Failed to undo renewal'
+  );
+
+export const reapplyRenewal = async ({ documentId }) =>
+  readResponseData(
+    await apiRequest(`/documents/${documentId}/reapply-renewal`, 'POST', {}),
+    'Failed to redo renewal'
+  );
+
 export const fetchStorageSummary = async () =>
   readResponseData(await apiRequest('/documents/storage', 'GET'), 'Failed to load storage');
 

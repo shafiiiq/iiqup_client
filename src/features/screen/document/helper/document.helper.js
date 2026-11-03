@@ -29,12 +29,12 @@ export const getFileIcon = (fileName = '', mimeType = '') => {
   const normalizedMimeType = mimeType.toLowerCase();
   if (extension === 'pdf' || normalizedMimeType.includes('pdf')) return 'PdfIcon';
   if (IMAGE_FILE_EXTENSIONS.includes(extension) || normalizedMimeType.includes('image')) return 'ImageIcon';
-  if (['doc', 'docx'].includes(extension) || normalizedMimeType.includes('word')) return 'DocumentIcon';
+  if (['doc', 'docx'].includes(extension) || normalizedMimeType.includes('word')) return 'IconlyDocument';
   if (['xls', 'xlsx', 'xlsm', 'csv', 'ods'].includes(extension) || normalizedMimeType.includes('spreadsheet')) return 'ExcelIcon';
   if (['ppt', 'pptx'].includes(extension) || normalizedMimeType.includes('presentation')) return 'PowerPointIcon';
   if (ARCHIVE_FILE_EXTENSIONS.includes(extension) || normalizedMimeType.includes('zip')) return 'ZipIcon';
   if (TEXT_FILE_EXTENSIONS.includes(extension) || normalizedMimeType.startsWith('text/')) return 'TextFileIcon';
-  return 'AttachmentIcon';
+  return 'IconlyAttach';
 };
 
 const hasExtensionIn = (documentItem, extensions) =>
@@ -131,6 +131,14 @@ export const formatBytes = (bytes) => {
 };
 
 export const getItemArea = (item) => item.area || 'all';
+
+export const findOlderDocument = (documents, documentItem) =>
+  documentItem.renewedFromDocumentId
+    ? documents.find((candidate) => candidate._id === documentItem.renewedFromDocumentId) || null
+    : null;
+
+export const findNewerDocument = (documents, documentItem) =>
+  documents.find((candidate) => candidate.renewedFromDocumentId === documentItem._id) || null;
 
 const isVirtualViewMember = (documentItem, viewKey) =>
   (viewKey === DOCUMENT_VIEWS.RENEWED || viewKey === DOCUMENT_VIEWS.EXPIRED) &&
