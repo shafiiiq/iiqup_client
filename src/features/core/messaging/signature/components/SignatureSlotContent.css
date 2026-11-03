@@ -18,6 +18,12 @@
   cursor: not-allowed;
 }
 
+@media print {
+  .shared.signature.slot.button.no-print {
+    display: none !important;
+  }
+}
+
 .shared.signature.slot.marker {
   color: #dc3545;
   font-style: italic;
