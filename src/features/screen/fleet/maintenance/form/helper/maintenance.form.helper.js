@@ -11,8 +11,22 @@ import {
 
 export const createLocalId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-export const buildEmptyRow = () => ({
-  id: createLocalId(),
+export const isSupportedMediaFile = (file) => file.type.startsWith('image/') || file.type.startsWith('video/');
+
+export const buildPendingAttachment = (file) => ({
+  localId: createLocalId(),
+  sessionId: '',
+  s3Key: '',
+  fileName: file.name,
+  mimeType: file.type,
+  fileSize: file.size,
+  previewUrl: URL.createObjectURL(file),
+  progress: 0,
+  status: 'uploading',
+  errorMessage: '',
+});
+
+export const buildEmptyHistory = () => ({
   date: getTodayIsoDate(),
   serviceHrs: '',
   nextServiceHrs: '',
@@ -31,29 +45,27 @@ export const calculateNextService = (value, increment = NEXT_SERVICE_INCREMENT) 
   return `${parsedNumber + increment}${match[2]}`;
 };
 
-export const applyRowChange = (row, field, value, serviceType) => {
+export const applyHistoryChange = (history, field, value, serviceType) => {
   if (field === 'nextServiceHrs') {
     const upperValue = value.toUpperCase();
-    return { ...row, nextServiceHrs: upperValue, isNextServiceEdited: upperValue !== '' };
+    return { ...history, nextServiceHrs: upperValue, isNextServiceEdited: upperValue !== '' };
   }
   if (field === 'serviceHrs') {
     const upperValue = value.toUpperCase();
-    const updatedRow = { ...row, serviceHrs: upperValue };
-    if (row.isNextServiceEdited || !isOilOrNormalService(serviceType)) return updatedRow;
-    return { ...updatedRow, nextServiceHrs: calculateNextService(upperValue) };
+    const updatedHistory = { ...history, serviceHrs: upperValue };
+    if (history.isNextServiceEdited || !isOilOrNormalService(serviceType)) return updatedHistory;
+    return { ...updatedHistory, nextServiceHrs: calculateNextService(upperValue) };
   }
-  return { ...row, [field]: value };
+  return { ...history, [field]: value };
 };
 
-export const recalculateRowsForServiceType = (rows, serviceType) =>
-  rows.map((row) =>
-    row.isNextServiceEdited
-      ? row
-      : {
-          ...row,
-          nextServiceHrs: isOilOrNormalService(serviceType) ? calculateNextService(row.serviceHrs) : '',
-        }
-  );
+export const recalculateHistoryForServiceType = (history, serviceType) =>
+  history.isNextServiceEdited
+    ? history
+    : {
+        ...history,
+        nextServiceHrs: isOilOrNormalService(serviceType) ? calculateNextService(history.serviceHrs) : '',
+      };
 
 export const resolveEquipmentAutofill = (equipment) => {
   const assignedOperatorNames = (equipment.certificationBody || [])
@@ -165,8 +177,7 @@ export const mapMaintenanceToFormData = (record) => {
   };
 };
 
-export const mapMaintenanceToRow = (record) => ({
-  id: createLocalId(),
+export const mapMaintenanceToHistory = (record) => ({
   date: record.date?.slice(0, 10) || getTodayIsoDate(),
   serviceHrs: record.serviceHrs || '',
   nextServiceHrs: record.nextServiceHrs || '',
@@ -174,7 +185,7 @@ export const mapMaintenanceToRow = (record) => ({
   isNextServiceEdited: Boolean(record.nextServiceHrs),
 });
 
-export const getMissingFieldsBySection = (formData, rows) => {
+export const getMissingFieldsBySection = (formData, history) => {
   const missing = Object.fromEntries(Object.values(FORM_SECTIONS).map((section) => [section, []]));
 
   if (formData.serviceType === 'tyre') {
@@ -190,8 +201,8 @@ export const getMissingFieldsBySection = (formData, rows) => {
   });
 
   const isNextServiceRequired = isOilOrNormalService(formData.serviceType);
-  if (rows.some((row) => !row.date || !row.serviceHrs || (isNextServiceRequired && !row.nextServiceHrs))) {
-    missing[FORM_SECTIONS.ROWS].push('rows');
+  if (!history.date || !history.serviceHrs || (isNextServiceRequired && !history.nextServiceHrs)) {
+    missing[FORM_SECTIONS.HISTORY].push('history');
   }
 
   if (formData.serviceType === 'major' && !formData.remarks) missing[FORM_SECTIONS.REPORT].push('remarks');
@@ -221,20 +232,20 @@ const buildSharedPayload = ({ formData, attachmentSessionIds }) => ({
   ...(formData.serviceType === 'battery' && { batteryModel: formData.batteryModel }),
 });
 
-const pickRowFields = ({ date, serviceHrs, nextServiceHrs, fullService }) => ({
+const pickHistoryFields = ({ date, serviceHrs, nextServiceHrs, fullService }) => ({
   date,
   serviceHrs,
   nextServiceHrs,
   fullService,
 });
 
-export const buildCreatePayload = ({ formData, rows, attachmentSessionIds, complaintId }) => ({
+export const buildCreatePayload = ({ formData, history, attachmentSessionIds, complaintId }) => ({
   ...buildSharedPayload({ formData, attachmentSessionIds }),
   ...(complaintId && { complaintId }),
-  rows: rows.map(pickRowFields),
+  rows: [pickHistoryFields(history)],
 });
 
-export const buildUpdatePayload = ({ formData, row, attachmentSessionIds }) => ({
+export const buildUpdatePayload = ({ formData, history, attachmentSessionIds }) => ({
   ...buildSharedPayload({ formData, attachmentSessionIds }),
-  ...pickRowFields(row),
+  ...pickHistoryFields(history),
 });

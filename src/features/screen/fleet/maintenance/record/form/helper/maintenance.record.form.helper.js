@@ -1,118 +1,87 @@
-import { DEFAULT_CHECKLIST, NEXT_SERVICE_INCREMENT } from '../constants/maintenance.record.form.constant';
+import {
+  buildDefaultFormData,
+  buildEmptyHistory,
+  buildChecklistForServiceType,
+  applyOilChecklistDescriptions,
+  recalculateHistoryForServiceType,
+  getMissingFieldsBySection,
+  createLocalId,
+} from '../../../form/helper/maintenance.form.helper';
+import { isOilOrNormalService } from '../../../helper/maintenance.helper';
+import { FORM_SECTIONS, OIL_FILTER_OPTIONS } from '../../../form/constants/maintenance.form.constant';
+import {
+  RECORD_FORM_SECTIONS,
+  RECORD_SUBMIT_STATUS,
+  INITIAL_CARDS_COUNT,
+} from '../constants/maintenance.record.form.constant';
 
-let uidCounter = 0;
-
-export const createUid = () => `c${++uidCounter}_${Date.now()}`;
-
-export const calcNextServiceValue = (val, increment = NEXT_SERVICE_INCREMENT) => {
-  if (!val) return '';
-  const upper = String(val).toUpperCase();
-
-  if (upper.endsWith('KM'))  { const n = parseInt(upper); return isNaN(n) ? '' : `${n + increment}KM`;  }
-  if (upper.endsWith('HRS')) { const n = parseInt(upper); return isNaN(n) ? '' : `${n + increment}HRS`; }
-
-  const n = parseInt(upper);
-  return isNaN(n) ? '' : `${n + increment}`;
-};
-
-export const checklistDefaultsForType = (serviceType) =>
-  DEFAULT_CHECKLIST.map((item) => ({
-    ...item,
-    status: (serviceType === 'oil' || serviceType === 'normal') && item.id <= 24 ? '✓' : '',
-  }));
-
-export const buildCard = (regNo = '', machine = '', operator = '') => ({
-  id: createUid(),
-  regNo, machine, operator,
-  serviceType:    'oil',
-  date:           new Date().toISOString().split('T')[0],
-  serviceHrs:     '',
-  nextServiceHrs: '',
-  fullService:    false,
-  tyreModel:      '',
-  tyreNumber:     '',
-  batteryModel:   '',
-  mechanics:      '',
-  location:       '',
-  remarks:        '',
-  oil:            'Check',
-  oilFilter:      'Check',
-  fuelFilter:     'Check',
-  acFilter:       'Clean',
-  airFilter:      'Clean',
-  waterSeparator: 'Check',
-  checklistItems: DEFAULT_CHECKLIST.map((item) => ({ ...item })),
-  _status: 'idle',
-  _error:  '',
+export const buildRecordCard = ({ regNo = '', equipment = '', operator = '' } = {}) => ({
+  id: createLocalId(),
+  formData: { ...buildDefaultFormData(regNo), equipment, operator },
+  history: buildEmptyHistory(),
+  attachments: [],
+  submitStatus: RECORD_SUBMIT_STATUS.IDLE,
+  submitError: '',
 });
 
-export const groupCardsByRegAndType = (cards) => {
-  const groups = {};
-  cards.forEach((card) => {
-    const key = `${card.regNo}__${card.serviceType}`;
-    (groups[key] = groups[key] || []).push(card);
-  });
-  return groups;
-};
+export const buildInitialRecordCards = (regNo) =>
+  Array.from({ length: INITIAL_CARDS_COUNT }, () => buildRecordCard({ regNo: regNo || '' }));
 
-export const buildBatchPayload = (groupCards) => {
-  const first = groupCards[0];
-
+export const applyFormFieldChange = (formData, fieldName, value) => {
+  const updatedFormData = { ...formData, [fieldName]: value };
+  const isOilFilterField = OIL_FILTER_OPTIONS.some(({ key }) => key === fieldName);
+  if (!isOilFilterField || !isOilOrNormalService(updatedFormData.serviceType)) return updatedFormData;
   return {
-    serviceType:    first.serviceType,
-    regNo:          first.regNo,
-    equipment:      first.machine,
-    location:       first.location,
-    mechanics:      first.mechanics,
-    operator:       first.operator,
-    remarks:        first.remarks,
-    checklistItems: first.checklistItems,
-    oil:            first.oil,
-    oilFilter:      first.oilFilter,
-    fuelFilter:     first.fuelFilter,
-    acFilter:       first.acFilter,
-    airFilter:      first.airFilter,
-    waterSeparator: first.waterSeparator,
-    tyreModel:      first.tyreModel,
-    tyreNumber:     first.tyreNumber,
-    batteryModel:   first.batteryModel,
-    rows: groupCards.map((card) => ({
-      date:           card.date,
-      serviceHrs:     card.serviceHrs,
-      nextServiceHrs: card.nextServiceHrs,
-      fullService:    card.fullService,
-    })),
+    ...updatedFormData,
+    checklistItems: applyOilChecklistDescriptions(updatedFormData.checklistItems, updatedFormData),
   };
 };
 
-export const markCardsStatus = (cards, ids, status, errorsById = {}) =>
-  cards.map((card) =>
-    ids.includes(card.id) ? { ...card, _status: status, _error: errorsById[card.id] || '' } : card
-  );
+export const applyServiceTypeSelection = (card, serviceType) => ({
+  ...card,
+  formData: {
+    ...card.formData,
+    serviceType,
+    checklistItems: buildChecklistForServiceType(serviceType, card.formData),
+  },
+  history: recalculateHistoryForServiceType(card.history, serviceType),
+});
 
-// Returns, per section key, the list of missing required field names for this
-// card. Used to color that card's item in the single shared Tabs bar with
-// var(--warning-color-400) when something in that section is still empty.
-export const getCardMissingFields = (card) => {
-  const missing = { equipment: [], type: [], history: [], report: [] };
+export const applyEquipmentAutofill = (formData, autofill) => ({
+  ...formData,
+  equipment: autofill.equipment || formData.equipment,
+  operator: autofill.operator || formData.operator,
+});
 
-  if (!card.regNo && card.regNo !== 0) missing.equipment.push('regNo');
-  if (!card.machine) missing.equipment.push('machine');
+export const setChecklistItemStatus = (formData, itemId, status) => ({
+  ...formData,
+  checklistItems: formData.checklistItems.map((item) => (item.id === itemId ? { ...item, status } : item)),
+});
 
-  if (card.serviceType === 'tyre') {
-    if (!card.tyreModel) missing.type.push('tyreModel');
-    if (!card.tyreNumber) missing.type.push('tyreNumber');
-  }
-  if (card.serviceType === 'battery' && !card.batteryModel) missing.type.push('batteryModel');
+export const setChecklistRangeStatus = (formData, rangeStart, rangeEnd, status) => ({
+  ...formData,
+  checklistItems: formData.checklistItems.map((item) =>
+    item.id >= rangeStart && item.id <= rangeEnd ? { ...item, status } : item
+  ),
+});
 
-  if (!card.date) missing.history.push('date');
-  if (!card.location) missing.history.push('location');
-  if (!card.mechanics) missing.history.push('mechanics');
-
-  return missing;
+export const getCardMissingFieldsBySection = (card) => {
+  const missingBySection = getMissingFieldsBySection(card.formData, card.history);
+  return {
+    ...missingBySection,
+    [RECORD_FORM_SECTIONS.EQUIPMENT]: missingBySection[FORM_SECTIONS.DETAILS].filter(
+      (fieldName) => fieldName === 'regNo'
+    ),
+    [FORM_SECTIONS.DETAILS]: missingBySection[FORM_SECTIONS.DETAILS].filter((fieldName) => fieldName !== 'regNo'),
+  };
 };
 
-export const cardHasAnyMissingField = (card) => {
-  const missing = getCardMissingFields(card);
-  return missing.equipment.length + missing.type.length + missing.history.length + missing.report.length > 0;
-};
+export const cardHasMissingFields = (card) =>
+  Object.values(getCardMissingFieldsBySection(card)).some((fieldNames) => fieldNames.length > 0);
+
+export const hasUploadingAttachment = (card) => card.attachments.some((attachment) => attachment.status === 'uploading');
+
+export const hasFailedAttachment = (card) => card.attachments.some((attachment) => attachment.status === 'error');
+
+export const getCompletedSessionIds = (card) =>
+  card.attachments.filter((attachment) => attachment.status === 'done').map((attachment) => attachment.sessionId);

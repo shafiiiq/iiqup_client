@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { uploadFile } from '@/features/core/sync/upload/upload.service';
 import { MAINTENANCE_UPLOAD_FEATURE, MAINTENANCE_UPLOAD_KEY_PREFIX } from '../../constants/maintenance.constant';
-import { createLocalId } from '../helper/maintenance.form.helper';
-
-const isSupportedMediaFile = (file) => file.type.startsWith('image/') || file.type.startsWith('video/');
+import { isSupportedMediaFile, buildPendingAttachment } from '../helper/maintenance.form.helper';
 
 export const useMaintenanceAttachments = () => {
   const [attachments, setAttachments] = useState([]);
@@ -49,18 +47,7 @@ export const useMaintenanceAttachments = () => {
     (files) => {
       const pendingUploads = files.filter(isSupportedMediaFile).map((file) => ({
         file,
-        attachment: {
-          localId: createLocalId(),
-          sessionId: '',
-          s3Key: '',
-          fileName: file.name,
-          mimeType: file.type,
-          fileSize: file.size,
-          previewUrl: URL.createObjectURL(file),
-          progress: 0,
-          status: 'uploading',
-          errorMessage: '',
-        },
+        attachment: buildPendingAttachment(file),
       }));
       if (pendingUploads.length === 0) return;
 

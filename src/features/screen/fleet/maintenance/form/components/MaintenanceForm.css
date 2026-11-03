@@ -107,35 +107,6 @@
   gap: 8px;
 }
 
-.fleet.maintenance.form.rows-table-container {
-  overflow-x: auto;
-}
-
-.fleet.maintenance.form.rows-table {
-  width: 100%;
-  min-width: 720px;
-  border-collapse: separate;
-  border-spacing: 0 10px;
-  color: var(--text-color);
-}
-
-.fleet.maintenance.form.rows-table th {
-  text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 0 8px;
-}
-
-.fleet.maintenance.form.rows-table td {
-  padding: 0 8px;
-  vertical-align: middle;
-}
-
-.fleet.maintenance.form.rows-actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
 .fleet.maintenance.form.checklist-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

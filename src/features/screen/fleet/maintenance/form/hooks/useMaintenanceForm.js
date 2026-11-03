@@ -10,15 +10,15 @@ import { fetchEquipmentByRegNo, createMaintenance, updateMaintenance } from '../
 import { FORM_SECTIONS, FORM_SECTION_ORDER, DEFAULT_TOAST } from '../constants/maintenance.form.constant';
 import { isOilOrNormalService } from '../../helper/maintenance.helper';
 import {
-  buildEmptyRow,
+  buildEmptyHistory,
   buildDefaultFormData,
   buildChecklistForServiceType,
   applyOilChecklistDescriptions,
-  applyRowChange,
-  recalculateRowsForServiceType,
+  applyHistoryChange,
+  recalculateHistoryForServiceType,
   resolveEquipmentAutofill,
   mapMaintenanceToFormData,
-  mapMaintenanceToRow,
+  mapMaintenanceToHistory,
   getMissingFieldsBySection,
   buildCreatePayload,
   buildUpdatePayload,
@@ -47,7 +47,7 @@ export function useMaintenanceForm() {
   const equipmentSearch = useEquipmentSearch();
 
   const [formData, setFormData] = useState(() => buildDefaultFormData(regNoParam));
-  const [rows, setRows] = useState(() => [buildEmptyRow()]);
+  const [history, setHistory] = useState(() => buildEmptyHistory());
   const [activeSection, setActiveSection] = useState(FORM_SECTIONS.TYPE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPrefetching, setIsPrefetching] = useState(mode === 'edit');
@@ -98,9 +98,9 @@ export function useMaintenanceForm() {
       try {
         const record = await fetchMaintenanceById(maintenanceId);
         setFormData(mapMaintenanceToFormData(record));
-        setRows([mapMaintenanceToRow(record)]);
+        setHistory(mapMaintenanceToHistory(record));
         loadExistingAttachments(record.attachments || []);
-        setActiveSection(FORM_SECTIONS.ROWS);
+        setActiveSection(FORM_SECTIONS.HISTORY);
       } catch (error) {
         console.error('[useMaintenanceForm] fetchMaintenance:', error);
         showAlert('Failed to load maintenance record', 'error', '--color-error-500');
@@ -142,7 +142,7 @@ export function useMaintenanceForm() {
         serviceType,
         checklistItems: buildChecklistForServiceType(serviceType, previous),
       }));
-      setRows((previous) => recalculateRowsForServiceType(previous, serviceType));
+      setHistory((previous) => recalculateHistoryForServiceType(previous, serviceType));
     },
     [mode]
   );
@@ -166,18 +166,9 @@ export function useMaintenanceForm() {
     [equipmentSearch, scheduleAutofill]
   );
 
-  const handleAddRow = useCallback(() => setRows((previous) => [...previous, buildEmptyRow()]), []);
-
-  const handleRemoveRow = useCallback(
-    (rowId) => setRows((previous) => (previous.length > 1 ? previous.filter((row) => row.id !== rowId) : previous)),
-    []
-  );
-
-  const handleRowChange = useCallback(
-    (rowId, field, value) => {
-      setRows((previous) =>
-        previous.map((row) => (row.id === rowId ? applyRowChange(row, field, value, formData.serviceType) : row))
-      );
+  const handleHistoryChange = useCallback(
+    (field, value) => {
+      setHistory((previous) => applyHistoryChange(previous, field, value, formData.serviceType));
     },
     [formData.serviceType]
   );
@@ -198,7 +189,14 @@ export function useMaintenanceForm() {
     }));
   }, []);
 
-  const missingBySection = useMemo(() => getMissingFieldsBySection(formData, rows), [formData, rows]);
+  const activeSectionIndex = FORM_SECTION_ORDER.indexOf(activeSection);
+  const isLastSection = activeSectionIndex === FORM_SECTION_ORDER.length - 1;
+
+  const handleNextSection = useCallback(() => {
+    setActiveSection(FORM_SECTION_ORDER[activeSectionIndex + 1]);
+  }, [activeSectionIndex]);
+
+  const missingBySection = useMemo(() => getMissingFieldsBySection(formData, history), [formData, history]);
   const sectionHasWarning = useCallback((section) => missingBySection[section].length > 0, [missingBySection]);
 
   const closeToast = useCallback(() => setToastConfig(DEFAULT_TOAST), []);
@@ -229,8 +227,8 @@ export function useMaintenanceForm() {
       const attachmentSessionIds = attachmentState.completedSessionIds;
       const { response, result } =
         mode === 'edit'
-          ? await updateMaintenance(maintenanceId, buildUpdatePayload({ formData, row: rows[0], attachmentSessionIds }))
-          : await createMaintenance(buildCreatePayload({ formData, rows, attachmentSessionIds, complaintId }));
+          ? await updateMaintenance(maintenanceId, buildUpdatePayload({ formData, history, attachmentSessionIds }))
+          : await createMaintenance(buildCreatePayload({ formData, history, attachmentSessionIds, complaintId }));
 
       if (response.status === 409) {
         showAlert(result.message || 'A record for this date already exists', 'warning', '#000000');
@@ -262,7 +260,7 @@ export function useMaintenanceForm() {
     maintenanceId,
     complaintId,
     formData,
-    rows,
+    history,
     missingBySection,
     attachmentState,
     navigate,
@@ -275,7 +273,7 @@ export function useMaintenanceForm() {
     isTypeLocked,
     isEquipmentLocked,
     formData,
-    rows,
+    history,
     activeSection,
     setActiveSection,
     isSubmitting,
@@ -288,12 +286,12 @@ export function useMaintenanceForm() {
     handleTypeSelect,
     handleEquipmentSelect,
     handleRegNoInput,
-    handleAddRow,
-    handleRemoveRow,
-    handleRowChange,
+    handleHistoryChange,
     handleStatusChange,
     handleRangeStatusChange,
     sectionHasWarning,
+    isLastSection,
+    handleNextSection,
     handleSubmit,
   };
 }

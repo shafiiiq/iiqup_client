@@ -8,21 +8,22 @@ import { useMaintenanceForm } from '../hooks/useMaintenanceForm';
 import { FORM_SECTIONS, FORM_SECTION_ORDER, FORM_SECTION_LABELS } from '../constants/maintenance.form.constant';
 import ServiceTypeSection from './fragments/ServiceTypeSection';
 import EquipmentDetailsSection from './fragments/EquipmentDetailsSection';
-import ServiceRowsSection from './fragments/ServiceRowsSection';
+import HistorySection from './fragments/HistorySection';
 import ReportSection from './fragments/ReportSection';
 import AttachmentsSection from './fragments/AttachmentsSection';
 
 import './MaintenanceForm.css';
 
-function getSubmitButtonText({ isSubmitting, mode, rowCount }) {
+function getActionButtonText({ isSubmitting, isLastSection, mode }) {
   if (isSubmitting) return 'Saving...';
+  if (!isLastSection) return 'Next';
   if (mode === 'edit') return 'Update';
-  return rowCount > 1 ? `Submit ${rowCount} Records` : 'Submit';
+  return 'Submit';
 }
 
 function MaintenanceForm() {
   const form = useMaintenanceForm();
-  const { formData, rows, activeSection, attachmentState } = form;
+  const { formData, history, activeSection, attachmentState } = form;
 
   const navItems = FORM_SECTION_ORDER.map((sectionKey) => ({
     key: sectionKey,
@@ -68,14 +69,11 @@ function MaintenanceForm() {
               onRegNoInput={form.handleRegNoInput}
             />
           )}
-          {activeSection === FORM_SECTIONS.ROWS && (
-            <ServiceRowsSection
-              rows={rows}
+          {activeSection === FORM_SECTIONS.HISTORY && (
+            <HistorySection
+              history={history}
               showFullService={isOilOrNormalService(formData.serviceType)}
-              canManageRows={form.mode === 'create'}
-              onRowChange={form.handleRowChange}
-              onAddRow={form.handleAddRow}
-              onRemoveRow={form.handleRemoveRow}
+              onHistoryChange={form.handleHistoryChange}
             />
           )}
           {activeSection === FORM_SECTIONS.REPORT && (
@@ -96,8 +94,12 @@ function MaintenanceForm() {
 
           <div className="fleet maintenance form actions">
             <Button
-              text={getSubmitButtonText({ isSubmitting: form.isSubmitting, mode: form.mode, rowCount: rows.length })}
-              onClick={form.handleSubmit}
+              text={getActionButtonText({
+                isSubmitting: form.isSubmitting,
+                isLastSection: form.isLastSection,
+                mode: form.mode,
+              })}
+              onClick={form.isLastSection ? form.handleSubmit : form.handleNextSection}
               colorScheme={form.isSubmitting ? 'success-1000' : 'success-800'}
               variant="gradient"
               font="md"

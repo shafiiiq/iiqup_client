@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ExcelJS from 'exceljs';
-import { fetchToolkits, fetchVariantHistory, addToolkit, updateToolkit, updateVariant, reduceToolkitStock, fetchToolkitHistory } from '../api/stock.toolkit.api';
+import { fetchToolkits, fetchVariantHistory, addToolkit, updateToolkit, updateVariant, deleteToolkit as deleteToolkitRequest, deleteVariant as deleteVariantRequest, reduceToolkitStock, fetchToolkitHistory } from '../api/stock.toolkit.api';
 import { useSearch } from '@/shared/search/useSearch';
 import { SidebarSection, SidebarRow, SidebarTable, SidebarActions, SidebarBarcode } from '@/shared/components/widgets/sidebar/Sidebar';
 import { PREDEFINED_COLORS, PREDEFINED_SIZES } from '../constants/stock.toolkit.constant';
@@ -441,7 +441,7 @@ const useToolkits = () => {
   const deleteToolkit = async (id) => {
     if (!window.confirm('Are you sure you want to delete this toolkit?')) return;
     try {
-      const response = await deleteToolkit(id);
+      const response = await deleteToolkitRequest(id);
       if (!response.ok) throw new Error('Failed to delete toolkit');
       setToolkits(toolkits.filter(item => item._id !== id));
       if (selectedToolkit && selectedToolkit._id === id) {
@@ -456,7 +456,7 @@ const useToolkits = () => {
   const deleteVariant = async (toolkitId, variantId) => {
     if (!window.confirm('Are you sure you want to delete this variant?')) return;
     try {
-      const { response, result } = await deleteVariant(toolkitId, variantId);
+      const { response, result } = await deleteVariantRequest(toolkitId, variantId);
       if (!response.ok) throw new Error('Failed to delete variant');
 
       if (result.data === null) {

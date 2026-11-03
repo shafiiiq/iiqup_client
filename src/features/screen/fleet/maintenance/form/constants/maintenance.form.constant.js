@@ -7,7 +7,7 @@ import MajorWork from '@assets/images/major-service.jpg';
 export const FORM_SECTIONS = {
   TYPE: 'type',
   DETAILS: 'details',
-  ROWS: 'rows',
+  HISTORY: 'history',
   REPORT: 'report',
   ATTACHMENTS: 'attachments',
 };
@@ -15,7 +15,7 @@ export const FORM_SECTIONS = {
 export const FORM_SECTION_ORDER = [
   FORM_SECTIONS.TYPE,
   FORM_SECTIONS.DETAILS,
-  FORM_SECTIONS.ROWS,
+  FORM_SECTIONS.HISTORY,
   FORM_SECTIONS.REPORT,
   FORM_SECTIONS.ATTACHMENTS,
 ];
@@ -23,7 +23,7 @@ export const FORM_SECTION_ORDER = [
 export const FORM_SECTION_LABELS = {
   [FORM_SECTIONS.TYPE]: 'Service Type',
   [FORM_SECTIONS.DETAILS]: 'Equipment Details',
-  [FORM_SECTIONS.ROWS]: 'Service Rows',
+  [FORM_SECTIONS.HISTORY]: 'History',
   [FORM_SECTIONS.REPORT]: 'Report',
   [FORM_SECTIONS.ATTACHMENTS]: 'Attachments',
 };
@@ -80,7 +80,13 @@ export const INPUT_PROPS = {
   inputPaddingBlock: 'xl',
 };
 
-export const ROW_INPUT_PROPS = { ...INPUT_PROPS, height: '45px' };
+export const REMARKS_TEXTAREA_PROPS = {
+  spellCheck: true,
+  autoCorrect: 'on',
+  autoCapitalize: 'characters',
+  autoComplete: 'on',
+  lang: 'en',
+};
 
 export const RADIO_BUTTON_PROPS = {
   textColor: 'black-100',
