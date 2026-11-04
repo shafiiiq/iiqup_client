@@ -119,7 +119,7 @@ function ReportDocument({ report, onEditReport, onDeleteReport, pageBreakStyle }
           { ...SHARED_BUTTON_PROPS, text: signing.isSigning ? 'Signing...' : 'Sign Document', onClick: () => signing.handleSignButtonClick(), colorScheme: 'warning-800', type: 'submit', componentIconLeft: 'SignaturePenIcon', componentIconSize: '30', iconColor: 'white-200' },
         ]}
       />
-      <A2Paper>
+      <A2Paper isReady={signing.isSignaturesLoaded}>
         <table className="fleet maintenance report checklist table">
           <thead>
             <tr>

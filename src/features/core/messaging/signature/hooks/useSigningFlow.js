@@ -222,6 +222,7 @@ const useSigningFlow = ({ sourceKey, documentId }) => {
         status: signatureStatus,
         signatureSlots,
         isSigning: signatures.isSigning,
+        isSignaturesLoaded: signatures.isLoaded,
         loadSignatures: signatures.load,
         isActivationAvailable,
         canRequestFamilyAccess,

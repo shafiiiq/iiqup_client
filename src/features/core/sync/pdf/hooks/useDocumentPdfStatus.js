@@ -15,8 +15,7 @@ const useDocumentPdfStatus = ({ sourceKey, documentId }) => {
 
         const loadPdfStatus = async () => {
             try {
-                const response = await fetchDocumentPdfStatus(sourceKey, documentId);
-                const body = await response.json();
+                const body = await fetchDocumentPdfStatus(sourceKey, documentId);
                 if (!isCancelled) setIsPdfReady(Boolean(body.data?.isReady));
             } catch (error) {
                 console.error('[useDocumentPdfStatus] loadPdfStatus:', error);

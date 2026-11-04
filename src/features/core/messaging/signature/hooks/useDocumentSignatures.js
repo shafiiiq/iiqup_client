@@ -13,6 +13,7 @@ const useDocumentSignatures = ({ sourceKey, documentId }) => {
     const [imageByEventId, setImageByEventId] = useState({});
     const [status, setStatus] = useState(null);
     const [isSigning, setIsSigning] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
     const imageCacheRef = useRef({});
 
     const loadImages = useCallback(async (loadedSlots) => {
@@ -57,6 +58,8 @@ const useDocumentSignatures = ({ sourceKey, documentId }) => {
             await loadImages(viewBody.data.slots);
         } catch (error) {
             console.error('[useDocumentSignatures] load:', error);
+        } finally {
+            setIsLoaded(true);
         }
     }, [sourceKey, documentId, loadImages]);
 
@@ -91,7 +94,7 @@ const useDocumentSignatures = ({ sourceKey, documentId }) => {
         [slots, imageByEventId]
     );
 
-    return { slots: slotViews, status, isSigning, load, refreshStatus, sign };
+    return { slots: slotViews, status, isSigning, isLoaded, load, refreshStatus, sign };
 };
 
 export default useDocumentSignatures;
