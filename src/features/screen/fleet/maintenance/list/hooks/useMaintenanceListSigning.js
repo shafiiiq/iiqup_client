@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import useSigningFlow from '@/features/core/messaging/signature/hooks/useSigningFlow';
-import {
-  MAINTENANCE_SIGNATURE_SOURCE_KEY,
-  MAINTENANCE_SUPERVISOR_SLOT_ID,
-} from '../../report/constants/maintenance.report.constant';
+import { MAINTENANCE_SUPERVISOR_SLOT_ID } from '../../report/constants/maintenance.report.constant';
+import { MAINTENANCE_LIST_SIGNATURE_SOURCE_KEY } from '../constants/maintenance.list.constant';
 import { buildListSignatureDocumentId, getSignatureUrlFromSlot } from '../helper/maintenance.list.signature.helper';
 
 export const useMaintenanceListSigning = ({ registrationNumbers }) => {
-  const documentId = useMemo(() => buildListSignatureDocumentId(registrationNumbers), [registrationNumbers]);
-  const flow = useSigningFlow({ sourceKey: MAINTENANCE_SIGNATURE_SOURCE_KEY, documentId });
+  const [signingSessionId] = useState(() => crypto.randomUUID());
+  const documentId = useMemo(
+    () => buildListSignatureDocumentId(registrationNumbers, signingSessionId),
+    [registrationNumbers, signingSessionId]
+  );
+  const flow = useSigningFlow({ sourceKey: MAINTENANCE_LIST_SIGNATURE_SOURCE_KEY, documentId });
   const { loadSignatures, signatureSlots, handleSignButtonClick } = flow;
 
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
