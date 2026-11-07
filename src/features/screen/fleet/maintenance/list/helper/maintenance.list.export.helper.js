@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import companyLogoImage from '@assets/images/al-ansari-color.png';
 import companyAddressImage from '@assets/images/al-ansari-full-address.png';
 
@@ -338,7 +339,7 @@ export const exportMaintenanceListToPdf = async ({
     });
   });
 
-  doc.autoTable(buildPdfTableOptions({ activeTab, headers, body: tableRows, startY: tableStartY, items: bodyItems }));
+  autoTable(doc, buildPdfTableOptions({ activeTab, headers, body: tableRows, startY: tableStartY, items: bodyItems }));
 
   const signatureY = doc.lastAutoTable.finalY + 15;
   await drawSignatureBlock(doc, { supervisorSignUrl, skipSignature }, signatureY);
@@ -371,7 +372,8 @@ export const exportMaintenanceListToSeparatePdfs = async ({
       searchTerm,
     });
 
-    doc.autoTable(
+    autoTable(
+      doc,
       buildPdfTableOptions({
         activeTab,
         headers,
