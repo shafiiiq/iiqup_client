@@ -12,7 +12,7 @@ import {
   exportMaintenanceListToSeparatePdfs,
   printMaintenanceListTable,
 } from '../helper/maintenance.list.export.helper';
-import { useMaintenanceSigning } from './useMaintenanceSigning';
+import { useMaintenanceListSigning } from './useMaintenanceListSigning';
 import {
   MAINTENANCE_LIST_TABS,
   MAINTENANCE_LIST_PAGE_SIZE,
@@ -38,7 +38,7 @@ export const useMaintenanceList = ({ registrationNumbers = [] } = {}) => {
   const navigate = useNavigate();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const { searchTerm } = useSearch();
-  const signing = useMaintenanceSigning();
+  const signing = useMaintenanceListSigning({ registrationNumbers });
   const tableRef = useRef(null);
 
   const isMultipleEquipment = registrationNumbers.length !== 1;

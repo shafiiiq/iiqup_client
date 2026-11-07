@@ -7,6 +7,7 @@ import Tabs from '@/shared/components/widgets/tabs/Tabs';
 
 import ListFilters from './fragments/ListFilters';
 import ListTable from './fragments/ListTable';
+import ListSigningModals from './fragments/ListSigningModals';
 import { getDateRangeLabel } from '../helper/maintenance.list.helper';
 import { useMaintenanceList } from '../hooks/useMaintenanceList';
 import { BUTTON_PROPS } from '../constants/maintenance.list.constant';
@@ -55,6 +56,12 @@ const MaintenanceList = () => {
               { ...BUTTON_PROPS, text: 'PDF', onClick: list.handleExportToPdf, colorScheme: 'black-200', textColor: 'white-100', componentIconLeft: 'PdfIcon', componentIconSize: '30', iconColor: 'white-200' },
               { ...BUTTON_PROPS, text: 'PDFs', onClick: list.handleExportToSeparatePdfs, colorScheme: 'black-200', textColor: 'white-100', componentIconLeft: 'LayeredPanelIcon', componentIconSize: '30', iconColor: 'white-200' },
               { ...BUTTON_PROPS, text: 'Print', onClick: list.handlePrint, colorScheme: 'black-200', textColor: 'white-200', componentIconLeft: 'PrinterIcon', componentIconSize: '30', iconColor: 'white-200' },
+              ...(signing.flow.isActivationAvailable
+                ? [{ ...BUTTON_PROPS, text: 'Activate E-Signs', onClick: signing.flow.openActivationModal, colorScheme: 'error-800' }]
+                : []),
+              ...(signing.flow.canRequestFamilyAccess
+                ? [{ ...BUTTON_PROPS, text: 'Request Family Access', onClick: signing.flow.requestFamilyAccess, colorScheme: 'info-800' }]
+                : []),
             ]}
           />
         </div>
@@ -111,77 +118,7 @@ const MaintenanceList = () => {
         onSecondaryClick={list.handleCloseDeleteModal}
       />
 
-      <Modal
-        isOpen={signing.showPasswordModal}
-        onClose={() => signing.setShowPasswordModal(false)}
-        type="authentication"
-        mode="dialog"
-        title="Document Signature Authentication"
-        message="Step 1: Enter your 6-digit password"
-        showInput
-        inputValue={signing.sixDigitPassword}
-        onInputChange={signing.setSixDigitPassword}
-        inputPlaceholder="Enter 6-digit password"
-        inputMaxLength={6}
-        inputError={signing.signError}
-        buttonText={signing.signLoading ? 'Verifying...' : 'Verify & Send OTP'}
-        onButtonClick={signing.handleSixDigitVerification}
-        preventClose={signing.signLoading}
-      />
-
-      <Modal
-        isOpen={signing.showOtpModal}
-        onClose={() => signing.setShowOtpModal(false)}
-        type="otp"
-        mode="dialog"
-        title="Enter OTP Code"
-        message="OTP has been sent to the authorized email"
-        showInput
-        inputValue={signing.otpCode}
-        onInputChange={signing.setOtpCode}
-        inputPlaceholder="Enter 6-digit OTP"
-        inputMaxLength={6}
-        inputError={signing.signError}
-        buttonText={signing.signLoading ? 'Signing...' : 'Sign Document'}
-        secondaryButtonText="Back"
-        onSecondaryClick={() => signing.setShowOtpModal(false)}
-        onButtonClick={signing.handleOtpVerification}
-        preventClose={signing.signLoading}
-      />
-
-      <Modal
-        isOpen={signing.showWarningModal}
-        onClose={() => signing.setShowWarningModal(false)}
-        type="warning"
-        title="Document Not Signed"
-        message="You can sign the document, or print without a signature and sign it by hand."
-        buttonText="Sign Document"
-        secondaryButtonText="Continue Without Signature"
-        onButtonClick={() => { signing.setShowWarningModal(false); signing.openPasswordModal(); }}
-        onSecondaryClick={() => { signing.setShowWarningModal(false); signing.runPendingActionWithoutSignature(); }}
-      />
-
-      <Modal
-        isOpen={signing.showSuccessModal}
-        onClose={() => signing.setShowSuccessModal(false)}
-        type="success"
-        title="Document Signed Successfully!"
-        message="The document was signed successfully."
-        buttonText="Close"
-        onButtonClick={() => signing.setShowSuccessModal(false)}
-        onSecondaryClick={() => signing.setShowSuccessModal(false)}
-      />
-
-      <Modal
-        isOpen={signing.showLoadingModal}
-        onClose={undefined}
-        type="progress"
-        mode="dialog"
-        title="Processing..."
-        message={signing.loadingMessage || 'Processing...'}
-        progress={100}
-        preventClose
-      />
+      <ListSigningModals signing={signing} />
     </div>
   );
 };
