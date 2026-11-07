@@ -79,7 +79,7 @@ function SignatureCell({
           {renderComponentIcon('SignaturePenIcon', SIGN_ICON_SIZE, SIGN_ICON_COLOR)}
         </button>
       ) : (
-        <span className="purchase order report missing signature marker">
+        <span className="purchase order report missing signature marker no-print">
           {resolveMarkerText(isSigned, isLegacy, isContentIntact, hasPendingDelegation)}
         </span>
       )}
