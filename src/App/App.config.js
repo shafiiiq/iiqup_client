@@ -85,7 +85,7 @@ export const PROTECTED_ROUTES = [
 
   { path: '/order/purchase/report/:purchaseorderRef', element: <PurchaseOrderReport /> },
   { path: '/order/purchase/report/:purchaseorderRef/:complaintId', element: <PurchaseOrderReport /> },
-  { path: '/order/purchase/report/:purchaseorderRef/amendment/:amendment/:complaintId', element: <PurchaseOrderReport /> },
+  { path: '/order/purchase/report/:purchaseorderRef/amendment/:amendment/:complaintId?', element: <PurchaseOrderReport /> },
 
   { path: '/order/purchase/form/for-stock', element: <PurchaseOrderForm purchaseOrdersOfStocks /> },
   { path: '/order/purchase/form/for-all-equipments', element: <PurchaseOrderForm purchaseOrderForAllEquipments /> },
@@ -102,10 +102,10 @@ export const PROTECTED_ROUTES = [
   { path: '/order/hire/report/:refNo', element: <HireOrderReport /> },
 
   { path: '/quotation/form', element: <QuotationForm /> },
-  { path: '/quotation/form/edit/:quotationRef', element: <QuotationForm  edit/> },
+  { path: '/quotation/form/edit/:quotationRef', element: <QuotationForm edit /> },
   { path: '/quotation/form/duplicate/:quotationRef', element: <QuotationForm duplicate /> },
-  { path: '/quotation/form/amendment/:quotationRef', element: <QuotationForm  amendmentUpdate amendment /> },
-  { path: '/quotation/form/amendment/edit/:quotationRef', element: <QuotationForm  amendmentUpdate amendment editAmendment /> },
+  { path: '/quotation/form/amendment/:quotationRef', element: <QuotationForm amendmentUpdate amendment /> },
+  { path: '/quotation/form/amendment/edit/:quotationRef', element: <QuotationForm amendmentUpdate amendment editAmendment /> },
   { path: '/quotation/list', element: <QuotationList /> },
   { path: '/quotation/report/:quotationRef', element: <QuotationReport /> },
   { path: '/quotation/report/:quotationRef/amendment/:amendment', element: <QuotationReport /> },
