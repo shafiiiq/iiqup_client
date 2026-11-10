@@ -1,4 +1,6 @@
+import { Fragment } from 'react';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
+import HireOrderDownloadPicker from './fragments/HireOrderDownloadPicker';
 import A2PaperSkeleton from '@/shared/components/widgets/paper/A2PaperSkeleton';
 import Modal from '@/shared/components/widgets/modal/Modal';
 import Controls from '@/shared/components/widgets/controls/Controls';
@@ -173,7 +175,7 @@ function ReportData({ data, signatureSlots, onSign, isSigning }) {
   const headerNode = (
     <>
       {data.isAmendment && data.amendmentDate && (
-        <div className="features screen hire order report amendment-banner">[AMENDMENT]</div>
+        <div className="features screen hire order report amendment-banner">[AMENDMENT {data.amendmentNumber}]</div>
       )}
       <div className="features screen hire order report divider-header" />
       <div className="features screen hire order report title">PURCHASE ORDER/HIRE ORDER</div>
@@ -190,7 +192,16 @@ function ReportData({ data, signatureSlots, onSign, isSigning }) {
             <td className="features screen hire order report info-column-right">
               <div className="features screen hire order report info-right-block">
                 <div className="features screen hire order report info-line">DATE : {data.date}</div>
-                <div className="features screen hire order report info-line">REF NO : {data.hireOrderRef}</div>
+                <div className="features screen hire order report info-line">
+                  {data.isAmendment && data.amendmentNumber > 1
+                    ? `REF NO : REV ${data.amendmentNumber - 1} (${data.hireOrderRef})`
+                    : `REF NO : ${data.hireOrderRef}`}
+                </div>
+                {data.isAmendment && data.amendmentNumber > 0 && (
+                  <div className="features screen hire order report info-line">
+                    AMENDMENT REF NO : REV {data.amendmentNumber} ({data.hireOrderRef})
+                  </div>
+                )}
                 {data.customFields?.map((field, idx) => (
                   <div className="features screen hire order report info-line" key={field.id || idx}>
                     {(field.label || 'FIELD').toUpperCase()} : {field.value}
@@ -256,7 +267,7 @@ function HireOrderReport() {
           buttons={[
             { ...SHARED_BTN, text: 'Edit', onClick: h.handleEditClick, colorScheme: 'info-800' },
             { ...SHARED_BTN, text: h.isSigningDoc ? 'Signing...' : 'Sign Document', onClick: h.handleSignButtonClick, colorScheme: 'warning-800', disabled: h.isSigningDoc },
-            { ...SHARED_BTN, text: h.isPdfReady ? 'Download as PDF' : 'Preparing PDF...', onClick: h.handleDownloadPdf, colorScheme: 'success-800' },
+            { ...SHARED_BTN, text: h.isPdfReady ? 'Download as PDF' : 'Preparing PDF...', onClick: h.handleDownloadClick, colorScheme: 'success-800' },
             ...(h.isActivationAvailable
               ? [{ ...SHARED_BTN, text: 'Activate E-Signs', onClick: h.openActivationModal, colorScheme: 'error-800' }]
               : []),
@@ -269,13 +280,32 @@ function HireOrderReport() {
         />
       )}
 
-      <ReportData data={h.hireOrderData} signatureSlots={h.signatureSlots} onSign={h.handleSignButtonClick} isSigning={h.isSigningDoc} />
-
-      {h.amendmentData && (
+      {h.partsDocuments ? (
+        h.partsDocuments.map((reportDocument, index) => (
+          <Fragment key={reportDocument.key}>
+            {index > 0 && <div className="features screen hire order report amendment-divider">===== AMENDED DOCUMENT FOLLOWS =====</div>}
+            <ReportData data={reportDocument.data} signatureSlots={h.signatureSlots} />
+          </Fragment>
+        ))
+      ) : (
         <>
-          <div className="features screen hire order report amendment-divider">===== AMENDED DOCUMENT FOLLOWS =====</div>
-          <ReportData data={h.amendmentData} signatureSlots={h.signatureSlots} />
+          <ReportData data={h.hireOrderData} signatureSlots={h.signatureSlots} onSign={h.handleSignButtonClick} isSigning={h.isSigningDoc} />
+
+          {h.amendmentData && (
+            <>
+              <div className="features screen hire order report amendment-divider">===== AMENDED DOCUMENT FOLLOWS =====</div>
+              <ReportData data={h.amendmentData} signatureSlots={h.signatureSlots} />
+            </>
+          )}
         </>
+      )}
+
+      {h.showDownloadPicker && (
+        <HireOrderDownloadPicker
+          amendmentCount={h.amendmentCount}
+          onConfirm={h.handleDownloadPdf}
+          onClose={() => h.setShowDownloadPicker(false)}
+        />
       )}
 
       <SigningModals flow={h.signing} documentLabel="Hire Order" />

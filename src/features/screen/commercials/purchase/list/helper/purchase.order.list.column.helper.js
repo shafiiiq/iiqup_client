@@ -55,7 +55,6 @@ export const buildPurchaseOrderTableColumns = ({
             render: (purchaseorder) => (purchaseorder.items?.[0]?.unitPrice ?? 0).toFixed(2),
             renderExpanded: (extraItem) => (extraItem.unitPrice ?? 0).toFixed(2),
         },
-        { key: 'complaintId', headerCenter: true, dataCenter: true, header: 'Category', render: (purchaseorder) => (purchaseorder.complaintId ? purchaseorder.complaintId : 'Regular') },
         {
             key: 'signStatus',
             header: 'Status',

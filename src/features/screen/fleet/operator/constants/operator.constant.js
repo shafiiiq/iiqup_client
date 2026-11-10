@@ -26,10 +26,9 @@ export const EMPTY_FORM = {
   workmenCompensationAdded: 'no',
   contactNo:                '',
   dob:                      '',
-  email:                    '',
-  password:                 '',
   equipmentNumber:          '',
   mode:                     '',
+  status:                   'demobilized',
   isVerified:               false,
   toolkits:                 [],
   hired:                    false,
@@ -75,6 +74,11 @@ export const MOBILIZATION_STATUS_LABELS = {
   mobilized:   { label: 'Mobilized',   background: '#3cbe15', color: '#ffffff' },
   demobilized: { label: 'Demobilized', background: '#681111', color: '#ffffff' },
 };
+
+export const MOBILIZATION_STATUS_OPTIONS = [
+  { label: 'Mobilized', value: 'mobilized' },
+  { label: 'Demobilized', value: 'demobilized' },
+];
 
 export const MODE_LABELS = {
   'with-equipment': 'With Equipment',

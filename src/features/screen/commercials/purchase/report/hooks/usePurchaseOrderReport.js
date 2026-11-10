@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useHeaderTitle } from '@/shared/context/TitleContext';
 import { resolveIsSentForApproval } from '../helper/purchase.order.report.helper';
+import { buildOriginalPurchaseOrderDocument, buildAmendedPurchaseOrderDocument } from '../helper/purchase.order.report.document.helper';
+import { buildReportParts, parsePartTokens } from '../helper/purchase.order.report.parts.helper';
 import useSigningFlow from '@/features/core/messaging/signature/hooks/useSigningFlow';
 import useDocumentPdfStatus from '@/features/core/sync/pdf/hooks/useDocumentPdfStatus';
 import {
     fetchPurchaseOrderByRef,
-    fetchComplaintById,
     getPreSignedUrl,
     downloadPurchaseOrderPdf,
     submitPurchaseOrderPdf,
@@ -21,7 +22,7 @@ import {
 const usePurchaseOrderReport = () => {
     const navigate = useNavigate();
     const componentRef = useRef();
-    const { purchaseorderRef: refNo, complaintId, amendment } = useParams();
+    const { purchaseorderRef: refNo, amendment, parts } = useParams();
     const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
     const documentId = refNo ? decodeURIComponent(refNo) : '';
@@ -35,6 +36,9 @@ const usePurchaseOrderReport = () => {
     const [error, setError] = useState(null);
     const [quotationUrl, setQuotationUrl] = useState('');
     const [quotationMime, setQuotationMime] = useState('');
+    const [partsDocuments, setPartsDocuments] = useState(null);
+    const [amendmentCount, setAmendmentCount] = useState(0);
+    const [showDownloadPicker, setShowDownloadPicker] = useState(false);
 
     const [signResult, setSignResult] = useState(null);
     const [vendorMail, setVendorMail] = useState(null);
@@ -111,36 +115,9 @@ const usePurchaseOrderReport = () => {
 
             const purchaseOrder = data.data;
 
-            let jobCode = null;
-            try {
-                if (!purchaseOrder.complaintId) throw new Error('No complaint ID');
-                const complaintRes = await fetchComplaintById(purchaseOrder.complaintId);
-                if (complaintRes.ok) {
-                    const complaintData = await complaintRes.json();
-                    jobCode = complaintData.complaintId || null;
-                }
-            } catch (_) { }
-
             const builtPurchaseOrderData = {
-                vendor: purchaseOrder.company?.vendor || '',
-                equipments: purchaseOrder.equipments || [],
-                date: purchaseOrder.date || '',
-                purchaseorderRef: purchaseOrder.purchaseorderRef || '',
-                quoteNo: purchaseOrder.quoteNo || '',
-                jobCode: jobCode || '',
-                complaintId: purchaseOrder.complaintId || '',
-                attention: purchaseOrder.company?.attention || '',
-                designation: purchaseOrder.company?.designation || '',
-                workingHrs: purchaseOrder.workingHrs || '',
-                runningKm: purchaseOrder.runningKm || '',
-                requestText: purchaseOrder.requestText || '',
-                items: purchaseOrder.items || [],
-                totalAmount: purchaseOrder.totalAmount || 0,
+                ...buildOriginalPurchaseOrderDocument(purchaseOrder),
                 isAmendment: amendment === 'true' || amendment === true,
-                totalDiscountAmount: purchaseOrder.totalDiscountAmount || null,
-                termsAndConditions: purchaseOrder.termsAndConditions || DEFAULT_PurchaseOrder_DATA.termsAndConditions,
-                signatures: purchaseOrder.signatures || DEFAULT_PurchaseOrder_DATA.signatures,
-                quotation: purchaseOrder.quotation || null,
             };
 
             setPurchaseOrderData(builtPurchaseOrderData);
@@ -151,24 +128,12 @@ const usePurchaseOrderReport = () => {
 
             if (purchaseOrder.quotation) await loadQuotationPreview(purchaseOrder.quotation);
 
-            if (purchaseOrder.isAmendmented && purchaseOrder.amendments?.length) {
-                const latest = purchaseOrder.amendments[purchaseOrder.amendments.length - 1];
-                setAmendmentData({
-                    ...builtPurchaseOrderData,
-                    vendor: latest.amendedCompany?.vendor || purchaseOrder.company?.vendor || '',
-                    equipments: latest.amendedEquipments || purchaseOrder.equipments || [],
-                    quoteNo: latest.amendedQuoteNo || purchaseOrder.quoteNo || '',
-                    attention: latest.amendedCompany?.attention || purchaseOrder.company?.attention || '',
-                    designation: latest.amendedCompany?.designation || purchaseOrder.company?.designation || '',
-                    requestText: latest.amendedRequestText || purchaseOrder.requestText || '',
-                    items: latest.amendedItems || purchaseOrder.items || [],
-                    totalAmount: latest.amendedTotalAmount ?? purchaseOrder.totalAmount ?? 0,
-                    totalDiscountAmount: latest.amendedDiscount ? latest.amendedTotalAmount : null,
-                    termsAndConditions: latest.amendedTermsAndConditions || purchaseOrder.termsAndConditions || DEFAULT_PurchaseOrder_DATA.termsAndConditions,
-                    isAmendment: true,
-                    amendmentDate: new Date(latest.amendmentDate).toLocaleDateString('en-GB'),
-                    amendmentReason: latest.reason || 'Amendment requested',
-                });
+            const loadedAmendmentCount = purchaseOrder.isAmendmented ? purchaseOrder.amendments?.length || 0 : 0;
+            setAmendmentCount(loadedAmendmentCount);
+            setPartsDocuments(parts ? buildReportParts(purchaseOrder, parsePartTokens(parts, loadedAmendmentCount)) : null);
+
+            if (loadedAmendmentCount > 0) {
+                setAmendmentData(buildAmendedPurchaseOrderDocument(purchaseOrder, builtPurchaseOrderData, loadedAmendmentCount));
             }
 
             await signing.loadSignatures();
@@ -182,14 +147,26 @@ const usePurchaseOrderReport = () => {
 
     const getFileName = () => `Purchase Order - ${purchaseorderCounter}-${purchaseorderData.vendor} For - ${purchaseorderData.equipments}`;
 
-    const handleDownloadPdf = async () => {
+    const handleDownloadClick = () => {
+        if (amendmentCount > 0) setShowDownloadPicker(true);
+        else handleDownloadPdf();
+    };
+
+    const handleDownloadPdf = async (selectedTokens) => {
+        const tokens = Array.isArray(selectedTokens) ? selectedTokens : [];
+        const partsParam = tokens.length ? tokens.join(',') : null;
+        const fileNameSuffix = tokens.length
+            ? `-${tokens.map((token) => (token === 'original' ? 'Original' : `Rev${token}`)).join('-')}`
+            : '';
+
+        setShowDownloadPicker(false);
         setShowLoadingModal(true);
         setLoadingMessage('Generating PDF...');
 
         try {
             const response = await downloadPurchaseOrderPdf(decodeURIComponent(refNo), {
                 isAmendment: purchaseorderData.isAmendment,
-                complaintId: complaintId || purchaseorderData.complaintId,
+                parts: partsParam,
             });
             if (!response.ok) throw new Error('Failed to generate PDF');
             if (!response.headers.get('content-type')?.includes('application/pdf')) {
@@ -200,7 +177,7 @@ const usePurchaseOrderReport = () => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${getFileName()}.pdf`;
+            link.download = `${getFileName()}${fileNameSuffix}.pdf`;
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -221,7 +198,6 @@ const usePurchaseOrderReport = () => {
                 uploadedBy: 'WORKSHOP_MANAGER',
                 description: 'Purchase Order document generated from system',
                 isAmendment: purchaseorderData.isAmendment || Boolean(amendmentData),
-                complaintId: complaintId || purchaseorderData.complaintId,
             });
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.message || 'Upload failed');
@@ -257,7 +233,6 @@ const usePurchaseOrderReport = () => {
             formDataToSend.append('recipientName', extractName(purchaseorderData.attention));
             formDataToSend.append('vendorName', extractName(purchaseorderData.vendor));
             formDataToSend.append('equipment', purchaseorderData.equipments.join(', '));
-            if (complaintId || purchaseorderData.complaintId) formDataToSend.append('complaintId', complaintId || purchaseorderData.complaintId);
             extraFiles.forEach((file) => formDataToSend.append('attachments', file));
 
             const response = await emailPurchaseOrderPdf(decodeURIComponent(refNo), formDataToSend);
@@ -302,6 +277,10 @@ const usePurchaseOrderReport = () => {
         componentRef,
         purchaseorderData,
         amendmentData,
+        partsDocuments,
+        amendmentCount,
+        showDownloadPicker,
+        setShowDownloadPicker,
         loading,
         error,
         quotationUrl,
@@ -331,6 +310,7 @@ const usePurchaseOrderReport = () => {
         fetchPurchaseOrderData,
         handleSignButtonClick: signing.handleSignButtonClick,
         handleDownloadPdf,
+        handleDownloadClick,
         handlePrint,
         sendToApprove,
         handleEditPurchaseOrder,

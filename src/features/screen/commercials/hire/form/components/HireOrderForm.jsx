@@ -54,9 +54,9 @@ function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
   );
 }
 
-function HireOrderForm({ edit, amendment, amendmentUpdate }) {
+function HireOrderForm({ edit, amendment, editAmendment }) {
   const firstPageRef = useRef();
-  const hireOrderForm = useHireOderForm({ edit, amendment, amendmentUpdate });
+  const hireOrderForm = useHireOderForm({ edit, amendment, editAmendment });
 
   const {
     hireOrderData,
@@ -363,6 +363,9 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
 
   const headerNode = (
     <>
+      {hireOrderForm.isAmendmentMode && (
+        <div className="features screen hire order amendment-banner">[AMENDMENT {hireOrderForm.amendmentNumber}]</div>
+      )}
       <div className="features screen hire order top-divider" />
       <div className="features screen hire order title">PURCHASE ORDER/IRE ORDER</div>
 
@@ -474,7 +477,20 @@ function HireOrderForm({ edit, amendment, amendmentUpdate }) {
                   </div>
                 ))}
 
-                <div className="features screen hire order detail-item">REF NO : <span className="features screen hire order non-editable">{hireOrderData.hireOrderRef}</span></div>
+                <div className="features screen hire order detail-item">
+                  REF NO : <span className="features screen hire order non-editable">
+                    {hireOrderForm.isAmendmentMode && hireOrderForm.amendmentNumber > 1
+                      ? `REV ${hireOrderForm.amendmentNumber - 1} (${hireOrderData.hireOrderRef})`
+                      : hireOrderData.hireOrderRef}
+                  </span>
+                </div>
+                {hireOrderForm.isAmendmentMode && hireOrderForm.amendmentNumber > 0 && (
+                  <div className="features screen hire order detail-item">
+                    AMENDMENT REF NO : <span className="features screen hire order non-editable">
+                      REV {hireOrderForm.amendmentNumber} ({hireOrderData.hireOrderRef})
+                    </span>
+                  </div>
+                )}
 
                 <div className="features screen hire order add-field-row">
                   <Controls

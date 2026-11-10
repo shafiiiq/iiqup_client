@@ -49,7 +49,6 @@ export const DEFAULT_HIRE_ORDER_DATA = {
   hireOrderRef: '',
   attention: '',
   designation: '',
-  complaintId: '',
   quoteNo: '',
   requestText: DEFAULT_REQUEST_TEXT,
   items: [buildDefaultItem(DEFAULT_COLUMNS)],

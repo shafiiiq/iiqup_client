@@ -53,7 +53,6 @@ export const buildHireOrderTableColumns = ({
       render: (h) => (h.items?.[0]?.unitPrice ?? 0).toFixed(2),
       renderExpanded: (extraItem) => (extraItem.unitPrice ?? 0).toFixed(2),
     },
-    { key: 'complaintId', headerCenter: true, dataCenter: true, header: 'Category', render: (h) => (h.complaintId ? h.complaintId : 'Regular') },
     {
       key: 'signStatus',
       header: 'Status',

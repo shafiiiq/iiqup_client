@@ -12,7 +12,6 @@ import {
   buildCustomField,
   generateHireOrderRef,
   getNextHireOrderNumber,
-  formatDate,
   filterEditableTerms,
   itemHasContent,
   getAutoCalculateTotal,
@@ -30,16 +29,16 @@ import {
   COLUMN_TEMPLATES,
 } from '../constants/hire.order.form.constant';
 
-export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
+export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
   const navigate = useNavigate();
-  const { refNo, complaintId } = useParams();
+  const { refNo } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
   const companyRef = useRef();
   const attnRef = useRef();
   const discountPopupRef = useRef();
 
   const isEditMode = !!(edit && refNo);
-  const isAmendmentEditMode = !!(amendment && amendmentUpdate && refNo);
+  const isEditAmendmentMode = !!(editAmendment && refNo);
   const isAmendmentMode = !!(amendment && refNo);
 
   const [hireOrderData, setHireOrderData] = useState(DEFAULT_HIRE_ORDER_DATA);
@@ -61,6 +60,7 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
   const [customFields, setCustomFields] = useState([]);
   const [showTotalRow, setShowTotalRow] = useState(true);
   const [manualTotal, setManualTotal] = useState(null);
+  const [amendmentNumber, setAmendmentNumber] = useState(0);
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
 
@@ -87,8 +87,8 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
   }, [hireOrderCounter, saveStatus, hireOrderData.hireOrderRef, isAmendmentMode, isEditMode, setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
-    if (isAmendmentEditMode && refNo) fetchHireOrderForAmendmentEdit();
-    else if ((isEditMode || isAmendmentMode) && refNo) fetchHireOrderForEdit();
+    if (isAmendmentMode) fetchHireOrderForAmendmentEdit();
+    else if (isEditMode) fetchHireOrderForEdit();
     else fetchLatestHireOrderNumber();
 
     fetchCompanies();
@@ -134,7 +134,6 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
         vendor: ho.company?.vendor || '',
         date: ho.date || new Date().toLocaleDateString('en-GB'),
         hireOrderRef: ho.hireOrderRef || '',
-        complaintId: ho.complaintId || '',
         attention: ho.company?.attention || '',
         designation: ho.company?.designation || '',
         quoteNo: ho.quoteNo || '',
@@ -164,38 +163,42 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
 
       if (!data.success || !data.data) return;
       const ho = data.data;
-      const latest = ho.amendments?.[ho.amendments.length - 1];
+      const amendmentCount = ho.amendments?.length || 0;
+      const latest = amendmentCount ? ho.amendments[amendmentCount - 1] : null;
+      setAmendmentNumber(isEditAmendmentMode ? amendmentCount : amendmentCount + 1);
 
       const loadedColumns = latest?.amendedColumns?.length ? latest.amendedColumns : (ho.columns?.length ? ho.columns : DEFAULT_COLUMNS);
 
       setHireOrderCounter(ho.hireOrderCounter || 1);
       setColumns(loadedColumns);
       setHireOrderData({
-        vendor: latest?.amendedCompany?.vendor || '',
-        date: latest?.amendmentDate ? formatDate(latest.amendmentDate) : new Date().toLocaleDateString('en-GB'),
+        vendor: latest?.amendedCompany?.vendor || ho.company?.vendor || '',
+        date: isEditAmendmentMode && latest
+          ? new Date(latest.amendmentDate).toLocaleDateString('en-GB')
+          : new Date().toLocaleDateString('en-GB'),
         hireOrderRef: ho.hireOrderRef || '',
-        complaintId: ho.complaintId || '',
-        attention: latest?.amendedCompany?.attention || '',
-        designation: latest?.amendedCompany?.designation || '',
+        attention: latest?.amendedCompany?.attention || ho.company?.attention || '',
+        designation: latest?.amendedCompany?.designation || ho.company?.designation || '',
         quoteNo: latest?.amendedQuoteNo || ho.quoteNo || '',
         requestText: latest?.amendedRequestText || ho.requestText || '',
         items: latest?.amendedItems?.length ? latest.amendedItems : (ho.items?.length ? ho.items : [buildDefaultItem(loadedColumns)]),
-        discount: latest?.amendedDiscount || 0,
+        discount: latest ? latest.amendedDiscount || 0 : ho.discount || 0,
       });
 
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
 
-      const rawTerms = latest?.amendedTermsAndConditions || ho.termsAndConditions;
+      const rawTerms = latest?.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : ho.termsAndConditions;
       if (rawTerms?.length) setPaymentTerms(filterEditableTerms(rawTerms));
 
-      setShowDiscountInTotal(latest?.amendedTotalAmount !== undefined || ho.totalDiscountAmount !== undefined);
+      setShowDiscountInTotal(latest ? (latest.amendedDiscount || 0) > 0 : ho.totalDiscountAmount !== undefined);
       setCustomFields(
         latest?.amendedCustomFields?.length
           ? latest.amendedCustomFields
           : (ho.customFields?.length ? ho.customFields : [])
       );
       setShowTotalRow(latest?.amendedShowTotalRow ?? ho.showTotalRow ?? true);
-      setManualTotal(latest?.amendedManualTotal != null ? String(latest.amendedManualTotal) : null);
+      const loadedManualTotal = latest ? latest.amendedManualTotal : ho.manualTotal;
+      setManualTotal(loadedManualTotal != null ? String(loadedManualTotal) : null);
     } catch (error) {
       console.error('[HroForm] fetchHireOrderForAmendmentEdit error:', error);
       setSaveStatus('Error loading hire order data');
@@ -441,6 +444,7 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
           authorizedSignatoryTitle: ceoMode,
         },
         isAmendmented: isAmendmentMode ? true : false,
+        editLastAmendment: isEditAmendmentMode,
         ...(isAmendmentMode && {
           accountsSigned: false,
           managerSigned: false,
@@ -452,8 +456,6 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
 
       if (showDiscountInTotal) payload.totalDiscountAmount = finalTotal;
       else payload.totalAmount = finalTotal;
-
-      if (complaintId) payload.complaintId = complaintId;
 
       const endpoint = (isEditMode || isAmendmentMode)
         ? `/order/hire/update-hire-order/${encodeURIComponent(hireOrderData.hireOrderRef)}`
@@ -494,6 +496,7 @@ export const useHireOderForm = ({ edit, amendment, amendmentUpdate }) => {
 
     isEditMode,
     isAmendmentMode,
+    amendmentNumber,
 
     hireOrderData,
     columns,

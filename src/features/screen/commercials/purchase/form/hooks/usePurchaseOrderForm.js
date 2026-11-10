@@ -9,13 +9,11 @@ import {
     fetchEquipmentByRegNo,
     fetchCompanies as fetchCompanyRecords,
     createOrUpdatePurchaseOrder,
-    createComplaintPurchaseOrder,
     getQuotationUploadUrl,
     getPreSignedUrl,
 } from '../api/purchase.order.form.api';
 import {
     generatePurchaseOrderRef,
-    formatDate,
     filterEditableTerms,
 } from '../helper/purchase.order.form.helper';
 import {
@@ -24,9 +22,9 @@ import {
     SIGNATORY_MAP,
 } from '../constants/purchase.order.form.constant';
 
-const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquipments, edit, amendment, amendmentUpdate }) => {
+const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquipments, edit, amendment, editAmendment }) => {
     const navigate = useNavigate();
-    const { regNo, complaintId, refNo } = useParams();
+    const { regNo, refNo } = useParams();
     const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
     const equipmentRef = useRef();
@@ -38,7 +36,7 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
     const isForStock = purchaseOrdersOfStocks;
     const isOfAllEquipmentsm = purchaseOrderForAllEquipments;
     const isEditMode = !!(edit && refNo);
-    const isAmendmentEditMode = !!(amendment && amendmentUpdate && refNo);
+    const isEditAmendmentMode = !!(editAmendment && refNo);
     const isAmendmentMode = !!(amendment && refNo);
 
     const [purchaseorderData, setPurchaseOrderData] = useState(DEFAULT_PurchaseOrder_DATA);
@@ -47,6 +45,7 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
     const [workingHrsMode, setWorkingHrsMode] = useState('WORKING HRS');
     const [ceoMode, setCeoMode] = useState('CEO');
     const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
+    const [amendmentNumber, setAmendmentNumber] = useState(0);
 
     const [equipmentDropdown, setEquipmentDropdown] = useState(false);
     const [companyDropdown, setCompanyDropdown] = useState(false);
@@ -92,8 +91,8 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
     }, [purchaseorderCounter, saveStatus, purchaseorderData.purchaseorderRef, isAmendmentMode, isEditMode, setHeaderTitle, setHeaderSubtitle]);
 
     useEffect(() => {
-        if (isAmendmentEditMode && refNo) fetchPurchaseOrderForAmendmentEdit();
-        else if ((isEditMode || isAmendmentMode) && refNo) fetchPurchaseOrderForEdit();
+        if (isAmendmentMode) fetchPurchaseOrderForAmendmentEdit();
+        else if (isEditMode) fetchPurchaseOrderForEdit();
         else fetchLatestPurchaseOrderNumber();
 
         handleRouteSpecificLogic();
@@ -163,7 +162,6 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
                 equipments: purchaseorder.equipments || [],
                 date: purchaseorder.date || new Date().toLocaleDateString('en-GB'),
                 purchaseorderRef: purchaseorder.purchaseorderRef || '',
-                complaintId: purchaseorder.complaintId || '',
                 attention: purchaseorder.company?.attention || '',
                 designation: purchaseorder.company?.designation || '',
                 quoteNo: purchaseorder.quoteNo || '',
@@ -197,36 +195,41 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
 
             if (!data.success || !data.data) return;
             const purchaseorder = data.data;
-            const latest = purchaseorder.amendments?.[purchaseorder.amendments.length - 1];
+            const amendmentCount = purchaseorder.amendments?.length || 0;
+            const latest = amendmentCount ? purchaseorder.amendments[amendmentCount - 1] : null;
+            setAmendmentNumber(isEditAmendmentMode ? amendmentCount : amendmentCount + 1);
+
+            const loadedWorkingHrs = latest ? latest.amendedWorkingHrs || '' : purchaseorder.workingHrs || '';
+            const loadedRunningKm = latest ? latest.amendedRunningKm || '' : purchaseorder.runningKm || '';
 
             setPurchaseOrderCounter(purchaseorder.purchaseorderCounter || 1);
             setPurchaseOrderData({
-                vendor: latest?.amendedCompany?.vendor || '',
-                equipments: latest?.amendedEquipments || [],
-                date: latest?.amendmentDate ? formatDate(latest.amendmentDate) : new Date().toLocaleDateString('en-GB'),
+                vendor: latest?.amendedCompany?.vendor || purchaseorder.company?.vendor || '',
+                equipments: latest?.amendedEquipments?.length ? latest.amendedEquipments : purchaseorder.equipments || [],
+                date: isEditAmendmentMode && latest
+                    ? new Date(latest.amendmentDate).toLocaleDateString('en-GB')
+                    : new Date().toLocaleDateString('en-GB'),
                 purchaseorderRef: purchaseorder.purchaseorderRef || '',
-                complaintId: purchaseorder.complaintId || '',
-                attention: latest?.amendedCompany?.attention || '',
-                designation: latest?.amendedCompany?.designation || '',
+                attention: latest?.amendedCompany?.attention || purchaseorder.company?.attention || '',
+                designation: latest?.amendedCompany?.designation || purchaseorder.company?.designation || '',
                 quoteNo: latest?.amendedQuoteNo || purchaseorder.quoteNo || '',
-                workingHrs: latest?.amendedWorkingHrs || '',
-                runningKm: latest?.amendedRunningKm || '',
-                requestText: latest?.amendedRequestText || '',
-                items: latest?.amendedItems || [],
-                discount: latest?.amendedDiscount || 0,
+                workingHrs: loadedWorkingHrs,
+                runningKm: loadedRunningKm,
+                requestText: latest?.amendedRequestText || purchaseorder.requestText || '',
+                items: latest?.amendedItems?.length ? latest.amendedItems : purchaseorder.items || [],
+                discount: latest ? latest.amendedDiscount || 0 : purchaseorder.discount || 0,
             });
 
-            if (latest?.amendedRunningKm || purchaseorder.runningKm) setWorkingHrsMode('RUNNING KM');
-            else if (latest?.amendedWorkingHrs) setWorkingHrsMode('WORKING HRS');
+            if (loadedRunningKm) setWorkingHrsMode('RUNNING KM');
 
             if (purchaseorder.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
 
-            const rawTerms = latest?.amendedTermsAndConditions || purchaseorder.termsAndConditions;
+            const rawTerms = latest?.amendedTermsAndConditions?.length
+                ? latest.amendedTermsAndConditions
+                : purchaseorder.termsAndConditions;
             if (rawTerms?.length) setPaymentTerms(filterEditableTerms(rawTerms));
 
-            setShowDiscountInTotal(
-                latest?.amendedTotalAmount !== undefined || purchaseorder.totalDiscountAmount !== undefined
-            );
+            setShowDiscountInTotal(latest ? (latest.amendedDiscount || 0) > 0 : purchaseorder.totalDiscountAmount !== undefined);
 
             if (purchaseorder.quotation) await loadQuotationPreview(purchaseorder.quotation);
 
@@ -329,6 +332,7 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
                     authorizedSignatoryTitle: ceoMode,
                 },
                 isAmendmented: isAmendmentMode ? true : false,
+                editLastAmendment: isEditAmendmentMode,
                 discount: purchaseorderData.discount,
                 quotation: purchaseorderData.quotation || null,
                 showDiscountInTotal,
@@ -345,9 +349,6 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
 
             if (showDiscountInTotal) payload.totalDiscountAmount = totalAmount;
             else payload.totalAmount = subtotal;
-
-            if (complaintId) payload.complaintId = complaintId;
-            else payload.normalPurchaseOrder = true;
 
             if (requiresHrsKm) {
                 if (workingHrsMode === 'WORKING HRS') {
@@ -371,35 +372,14 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
                 return false;
             }
 
-            const needsComplaintPost = complaintId && (!isEditMode);
-            if (needsComplaintPost) {
-                const complaintPayload = {
-                    purchaseorderData: payload,
-                    createdBy: 'WSM-4f428b',
-                    ...(isAmendmentMode && { isAmendment: true }),
-                };
-
-                const complaintResult = await createComplaintPurchaseOrder(complaintId, complaintPayload);
-
-                if (complaintResult.status === 200) {
-                    const msg = isAmendmentMode ? 'Amendment saved and sent for approval!' : 'PurchaseOrder saved and sent for approval!';
-                    setSaveStatus(msg);
-                    setTimeout(() => {
-                        setSaveStatus('');
-                        navigate(`/order/purchase/report/${encodeURIComponent(purchaseorderData.purchaseorderRef)}/${complaintId}`);
-                    }, 2000);
-                    return true;
-                }
-            }
-
             const msg = isAmendmentMode ? 'Amendment saved successfully!' : isEditMode ? 'PurchaseOrder updated successfully!' : 'PurchaseOrder saved successfully!';
             setSaveStatus(msg);
             setTimeout(() => {
                 setSaveStatus('');
                 if (isAmendmentMode) {
-                    navigate(`/order/purchase/report/${encodeURIComponent(purchaseorderData.purchaseorderRef)}/amendment/${true}/${complaintId || purchaseorderData.complaintId || ''}`);
+                    navigate(`/order/purchase/report/${encodeURIComponent(purchaseorderData.purchaseorderRef)}/amendment/true`);
                 } else {
-                    navigate(`/order/purchase/report/${encodeURIComponent(purchaseorderData.purchaseorderRef)}/${complaintId || ''}`);
+                    navigate(`/order/purchase/report/${encodeURIComponent(purchaseorderData.purchaseorderRef)}`);
                 }
             }, 2000);
             return true;
@@ -587,6 +567,7 @@ const usePurchaseOrderForm = ({ purchaseOrdersOfStocks, purchaseOrderForAllEquip
         isOfAllEquipmentsm,
         isEditMode,
         isAmendmentMode,
+        amendmentNumber,
         purchaseorderData,
         setPurchaseOrderData,
         paymentTerms,

@@ -24,6 +24,7 @@ import {
   LICENCE_TYPE_OPTIONS,
   WORKMEN_COMPENSATION_OPTIONS,
   MODE_OPTIONS,
+  MOBILIZATION_STATUS_OPTIONS,
   DEPLOY_TYPE_OPTIONS,
   SHIFT_OPTIONS,
   RENT_BASIS_OPTIONS,
@@ -257,10 +258,9 @@ export const useOperator = () => {
       workmenCompensationAdded: operator.workmenCompensationAdded,
       contactNo: operator.contactNo,
       dob: toInputDate(operator.dob),
-      email: operator.email,
-      password: operator.password,
       equipmentNumber: operator.equipmentNumber,
       mode: operator.mode || '',
+      status: operator.status || 'demobilized',
       isVerified: operator.isVerified,
       toolkits: operator.toolkits || [],
       hired: operator.hired || false,
@@ -291,7 +291,7 @@ export const useOperator = () => {
       const isAdd = formMode === 'add';
       const url = isAdd
         ? `/users/operators`
-        : `/users/operators/${selectedOperator._id}`;
+        : `/users/operators/${formData._id}`;
 
       const res = await apiRequest(url, isAdd ? 'POST' : 'PUT', payload);
       if (!res.ok) throw new Error(`Failed to ${formMode} operator`);
@@ -525,13 +525,13 @@ export const useOperator = () => {
     { name: 'name', label: 'Full Name', type: 'text', placeholder: 'Full name', required: true },
     { name: 'qatarId', label: 'Qatar ID', type: 'text', placeholder: 'Qatar ID', required: true },
     { name: 'contactNo', label: 'Contact Number', type: 'text', placeholder: 'Contact number' },
-    { name: 'email', label: 'Email', type: 'text', placeholder: 'Email' },
     { name: 'nationality', label: 'Nationality', type: 'allow-add-select', options: NATIONALITY_OPTIONS },
     { name: 'sponsorship', label: 'Sponsorship', type: 'allow-add-select', options: SPONSORSHIP_OPTIONS },
     ...(formData.sponsorship === 'HIRED' ? [{ name: 'hiredFrom', label: 'Hired From', type: 'text', placeholder: 'Company / organization name', required: true }] : []),
     { name: 'workingIn', label: 'Working In', type: 'allow-add-select', options: WORKING_IN_OPTIONS },
     { name: 'equipmentNumber', label: 'Equipment Number', type: 'text', placeholder: 'Equipment number' },
     { name: 'mode', label: 'Working As', type: 'select', options: MODE_OPTIONS },
+    { name: 'status', label: 'Mobilization Status', type: 'select', options: MOBILIZATION_STATUS_OPTIONS },
     {
       name: 'designation',
       label: 'Designation',
@@ -551,7 +551,6 @@ export const useOperator = () => {
     { name: 'healthCardExpiry', label: 'Health Card Expiry', type: 'date' },
     { name: 'licenceExpiry', label: 'Licence Expiry', type: 'date' },
     { name: 'labourContractExpiry', label: 'Labour Contract Expiry', type: 'date' },
-    { name: 'password', label: 'Password', type: 'password', placeholder: 'Password' },
     { name: 'isVerified', label: 'Verified Operator', type: 'checkbox' },
   ];
 

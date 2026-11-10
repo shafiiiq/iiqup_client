@@ -36,13 +36,6 @@ export const buildCustomField = () => ({
   value: '',
 });
 
-export const formatDate = (dateString) => {
-  const now = new Date(dateString);
-  const day = String(now.getDate() + 1).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}/${now.getFullYear()}`;
-};
-
 export const formatCurrency = (value) =>
   (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

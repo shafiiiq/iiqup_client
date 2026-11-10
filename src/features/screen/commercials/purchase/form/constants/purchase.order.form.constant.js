@@ -14,7 +14,6 @@ export const DEFAULT_PurchaseOrder_DATA = {
     purchaseorderRef: '',
     attention: '',
     designation: '',
-    complaintId: '',
     quoteNo: '',
     workingHrs: '',
     runningKm: '',

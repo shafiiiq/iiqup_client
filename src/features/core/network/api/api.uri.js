@@ -1,5 +1,5 @@
 const ENV = {
-    API_URI: "https://ansarigroup.online/api/v1",
+    API_URI: "http://192.168.100.8:3001/api/v1",
 } 
 
 module.exports = ENV

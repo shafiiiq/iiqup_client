@@ -46,8 +46,9 @@ export const uploadHireOrder = async (payload) => {
   return response;
 };
 
-export const downloadHireOrderPdf = async (refNo) => {
-  const response = await apiRequest(`/order/hire/pdf/download/${encodeURIComponent(refNo)}`, 'GET');
+export const downloadHireOrderPdf = async (refNo, parts) => {
+  const query = parts ? `?parts=${encodeURIComponent(parts)}` : '';
+  const response = await apiRequest(`/order/hire/pdf/download/${encodeURIComponent(refNo)}${query}`, 'GET');
 
   const blob = await response.blob();
   if (!blob.size || !blob.type.includes('application/pdf')) throw new Error('PDF response was invalid');

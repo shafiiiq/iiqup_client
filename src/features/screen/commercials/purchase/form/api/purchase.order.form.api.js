@@ -55,11 +55,6 @@ export const createOrUpdatePurchaseOrder = async (endpoint, method, payload) => 
   return response.json();
 };
 
-export const createComplaintPurchaseOrder = async (complaintId, complaintPayload) => {
-  const response = await apiRequest(`/complaints/create-purchaseorder/${complaintId}`, 'POST', complaintPayload);
-  return response.json();
-};
-
 export const getQuotationUploadUrl = async (fileName, purchaseorderRef, contentType) => {
   const response = await apiRequest(`/order/purchase/get-quotation-upload-url`, 'POST', {
     fileName,

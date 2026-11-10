@@ -16,8 +16,9 @@ import {
   parseValidEmails,
   parseEmailInput,
 } from '../helper/hire.order.report.helper';
+import { buildOriginalHireOrderDocument, buildAmendedHireOrderDocument } from '../helper/hire.order.report.document.helper';
+import { buildReportParts, parsePartTokens } from '../helper/hire.order.report.parts.helper';
 import {
-  DEFAULT_COLUMNS,
   DEFAULT_HIRE_ORDER_DATA,
   HIRE_ORDER_SIGNATURE_SOURCE_KEY,
   HIRE_ORDER_PDF_SOURCE_KEY,
@@ -26,7 +27,7 @@ import {
 export const useHireOrderReport = () => {
   const navigate = useNavigate();
   const componentRef = useRef();
-  const { refNo, amendment } = useParams();
+  const { refNo, amendment, parts } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
 
   const documentId = refNo ? decodeURIComponent(refNo) : '';
@@ -35,6 +36,9 @@ export const useHireOrderReport = () => {
 
   const [hireOrderData, setHireOrderData] = useState(DEFAULT_HIRE_ORDER_DATA);
   const [amendmentData, setAmendmentData] = useState(null);
+  const [partsDocuments, setPartsDocuments] = useState(null);
+  const [amendmentCount, setAmendmentCount] = useState(0);
+  const [showDownloadPicker, setShowDownloadPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -98,24 +102,8 @@ export const useHireOrderReport = () => {
       const order = data.data;
 
       const builtData = {
-        vendor: order.company?.vendor || '',
-        date: order.date || '',
-        hireOrderRef: order.hireOrderRef || '',
-        quoteNo: order.quoteNo || '',
-        customFields: order.customFields || [],
-        showTotalRow: order.showTotalRow ?? true,
-        attention: order.company?.attention || '',
-        designation: order.company?.designation || '',
-        requestText: order.requestText || '',
-        items: order.items || [],
-        columns: order.columns?.length ? order.columns : DEFAULT_COLUMNS,
-        totalAmount: order.totalAmount || 0,
-        discount: order.discount || 0,
-        showDiscountInTotal: order.showDiscountInTotal ?? false,
-        totalDiscountAmount: order.totalDiscountAmount ?? null,
+        ...buildOriginalHireOrderDocument(order),
         isAmendment: amendment === 'true' || amendment === true,
-        termsAndConditions: order.termsAndConditions || DEFAULT_HIRE_ORDER_DATA.termsAndConditions,
-        signatures: order.signatures || DEFAULT_HIRE_ORDER_DATA.signatures,
       };
 
       setHireOrderData(builtData);
@@ -123,29 +111,12 @@ export const useHireOrderReport = () => {
       setIsSentForApproval(order.workflowStatus !== 'hire_order_created');
       setIsEmailedToSupplier(Boolean(order.supplierEmailedAt));
 
-      if (order.isAmendmented && order.amendments?.length) {
-        const latest = order.amendments[order.amendments.length - 1];
-        setAmendmentData({
-          ...builtData,
-          vendor: latest.amendedCompany?.vendor || order.company?.vendor || '',
-          attention: latest.amendedCompany?.attention || order.company?.attention || '',
-          designation: latest.amendedCompany?.designation || order.company?.designation || '',
-          quoteNo: latest.amendedQuoteNo || order.quoteNo || '',
-          customFields: latest.amendedCustomFields?.length ? latest.amendedCustomFields : (order.customFields || []),
-          showTotalRow: latest.amendedShowTotalRow ?? order.showTotalRow ?? true,
-          totalDiscountAmount: order.totalDiscountAmount != null ? (latest.amendedTotalAmount ?? order.totalDiscountAmount) : null,
-          requestText: latest.amendedRequestText || order.requestText || '',
-          items: latest.amendedItems?.length ? latest.amendedItems : order.items || [],
-          columns: latest.amendedColumns?.length ? latest.amendedColumns : builtData.columns,
-          totalAmount: latest.amendedTotalAmount ?? order.totalAmount ?? 0,
-          discount: latest.amendedDiscount ?? order.discount ?? 0,
-          termsAndConditions: latest.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : order.termsAndConditions || [],
-          isAmendment: true,
-          amendmentDate: new Date(latest.amendmentDate).toLocaleDateString('en-GB'),
-        });
-      } else {
-        setAmendmentData(null);
-      }
+      const loadedAmendmentCount = order.isAmendmented ? order.amendments?.length || 0 : 0;
+      setAmendmentCount(loadedAmendmentCount);
+      setPartsDocuments(parts ? buildReportParts(order, parsePartTokens(parts, loadedAmendmentCount)) : null);
+      setAmendmentData(
+        loadedAmendmentCount > 0 ? buildAmendedHireOrderDocument(order, builtData, loadedAmendmentCount) : null
+      );
 
       await signing.loadSignatures();
     } catch (err) {
@@ -198,16 +169,28 @@ export const useHireOrderReport = () => {
     });
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadClick = () => {
+    if (amendmentCount > 0) setShowDownloadPicker(true);
+    else handleDownloadPdf();
+  };
+
+  const handleDownloadPdf = async (selectedTokens) => {
+    const tokens = Array.isArray(selectedTokens) ? selectedTokens : [];
+    const partsParam = tokens.length ? tokens.join(',') : null;
+    const fileNameSuffix = tokens.length
+      ? `-${tokens.map((token) => (token === 'original' ? 'Original' : `Rev${token}`)).join('-')}`
+      : '';
+
+    setShowDownloadPicker(false);
     if (!guardImagesLoaded()) return;
 
     setShowLoadingModal(true);
     setLoadingMessage('Generating PDF...');
 
     try {
-      const fileName = `${getFileName(hireOrderData)}.pdf`;
+      const fileName = `${getFileName(hireOrderData)}${fileNameSuffix}.pdf`;
 
-      const blob = await downloadHireOrderPdf(documentId);
+      const blob = await downloadHireOrderPdf(documentId, partsParam);
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -233,7 +216,7 @@ export const useHireOrderReport = () => {
   const handleEditClick = () => {
     const encodedRef = encodeURIComponent(hireOrderData.hireOrderRef);
     navigate(amendmentData
-      ? `/order/hire/form/amendment/update/${encodedRef}`
+      ? `/order/hire/form/amendment/edit/${encodedRef}`
       : `/order/hire/form/edit/${encodedRef}`
     );
   };
@@ -296,6 +279,10 @@ export const useHireOrderReport = () => {
     isPdfReady,
     hireOrderData,
     amendmentData,
+    partsDocuments,
+    amendmentCount,
+    showDownloadPicker,
+    setShowDownloadPicker,
     loading,
     error,
     signing,
@@ -318,6 +305,7 @@ export const useHireOrderReport = () => {
     fetchHireOrder,
     sendToApprove,
     handleDownloadPdf,
+    handleDownloadClick,
     handleSendToSupplierClick,
     handleEditClick,
     handleCloseEmailModal,

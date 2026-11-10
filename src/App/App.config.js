@@ -84,22 +84,25 @@ export const PROTECTED_ROUTES = [
   { path: '/order/purchase/list/stocks', element: <PurchaseOrderList purchaseOrdersOfStocks /> },
 
   { path: '/order/purchase/report/:purchaseorderRef', element: <PurchaseOrderReport /> },
-  { path: '/order/purchase/report/:purchaseorderRef/:complaintId', element: <PurchaseOrderReport /> },
-  { path: '/order/purchase/report/:purchaseorderRef/amendment/:amendment/:complaintId?', element: <PurchaseOrderReport /> },
+  { path: '/order/purchase/report/:purchaseorderRef/amendment/:amendment', element: <PurchaseOrderReport /> },
+  { path: '/order/purchase/report/:purchaseorderRef/parts/:parts', element: <PurchaseOrderReport /> },
 
   { path: '/order/purchase/form/for-stock', element: <PurchaseOrderForm purchaseOrdersOfStocks /> },
   { path: '/order/purchase/form/for-all-equipments', element: <PurchaseOrderForm purchaseOrderForAllEquipments /> },
   { path: '/order/purchase/form/edit/:refNo', element: <PurchaseOrderForm isPurchaseOrderUpdate /> },
-  { path: '/order/purchase/form/update/:amendment/:refNo', element: <PurchaseOrderForm amendmentUpdate amendment /> },
+  { path: '/order/purchase/form/update/:amendment/:refNo', element: <PurchaseOrderForm amendment editAmendment /> },
   { path: '/order/purchase/form/amendment/:refNo', element: <PurchaseOrderForm amendment /> },
-  { path: '/order/purchase/form/:regNo/:complaintId', element: <PurchaseOrderForm /> },
   { path: '/order/purchase/form/:regNo', element: <PurchaseOrderForm /> },
 
   { path: '/order/hire/list', element: <HireOrderList /> },
 
   { path: '/order/hire/form', element: <HireOrderForm /> },
   { path: '/order/hire/form/edit/:refNo', element: <HireOrderForm edit /> },
+  { path: '/order/hire/form/amendment/:refNo', element: <HireOrderForm amendment /> },
+  { path: '/order/hire/form/amendment/edit/:refNo', element: <HireOrderForm amendment editAmendment /> },
   { path: '/order/hire/report/:refNo', element: <HireOrderReport /> },
+  { path: '/order/hire/report/:refNo/amendment/:amendment', element: <HireOrderReport /> },
+  { path: '/order/hire/report/:refNo/parts/:parts', element: <HireOrderReport /> },
 
   { path: '/quotation/form', element: <QuotationForm /> },
   { path: '/quotation/form/edit/:quotationRef', element: <QuotationForm edit /> },

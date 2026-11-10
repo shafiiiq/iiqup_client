@@ -28,7 +28,7 @@ const FullScreenImageViewer = ({ src, onClose }) => {
   );
 };
 
-const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick, handleMobilizeClick, handleReplaceOperatorClick, handleShowFullScreen, handleProfilePicError }) => [
+const buildColumns = ({ handleSort, handleSelectOperator, handleEditOperatorClick, handleDemobilizeClick, handleMobilizeClick, handleReplaceOperatorClick, handleShowFullScreen, handleProfilePicError }) => [
   {
     key: 'profile',
     header: 'Profile',
@@ -78,6 +78,22 @@ const buildColumns = ({ handleSort, handleSelectOperator, handleDemobilizeClick,
         gap="6px"
         items={[
           { componentIconCenter: 'IconlyShow', componentIconSize: '25', iconColor: 'info-400', onClick: () => handleSelectOperator(row.operator), colorScheme: 'orange-800', textColor: 'white-200', ...SHARED_BUTTON },
+        ]}
+      />
+    ),
+  },
+  {
+    key: 'edit',
+    header: 'Edit',
+    actions: true,
+    headerCenter: true,
+    dataCenter: true,
+    render: (row) => (
+      <Controls
+        justify="center"
+        gap="6px"
+        items={[
+          { componentIconCenter: 'IconlyEdit', componentIconSize: '25', iconColor: 'info-400', onClick: () => handleEditOperatorClick(row.operator), colorScheme: 'orange-800', textColor: 'white-200', ...SHARED_BUTTON },
         ]}
       />
     ),
@@ -210,7 +226,7 @@ const Operator = () => {
     isExpired,
   } = useOperator();
 
-  const columns = buildColumns({ handleSort, handleSelectOperator, handleDemobilizeClick, handleMobilizeClick, handleReplaceOperatorClick, handleShowFullScreen, handleProfilePicError });
+  const columns = buildColumns({ handleSort, handleSelectOperator, handleEditOperatorClick: openEditForm, handleDemobilizeClick, handleMobilizeClick, handleReplaceOperatorClick, handleShowFullScreen, handleProfilePicError });
   const activePath = [activeTab];
 
   return (

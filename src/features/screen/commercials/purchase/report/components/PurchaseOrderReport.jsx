@@ -1,4 +1,6 @@
+import { Fragment } from 'react';
 import PaperViewport from '@/shared/components/widgets/paper/PaperViewport';
+import PurchaseOrderDownloadPicker from './PurchaseOrderDownloadPicker';
 import QuotationPreview from '@/shared/components/viewer/Pdf/QuotationPreview/QuotationPreview';
 import Modal from '@/shared/components/widgets/modal/Modal';
 import Controls from '@/shared/components/widgets/controls/Controls';
@@ -238,7 +240,7 @@ function ReportData({ data, signatureSlots, quotationUrl, quotationMime, onSign,
   const headerNode = (
     <>
       {data.isAmendment && data.amendmentDate && (
-        <div style={{ textAlign: 'center', padding: '8px', margin: '10px 0', fontWeight: 'bold' }}>[AMENDMENT 1]</div>
+        <div style={{ textAlign: 'center', padding: '8px', margin: '10px 0', fontWeight: 'bold' }}>[AMENDMENT {data.amendmentNumber}]</div>
       )}
       <div className="purchase order report divider header" />
       <div className="purchase order report title">PURCHASE/HIRE ORDER</div>
@@ -256,8 +258,16 @@ function ReportData({ data, signatureSlots, quotationUrl, quotationMime, onSign,
               <td className="purchase order report info column right">
                 <div className="purchase order report info right block">
                   <div className="purchase order report info line">DATE : {data.date}</div>
-                  <div className="purchase order report info line">REF NO : {data.purchaseorderRef}</div>
-                  {data.jobCode && <div className="purchase order report info line">JOB/COMPLAINT NO : {data.jobCode}</div>}
+                  <div className="purchase order report info line">
+                    {data.isAmendment && data.amendmentNumber > 1
+                      ? `REF NO : REV ${data.amendmentNumber - 1} (${data.purchaseorderRef})`
+                      : `REF NO : ${data.purchaseorderRef}`}
+                  </div>
+                  {data.isAmendment && data.amendmentNumber > 0 && (
+                    <div className="purchase order report info line">
+                      AMENDMENT REF NO : REV {data.amendmentNumber} ({data.purchaseorderRef})
+                    </div>
+                  )}
                   <div className="purchase order report info line">
                     <span>EQUIPMENT:</span>
                     <ul>{data.equipments.map((equipment, equipmentIndex) => <li key={equipmentIndex}>{equipment}</li>)}</ul>
@@ -317,6 +327,10 @@ function PurchaseOrderReport() {
     componentRef,
     purchaseorderData,
     amendmentData,
+    partsDocuments,
+    amendmentCount,
+    showDownloadPicker,
+    setShowDownloadPicker,
     loading,
     error,
     quotationUrl,
@@ -343,6 +357,7 @@ function PurchaseOrderReport() {
     fetchPurchaseOrderData,
     handleSignButtonClick,
     handleDownloadPdf,
+    handleDownloadClick,
     handlePrint,
     sendToApprove,
     handleEditPurchaseOrder,
@@ -387,7 +402,7 @@ function PurchaseOrderReport() {
         margin="0 auto 20px"
         buttons={[
           { ...SHARED_BTN, text: 'Edit', onClick: handleEditPurchaseOrder, colorScheme: 'info-800' },
-          { ...SHARED_BTN, text: isPdfReady ? 'Download as PDF' : 'Preparing PDF...', onClick: handleDownloadPdf, colorScheme: 'success-800' },
+          { ...SHARED_BTN, text: isPdfReady ? 'Download as PDF' : 'Preparing PDF...', onClick: handleDownloadClick, colorScheme: 'success-800' },
           ...(isActivationAvailable
             ? [{ ...SHARED_BTN, text: 'Activate E-Signs', onClick: openActivationModal, colorScheme: 'error-800' }]
             : []),
@@ -400,25 +415,48 @@ function PurchaseOrderReport() {
         ]}
       />}
 
-      <ReportData
-        data={purchaseorderData}
-        signatureSlots={signatureSlots}
-        onSign={handleSignButtonClick}
-        isSigning={isSigningDoc}
-        quotationUrl={quotationUrl}
-        quotationMime={quotationMime}
-      />
-
-      {amendmentData && (
+      {partsDocuments ? (
+        partsDocuments.map((reportDocument, index) => (
+          <Fragment key={reportDocument.key}>
+            {index > 0 && (
+              <div className="purchase order report amendment divider">
+                ===== AMENDED DOCUMENT FOLLOWS =====
+              </div>
+            )}
+            <ReportData data={reportDocument.data} signatureSlots={signatureSlots} />
+          </Fragment>
+        ))
+      ) : (
         <>
-          <div className="purchase order report amendment divider">
-            ===== AMENDED DOCUMENT FOLLOWS =====
-          </div>
           <ReportData
-            data={amendmentData}
+            data={purchaseorderData}
             signatureSlots={signatureSlots}
+            onSign={handleSignButtonClick}
+            isSigning={isSigningDoc}
+            quotationUrl={quotationUrl}
+            quotationMime={quotationMime}
           />
+
+          {amendmentData && (
+            <>
+              <div className="purchase order report amendment divider">
+                ===== AMENDED DOCUMENT FOLLOWS =====
+              </div>
+              <ReportData
+                data={amendmentData}
+                signatureSlots={signatureSlots}
+              />
+            </>
+          )}
         </>
+      )}
+
+      {showDownloadPicker && (
+        <PurchaseOrderDownloadPicker
+          amendmentCount={amendmentCount}
+          onConfirm={handleDownloadPdf}
+          onClose={() => setShowDownloadPicker(false)}
+        />
       )}
 
       <SigningModals flow={signing} documentLabel="Purchase Order" />

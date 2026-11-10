@@ -71,7 +71,7 @@ function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
     );
 }
 
-function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipments, isPurchaseOrderUpdate, amendment, amendmentUpdate }) {
+function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipments, isPurchaseOrderUpdate, amendment, editAmendment }) {
     const firstPageRef = useRef();
 
     const {
@@ -79,6 +79,7 @@ function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipmen
         isOfAllEquipmentsm,
         isEditMode,
         isAmendmentMode,
+        amendmentNumber,
         purchaseorderData,
         setPurchaseOrderData,
         paymentTerms,
@@ -144,7 +145,7 @@ function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipmen
         filteredEquipments,
         filteredCompanies,
         filteredAttentions,
-    } = usePurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipments, edit: isPurchaseOrderUpdate, amendment, amendmentUpdate });
+    } = usePurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipments, edit: isPurchaseOrderUpdate, amendment, editAmendment });
 
     const quotationPanel = (quotationFile || purchaseorderData.quotation) && quotationPreviewUrl ? (
         <div className="features screens order purchase form quotation-preview-panel">
@@ -357,6 +358,9 @@ function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipmen
 
     const headerNode = (
         <>
+            {isAmendmentMode && (
+                <div className="features screens order purchase form amendment-banner">[AMENDMENT {amendmentNumber}]</div>
+            )}
             <div className="features screens order purchase form top-divider" />
             <div className="features screens order purchase form title">PURCHASE/HIRE ORDER</div>
 
@@ -440,7 +444,20 @@ function PurchaseOrderForm({ purchaseOrdersOfStocks, purchaseOrderForAllEquipmen
 
                             <td className="features screens order purchase form right-col">
                                 <div className="features screens order purchase form detail-item">DATE : <span className="features screens order purchase form non-editable">{purchaseorderData.date}</span></div>
-                                <div className="features screens order purchase form detail-item">REF NO : <span className="features screens order purchase form non-editable">{purchaseorderData.purchaseorderRef}</span></div>
+                                <div className="features screens order purchase form detail-item">
+                                    REF NO : <span className="features screens order purchase form non-editable">
+                                        {isAmendmentMode && amendmentNumber > 1
+                                            ? `REV ${amendmentNumber - 1} (${purchaseorderData.purchaseorderRef})`
+                                            : purchaseorderData.purchaseorderRef}
+                                    </span>
+                                </div>
+                                {isAmendmentMode && amendmentNumber > 0 && (
+                                    <div className="features screens order purchase form detail-item">
+                                        AMENDMENT REF NO : <span className="features screens order purchase form non-editable">
+                                            REV {amendmentNumber} ({purchaseorderData.purchaseorderRef})
+                                        </span>
+                                    </div>
+                                )}
 
                                 <div className="features screens order purchase form detail-item">
                                     <div className="features screens order purchase form equip-field">
