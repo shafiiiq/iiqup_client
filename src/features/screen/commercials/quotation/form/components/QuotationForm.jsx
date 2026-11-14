@@ -5,6 +5,8 @@ import { StableInput } from '@/shared/components/widgets/input/StableField';
 import RichField from '@/shared/components/widgets/input/RichField';
 import { stripHtml } from '@/shared/components/widgets/input/richText';
 import QuotationImportOverlay from './QuotationImportOverlay';
+import DescriptionSuggestionSkeleton from './fragments/DescriptionSuggestionSkeleton';
+import LoadMoreSentinel from '../../list/components/fragments/LoadMoreSentinel';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 
 import { useQuotationForm } from '../hooks/useQuotationForm';
@@ -226,21 +228,35 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
                   onChange={(e) => quotationForm.handleDescriptionChange(absoluteIndex, e.target.value)}
                   placeholder={`Enter ${col.label.toLowerCase()}, or paste/drop an image here`}
                 />
-                {quotationForm.descDropdownIndex === absoluteIndex && quotationForm.getFilteredItemDescriptions(absoluteIndex).length > 0 && (
+                {quotationForm.descDropdownIndex === absoluteIndex && (quotationForm.isDescriptionSearchLoading || quotationForm.getFilteredItemDescriptions(absoluteIndex).length > 0) && (
                   <div className="features screen quotation form dropdown-menu">
-                    <div className="features screen quotation form dropdown-options">
-                      {quotationForm.getFilteredItemDescriptions(absoluteIndex).map((desc, idx) => (
-                        <div
-                          key={idx}
-                          className="features screen quotation form dropdown-option desc-option"
-                          onMouseDown={() => quotationForm.handleDescriptionSelect(absoluteIndex, desc)}
-                        >
-                          <div className="features screen quotation form company-name">{stripHtml(desc.description)}</div>
-                          {desc.image && (
-                            <img src={desc.image} alt="" className="features screen quotation form desc-option-image" />
-                          )}
-                        </div>
-                      ))}
+                    <div className="features screen quotation form dropdown-options description-options">
+                      {quotationForm.isDescriptionSearchLoading ? (
+                        <DescriptionSuggestionSkeleton />
+                      ) : (
+                        quotationForm.getFilteredItemDescriptions(absoluteIndex).map((desc, idx) => (
+                          <div
+                            key={idx}
+                            className="features screen quotation form dropdown-option desc-option"
+                            onMouseDown={() => quotationForm.handleDescriptionSelect(absoluteIndex, desc)}
+                          >
+                            <div className="features screen quotation form company-name">{stripHtml(desc.description)}</div>
+                            {desc.image && (
+                              <img src={desc.image} alt="" className="features screen quotation form desc-option-image" />
+                            )}
+                          </div>
+                        ))
+                      )}
+                      {!quotationForm.isDescriptionSearchLoading && (
+                        <>
+                          {quotationForm.isDescriptionLoadingMore && <DescriptionSuggestionSkeleton count={2} />}
+                          <LoadMoreSentinel
+                            onVisible={quotationForm.loadMoreDescriptionSuggestions}
+                            disabled={quotationForm.isDescriptionLoadingMore || !quotationForm.descriptionHasMore}
+                            loading={false}
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
                 )}

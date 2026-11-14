@@ -70,6 +70,10 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const [showAddButton, setShowAddButton] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [descriptionSuggestions, setDescriptionSuggestions] = useState([]);
+  const [isDescriptionSearchLoading, setIsDescriptionSearchLoading] = useState(false);
+  const [isDescriptionLoadingMore, setIsDescriptionLoadingMore] = useState(false);
+  const [descriptionHasMore, setDescriptionHasMore] = useState(false);
+  const descriptionSearchTermRef = useRef('');
   const [descDropdownIndex, setDescDropdownIndex] = useState(null);
   const descriptionSearchTimerRef = useRef(null);
   const descriptionSearchRequestRef = useRef(0);
@@ -209,7 +213,6 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     else fetchLatestHireOrderNumber();
 
     fetchCompanies();
-    warmItemDescriptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotationRef, isEditMode, isAmendmentMode, isDuplicateMode]);
 
@@ -417,33 +420,51 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     }
   };
 
-  const warmItemDescriptions = async () => {
-    try {
-      await fetchItemDescriptions('');
-    } catch (error) {
-      console.error('[Quotation] warmItemDescriptions error:', error);
-    }
-  };
-
   const searchItemDescriptionSuggestions = (value) => {
     clearTimeout(descriptionSearchTimerRef.current);
     const term = stripHtml(value || '').trim();
+    descriptionSearchRequestRef.current += 1;
+    descriptionSearchTermRef.current = term;
+    setIsDescriptionLoadingMore(false);
     if (!term) {
       setDescriptionSuggestions([]);
+      setDescriptionHasMore(false);
+      setIsDescriptionSearchLoading(false);
       return;
     }
+    setIsDescriptionSearchLoading(true);
+    const requestId = descriptionSearchRequestRef.current;
     descriptionSearchTimerRef.current = setTimeout(async () => {
-      descriptionSearchRequestRef.current += 1;
-      const requestId = descriptionSearchRequestRef.current;
       try {
         const data = await fetchItemDescriptions(term);
         if (requestId === descriptionSearchRequestRef.current && data.success) {
           setDescriptionSuggestions(data.data || []);
+          setDescriptionHasMore(Boolean(data.hasMore));
         }
       } catch (error) {
         console.error('[Quotation] searchItemDescriptionSuggestions error:', error);
+      } finally {
+        if (requestId === descriptionSearchRequestRef.current) setIsDescriptionSearchLoading(false);
       }
     }, 200);
+  };
+
+  const loadMoreDescriptionSuggestions = async () => {
+    if (isDescriptionSearchLoading || isDescriptionLoadingMore || !descriptionHasMore) return;
+    const requestId = descriptionSearchRequestRef.current;
+    setIsDescriptionLoadingMore(true);
+    try {
+      const data = await fetchItemDescriptions(descriptionSearchTermRef.current, descriptionSuggestions.length);
+      if (requestId === descriptionSearchRequestRef.current && data.success) {
+        setDescriptionSuggestions((previous) => [...previous, ...(data.data || [])]);
+        setDescriptionHasMore(Boolean(data.hasMore));
+      }
+    } catch (error) {
+      console.error('[Quotation] loadMoreDescriptionSuggestions error:', error);
+      setDescriptionHasMore(false);
+    } finally {
+      setIsDescriptionLoadingMore(false);
+    }
   };
 
   const handleDescriptionFocus = (index) => {
@@ -911,6 +932,10 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     discountInput,
     showAddButton,
     companies,
+    isDescriptionSearchLoading,
+    isDescriptionLoadingMore,
+    descriptionHasMore,
+    loadMoreDescriptionSuggestions,
     descDropdownIndex,
     isLoading,
     saveStatus,

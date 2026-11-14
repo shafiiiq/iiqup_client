@@ -122,6 +122,16 @@
   overflow-y: auto;
 }
 
+.features.screen.quotation.form.dropdown-options.description-options {
+  max-height: 336px;
+  overflow-y: auto;
+}
+
+.features.screen.quotation.form.dropdown-options.description-options .desc-option {
+  min-height: 56px;
+  box-sizing: border-box;
+}
+
 .features.screen.quotation.form.dropdown-option {
   background: white;
   padding: 10px 12px;
