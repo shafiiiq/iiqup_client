@@ -70,7 +70,6 @@ function MaintenanceRecordForm() {
           {activeSection === FORM_SECTIONS.TYPE && (
             <ServiceTypeSection
               formData={formData}
-              isTypeLocked={false}
               onSelectType={(serviceType) => form.handleTypeSelect(cardId, serviceType)}
               onChange={handleFieldChange}
             />

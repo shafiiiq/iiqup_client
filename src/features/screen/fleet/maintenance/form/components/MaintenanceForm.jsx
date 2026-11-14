@@ -54,7 +54,6 @@ function MaintenanceForm() {
           {activeSection === FORM_SECTIONS.TYPE && (
             <ServiceTypeSection
               formData={formData}
-              isTypeLocked={form.isTypeLocked}
               onSelectType={form.handleTypeSelect}
               onChange={form.handleChange}
             />

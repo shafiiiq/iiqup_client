@@ -1,7 +1,7 @@
 import Input from '@/shared/components/widgets/input/Input';
 import { SERVICE_TYPES, INPUT_PROPS } from '../../constants/maintenance.form.constant';
 
-function ServiceTypeSection({ formData, isTypeLocked, onSelectType, onChange }) {
+function ServiceTypeSection({ formData, onSelectType, onChange }) {
   return (
     <div className="fleet maintenance form section">
       <h3 className="fleet maintenance form section-title">Select Service Type</h3>
@@ -11,7 +11,6 @@ function ServiceTypeSection({ formData, isTypeLocked, onSelectType, onChange }) 
           <button
             key={type.value}
             type="button"
-            disabled={isTypeLocked}
             className={`fleet maintenance form type-card ${formData.serviceType === type.value ? 'selected' : ''}`}
             onClick={() => onSelectType(type.value)}
           >

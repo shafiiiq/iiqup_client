@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Input.css';
+import { StableTextarea } from './StableField';
 import {
     fontMap,
     sizeMap,
@@ -1255,14 +1256,9 @@ const Input = ({
     const renderTextarea = () => {
         return (
             <div className="custom-input-textarea-wrapper" style={{ width: width }}>
-                <textarea
-                    ref={hiddenInputRef}
-                    value={inputValue}
-                    onChange={(e) => {
-                        const newValue = e.target.value;
-                        setInputValue(newValue);
-                        onChange(e);
-                    }}
+                <StableTextarea
+                    value={value}
+                    onChange={onChange}
                     onFocus={() => {
                         setIsFocused(true);
                         onFocus({ target: { name, value: inputValue } });

@@ -18,9 +18,12 @@ function ReportSection({ formData, onChange, onStatusChange, onRangeStatusChange
       spellChecker,
     });
 
-    onChange({ target: { name: textarea.name, value: corrected.text } });
+    if (corrected.text !== textarea.value) {
+      textarea.value = corrected.text;
+      textarea.setSelectionRange(corrected.caretPosition, corrected.caretPosition);
+    }
 
-    requestAnimationFrame(() => textarea.setSelectionRange(corrected.caretPosition, corrected.caretPosition));
+    onChange({ target: { name: textarea.name, value: corrected.text } });
   };
 
   return (

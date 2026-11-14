@@ -15,8 +15,8 @@ function StableField({ as = 'input', value, onChange, ...rest }) {
   }, [value]);
 
   const handleChange = (e) => {
-    lastEmitted.current = e.target.value;
     onChange?.(e);
+    lastEmitted.current = e.target.value;
   };
 
   const Tag = as;

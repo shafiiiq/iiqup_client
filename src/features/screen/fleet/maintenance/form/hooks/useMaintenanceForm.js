@@ -37,7 +37,6 @@ export function useMaintenanceForm() {
   const { regNo: regNoParam, complaintId, maintenanceId } = useParams();
 
   const mode = maintenanceId ? 'edit' : 'create';
-  const isTypeLocked = mode === 'edit';
   const isEquipmentLocked = mode === 'edit' || Boolean(regNoParam);
 
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -136,7 +135,6 @@ export function useMaintenanceForm() {
 
   const handleTypeSelect = useCallback(
     (serviceType) => {
-      if (mode !== 'create') return;
       setFormData((previous) => ({
         ...previous,
         serviceType,
@@ -144,7 +142,7 @@ export function useMaintenanceForm() {
       }));
       setHistory((previous) => recalculateHistoryForServiceType(previous, serviceType));
     },
-    [mode]
+    []
   );
 
   const handleEquipmentSelect = useCallback((equipment) => {
@@ -270,7 +268,6 @@ export function useMaintenanceForm() {
 
   return {
     mode,
-    isTypeLocked,
     isEquipmentLocked,
     formData,
     history,
