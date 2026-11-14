@@ -216,13 +216,15 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
               onDrop={(e) => handleDescriptionDrop(e, absoluteIndex)}
               onDragOver={handleDescriptionDragOver}
             >
-              <span className="features screen quotation form dropdown-container">
+              <span
+                className="features screen quotation form dropdown-container"
+                onFocus={() => quotationForm.handleDescriptionFocus(absoluteIndex)}
+                onBlur={quotationForm.handleDescriptionBlur}
+              >
                 <RichField
                   className="features screen quotation form table-input description-input"
                   value={item[col.id] ?? ''}
                   onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
-                  onFocus={() => quotationForm.handleDescriptionFocus(absoluteIndex)}
-                  onBlur={quotationForm.handleDescriptionBlur}
                   placeholder={`Enter ${col.label.toLowerCase()}, or paste/drop an image here`}
                 />
                 {quotationForm.descDropdownIndex === absoluteIndex && quotationForm.getFilteredItemDescriptions(absoluteIndex).length > 0 && (
