@@ -571,6 +571,12 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     setQuotationData((prev) => ({ ...prev, items: newItems }));
   };
 
+  const handleDescriptionChange = (index, value) => {
+    handleItemChange(index, 'description', value);
+    setDescDropdownIndex(index);
+    if (!itemDescriptions.length) fetchItemDescriptionsList();
+  };
+
   const readImageFileForItem = (file, index, trim = 0) => {
     if (!file || !file.type.startsWith('image/')) {
       console.warn('[Quotation] readImageFileForItem: no valid image file', file);
@@ -929,6 +935,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     handleDescriptionDragOver,
     handleDescriptionFocus,
     handleDescriptionBlur,
+    handleDescriptionChange,
     getFilteredItemDescriptions,
     handleDescriptionSelect,
     handleDiscountPopup,

@@ -224,7 +224,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
                 <RichField
                   className="features screen quotation form table-input description-input"
                   value={item[col.id] ?? ''}
-                  onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
+                  onChange={(e) => quotationForm.handleDescriptionChange(absoluteIndex, e.target.value)}
                   placeholder={`Enter ${col.label.toLowerCase()}, or paste/drop an image here`}
                 />
                 {quotationForm.descDropdownIndex === absoluteIndex && quotationForm.getFilteredItemDescriptions(absoluteIndex).length > 0 && (
