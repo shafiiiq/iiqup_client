@@ -69,8 +69,10 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const [discountInput, setDiscountInput] = useState('');
   const [showAddButton, setShowAddButton] = useState(null);
   const [companies, setCompanies] = useState([]);
-  const [itemDescriptions, setItemDescriptions] = useState([]);
+  const [descriptionSuggestions, setDescriptionSuggestions] = useState([]);
   const [descDropdownIndex, setDescDropdownIndex] = useState(null);
+  const descriptionSearchTimerRef = useRef(null);
+  const descriptionSearchRequestRef = useRef(0);
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [showDiscountInTotal, setShowDiscountInTotal] = useState(true);
@@ -207,7 +209,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     else fetchLatestHireOrderNumber();
 
     fetchCompanies();
-    fetchItemDescriptionsList();
+    warmItemDescriptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotationRef, isEditMode, isAmendmentMode, isDuplicateMode]);
 
@@ -215,6 +217,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     const handleClickOutside = (event) => {
       if (companyRef.current && !companyRef.current.contains(event.target)) setCompanyDropdown(false);
       if (attnRef.current && !attnRef.current.contains(event.target)) setAttnDropdown(false);
+      if (!event.target.closest?.('.description-cell')) setDescDropdownIndex(null);
       if (discountPopupRef.current && !discountPopupRef.current.contains(event.target)) setShowDiscountPopup(false);
     };
 
@@ -414,31 +417,41 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     }
   };
 
-  const fetchItemDescriptionsList = async () => {
+  const warmItemDescriptions = async () => {
     try {
-      const data = await fetchItemDescriptions();
-      if (data.success) setItemDescriptions(data.data || []);
+      await fetchItemDescriptions('');
     } catch (error) {
-      console.error('[Quotation] fetchItemDescriptionsList error:', error);
+      console.error('[Quotation] warmItemDescriptions error:', error);
     }
+  };
+
+  const searchItemDescriptionSuggestions = (value) => {
+    clearTimeout(descriptionSearchTimerRef.current);
+    const term = stripHtml(value || '').trim();
+    if (!term) {
+      setDescriptionSuggestions([]);
+      return;
+    }
+    descriptionSearchTimerRef.current = setTimeout(async () => {
+      descriptionSearchRequestRef.current += 1;
+      const requestId = descriptionSearchRequestRef.current;
+      try {
+        const data = await fetchItemDescriptions(term);
+        if (requestId === descriptionSearchRequestRef.current && data.success) {
+          setDescriptionSuggestions(data.data || []);
+        }
+      } catch (error) {
+        console.error('[Quotation] searchItemDescriptionSuggestions error:', error);
+      }
+    }, 200);
   };
 
   const handleDescriptionFocus = (index) => {
     setDescDropdownIndex(index);
-    if (!itemDescriptions.length) fetchItemDescriptionsList();
+    searchItemDescriptionSuggestions(quotationData.items[index]?.description);
   };
 
-  const handleDescriptionBlur = () => {
-    setTimeout(() => setDescDropdownIndex(null), 150);
-  };
-
-  const getFilteredItemDescriptions = (index) => {
-    const search = stripHtml(quotationData.items[index]?.description || '').trim().toLowerCase();
-    if (!search) return [];
-    return itemDescriptions
-      .filter((d) => stripHtml(d.description).toLowerCase().includes(search))
-      .slice(0, 8);
-  };
+  const getFilteredItemDescriptions = () => descriptionSuggestions;
 
   const handleDescriptionSelect = (index, desc) => {
     setQuotationData((prev) => {
@@ -574,7 +587,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const handleDescriptionChange = (index, value) => {
     handleItemChange(index, 'description', value);
     setDescDropdownIndex(index);
-    if (!itemDescriptions.length) fetchItemDescriptionsList();
+    searchItemDescriptionSuggestions(value);
   };
 
   const readImageFileForItem = (file, index, trim = 0) => {
@@ -898,7 +911,6 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     discountInput,
     showAddButton,
     companies,
-    itemDescriptions,
     descDropdownIndex,
     isLoading,
     saveStatus,
@@ -934,7 +946,6 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     handleDescriptionDrop,
     handleDescriptionDragOver,
     handleDescriptionFocus,
-    handleDescriptionBlur,
     handleDescriptionChange,
     getFilteredItemDescriptions,
     handleDescriptionSelect,

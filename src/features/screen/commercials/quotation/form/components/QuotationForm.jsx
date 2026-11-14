@@ -219,7 +219,6 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
               <span
                 className="features screen quotation form dropdown-container"
                 onFocus={() => quotationForm.handleDescriptionFocus(absoluteIndex)}
-                onBlur={quotationForm.handleDescriptionBlur}
               >
                 <RichField
                   className="features screen quotation form table-input description-input"

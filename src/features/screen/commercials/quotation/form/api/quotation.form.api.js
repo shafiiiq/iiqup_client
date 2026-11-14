@@ -16,8 +16,8 @@ export const fetchCompanyDetails = async () => {
   return response.json();
 };
 
-export const fetchItemDescriptions = async () => {
-  const response = await apiRequest(`/quotation/item-descriptions`);
+export const fetchItemDescriptions = async (search = '') => {
+  const response = await apiRequest(`/quotation/item-descriptions?search=${encodeURIComponent(search)}`);
   return response.json();
 };
 
