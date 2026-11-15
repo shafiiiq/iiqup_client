@@ -347,7 +347,7 @@ function QuotationReport() {
         margin="0 auto 20px"
         buttons={[
           { ...SHARED_BTN, text: 'Edit', onClick: handleEditQuotation, colorScheme: 'info-800' },
-          { ...SHARED_BTN, text: isSigningDoc ? 'Signing...' : 'Sign Document', onClick: handleSignButtonClick, colorScheme: 'warning-800', disabled: isSigningDoc },
+          { ...SHARED_BTN, text: isSigningDoc ? 'Signing...' : 'Sign Document', onClick: handleSignButtonClick, colorScheme: 'warning-800', disabled: isSigningDoc || !isSentForApproval },
           { ...SHARED_BTN, text: isPdfReady ? 'Download as PDF' : 'Preparing PDF...', onClick: handleDownloadClick, colorScheme: 'success-800' },
           ...(isActivationAvailable
             ? [{ ...SHARED_BTN, text: 'Activate E-Signs', onClick: openActivationModal, colorScheme: 'error-800' }]
