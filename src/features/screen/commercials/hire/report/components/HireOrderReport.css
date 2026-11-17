@@ -11,10 +11,11 @@
 }
 
 .features.screen.hire.order.report.signature-cell img {
-  width: 13rem !important;
+  width: 9rem !important;
   left: 0 !important;
   bottom: 0 !important;
   position: absolute;
+  margin-bottom: 2rem;
 }
 
 .features.screen.hire.order.report.company-seal {
