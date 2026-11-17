@@ -36,6 +36,12 @@ export const buildCustomField = () => ({
   value: '',
 });
 
+export const generateTermKey = () => `term_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+export const isTermHeading = (term) => typeof term === 'string' && term.startsWith('## ');
+
+export const getTermText = (term) => (isTermHeading(term) ? term.slice(3) : term);
+
 export const formatCurrency = (value) =>
   (value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

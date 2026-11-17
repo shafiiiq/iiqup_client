@@ -13,6 +13,7 @@ export const buildHireOrderTableColumns = ({
   handleViewHireOrder,
   handleDeleteClick,
   handleAmendment,
+  handleDuplicate,
   toggleExpandRow,
 }) => [
     { key: 'expand', header: '', expand: true },
@@ -112,6 +113,24 @@ export const buildHireOrderTableColumns = ({
           onClick={(e) => handleDeleteClick(e, h)}
           colorScheme="yellow-800"
           iconColor="error-500"
+          padding='0'
+        />
+      ),
+    },
+    {
+      key: 'duplicate',
+      header: 'Duplicate',
+      actions: true,
+      headerCenter: true,
+      dataCenter: true,
+      render: (h) => (
+        <Button
+          {...SHARED_BTN}
+          componentIconCenter="CopyIcon"
+          componentIconSize={30}
+          onClick={(e) => handleDuplicate(e, h)}
+          colorScheme="yellow-800"
+          iconColor="primary-300"
           padding='0'
         />
       ),

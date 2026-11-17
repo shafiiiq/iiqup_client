@@ -562,6 +562,26 @@
   font-size: 16px;
 }
 
+.features.screen.hire.order.row-selected td {
+  background-color: #f0f8ff !important;
+  outline: 1px dashed #0066cc;
+  outline-offset: -2px;
+}
+
+.features.screen.hire.order.payment-term-item.term-heading {
+  margin-top: 12px;
+}
+
+.features.screen.hire.order.payment-term-input.term-heading-input {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.features.screen.hire.order.payment-term-item.term-selected {
+  background-color: #f0f8ff;
+  outline: 1px dashed #0066cc;
+}
+
 .features.screen.hire.order.note-row {
   font-size: 12pt !important;
   padding: 10px !important;
@@ -585,7 +605,7 @@
 
 .features.screen.hire.order.signatures-table td {
   padding: 8px !important;
-  width: 20% !important;
+  width: calc(100% / 7) !important;
   font-weight: normal !important;
 }
 

@@ -46,8 +46,9 @@ export const SIGNATURE_LEGEND_GROUPS = [
     label: 'General',
     items: [
       { color: '#f52a2a', label: 'Nobody signed yet' },
-      { color: '#3cbe15', label: 'All 4 signed — complete' },
+      { color: '#3cbe15', label: 'All 6 signed — complete' },
       { color: '#d5e21f', label: 'Your signature is needed' },
+      { color: '#0ea5e9', label: 'Supervisor / Prepared By only' },
     ],
   },
   {
@@ -109,6 +110,7 @@ export const SIGNATURE_STATUS = {
   'hire-order-sig-none': { label: 'Unsigned', background: '#f52a2a', color: '#ffffff' },
   'hire-order-sig-all': { label: 'Approved', background: '#3cbe15', color: '#ffffff' },
   'hire-order-sig-pending': { label: 'Your Turn', background: '#d5e21f', color: '#1f2937' },
+  'hire-order-sig-early': { label: 'In Progress', background: '#0ea5e9', color: '#ffffff' },
   'hire-order-sig-mgr-only': { label: 'In Progress', background: '#ff600a', color: '#ffffff' },
   'hire-order-sig-pm-only': { label: 'In Progress', background: '#12a5ca', color: '#ffffff' },
   'hire-order-sig-acc-only': { label: 'In Progress', background: '#db2777', color: '#ffffff' },

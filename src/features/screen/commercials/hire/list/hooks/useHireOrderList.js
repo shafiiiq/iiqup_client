@@ -90,15 +90,18 @@ const useHireOrderList = () => {
   });
 
   const getRowClass = (hireOrder) => {
-    const { pmSigned, managerSigned, accountsSigned, ceoSigned } = hireOrder;
+    const { supervisorSigned, preparedBySigned, pmSigned, managerSigned, accountsSigned, ceoSigned } = hireOrder;
     const uploaded = SIGNED_WORKFLOW_STATUSES.includes(hireOrder.workflowStatus);
     if (!uploaded) return '';
 
-    if (managerSigned && pmSigned && accountsSigned && ceoSigned)
+    if (supervisorSigned && preparedBySigned && managerSigned && pmSigned && accountsSigned && ceoSigned)
       return 'hire-order-sig-all';
 
     if (isPendingForUser(hireOrder.hireOrderRef))
       return 'hire-order-sig-pending';
+
+    if (!managerSigned && !pmSigned && !accountsSigned && !ceoSigned && (supervisorSigned || preparedBySigned))
+      return 'hire-order-sig-early';
 
     if (managerSigned && pmSigned && accountsSigned && !ceoSigned) return 'hire-order-sig-mgr-pm-acc';
     if (managerSigned && pmSigned && !accountsSigned && ceoSigned) return 'hire-order-sig-mgr-pm-ceo';
@@ -206,6 +209,11 @@ const useHireOrderList = () => {
     navigate(`/order/hire/form/amendment/${encodeURIComponent(hireOrder.hireOrderRef)}`);
   };
 
+  const handleDuplicate = (e, hireOrder) => {
+    e.stopPropagation();
+    navigate(`/order/hire/form/duplicate/${encodeURIComponent(hireOrder.hireOrderRef)}`);
+  };
+
   const confirmDelete = async () => {
     if (!selectedHireOrder) return;
 
@@ -296,6 +304,8 @@ const useHireOrderList = () => {
 
   const handleSigCellEnter = (hireOrder) => {
     const signed = [
+      hireOrder.supervisorSigned && 'Supervisor',
+      hireOrder.preparedBySigned && 'Prepared By',
       hireOrder.managerSigned && 'Manager',
       hireOrder.pmSigned && 'PM',
       hireOrder.accountsSigned && 'Accounts',
@@ -346,6 +356,7 @@ const useHireOrderList = () => {
     handlePrint,
     handleDeleteClick,
     handleAmendment,
+    handleDuplicate,
     confirmDelete,
     cancelDelete,
     closeStatusModal,

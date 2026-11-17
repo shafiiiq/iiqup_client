@@ -3,6 +3,8 @@ export const HIRE_ORDER_SIGNATURE_SOURCE_KEY = 'hire_order';
 export const HIRE_ORDER_PDF_SOURCE_KEY = 'hire_order';
 
 export const HIRE_ORDER_SIGNATURE_SLOT_ID = {
+  OPERATIONS_SUPERVISOR: 'operations_supervisor',
+  PREPARED_BY: 'prepared_by',
   OPERATIONS_MANAGER: 'operations_manager',
   PURCHASE_MANAGER: 'purchase_manager',
   ACCOUNTS: 'accounts',
@@ -39,6 +41,8 @@ export const DEFAULT_HIRE_ORDER_DATA = {
     accountsDept: 'ACCOUNTS DEPT',
     purchasingManager: 'PURCHASING MANAGER',
     operationsManager: 'OPERATIONS MANAGER',
+    operationsSupervisor: 'OPERATIONS SUPERVISOR',
+    preparedBy: 'PREPARED BY',
     authorizedSignatory: 'CEO/MD',
     authorizedSignatoryTitle: 'CEO',
   },

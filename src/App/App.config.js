@@ -98,6 +98,7 @@ export const PROTECTED_ROUTES = [
 
   { path: '/order/hire/form', element: <HireOrderForm /> },
   { path: '/order/hire/form/edit/:refNo', element: <HireOrderForm edit /> },
+  { path: '/order/hire/form/duplicate/:refNo', element: <HireOrderForm duplicate /> },
   { path: '/order/hire/form/amendment/:refNo', element: <HireOrderForm amendment /> },
   { path: '/order/hire/form/amendment/edit/:refNo', element: <HireOrderForm amendment editAmendment /> },
   { path: '/order/hire/report/:refNo', element: <HireOrderReport /> },

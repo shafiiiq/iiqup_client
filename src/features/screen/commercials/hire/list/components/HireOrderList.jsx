@@ -38,6 +38,7 @@ function HireOrderList() {
     handlePrint,
     handleDeleteClick,
     handleAmendment,
+    handleDuplicate,
     confirmDelete,
     cancelDelete,
     closeStatusModal,
@@ -68,6 +69,7 @@ function HireOrderList() {
     handleViewHireOrder,
     handleDeleteClick,
     handleAmendment,
+    handleDuplicate,
     toggleExpandRow,
   });
 

@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useHeaderTitle } from '@/shared/context/TitleContext';
+import useHireOrderHistory from './useHireOrderHistory';
 import {
   fetchLatestHireOrderRef,
   getHireOrderByRef,
@@ -19,6 +20,8 @@ import {
   filterCompaniesByField,
   getModeLabel,
   getStatusTitle,
+  generateTermKey,
+  isTermHeading,
 } from '../helper/hire.order.form.helper';
 import {
   DEFAULT_COLUMNS,
@@ -27,9 +30,11 @@ import {
   MIN_EDITABLE_COLUMNS,
   SIGNATORY_MAP,
   COLUMN_TEMPLATES,
+  OPERATIONS_SUPERVISOR_NAME,
+  PREPARED_BY_OPTIONS,
 } from '../constants/hire.order.form.constant';
 
-export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
+export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) => {
   const navigate = useNavigate();
   const { refNo } = useParams();
   const { setHeaderTitle, setHeaderSubtitle } = useHeaderTitle();
@@ -40,6 +45,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
   const isEditMode = !!(edit && refNo);
   const isEditAmendmentMode = !!(editAmendment && refNo);
   const isAmendmentMode = !!(amendment && refNo);
+  const isDuplicateMode = !!(duplicate && refNo);
 
   const [hireOrderData, setHireOrderData] = useState(DEFAULT_HIRE_ORDER_DATA);
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
@@ -47,6 +53,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
   const [paymentTerms, setPaymentTerms] = useState(DEFAULT_PAYMENT_TERMS);
   const [hireOrderCounter, setHireOrderCounter] = useState(1);
   const [ceoMode, setCeoMode] = useState('CEO');
+  const [preparedBy, setPreparedBy] = useState(PREPARED_BY_OPTIONS[0]);
   const [companyDropdown, setCompanyDropdown] = useState(false);
   const [attnDropdown, setAttnDropdown] = useState(false);
   const [showDiscount, setShowDiscount] = useState(false);
@@ -61,6 +68,46 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
   const [showTotalRow, setShowTotalRow] = useState(true);
   const [manualTotal, setManualTotal] = useState(null);
   const [amendmentNumber, setAmendmentNumber] = useState(0);
+  const [showImport, setShowImport] = useState(false);
+  const [termKeys, setTermKeys] = useState(() => DEFAULT_PAYMENT_TERMS.map(() => generateTermKey()));
+
+  const historySnapshot = useMemo(
+    () => ({
+      hireOrderData,
+      columns,
+      columnTemplate,
+      paymentTerms,
+      termKeys,
+      customFields,
+      showTotalRow,
+      manualTotal,
+      showDiscountInTotal,
+      ceoMode,
+      preparedBy,
+    }),
+    [hireOrderData, columns, columnTemplate, paymentTerms, termKeys, customFields, showTotalRow, manualTotal, showDiscountInTotal, ceoMode, preparedBy]
+  );
+
+  const applyHistorySnapshot = (snapshot) => {
+    setHireOrderData(snapshot.hireOrderData);
+    setColumns(snapshot.columns);
+    setColumnTemplate(snapshot.columnTemplate);
+    setPaymentTerms(snapshot.paymentTerms);
+    setTermKeys(snapshot.termKeys);
+    setCustomFields(snapshot.customFields);
+    setShowTotalRow(snapshot.showTotalRow);
+    setManualTotal(snapshot.manualTotal);
+    setShowDiscountInTotal(snapshot.showDiscountInTotal);
+    setCeoMode(snapshot.ceoMode);
+    setPreparedBy(snapshot.preparedBy);
+  };
+
+  const history = useHireOrderHistory({ snapshot: historySnapshot, applySnapshot: applyHistorySnapshot });
+
+  const replacePaymentTerms = (terms) => {
+    setPaymentTerms(terms);
+    setTermKeys(terms.map(() => generateTermKey()));
+  };
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
 
@@ -87,13 +134,17 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
   }, [hireOrderCounter, saveStatus, hireOrderData.hireOrderRef, isAmendmentMode, isEditMode, setHeaderTitle, setHeaderSubtitle]);
 
   useEffect(() => {
-    if (isAmendmentMode) fetchHireOrderForAmendmentEdit();
+    history.suppressNext();
+    if (isDuplicateMode) {
+      fetchLatestHireOrderNumber();
+      loadSourceHireOrder(refNo);
+    } else if (isAmendmentMode) fetchHireOrderForAmendmentEdit();
     else if (isEditMode) fetchHireOrderForEdit();
     else fetchLatestHireOrderNumber();
 
     fetchCompanies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refNo, isEditMode, isAmendmentMode]);
+  }, [refNo, isEditMode, isAmendmentMode, isDuplicateMode]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -143,7 +194,8 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
       });
 
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
-      if (ho.termsAndConditions?.length) setPaymentTerms(filterEditableTerms(ho.termsAndConditions));
+      setPreparedBy(ho.signatures?.preparedBy || PREPARED_BY_OPTIONS[0]);
+      if (ho.termsAndConditions?.length) replacePaymentTerms(filterEditableTerms(ho.termsAndConditions));
       setShowDiscountInTotal(ho.totalDiscountAmount !== undefined);
       setCustomFields(ho.customFields?.length ? ho.customFields : []);
       setShowTotalRow(ho.showTotalRow ?? true);
@@ -187,8 +239,9 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
 
       if (ho.signatures?.authorizedSignatory === 'MOHAMMED SHAHEEN') setCeoMode('MANAGING DIRECTOR');
 
+      setPreparedBy(ho.signatures?.preparedBy || PREPARED_BY_OPTIONS[0]);
       const rawTerms = latest?.amendedTermsAndConditions?.length ? latest.amendedTermsAndConditions : ho.termsAndConditions;
-      if (rawTerms?.length) setPaymentTerms(filterEditableTerms(rawTerms));
+      if (rawTerms?.length) replacePaymentTerms(filterEditableTerms(rawTerms));
 
       setShowDiscountInTotal(latest ? (latest.amendedDiscount || 0) > 0 : ho.totalDiscountAmount !== undefined);
       setCustomFields(
@@ -216,18 +269,93 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
     }
   };
 
+  const applySourceHireOrder = (sourceHireOrder) => {
+    const latest = sourceHireOrder.amendments?.length
+      ? sourceHireOrder.amendments[sourceHireOrder.amendments.length - 1]
+      : null;
+    const loadedColumns = latest?.amendedColumns?.length
+      ? latest.amendedColumns
+      : (sourceHireOrder.columns?.length ? sourceHireOrder.columns : DEFAULT_COLUMNS);
+    const loadedItems = latest?.amendedItems?.length
+      ? latest.amendedItems
+      : (sourceHireOrder.items?.length ? sourceHireOrder.items : [buildDefaultItem(loadedColumns)]);
+    const rawTerms = latest?.amendedTermsAndConditions?.length
+      ? latest.amendedTermsAndConditions
+      : (sourceHireOrder.termsAndConditions || []);
+    const loadedTerms = filterEditableTerms(rawTerms);
+    const company = latest?.amendedCompany?.vendor ? latest.amendedCompany : sourceHireOrder.company;
+    const loadedManualTotal = latest ? latest.amendedManualTotal : sourceHireOrder.manualTotal;
+
+    setColumns(loadedColumns);
+    setHireOrderData((prev) => ({
+      ...prev,
+      vendor: company?.vendor || '',
+      attention: company?.attention || '',
+      designation: company?.designation || '',
+      quoteNo: latest?.amendedQuoteNo || sourceHireOrder.quoteNo || '',
+      requestText: latest?.amendedRequestText || sourceHireOrder.requestText || '',
+      items: loadedItems.map((item, index) => ({ ...item, id: index + 1 })),
+      discount: latest ? latest.amendedDiscount || 0 : sourceHireOrder.discount || 0,
+    }));
+    setCustomFields(
+      latest?.amendedCustomFields?.length ? latest.amendedCustomFields : (sourceHireOrder.customFields || [])
+    );
+    setCeoMode(sourceHireOrder.signatures?.authorizedSignatoryTitle === 'MANAGING DIRECTOR' ? 'MANAGING DIRECTOR' : 'CEO');
+    setPreparedBy(sourceHireOrder.signatures?.preparedBy || PREPARED_BY_OPTIONS[0]);
+    if (loadedTerms.length) replacePaymentTerms(loadedTerms);
+    setShowDiscountInTotal(latest ? (latest.amendedDiscount || 0) > 0 : sourceHireOrder.totalDiscountAmount !== undefined);
+    setShowTotalRow(latest?.amendedShowTotalRow ?? sourceHireOrder.showTotalRow ?? true);
+    setManualTotal(loadedManualTotal != null ? String(loadedManualTotal) : null);
+  };
+
+  const loadSourceHireOrder = async (sourceRef) => {
+    setIsLoading(true);
+    try {
+      const data = await getHireOrderByRef(sourceRef);
+      if (!data.success || !data.data) {
+        setSaveStatus('Error loading hire order data');
+        return;
+      }
+      applySourceHireOrder(data.data);
+    } catch (error) {
+      console.error('[HroForm] loadSourceHireOrder error:', error);
+      setSaveStatus('Error loading hire order data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openImport = () => setShowImport(true);
+  const closeImport = () => setShowImport(false);
+  const importHireOrder = async (sourceRef) => {
+    setShowImport(false);
+    await loadSourceHireOrder(sourceRef);
+  };
+
+  const moveColumn = (fromIndex, toIndex) => {
+    setColumns((prev) => {
+      if (toIndex < 0 || toIndex >= prev.length) return prev;
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
+  };
+
   const updateColumnLabel = (colId, label) => {
     setColumns((prev) => prev.map((c) => (c.id === colId && c.type !== 'calculated' ? { ...c, label } : c)));
   };
 
-  const addColumn = () => {
+  const addColumn = (afterColumnId) => {
     const newId = `col_${Date.now()}`;
     const newCol = { id: newId, label: 'New Column', type: 'text', deletable: true };
 
     setColumns((prev) => {
-      const calcIndex = prev.findIndex((c) => c.type === 'calculated');
       const updated = [...prev];
-      updated.splice(calcIndex === -1 ? updated.length : calcIndex, 0, newCol);
+      const afterIndex = typeof afterColumnId === 'string' ? updated.findIndex((c) => c.id === afterColumnId) : -1;
+      const calculatedIndex = updated.findIndex((c) => c.type === 'calculated');
+      const fallbackIndex = calculatedIndex === -1 ? updated.length : calculatedIndex;
+      updated.splice(afterIndex !== -1 ? afterIndex + 1 : fallbackIndex, 0, newCol);
       return updated;
     });
 
@@ -279,12 +407,27 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
     }));
   };
 
-  const addItemRow = () => {
-    setHireOrderData((prev) => ({
-      ...prev,
-      items: [...prev.items, buildDefaultItem(columns, prev.items.length + 1)],
-    }));
+  const addItemRow = (afterIndex) => {
+    setHireOrderData((prev) => {
+      const items = [...prev.items];
+      const insertAt = typeof afterIndex === 'number' ? afterIndex + 1 : items.length;
+      items.splice(insertAt, 0, buildDefaultItem(columns, 0));
+      return { ...prev, items: items.map((item, index) => ({ ...item, id: index + 1 })) };
+    });
   };
+
+  const moveItem = (fromIndex, toIndex) => {
+    setHireOrderData((prev) => {
+      if (toIndex < 0 || toIndex >= prev.items.length) return prev;
+      const items = [...prev.items];
+      const [moved] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, moved);
+      return { ...prev, items: items.map((item, index) => ({ ...item, id: index + 1 })) };
+    });
+  };
+
+  const moveItemUp = (index) => moveItem(index, index - 1);
+  const moveItemDown = (index) => moveItem(index, index + 1);
 
   const removeItem = (index) => {
     if (hireOrderData.items.length <= 1) return;
@@ -328,18 +471,42 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
     setDiscountInput('');
   };
 
-  const addPaymentTerm = () => setPaymentTerms((prev) => [...prev, '']);
+  const addPaymentTerm = () => {
+    setPaymentTerms((prev) => [...prev, '']);
+    setTermKeys((prev) => [...prev, generateTermKey()]);
+  };
+
+  const addPaymentTermHeading = () => {
+    setPaymentTerms((prev) => [...prev, '## ']);
+    setTermKeys((prev) => [...prev, generateTermKey()]);
+  };
 
   const updatePaymentTerm = (index, value) => {
     const updated = [...paymentTerms];
-    updated[index] = value;
+    updated[index] = isTermHeading(updated[index]) ? `## ${value}` : value;
     setPaymentTerms(updated);
   };
 
   const removePaymentTerm = (index) => {
     if (paymentTerms.length <= 1) return;
     setPaymentTerms((prev) => prev.filter((_, i) => i !== index));
+    setTermKeys((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const moveTerm = (fromIndex, toIndex) => {
+    const reorder = (list) => {
+      if (toIndex < 0 || toIndex >= list.length) return list;
+      const updated = [...list];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    };
+    setPaymentTerms(reorder);
+    setTermKeys(reorder);
+  };
+
+  const moveTermUp = (index) => moveTerm(index, index - 1);
+  const moveTermDown = (index) => moveTerm(index, index + 1);
 
   const addCustomField = () => setCustomFields((prev) => [...prev, buildCustomField()]);
 
@@ -359,6 +526,8 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
 
   const toggleDiscountInTotal = () => setShowDiscountInTotal((prev) => !prev);
   const toggleCeoMode = () => setCeoMode((prev) => (prev === 'CEO' ? 'MANAGING DIRECTOR' : 'CEO'));
+  const togglePreparedBy = () =>
+    setPreparedBy((previous) => PREPARED_BY_OPTIONS[(PREPARED_BY_OPTIONS.indexOf(previous) + 1) % PREPARED_BY_OPTIONS.length]);
   const getSignatoryName = () => SIGNATORY_MAP[ceoMode] || SIGNATORY_MAP.CEO;
 
   const handleCompanySelect = (company) => {
@@ -440,6 +609,8 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
           accountsDept: 'ROSHAN SHA',
           purchasingManager: 'ABDUL MALIK',
           operationsManager: 'SURESHKANTH',
+          operationsSupervisor: OPERATIONS_SUPERVISOR_NAME,
+          preparedBy,
           authorizedSignatory: getSignatoryName(),
           authorizedSignatoryTitle: ceoMode,
         },
@@ -496,7 +667,17 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
 
     isEditMode,
     isAmendmentMode,
+    isDuplicateMode,
     amendmentNumber,
+    showImport,
+    openImport,
+    closeImport,
+    importHireOrder,
+    termKeys,
+    undo: history.undo,
+    redo: history.redo,
+    canUndo: history.canUndo,
+    canRedo: history.canRedo,
 
     hireOrderData,
     columns,
@@ -530,15 +711,21 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
     addColumn,
     addTotalColumn,
     removeColumn,
+    moveColumn,
     addItemRow,
+    moveItemUp,
+    moveItemDown,
     removeItem,
     handleItemChange,
     handleDiscountPopup,
     applyDiscount,
     cancelDiscount,
     addPaymentTerm,
+    addPaymentTermHeading,
     updatePaymentTerm,
     removePaymentTerm,
+    moveTermUp,
+    moveTermDown,
     addCustomField,
     updateCustomFieldLabel,
     updateCustomFieldValue,
@@ -550,6 +737,8 @@ export const useHireOderForm = ({ edit, amendment, editAmendment }) => {
     resetManualTotal,
     toggleDiscountInTotal,
     toggleCeoMode,
+    preparedBy,
+    togglePreparedBy,
     getSignatoryName,
     handleCompanySelect,
     handleAttentionSelect,

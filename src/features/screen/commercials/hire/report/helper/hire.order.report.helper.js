@@ -11,6 +11,10 @@ export const formatCurrency = (value) =>
 
 export const signatoryRole = (name) => name === 'CEO' ? '(CEO)' : '(MANAGING DIRECTOR)';
 
+export const isTermHeading = (term) => typeof term === 'string' && term.startsWith('## ');
+
+export const getTermText = (term) => (isTermHeading(term) ? term.slice(3) : term);
+
 export const buildTimestamp = () => {
   const date = new Date();
   const d = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });

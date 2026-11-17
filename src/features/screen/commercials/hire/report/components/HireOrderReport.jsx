@@ -9,7 +9,7 @@ import SigningModals from '@/features/core/messaging/signature/components/Signin
 import SignatureSlotContent from '@/features/core/messaging/signature/components/SignatureSlotContent';
 import useHireOrderReport from '../hooks/useHireOrderReport';
 import { SHARED_BTN, EMAIL_FORM_FIELDS, HIRE_ORDER_SIGNATURE_SLOT_ID } from '../constants/hire.order.report.constant';
-import { formatCurrency, signatoryRole, getEffectiveColumns, splitHeaderLabel } from '../helper/hire.order.report.helper';
+import { formatCurrency, signatoryRole, getEffectiveColumns, splitHeaderLabel, isTermHeading, getTermText } from '../helper/hire.order.report.helper';
 import './HireOrderReport.css';
 
 function SignatureCell({ slot, alt, onSign, isSigning }) {
@@ -26,13 +26,15 @@ function SignaturesTable({ data, signatureSlots, onSign, isSigning }) {
     <table className="features screen hire order report signatures-table">
       <tbody>
         <tr>
-          <td colSpan="4" className="features screen hire order report signatures-company-name features screen hire order report border-right features screen hire order report border-left">
+          <td colSpan="6" className="features screen hire order report signatures-company-name features screen hire order report border-right features screen hire order report border-left">
             AL ANSARI TRANSPORT &amp; ENTERPRISES W.L.L
           </td>
           <td className="features screen hire order report service-provider features screen hire order report border-right">Subcontractor OR<br />Service Provider</td>
         </tr>
 
         <tr>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">Operations Supervisor</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">Prepared By</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">Operations Manager</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">Purchase Manager</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">Accounts Dept:</td>
@@ -43,6 +45,8 @@ function SignaturesTable({ data, signatureSlots, onSign, isSigning }) {
         </tr>
 
         <tr className="features screen hire order report signatures-image-row">
+          <SignatureCell slot={signatureSlots[HIRE_ORDER_SIGNATURE_SLOT_ID.OPERATIONS_SUPERVISOR]} alt="Supervisor Signature" onSign={onSign} isSigning={isSigning} />
+          <SignatureCell slot={signatureSlots[HIRE_ORDER_SIGNATURE_SLOT_ID.PREPARED_BY]} alt="Prepared By Signature" onSign={onSign} isSigning={isSigning} />
           <SignatureCell slot={signatureSlots[HIRE_ORDER_SIGNATURE_SLOT_ID.OPERATIONS_MANAGER]} alt="Manager Signature" onSign={onSign} isSigning={isSigning} />
           <SignatureCell slot={signatureSlots[HIRE_ORDER_SIGNATURE_SLOT_ID.PURCHASE_MANAGER]} alt="PM Signature" onSign={onSign} isSigning={isSigning} />
           <SignatureCell slot={signatureSlots[HIRE_ORDER_SIGNATURE_SLOT_ID.ACCOUNTS]} alt="Accounts Signature" onSign={onSign} isSigning={isSigning} />
@@ -51,6 +55,8 @@ function SignaturesTable({ data, signatureSlots, onSign, isSigning }) {
         </tr>
 
         <tr>
+<td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">{data.signatures.operationsSupervisor}</td>
+          <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">{data.signatures.preparedBy}</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-left features screen hire order report border-top features screen hire order report text-center">{data.signatures.operationsManager}</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">{data.signatures.purchasingManager}</td>
           <td className="features screen hire order report role-label features screen hire order report border-right features screen hire order report border-bottom features screen hire order report border-top features screen hire order report text-center">{data.signatures.accountsDept}</td>
@@ -80,7 +86,7 @@ function ClosingSection({ data, signatureSlots, onSign, isSigning }) {
   );
 }
 
-function ReportData({ data, signatureSlots, onSign, isSigning }) {
+export function ReportData({ data, signatureSlots, onSign, isSigning }) {
   const columns = getEffectiveColumns(data);
   const total = data.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
 
@@ -104,7 +110,11 @@ function ReportData({ data, signatureSlots, onSign, isSigning }) {
     </tr>
   );
 
-  const buildTermLi = (term, absoluteIndex) => <li key={absoluteIndex}>{term}</li>;
+  const buildTermLi = (term, absoluteIndex) => (
+    <li key={absoluteIndex} className={isTermHeading(term) ? 'features screen hire order report term-heading' : undefined}>
+      {getTermText(term)}
+    </li>
+  );
 
   const blocks = [
     ...data.items.map((item, absoluteIndex) => ({

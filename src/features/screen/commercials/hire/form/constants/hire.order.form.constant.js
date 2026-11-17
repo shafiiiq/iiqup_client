@@ -57,6 +57,10 @@ export const DEFAULT_HIRE_ORDER_DATA = {
 
 export const SIGNATORY_MAP = { CEO: 'AHAMMED KAMAL', 'MANAGING DIRECTOR': 'MOHAMMED SHAHEEN' };
 
+export const OPERATIONS_SUPERVISOR_NAME = 'SALIH BASHEER';
+
+export const PREPARED_BY_OPTIONS = ['SANA SALIM', 'SHAHEEN', 'NAJIYA', 'SHYMA AMEENA'];
+
 export const SHARED_BTN = {
   variant: 'gradient',
   font: 'md',

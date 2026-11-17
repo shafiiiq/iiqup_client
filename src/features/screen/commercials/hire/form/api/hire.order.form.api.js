@@ -16,6 +16,11 @@ export const fetchCompanyDetails = async () => {
   return response.json();
 };
 
+export const fetchHireOrderPage = async (page = 1, limit = 20) => {
+  const response = await apiRequest(`/order/hire/get-all-hire-orders?page=${page}&limit=${limit}`, 'GET');
+  return response.json();
+};
+
 export const createOrUpdateHireOrder = async (endpoint, method, payload) => {
   const response = await apiRequest(endpoint, method, payload);
   return response.json();

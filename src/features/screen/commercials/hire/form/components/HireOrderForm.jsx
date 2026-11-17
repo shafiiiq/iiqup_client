@@ -1,14 +1,15 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 import Controls from '@/shared/components/widgets/controls/Controls';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
+import HireOrderImportOverlay from './HireOrderImportOverlay';
 
 import { useHireOderForm } from '../hooks/useHireOderForm';
-import { formatCurrency } from '../helper/hire.order.form.helper';
-import { SHARED_BTN, COLUMN_TEMPLATE_LABELS } from '../constants/hire.order.form.constant';
+import { formatCurrency, isTermHeading, getTermText } from '../helper/hire.order.form.helper';
+import { SHARED_BTN, COLUMN_TEMPLATE_LABELS, OPERATIONS_SUPERVISOR_NAME } from '../constants/hire.order.form.constant';
 import './HireOrderForm.css';
 
-function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
+function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode, preparedBy, togglePreparedBy }) {
   return (
     <>
       <table className="features screen hire order terms-table">
@@ -24,10 +25,15 @@ function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
       <table className="features screen hire order signatures-table">
         <tbody>
           <tr>
-            <td colSpan="4" className="features screen hire order company-footer">AL ANSARI TRANSPORT &amp; ENTERPRISES W.L.L</td>
+            <td colSpan="6" className="features screen hire order company-footer">AL ANSARI TRANSPORT &amp; ENTERPRISES W.L.L</td>
             <td className="features screen hire order sign-table-l">Subcontractor OR<br />Service Provider</td>
           </tr>
           <tr>
+            <td className="features screen hire order sign-table-l">Operations Supervisor</td>
+            <td className="features screen hire order sign-table-l">
+              Prepared By<br />
+              <span className="features screen hire order toggle-field ceo-toggle" onClick={togglePreparedBy}>({preparedBy})</span>
+            </td>
             <td className="features screen hire order sign-table-l">Accounts Dept:</td>
             <td className="features screen hire order sign-table-l">Purchase Manager</td>
             <td className="features screen hire order sign-table-l">Operations Manager</td>
@@ -38,10 +44,14 @@ function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
             <td className="features screen hire order sign-table-date">(Date &amp; Sign with Stamp)</td>
           </tr>
           <tr className="features screen hire order signature-spaces-large">
+            <td className="features screen hire order sign-table-l" />
+            <td className="features screen hire order sign-table-l" />
             <td className="features screen hire order sign-table-l" /><td className="features screen hire order sign-table-l" />
             <td className="features screen hire order sign-table-l" /><td className="features screen hire order sign-table-l" /><td />
           </tr>
           <tr>
+            <td className="features screen hire order sign-table-l">{OPERATIONS_SUPERVISOR_NAME}</td>
+            <td className="features screen hire order sign-table-l">{preparedBy}</td>
             <td className="features screen hire order sign-table-l">ROSHAN SHA</td>
             <td className="features screen hire order sign-table-l">ABDUL MALIK</td>
             <td className="features screen hire order sign-table-l">SURESHKANTH</td>
@@ -54,9 +64,13 @@ function SignaturesBlock({ getSignatoryName, toggleCeoMode, ceoMode }) {
   );
 }
 
-function HireOrderForm({ edit, amendment, editAmendment }) {
+function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
   const firstPageRef = useRef();
-  const hireOrderForm = useHireOderForm({ edit, amendment, editAmendment });
+  const serialCellRefs = useRef({});
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+  const [selectedTermIndex, setSelectedTermIndex] = useState(null);
+  const [dragColumnIndex, setDragColumnIndex] = useState(null);
+  const hireOrderForm = useHireOderForm({ edit, amendment, editAmendment, duplicate });
 
   const {
     hireOrderData,
@@ -86,10 +100,20 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
     updateColumnLabel,
     removeColumn,
     addColumn,
+    moveColumn,
     addTotalColumn,
     addItemRow,
+    moveItemUp,
+    moveItemDown,
     removeItem,
     handleItemChange,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    termKeys,
+    moveTermUp,
+    moveTermDown,
     handleRowMouseEnter,
     handleRowMouseLeave,
     handleDiscountPopup,
@@ -99,14 +123,40 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
     updatePaymentTerm,
     removePaymentTerm,
     addPaymentTerm,
+    addPaymentTermHeading,
   } = hireOrderForm;
 
+  const handleRowKeyDown = (event, absoluteIndex) => {
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (absoluteIndex === 0) return;
+      moveItemUp(absoluteIndex);
+      setSelectedRowIndex(absoluteIndex - 1);
+      requestAnimationFrame(() => serialCellRefs.current[absoluteIndex - 1]?.focus());
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (absoluteIndex === hireOrderData.items.length - 1) return;
+      moveItemDown(absoluteIndex);
+      setSelectedRowIndex(absoluteIndex + 1);
+      requestAnimationFrame(() => serialCellRefs.current[absoluteIndex + 1]?.focus());
+    }
+  };
+
   const buildItemRow = (item, absoluteIndex) => (
-    <tr key={item.id}>
+    <tr
+      key={item.id}
+      className={selectedRowIndex === absoluteIndex ? 'features screen hire order row-selected' : undefined}
+    >
       <td
+        ref={(element) => { if (element) serialCellRefs.current[absoluteIndex] = element; }}
         className="features screen hire order sn-cell"
         onMouseEnter={() => handleRowMouseEnter(absoluteIndex)}
         onMouseLeave={handleRowMouseLeave}
+        onClick={() => setSelectedRowIndex(absoluteIndex)}
+        onKeyDown={(event) => handleRowKeyDown(event, absoluteIndex)}
+        tabIndex={0}
+        title="Click, then use ↑/↓ to reorder"
+        style={{ cursor: 'pointer' }}
       >
         {item.id}
         {showAddButton === absoluteIndex && (
@@ -117,7 +167,7 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
             className="features screen hire order row-controls"
             items={[
               {
-                ...SHARED_BTN, text: '+', onClick: addItemRow, colorScheme: 'success-700', width: '20px', height: '20px',
+                ...SHARED_BTN, text: '+', onClick: () => addItemRow(absoluteIndex), colorScheme: 'success-700', width: '20px', height: '20px',
                 title: 'Add Row', font: 'sm', padding: '0', type: 'submit', cursor: 'allowed'
               },
               ...(hireOrderData.items.length > 1 ? [{
@@ -233,15 +283,35 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
     </tr>
   );
 
+  const handleTermKeyDown = (event, absoluteIndex) => {
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (absoluteIndex === 0) return;
+      moveTermUp(absoluteIndex);
+      setSelectedTermIndex(absoluteIndex - 1);
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (absoluteIndex === paymentTerms.length - 1) return;
+      moveTermDown(absoluteIndex);
+      setSelectedTermIndex(absoluteIndex + 1);
+    }
+  };
+
   const buildTermLi = (term, absoluteIndex) => (
-    <li key={absoluteIndex} className="features screen hire order payment-term-item">
-      <span className="features screen hire order term-bullet">•</span>
+    <li
+      key={termKeys[absoluteIndex] ?? absoluteIndex}
+      className={`features screen hire order payment-term-item${isTermHeading(term) ? ' term-heading' : ''}${selectedTermIndex === absoluteIndex ? ' term-selected' : ''}`}
+      title="Click a term, then use ↑/↓ to reorder"
+    >
+      {!isTermHeading(term) && <span className="features screen hire order term-bullet">•</span>}
       <input
         type="text"
-        className="features screen hire order payment-term-input"
-        value={term}
+        className={`features screen hire order payment-term-input${isTermHeading(term) ? ' term-heading-input' : ''}`}
+        value={getTermText(term)}
         onChange={(e) => updatePaymentTerm(absoluteIndex, e.target.value)}
-        placeholder="Enter payment term"
+        onFocus={() => setSelectedTermIndex(absoluteIndex)}
+        onKeyDown={(event) => handleTermKeyDown(event, absoluteIndex)}
+        placeholder={isTermHeading(term) ? 'Enter sub heading' : 'Enter payment term'}
       />
       {paymentTerms.length > 1 && (
         <button className="features screen hire order remove-term-btn" onClick={() => removePaymentTerm(absoluteIndex)} title="Remove term">
@@ -286,6 +356,8 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
           getSignatoryName={hireOrderForm.getSignatoryName}
           toggleCeoMode={hireOrderForm.toggleCeoMode}
           ceoMode={hireOrderForm.ceoMode}
+          preparedBy={hireOrderForm.preparedBy}
+          togglePreparedBy={hireOrderForm.togglePreparedBy}
         />
       ),
     },
@@ -296,10 +368,24 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
       <thead>
         <tr>
           <th className="features screen hire order sn-header">SN</th>
-          {columns.map((col) => {
+          {columns.map((col, columnIndex) => {
             const fixed = col.type === 'calculated';
             return (
-              <th key={col.id}>
+              <th
+                key={col.id}
+                draggable={!fixed}
+                onDragStart={() => setDragColumnIndex(columnIndex)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (dragColumnIndex === null || dragColumnIndex === columnIndex) return;
+                  moveColumn(dragColumnIndex, columnIndex);
+                  setDragColumnIndex(null);
+                }}
+                onDragEnd={() => setDragColumnIndex(null)}
+                title={fixed ? undefined : 'Drag to reorder'}
+                style={fixed ? undefined : { cursor: 'grab' }}
+              >
                 {fixed ? (
                   <div className="features screen hire order column-header-cell fixed-column-header">
                     <span className="features screen hire order fixed-column-label">{col.label}</span>
@@ -314,6 +400,7 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
                       value={col.label}
                       onChange={(e) => updateColumnLabel(col.id, e.target.value)}
                     />
+                    <button className="features screen hire order remove-column-btn" onClick={() => addColumn(col.id)} title="Insert column after">+</button>
                     <button className="features screen hire order remove-column-btn" onClick={() => removeColumn(col.id)} title="Remove column">×</button>
                   </div>
                 )}
@@ -341,9 +428,13 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
                 {isLastGroup && (
                   <Controls
                     justify="start"
+                    gap="8px"
                     items={[{
                       text: '+ Add Payment Term', onClick: addPaymentTerm, colorScheme: 'lime-800',
                       width: '170px', height: '30px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
+                    }, {
+                      text: '+ Add Heading', onClick: addPaymentTermHeading, colorScheme: 'primary-800',
+                      width: '140px', height: '30px', font: 'sm', type: 'submit', cursor: 'pointer', ...SHARED_BTN,
                     }]}
                   />
                 )}
@@ -557,7 +648,31 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
         justify="center"
         margin='0 0 20px 0'
         className="features screen hire order save-controls"
-        items={[{
+        items={[
+          ...(!hireOrderForm.isEditMode && !hireOrderForm.isAmendmentMode ? [{
+            text: 'Import Hire Order',
+            onClick: hireOrderForm.openImport,
+            colorScheme: 'warning-800',
+            width: 'fit-content',
+            ...SHARED_BTN,
+          }] : []),
+          {
+            text: 'Undo',
+            onClick: undo,
+            colorScheme: canUndo ? 'primary-700' : 'primary-900',
+            type: canUndo ? 'submit' : 'disabled',
+            width: 'fit-content',
+            ...SHARED_BTN,
+          },
+          {
+            text: 'Redo',
+            onClick: redo,
+            colorScheme: canRedo ? 'primary-700' : 'primary-900',
+            type: canRedo ? 'submit' : 'disabled',
+            width: 'fit-content',
+            ...SHARED_BTN,
+          },
+          {
           text: hireOrderForm.isLoading
             ? (hireOrderForm.isAmendmentMode ? 'Processing Amendment...' : hireOrderForm.isEditMode ? 'Updating...' : 'Saving...')
             : (hireOrderForm.isAmendmentMode ? 'Save Amendment & Send for Approval' : hireOrderForm.isEditMode ? 'Update Hire Order' : 'Save Hire Order'),
@@ -567,7 +682,8 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
           type: hireOrderForm.isLoading ? 'disabled' : 'submit',
           cursor: 'allowed',
           ...SHARED_BTN,
-        }]}
+          },
+        ]}
       />
 
       <A2PaginationEngine blocks={blocks} firstPageHeader={headerNode}>
@@ -617,6 +733,9 @@ function HireOrderForm({ edit, amendment, editAmendment }) {
         </div>
       )}
 
+      {hireOrderForm.showImport && (
+        <HireOrderImportOverlay onClose={hireOrderForm.closeImport} onSelect={hireOrderForm.importHireOrder} />
+      )}
       {hireOrderForm.saveStatus && <div className="features screen hire order save-status">{hireOrderForm.saveStatus}</div>}
     </div>
   );

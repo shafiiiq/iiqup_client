@@ -172,6 +172,14 @@
   margin-bottom: 8px !important;
 }
 
+.features.screen.hire.order.report.terms-content li.term-heading {
+  list-style: none;
+  margin-left: -20px;
+  margin-top: 10px;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
 .features.screen.hire.order.report.terms-note {
   font-size: 18px !important;
 }
@@ -225,7 +233,7 @@
 }
 
 .features.screen.hire.order.report.signatures-table td {
-  width: 240px !important;
+  width: calc(100% / 7) !important;
   font-size: 18px !important;
   position: relative;
 }
