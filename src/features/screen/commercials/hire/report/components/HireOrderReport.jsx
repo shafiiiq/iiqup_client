@@ -9,7 +9,10 @@ import SigningModals from '@/features/core/messaging/signature/components/Signin
 import SignatureSlotContent from '@/features/core/messaging/signature/components/SignatureSlotContent';
 import useHireOrderReport from '../hooks/useHireOrderReport';
 import { SHARED_BTN, EMAIL_FORM_FIELDS, HIRE_ORDER_SIGNATURE_SLOT_ID } from '../constants/hire.order.report.constant';
-import { formatCurrency, signatoryRole, getEffectiveColumns, splitHeaderLabel, isTermHeading, getTermText } from '../helper/hire.order.report.helper';
+import { formatCurrency, signatoryRole, getEffectiveColumns, isTermHeading, getTermText } from '../helper/hire.order.report.helper';
+import { richHtml } from '@/shared/components/widgets/input/richText';
+import QuotationHeaderLabel from '@/features/screen/commercials/quotation/shared/components/QuotationHeaderLabel';
+import { resolveHeaderCells } from '@/features/screen/commercials/quotation/shared/helper/quotation.header.cell.helper';
 import './HireOrderReport.css';
 
 function SignatureCell({ slot, alt, onSign, isSigning }) {
@@ -92,10 +95,14 @@ export function ReportData({ data, signatureSlots, onSign, isSigning }) {
 
   const buildItemRow = (item, absoluteIndex) => (
     <tr key={item._id || item.id || absoluteIndex}>
-      <td>{absoluteIndex + 1}</td>
+      <td className="features screen hire order report sn-cell">{absoluteIndex + 1}</td>
       {columns.map((col) => (
         <td key={col.id} className={col.id === 'description' ? 'features screen hire order report items-description-data' : ''}>
-          {(col.id === 'unitPrice' || col.type === 'calculated') ? formatCurrency(item[col.id]) : item[col.id]}
+          {(col.id === 'unitPrice' || col.type === 'calculated') ? (
+            formatCurrency(item[col.id])
+          ) : (
+            <span dangerouslySetInnerHTML={richHtml(item[col.id])} />
+          )}
         </td>
       ))}
     </tr>
@@ -154,11 +161,9 @@ export function ReportData({ data, signatureSlots, onSign, isSigning }) {
     if (group.section === 'item') {
       return (
         <table key="items" className="features screen hire order report items-table">
-          <thead><tr><th>SN</th>{columns.map((col) => (
-            <th key={col.id}>
-              {splitHeaderLabel(col.label).map((line, i, arr) => (
-                <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
-              ))}
+          <thead><tr><th className="features screen hire order report sn-cell">SN</th>{resolveHeaderCells(columns).map(({ column: col, span }) => (
+            <th key={col.id} colSpan={span}>
+              <QuotationHeaderLabel label={col.label} />
             </th>
           ))}</tr></thead>
           <tbody>{group.blocks.map((b) => b.row)}</tbody>

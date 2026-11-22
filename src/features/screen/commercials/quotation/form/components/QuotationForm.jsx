@@ -5,6 +5,10 @@ import { StableInput } from '@/shared/components/widgets/input/StableField';
 import RichField from '@/shared/components/widgets/input/RichField';
 import { stripHtml } from '@/shared/components/widgets/input/richText';
 import QuotationImportOverlay from './QuotationImportOverlay';
+import QuotationHeaderContextMenu from './fragments/QuotationHeaderContextMenu';
+import QuotationHeaderLabelEditor from './fragments/QuotationHeaderLabelEditor';
+import QuotationHeaderLabel from '../../shared/components/QuotationHeaderLabel';
+import { resolveHeaderCells } from '../../shared/helper/quotation.header.cell.helper';
 import DescriptionSuggestionSkeleton from './fragments/DescriptionSuggestionSkeleton';
 import LoadMoreSentinel from '../../list/components/fragments/LoadMoreSentinel';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
@@ -226,7 +230,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
                   className="features screen quotation form table-input description-input"
                   value={item[col.id] ?? ''}
                   onChange={(e) => quotationForm.handleDescriptionChange(absoluteIndex, e.target.value)}
-                  placeholder={`Enter ${col.label.toLowerCase()}, or paste/drop an image here`}
+                  placeholder={`Enter ${stripHtml(col.label).toLowerCase()}, or paste/drop an image here`}
                 />
                 {quotationForm.descDropdownIndex === absoluteIndex && (quotationForm.isDescriptionSearchLoading || quotationForm.getFilteredItemDescriptions(absoluteIndex).length > 0) && (
                   <div className="features screen quotation form dropdown-menu">
@@ -294,7 +298,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
               className="features screen quotation form table-input description-input"
               value={item[col.id] ?? ''}
               onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
-              placeholder={`Enter ${col.label.toLowerCase()}`}
+              placeholder={`Enter ${stripHtml(col.label).toLowerCase()}`}
             />
           )}
         </td>
@@ -498,11 +502,16 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
       <thead>
         <tr>
           <th className="features screen quotation form sn-header">SN</th>
-          {columns.map((col, colIndex) => (
+          {resolveHeaderCells(columns).map(({ column: col, span, startIndex: colIndex }) => (
             <th
               key={col.id}
-              draggable={col.type !== 'calculated'}
-              onDragStart={() => setDragColumnIndex(colIndex)}
+              colSpan={span}
+              className={[
+                quotationForm.selectedHeaderIds.includes(col.id) ? 'features screen quotation form header-selected' : '',
+                quotationForm.isMultiSelectActive ? 'features screen quotation form header-multiselect' : '',
+              ].filter(Boolean).join(' ') || undefined}
+              onClick={(e) => quotationForm.handleHeaderClick(e, col.id)}
+              onContextMenu={(e) => quotationForm.handleHeaderContextMenu(e, { column: col, span })}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
@@ -510,19 +519,26 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
                 moveColumn(dragColumnIndex, colIndex);
                 setDragColumnIndex(null);
               }}
-              onDragEnd={() => setDragColumnIndex(null)}
-              title={col.type !== 'calculated' ? 'Drag to reorder' : undefined}
-              style={col.type !== 'calculated' ? { cursor: 'grab' } : undefined}
             >
               <div className="features screen quotation form column-header-cell">
+                {col.type !== 'calculated' && (
+                  <span
+                    className="features screen quotation form column-drag-handle"
+                    draggable
+                    onDragStart={() => setDragColumnIndex(colIndex)}
+                    onDragEnd={() => setDragColumnIndex(null)}
+                    title="Drag to reorder"
+                  >
+                    ⋮⋮
+                  </span>
+                )}
                 {col.type === 'calculated' ? (
-                  <span className="features screen quotation form fixed-column-label">{col.label}</span>
+                  <span className="features screen quotation form fixed-column-label">
+                    <QuotationHeaderLabel label={col.label} />
+                  </span>
                 ) : (
-                  <StableInput
-                    type="text"
-                    className="features screen quotation form column-header-input"
-                    style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
-                    value={col.label}
+                  <QuotationHeaderLabelEditor
+                    label={col.label}
                     onChange={(e) => updateColumnLabel(col.id, e.target.value)}
                   />
                 )}
@@ -923,6 +939,13 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
             />
           </div>
         </div>
+      )}
+      {quotationForm.headerMenu && (
+        <QuotationHeaderContextMenu
+          menu={quotationForm.headerMenu}
+          onMerge={quotationForm.mergeSelectedHeaders}
+          onUnmerge={quotationForm.unmergeHeader}
+        />
       )}
       {quotationForm.showImport && (
         <QuotationImportOverlay onClose={quotationForm.closeImport} onSelect={quotationForm.importQuotation} />

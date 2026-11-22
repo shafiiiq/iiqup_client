@@ -3,6 +3,12 @@ import { useRef, useState } from 'react';
 import Controls from '@/shared/components/widgets/controls/Controls';
 import A2Paper, { A2PaginationEngine, groupBlocksBySection } from '@/shared/components/widgets/paper/A2Paper';
 import HireOrderImportOverlay from './HireOrderImportOverlay';
+import HireOrderHeaderContextMenu from './fragments/HireOrderHeaderContextMenu';
+import HireOrderHeaderLabelEditor from './fragments/HireOrderHeaderLabelEditor';
+import RichField from '@/shared/components/widgets/input/RichField';
+import { stripHtml } from '@/shared/components/widgets/input/richText';
+import QuotationHeaderLabel from '@/features/screen/commercials/quotation/shared/components/QuotationHeaderLabel';
+import { resolveHeaderCells } from '@/features/screen/commercials/quotation/shared/helper/quotation.header.cell.helper';
 
 import { useHireOderForm } from '../hooks/useHireOderForm';
 import { formatCurrency, isTermHeading, getTermText } from '../helper/hire.order.form.helper';
@@ -193,14 +199,20 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
                 step="0.01"
               />
             )
-          ) : (
+          ) : col.type === 'number' ? (
             <input
-              type={col.type === 'number' ? 'number' : 'text'}
-              className={`features screen hire order table-input ${col.type === 'number' ? 'features screen hire order number-input' : 'features screen hire order description-input'}`}
+              type="number"
+              className="features screen hire order table-input number-input"
               value={item[col.id] ?? ''}
               onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
-              step={col.type === 'number' ? '0.01' : undefined}
-              placeholder={col.type === 'text' ? `Enter ${col.label.toLowerCase()}` : undefined}
+              step="0.01"
+            />
+          ) : (
+            <RichField
+              className="features screen hire order table-input description-input"
+              value={item[col.id] ?? ''}
+              onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
+              placeholder={`Enter ${stripHtml(col.label).toLowerCase()}`}
             />
           )}
         </td>
@@ -368,13 +380,18 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
       <thead>
         <tr>
           <th className="features screen hire order sn-header">SN</th>
-          {columns.map((col, columnIndex) => {
+          {resolveHeaderCells(columns).map(({ column: col, span, startIndex: columnIndex }) => {
             const fixed = col.type === 'calculated';
             return (
               <th
                 key={col.id}
-                draggable={!fixed}
-                onDragStart={() => setDragColumnIndex(columnIndex)}
+                colSpan={span}
+                className={[
+                  hireOrderForm.selectedHeaderIds.includes(col.id) ? 'features screen hire order header-selected' : '',
+                  hireOrderForm.isMultiSelectActive ? 'features screen hire order header-multiselect' : '',
+                ].filter(Boolean).join(' ') || undefined}
+                onClick={(event) => hireOrderForm.handleHeaderClick(event, col.id)}
+                onContextMenu={(event) => hireOrderForm.handleHeaderContextMenu(event, { column: col, span })}
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {
                   event.preventDefault();
@@ -382,28 +399,34 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
                   moveColumn(dragColumnIndex, columnIndex);
                   setDragColumnIndex(null);
                 }}
-                onDragEnd={() => setDragColumnIndex(null)}
-                title={fixed ? undefined : 'Drag to reorder'}
-                style={fixed ? undefined : { cursor: 'grab' }}
               >
-                {fixed ? (
-                  <div className="features screen hire order column-header-cell fixed-column-header">
-                    <span className="features screen hire order fixed-column-label">{col.label}</span>
-                    <button className="features screen hire order remove-column-btn" onClick={() => removeColumn(col.id)} title="Remove column">×</button>
-                  </div>
-                ) : (
-                  <div className="features screen hire order column-header-cell">
-                    <input
-                      type="text"
-                      className="features screen hire order column-header-input"
-                      style={{ width: `${Math.max(col.label.length + 2, 8)}ch` }}
-                      value={col.label}
+                <div className="features screen hire order column-header-cell">
+                  {!fixed && (
+                    <span
+                      className="features screen hire order column-drag-handle"
+                      draggable
+                      onDragStart={() => setDragColumnIndex(columnIndex)}
+                      onDragEnd={() => setDragColumnIndex(null)}
+                      title="Drag to reorder"
+                    >
+                      ⋮⋮
+                    </span>
+                  )}
+                  {fixed ? (
+                    <span className="features screen hire order fixed-column-label">
+                      <QuotationHeaderLabel label={col.label} />
+                    </span>
+                  ) : (
+                    <HireOrderHeaderLabelEditor
+                      label={col.label}
                       onChange={(e) => updateColumnLabel(col.id, e.target.value)}
                     />
+                  )}
+                  {!fixed && (
                     <button className="features screen hire order remove-column-btn" onClick={() => addColumn(col.id)} title="Insert column after">+</button>
-                    <button className="features screen hire order remove-column-btn" onClick={() => removeColumn(col.id)} title="Remove column">×</button>
-                  </div>
-                )}
+                  )}
+                  <button className="features screen hire order remove-column-btn" onClick={() => removeColumn(col.id)} title="Remove column">×</button>
+                </div>
               </th>
             );
           })}
@@ -733,6 +756,13 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
         </div>
       )}
 
+      {hireOrderForm.headerMenu && (
+        <HireOrderHeaderContextMenu
+          menu={hireOrderForm.headerMenu}
+          onMerge={hireOrderForm.mergeSelectedHeaders}
+          onUnmerge={hireOrderForm.unmergeHeader}
+        />
+      )}
       {hireOrderForm.showImport && (
         <HireOrderImportOverlay onClose={hireOrderForm.closeImport} onSelect={hireOrderForm.importHireOrder} />
       )}

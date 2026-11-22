@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useHeaderTitle } from '@/shared/context/TitleContext';
+import { useQuotationHeaderMerge } from './useQuotationHeaderMerge';
+import { resetHeaderSpans } from '../helper/quotation.header.merge.helper';
 import { stripHtml } from '@/shared/components/widgets/input/richText';
 import {
   fetchLatestQuotationRef,
@@ -93,6 +95,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const [historyTick, setHistoryTick] = useState(0);
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
+  const headerMerge = useQuotationHeaderMerge({ columns, setColumns });
 
   const captureFormSnapshot = () => ({
     quotationData,
@@ -496,7 +499,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     const newCol = { id: newId, label: 'New Column', type: 'text', deletable: true };
 
     setColumns((prev) => {
-      const updated = [...prev];
+      const updated = [...resetHeaderSpans(prev)];
       let insertIndex;
       if (afterColId) {
         insertIndex = updated.findIndex((c) => c.id === afterColId) + 1;
@@ -517,7 +520,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const moveColumn = (fromIndex, toIndex) => {
     setColumns((prev) => {
       if (toIndex < 0 || toIndex >= prev.length) return prev;
-      const updated = [...prev];
+      const updated = [...resetHeaderSpans(prev)];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
       return updated;
@@ -534,7 +537,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
       return;
     }
 
-    setColumns((prev) => prev.filter((c) => c.id !== colId));
+    setColumns((prev) => resetHeaderSpans(prev.filter((c) => c.id !== colId)));
     if (isCalculated) return;
     setQuotationData((prev) => ({
       ...prev,
@@ -904,6 +907,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   };
 
   return {
+    ...headerMerge,
     companyRef,
     attnRef,
     discountPopupRef,

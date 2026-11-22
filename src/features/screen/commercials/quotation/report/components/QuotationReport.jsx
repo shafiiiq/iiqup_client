@@ -11,7 +11,9 @@ import Controls from '@/shared/components/widgets/controls/Controls';
 
 import useQuotationReport from '../hooks/useQuotationReport';
 import { SHARED_BTN, CONFIRMATION_HEADING } from '../constants/quotation.report.constant';
-import { formatCurrency, isTermHeading, getTermText, buildTermNumbers, splitHeaderLabel } from '../helper/quotation.report.helper';
+import { formatCurrency, isTermHeading, getTermText, buildTermNumbers } from '../helper/quotation.report.helper';
+import { resolveHeaderCells } from '../../shared/helper/quotation.header.cell.helper';
+import QuotationHeaderLabel from '../../shared/components/QuotationHeaderLabel';
 import './QuotationReport.css';
 
 const buildItemRow = (item, absoluteIndex, columns) => (
@@ -181,11 +183,9 @@ export function ReportData({ data, signatureSlot, onSign, isSigning }) {
           <thead>
             <tr>
               <th className="features screen quotation report sn-cell">SN</th>
-              {columns.map((col) => (
-                <th key={col.id}>
-                  {splitHeaderLabel(col.label).map((line, i, arr) => (
-                    <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
-                  ))}
+              {resolveHeaderCells(columns).map(({ column: col, span }) => (
+                <th key={col.id} colSpan={span}>
+                  <QuotationHeaderLabel label={col.label} />
                 </th>
               ))}
             </tr>

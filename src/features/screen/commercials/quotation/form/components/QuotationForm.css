@@ -270,6 +270,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
+  min-width: 0;
 }
 
 .features.screen.quotation.form.fixed-column-header {
@@ -281,22 +282,78 @@
   font-size: 12pt;
 }
 
-.features.screen.quotation.form.column-header-input {
-  border: none !important;
-  background: transparent !important;
-  font-size: 12pt !important;
+.features.screen.quotation.form.header-input {
+  flex: 1;
+  min-width: 0 !important;
+  width: 100% !important;
   font-weight: bold !important;
   text-align: center !important;
-  outline: none !important;
-  padding: 2px !important;
-  min-width: 6ch;
-  max-width: 40ch;
-  box-sizing: content-box;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
-.features.screen.quotation.form.column-header-input:hover,
-.features.screen.quotation.form.column-header-input:focus {
-  border-bottom: 1px dotted #666 !important;
+.features.screen.quotation.form.header-label-display {
+  flex: 1;
+  min-width: 0;
+  font-weight: bold;
+  text-align: center;
+  cursor: text;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.features.screen.quotation.form.header-label-placeholder {
+  color: #999;
+  font-style: italic;
+  font-weight: normal;
+}
+
+.features.screen.quotation.form.column-drag-handle {
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.features.screen.quotation.form.items-table th.header-selected {
+  background-color: #f0f8ff !important;
+  outline: 1px dashed #0066cc;
+  outline-offset: -2px;
+}
+
+.features.screen.quotation.form.items-table th.header-multiselect,
+.features.screen.quotation.form.items-table th.header-multiselect * {
+  cursor: pointer !important;
+}
+
+.features.screen.quotation.form.header-context-menu {
+  position: fixed;
+  z-index: 3000;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.features.screen.quotation.form.header-context-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.features.screen.quotation.form.header-context-item:hover {
+  background-color: #f0f8ff;
 }
 
 .features.screen.quotation.form.remove-column-btn {
@@ -773,10 +830,6 @@
 }
 
 @media (max-width: 600px) {
-  .features.screen.quotation.form.column-header-input {
-    max-width: 20ch;
-  }
-
   .features.screen.quotation.form.discount-popup {
     min-width: 280px;
     margin: 20px;
