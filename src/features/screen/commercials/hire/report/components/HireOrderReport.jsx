@@ -304,12 +304,22 @@ function HireOrderReport() {
         ))
       ) : (
         <>
-          <ReportData data={h.hireOrderData} signatureSlots={h.signatureSlots} onSign={h.handleSignButtonClick} isSigning={h.isSigningDoc} />
+          <ReportData
+            data={h.hireOrderData}
+            signatureSlots={h.signatureSlots}
+            onSign={h.amendmentData ? undefined : h.handleSignButtonClick}
+            isSigning={h.isSigningDoc}
+          />
 
           {h.amendmentData && (
             <>
               <div className="features screen hire order report amendment-divider">===== AMENDED DOCUMENT FOLLOWS =====</div>
-              <ReportData data={h.amendmentData} signatureSlots={h.signatureSlots} />
+              <ReportData
+                data={h.amendmentData}
+                signatureSlots={h.signatureSlots}
+                onSign={h.handleSignButtonClick}
+                isSigning={h.isSigningDoc}
+              />
             </>
           )}
         </>
