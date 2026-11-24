@@ -91,6 +91,8 @@ export const SIGNATURE_LEGEND_GROUPS = [
 export const SIGNED_WORKFLOW_STATUSES = [
   'hire_order_uploaded',
   'hire_order_amended',
+  'supervisor_approved',
+  'prepared_by_approved',
   'manager_approved',
   'purchase_approved',
   'accounts_approved',

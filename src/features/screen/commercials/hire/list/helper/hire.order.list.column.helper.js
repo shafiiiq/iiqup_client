@@ -1,4 +1,5 @@
 import Button from '@/shared/components/widgets/button/Button';
+import { stripHtml } from '@/shared/components/widgets/input/richText';
 import { SHARED_BTN, SIGNATURE_STATUS, DRAFT_STATUS, STATUS_LABELS } from '../constants/hire.order.list.constant';
 
 const getSignatureStatus = (hireOrder, getRowClass) => {
@@ -28,7 +29,7 @@ export const buildHireOrderTableColumns = ({
         const extra = items.length - 1;
         return (
           <span>
-            {items[0]?.description || '-'}
+            {stripHtml(items[0]?.description) || '-'}
             {extra > 0 && (
               <span
                 style={{ marginLeft: 6, color: 'var(--color-primary-500, #0066cc)', cursor: 'pointer', fontSize: 12 }}
@@ -40,7 +41,7 @@ export const buildHireOrderTableColumns = ({
           </span>
         );
       },
-      renderExpanded: (extraItem) => extraItem.description,
+      renderExpanded: (extraItem) => stripHtml(extraItem.description),
     },
     {
       key: 'quantity',
