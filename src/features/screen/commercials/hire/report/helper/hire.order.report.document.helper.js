@@ -17,7 +17,9 @@ export const buildOriginalHireOrderDocument = (hireOrder) => ({
   showDiscountInTotal: hireOrder.showDiscountInTotal ?? false,
   totalDiscountAmount: hireOrder.totalDiscountAmount ?? null,
   isAmendment: false,
-  termsAndConditions: hireOrder.termsAndConditions || DEFAULT_HIRE_ORDER_DATA.termsAndConditions,
+  termsAndConditions: (hireOrder.termsAndConditions || DEFAULT_HIRE_ORDER_DATA.termsAndConditions).filter(
+    (term) => term !== 'Terms & Conditions'
+  ),
   signatures: hireOrder.signatures || DEFAULT_HIRE_ORDER_DATA.signatures,
 });
 
@@ -38,9 +40,10 @@ export const buildAmendedHireOrderDocument = (hireOrder, originalDocument, amend
     totalAmount: amendment.amendedTotalAmount ?? originalDocument.totalAmount,
     discount: amendment.amendedDiscount ?? originalDocument.discount,
     totalDiscountAmount: amendment.amendedDiscount ? amendment.amendedTotalAmount : null,
-    termsAndConditions: amendment.amendedTermsAndConditions?.length
+    termsAndConditions: (amendment.amendedTermsAndConditions?.length
       ? amendment.amendedTermsAndConditions
-      : originalDocument.termsAndConditions,
+      : originalDocument.termsAndConditions
+    ).filter((term) => term !== 'Terms & Conditions'),
     isAmendment: true,
     amendmentDate: new Date(amendment.amendmentDate).toLocaleDateString('en-GB'),
     amendmentNumber,

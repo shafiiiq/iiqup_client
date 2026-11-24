@@ -316,8 +316,7 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
       title="Click a term, then use ↑/↓ to reorder"
     >
       {!isTermHeading(term) && <span className="features screen hire order term-bullet">•</span>}
-      <input
-        type="text"
+      <RichField
         className={`features screen hire order payment-term-input${isTermHeading(term) ? ' term-heading-input' : ''}`}
         value={getTermText(term)}
         onChange={(e) => updatePaymentTerm(absoluteIndex, e.target.value)}
@@ -698,7 +697,7 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
           {
           text: hireOrderForm.isLoading
             ? (hireOrderForm.isAmendmentMode ? 'Processing Amendment...' : hireOrderForm.isEditMode ? 'Updating...' : 'Saving...')
-            : (hireOrderForm.isAmendmentMode ? 'Save Amendment & Send for Approval' : hireOrderForm.isEditMode ? 'Update Hire Order' : 'Save Hire Order'),
+            : (hireOrderForm.isAmendmentMode ? 'Save Amendment' : hireOrderForm.isEditMode ? 'Update Hire Order' : 'Save Hire Order'),
           onClick: hireOrderForm.saveHireOrderData,
           colorScheme: hireOrderForm.isLoading ? 'success-1000' : 'success-800',
           width: 'fit-content',
@@ -706,6 +705,15 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
           cursor: 'allowed',
           ...SHARED_BTN,
           },
+          ...(hireOrderForm.isAmendmentMode ? [{
+            text: 'Save Amendment & Send for Approval',
+            onClick: hireOrderForm.saveHireOrderAndSend,
+            colorScheme: hireOrderForm.isLoading ? 'warning-1000' : 'warning-800',
+            width: 'fit-content',
+            type: hireOrderForm.isLoading ? 'disabled' : 'submit',
+            cursor: 'allowed',
+            ...SHARED_BTN,
+          }] : []),
         ]}
       />
 

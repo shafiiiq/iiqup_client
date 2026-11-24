@@ -119,7 +119,7 @@ export function ReportData({ data, signatureSlots, onSign, isSigning }) {
 
   const buildTermLi = (term, absoluteIndex) => (
     <li key={absoluteIndex} className={isTermHeading(term) ? 'features screen hire order report term-heading' : undefined}>
-      {getTermText(term)}
+      <span dangerouslySetInnerHTML={richHtml(getTermText(term))} />
     </li>
   );
 
@@ -175,6 +175,9 @@ export function ReportData({ data, signatureSlots, onSign, isSigning }) {
         <table key="terms" className="features screen hire order report terms-table">
           <tbody><tr className="features screen hire order report terms-row border-left border-right border-bottom">
             <td className="features screen hire order report terms-content">
+              {group.blocks[0]?.key === 'term-0' && (
+                <div className="features screen hire order report terms-header">Terms &amp; Conditions</div>
+              )}
               <ul>{
                 group.blocks.map((b) => b.li)}
               </ul>
@@ -200,7 +203,7 @@ export function ReportData({ data, signatureSlots, onSign, isSigning }) {
           <tr>
             <td className="features screen hire order report info-column-left">
               <div className="features screen hire order report info-line">TO : M/S {data.vendor}</div>
-              <div className="features screen hire order report info-line">ATTN : M/S {data.attention}</div>
+              <div className="features screen hire order report info-line">ATTN : {data.attention}</div>
               <div className="features screen hire order report info-line">DESIGNATION : {data.designation}</div>
               <div className="features screen hire order report info-line">QUOTE REF NO : {data.quoteNo}</div>
             </td>

@@ -26,6 +26,9 @@ export const createOrUpdateQuotation = async (endpoint, method, payload) => {
   return response.json();
 };
 
+export const submitQuotationForApproval = async (refNo) =>
+  apiRequest(`/quotation/pdf/submit/${encodeURIComponent(refNo)}`, 'POST', {});
+
 export const fetchQuotationList = async (page = 1, limit = 20) => {
   const response = await apiRequest(`/quotation?page=${page}&limit=${limit}`, 'GET');
   return response.json();

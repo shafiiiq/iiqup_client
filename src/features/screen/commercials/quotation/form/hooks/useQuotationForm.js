@@ -10,6 +10,7 @@ import {
   fetchCompanyDetails,
   fetchItemDescriptions,
   createOrUpdateQuotation,
+  submitQuotationForApproval,
 } from '../api/quotation.form.api';
 import {
   buildDefaultItem,
@@ -822,7 +823,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
   const filteredCompanies = filterCompaniesByField(companies, 'vendor', quotationData.vendor);
   const filteredAttentions = filterCompaniesByField(companies, 'attention', quotationData.attention);
 
-  const saveQuotationData = async () => {
+  const persistQuotation = async (sendForApproval) => {
     if (!quotationData.vendor || !quotationData.attention || !quotationData.designation || !quotationData.items.some((item) => itemHasContent(item, columns))) {
       setSaveStatus('Please fill in all required fields');
       return false;
@@ -886,7 +887,17 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
         return false;
       }
 
-      const msg = isAmendmentMode ? 'Amendment saved successfully!' : isEditMode ? 'Quotation updated successfully!' : 'Quotation saved successfully!';
+      if (sendForApproval) {
+        const submitResponse = await submitQuotationForApproval(quotationData.quotationRef);
+        const submitResult = await submitResponse.json();
+        if (!submitResponse.ok || !submitResult.success) {
+          setSaveStatus(`Error: ${submitResult.message || 'Failed to send for approval'}`);
+          return false;
+        }
+      }
+
+      const amendmentMessage = sendForApproval ? 'Amendment saved and sent for approval!' : 'Amendment saved successfully!';
+      const msg = isAmendmentMode ? amendmentMessage : isEditMode ? 'Quotation updated successfully!' : 'Quotation saved successfully!';
       setSaveStatus(msg);
       setTimeout(() => {
         setSaveStatus('');
@@ -905,6 +916,9 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
       setIsLoading(false);
     }
   };
+
+  const saveQuotationData = () => persistQuotation(false);
+  const saveQuotationAndSend = () => persistQuotation(true);
 
   return {
     ...headerMerge,
@@ -1017,6 +1031,7 @@ export const useQuotationForm = ({ edit, amendment, amendmentUpdate, editAmendme
     handleDiscountButtonMouseEnter,
     handleDiscountButtonMouseLeave,
     saveQuotationData,
+    saveQuotationAndSend,
   };
 };
 

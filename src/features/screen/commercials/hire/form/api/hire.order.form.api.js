@@ -16,6 +16,14 @@ export const fetchCompanyDetails = async () => {
   return response.json();
 };
 
+export const submitHireOrderForApproval = async (hireOrderRef) =>
+  apiRequest(`/order/hire/upload-hire-order`, 'POST', {
+    hireOrderRef,
+    uploadedBy: 'WORKSHOP_MANAGER',
+    description: 'Hire order document generated from system',
+    isAmendment: true,
+  });
+
 export const fetchHireOrderPage = async (page = 1, limit = 20) => {
   const response = await apiRequest(`/order/hire/get-all-hire-orders?page=${page}&limit=${limit}`, 'GET');
   return response.json();

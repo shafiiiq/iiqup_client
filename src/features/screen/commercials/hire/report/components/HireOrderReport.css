@@ -177,6 +177,13 @@
   padding-bottom: 8px !important;
 }
 
+.features.screen.hire.order.report.terms-header {
+  font-weight: bold;
+  font-size: 18px;
+  text-decoration: underline;
+  margin-bottom: 10px;
+}
+
 .features.screen.hire.order.report.terms-content ul {
   margin: 0 !important;
   padding-left: 20px !important;

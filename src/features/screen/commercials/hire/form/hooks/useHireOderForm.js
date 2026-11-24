@@ -9,6 +9,7 @@ import {
   getHireOrderByRef,
   fetchCompanyDetails,
   createOrUpdateHireOrder,
+  submitHireOrderForApproval,
 } from '../api/hire.order.form.api';
 import {
   buildDefaultItem,
@@ -579,7 +580,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
   const filteredCompanies = filterCompaniesByField(companies, 'vendor', hireOrderData.vendor);
   const filteredAttentions = filterCompaniesByField(companies, 'attention', hireOrderData.attention);
 
-  const saveHireOrderData = async () => {
+  const persistHireOrder = async (sendForApproval) => {
     if (!hireOrderData.vendor || !hireOrderData.attention || !hireOrderData.designation || !hireOrderData.items.some((item) => itemHasContent(item, columns))) {
       setSaveStatus('Please fill in all required fields');
       return false;
@@ -643,7 +644,17 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
         return false;
       }
 
-      const msg = isAmendmentMode ? 'Amendment saved successfully!' : isEditMode ? 'Hire order updated successfully!' : 'Hire order saved successfully!';
+      if (sendForApproval) {
+        const submitResponse = await submitHireOrderForApproval(hireOrderData.hireOrderRef);
+        const submitResult = await submitResponse.json();
+        if (!submitResponse.ok || !submitResult.success) {
+          setSaveStatus(`Error: ${submitResult.message || 'Failed to send for approval'}`);
+          return false;
+        }
+      }
+
+      const amendmentMessage = sendForApproval ? 'Amendment saved and sent for approval!' : 'Amendment saved successfully!';
+      const msg = isAmendmentMode ? amendmentMessage : isEditMode ? 'Hire order updated successfully!' : 'Hire order saved successfully!';
       setSaveStatus(msg);
       setTimeout(() => {
         setSaveStatus('');
@@ -662,6 +673,9 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
       setIsLoading(false);
     }
   };
+
+  const saveHireOrderData = () => persistHireOrder(false);
+  const saveHireOrderAndSend = () => persistHireOrder(true);
 
   return {
     ...headerMerge,
@@ -757,6 +771,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
     handleDiscountButtonMouseEnter,
     handleDiscountButtonMouseLeave,
     saveHireOrderData,
+    saveHireOrderAndSend,
   };
 };
 

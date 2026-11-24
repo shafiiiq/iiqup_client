@@ -152,7 +152,7 @@ export const useHireOrderReport = () => {
           uploadedBy: 'WORKSHOP_MANAGER',
           hireOrderRef: documentId,
           description: 'Hire order document generated from system',
-          isAmendment: hireOrderData.isAmendment || false,
+          isAmendment: amendmentCount > 0,
         });
 
         const uploadResult = await uploadResponse.json();

@@ -608,8 +608,17 @@
 
 .features.screen.hire.order.payment-term-input {
   flex: 1;
+  min-width: 0;
   padding: 4px;
   font-size: 12pt;
+  line-height: 1.5;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dotted #666;
+  outline: none;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .features.screen.hire.order.remove-term-btn {

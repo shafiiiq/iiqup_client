@@ -877,7 +877,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
           {
           text: quotationForm.isLoading
             ? (quotationForm.isAmendmentMode ? 'Processing Amendment...' : quotationForm.isEditMode ? 'Updating...' : 'Saving...')
-            : (quotationForm.isAmendmentMode ? 'Save Amendment & Send for Approval' : quotationForm.isEditMode ? 'Update' : 'Save'),
+            : (quotationForm.isAmendmentMode ? 'Save Amendment' : quotationForm.isEditMode ? 'Update' : 'Save'),
           onClick: quotationForm.saveQuotationData,
           colorScheme: quotationForm.isLoading ? 'success-1000' : 'success-800',
           width: 'fit-content',
@@ -889,6 +889,15 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
           cursor: 'allowed',
           ...SHARED_BTN,
           },
+          ...(quotationForm.isAmendmentMode ? [{
+            text: 'Save Amendment & Send for Approval',
+            onClick: quotationForm.saveQuotationAndSend,
+            colorScheme: quotationForm.isLoading ? 'warning-1000' : 'warning-800',
+            width: 'fit-content',
+            type: quotationForm.isLoading ? 'disabled' : 'submit',
+            cursor: 'allowed',
+            ...SHARED_BTN,
+          }] : []),
         ]}
       />
 
