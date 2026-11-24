@@ -273,6 +273,7 @@
 }
 
 .features.screen.hire.order.header-label-display {
+  white-space: pre-wrap;
   flex: 1;
   min-width: 0;
   font-weight: bold;

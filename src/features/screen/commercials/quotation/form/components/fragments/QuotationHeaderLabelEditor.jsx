@@ -22,6 +22,7 @@ function QuotationHeaderLabelEditor({ label, onChange }) {
   return (
     <RichField
       autoFocus
+      multiline
       className="features screen quotation form table-input header-input"
       value={label}
       onChange={onChange}

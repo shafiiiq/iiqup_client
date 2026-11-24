@@ -204,6 +204,7 @@
   min-height: 60px;
   text-align: justify;
   line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .features.screen.quotation.form.notice-text-input,
@@ -294,6 +295,7 @@
 }
 
 .features.screen.quotation.form.header-label-display {
+  white-space: pre-wrap;
   flex: 1;
   min-width: 0;
   font-weight: bold;

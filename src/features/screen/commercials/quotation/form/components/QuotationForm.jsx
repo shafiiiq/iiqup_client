@@ -227,6 +227,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
                 onFocus={() => quotationForm.handleDescriptionFocus(absoluteIndex)}
               >
                 <RichField
+                  multiline
                   className="features screen quotation form table-input description-input"
                   value={item[col.id] ?? ''}
                   onChange={(e) => quotationForm.handleDescriptionChange(absoluteIndex, e.target.value)}
@@ -295,6 +296,7 @@ function QuotationForm({ edit, amendment, amendmentUpdate, editAmendment, duplic
             />
           ) : (
             <RichField
+              multiline
               className="features screen quotation form table-input description-input"
               value={item[col.id] ?? ''}
               onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}

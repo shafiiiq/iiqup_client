@@ -22,6 +22,7 @@ function HireOrderHeaderLabelEditor({ label, onChange }) {
   return (
     <RichField
       autoFocus
+      multiline
       className="features screen hire order table-input header-input"
       value={label}
       onChange={onChange}

@@ -209,6 +209,7 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
             />
           ) : (
             <RichField
+              multiline
               className="features screen hire order table-input description-input"
               value={item[col.id] ?? ''}
               onChange={(e) => handleItemChange(absoluteIndex, col.id, e.target.value)}
