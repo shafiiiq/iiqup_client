@@ -1,4 +1,5 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
+import { useA2BlockPagination } from './useA2BlockPagination';
 
 import Logo      from '@/assets/images/al-ansari-color.png';
 import Address   from '@/assets/images/al-ansari-full-address.png';
@@ -57,74 +58,7 @@ export const useA2PageBudget = () => {
   return { bodyProbeRef, budget };
 };
 
-export const useA2BlockPagination = (blocks, budget, firstPageOffset = 0) => {
-  const measureRef = useRef(null);
-  const [pageSizes, setPageSizes] = useState(null);
-  const debounceRef = useRef(null);
-  const hasPaginatedRef = useRef(false);
-
-  useEffect(() => {
-    if (!budget || !measureRef.current || !blocks.length) {
-      setPageSizes(null);
-      return undefined;
-    }
-
-    const runPagination = () => {
-      if (!measureRef.current) return;
-      const nodes = Array.from(measureRef.current.children);
-      const sizes = [];
-      let count = 0;
-      let currentHeight = 0;
-
-      blocks.forEach((block, index) => {
-        const height = nodes[index]?.getBoundingClientRect().height || 0;
-        const pageBudget = sizes.length === 0 ? Math.max(0, budget - firstPageOffset) : budget;
-
-        if (count && currentHeight + height > pageBudget) {
-          sizes.push(count);
-          count = 0;
-          currentHeight = 0;
-        }
-
-        count += 1;
-        currentHeight += height;
-      });
-
-      if (count) sizes.push(count);
-      setPageSizes(sizes);
-      hasPaginatedRef.current = true;
-    };
-
-    clearTimeout(debounceRef.current);
-    if (!hasPaginatedRef.current) {
-      runPagination();
-    } else {
-      debounceRef.current = setTimeout(runPagination, 150);
-    }
-
-    return () => clearTimeout(debounceRef.current);
-  }, [blocks, budget, firstPageOffset]);
-
-  const pages = useMemo(() => {
-    if (!blocks.length) return [[]];
-    if (!pageSizes || !pageSizes.length) return [blocks];
-
-    const result = [];
-    let offset = 0;
-    for (const size of pageSizes) {
-      if (offset >= blocks.length) break;
-      result.push(blocks.slice(offset, offset + size));
-      offset += size;
-    }
-    if (offset < blocks.length) {
-      if (result.length) result[result.length - 1] = result[result.length - 1].concat(blocks.slice(offset));
-      else result.push(blocks.slice(offset));
-    }
-    return result.length ? result : [blocks];
-  }, [blocks, pageSizes]);
-
-  return { measureRef, pages };
-};
+export { useA2BlockPagination };
 
 export const groupBlocksBySection = (blocks) => {
   const groups = [];
@@ -152,14 +86,14 @@ export function A2PaginationEngine({ blocks, firstPageHeader, children }) {
     return () => observer.disconnect();
   }, [firstPageHeader]);
 
-  const { measureRef, pages } = useA2BlockPagination(blocks, budget, firstPageOffset);
+  const { measureRef, pages, measuredBlocks } = useA2BlockPagination(blocks, budget, firstPageOffset);
 
   return (
     <>
       <A2Paper probe bodyRef={bodyProbeRef}><div /></A2Paper>
       <div ref={headerProbeRef} className="a2-paper-measure">{firstPageHeader}</div>
       <div ref={measureRef} className="a2-paper-measure">
-        {blocks.map((block) => <div key={block.key}>{block.content}</div>)}
+        {measuredBlocks.map((block) => <div key={block.key}>{block.content}</div>)}
       </div>
       {children(pages)}
     </>

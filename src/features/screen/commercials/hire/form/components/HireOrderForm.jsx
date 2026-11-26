@@ -9,6 +9,7 @@ import RichField from '@/shared/components/widgets/input/RichField';
 import { stripHtml } from '@/shared/components/widgets/input/richText';
 import QuotationHeaderLabel from '@/features/screen/commercials/quotation/shared/components/QuotationHeaderLabel';
 import { resolveHeaderCells } from '@/features/screen/commercials/quotation/shared/helper/quotation.header.cell.helper';
+import QuotationColumnGroup from '@/features/screen/commercials/quotation/shared/components/QuotationColumnGroup';
 
 import { useHireOderForm } from '../hooks/useHireOderForm';
 import { formatCurrency, isTermHeading, getTermText } from '../helper/hire.order.form.helper';
@@ -338,15 +339,15 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
       key: `item-${item.id}`,
       section: 'item',
       row: buildItemRow(item, absoluteIndex),
-      content: <table className="features screen hire order items-table"><tbody>{buildItemRow(item, absoluteIndex)}</tbody></table>,
+      content: <table className="features screen hire order items-table"><QuotationColumnGroup columns={columns} /><tbody>{buildItemRow(item, absoluteIndex)}</tbody></table>,
     })),
     ...(showTotalRow && showDiscountInTotal && hireOrderData.discount > 0 ? [{
       key: 'discount', section: 'item', row: buildDiscountRow(),
-      content: <table className="features screen hire order items-table"><tbody>{buildDiscountRow()}</tbody></table>,
+      content: <table className="features screen hire order items-table"><QuotationColumnGroup columns={columns} /><tbody>{buildDiscountRow()}</tbody></table>,
     }] : []),
     ...(showTotalRow ? [{
       key: 'total', section: 'item', row: buildTotalRow(),
-      content: <table className="features screen hire order items-table"><tbody>{buildTotalRow()}</tbody></table>,
+      content: <table className="features screen hire order items-table"><QuotationColumnGroup columns={columns} /><tbody>{buildTotalRow()}</tbody></table>,
     }] : []),
     ...paymentTerms.map((term, absoluteIndex) => ({
       key: `term-${absoluteIndex}`,
@@ -377,6 +378,7 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
 
   const renderItemGroup = (group) => (
     <table key="items" className="features screen hire order items-table">
+      <QuotationColumnGroup columns={columns} />
       <thead>
         <tr>
           <th className="features screen hire order sn-header">SN</th>
@@ -391,6 +393,7 @@ function HireOrderForm({ edit, amendment, editAmendment, duplicate }) {
                   hireOrderForm.isMultiSelectActive ? 'features screen hire order header-multiselect' : '',
                 ].filter(Boolean).join(' ') || undefined}
                 onClick={(event) => hireOrderForm.handleHeaderClick(event, col.id)}
+                onMouseDown={(event) => hireOrderForm.handleHeaderMouseDown(event, { startIndex: columnIndex, span })}
                 onContextMenu={(event) => hireOrderForm.handleHeaderContextMenu(event, { column: col, span })}
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {

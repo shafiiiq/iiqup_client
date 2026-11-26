@@ -4,6 +4,8 @@ import { useHeaderTitle } from '@/shared/context/TitleContext';
 import useHireOrderHistory from './useHireOrderHistory';
 import { useQuotationHeaderMerge } from '@/features/screen/commercials/quotation/form/hooks/useQuotationHeaderMerge';
 import { resetHeaderSpans } from '@/features/screen/commercials/quotation/form/helper/quotation.header.merge.helper';
+import { useColumnWidthResize } from '@/features/screen/commercials/quotation/form/hooks/useColumnWidthResize';
+import { clearColumnWidths } from '@/features/screen/commercials/quotation/shared/helper/quotation.column.width.helper';
 import {
   fetchLatestHireOrderRef,
   getHireOrderByRef,
@@ -114,6 +116,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
 
   const autoCalculateTotal = getAutoCalculateTotal(columns);
   const headerMerge = useQuotationHeaderMerge({ columns, setColumns });
+  const columnWidthResize = useColumnWidthResize({ columns, setColumns });
 
   const subtotal = calculateSubtotal(hireOrderData.items);
   const totalAmount = subtotal - (hireOrderData.discount || 0);
@@ -355,7 +358,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
     const newCol = { id: newId, label: 'New Column', type: 'text', deletable: true };
 
     setColumns((prev) => {
-      const updated = [...resetHeaderSpans(prev)];
+      const updated = [...clearColumnWidths(resetHeaderSpans(prev))];
       const afterIndex = typeof afterColumnId === 'string' ? updated.findIndex((c) => c.id === afterColumnId) : -1;
       const calculatedIndex = updated.findIndex((c) => c.type === 'calculated');
       const fallbackIndex = calculatedIndex === -1 ? updated.length : calculatedIndex;
@@ -379,7 +382,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
       return;
     }
 
-    setColumns((prev) => resetHeaderSpans(prev.filter((c) => c.id !== colId)));
+    setColumns((prev) => clearColumnWidths(resetHeaderSpans(prev.filter((c) => c.id !== colId))));
     if (isCalculated) return;
     setHireOrderData((prev) => ({
       ...prev,
@@ -679,6 +682,7 @@ export const useHireOderForm = ({ edit, amendment, editAmendment, duplicate }) =
 
   return {
     ...headerMerge,
+    ...columnWidthResize,
     companyRef,
     attnRef,
     discountPopupRef,
