@@ -1,5 +1,20 @@
 export const hasMarkup = (label = '') => /<[^>]+>/.test(label);
 
+const HTML_ENTITY_REPLACEMENTS = [
+  [/&nbsp;/g, ' '],
+  [/&lt;/g, '<'],
+  [/&gt;/g, '>'],
+  [/&quot;/g, '"'],
+  [/&#39;/g, "'"],
+  [/&amp;/g, '&'],
+];
+
+export const decodeHeaderLabelEntities = (label = '') =>
+  HTML_ENTITY_REPLACEMENTS.reduce(
+    (decodedLabel, [entityPattern, replacement]) => decodedLabel.replace(entityPattern, replacement),
+    label
+  );
+
 export const splitHeaderLabel = (label = '') => {
   if (!label) return [label];
   const slashIndex = label.indexOf('/');
