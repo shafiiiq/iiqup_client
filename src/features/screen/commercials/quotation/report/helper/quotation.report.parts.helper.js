@@ -35,6 +35,7 @@ const buildAmendment = (q, base, number) => {
   const latest = q.amendments[number - 1];
   return {
     ...base,
+    date: new Date(latest.amendmentDate).toLocaleDateString('en-GB'),
     signatures: latest.amendedSignatures || q.signatures || DEFAULT_QUOTATION_DATA.signatures,
     vendor: latest.amendedCompany?.vendor || q.company?.vendor || '',
     attention: latest.amendedCompany?.attention || q.company?.attention || '',

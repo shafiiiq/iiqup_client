@@ -28,6 +28,7 @@ export const buildAmendedHireOrderDocument = (hireOrder, originalDocument, amend
 
   return {
     ...originalDocument,
+    date: new Date(amendment.amendmentDate).toLocaleDateString('en-GB'),
     vendor: amendment.amendedCompany?.vendor || originalDocument.vendor,
     attention: amendment.amendedCompany?.attention || originalDocument.attention,
     designation: amendment.amendedCompany?.designation || originalDocument.designation,
